@@ -129,10 +129,10 @@ const Index = () => {
   return (
     <Container>
       <Heading>
-        Welcome to <Span>template-snap</Span>
+        Welcome to the <Span>Galactica zkKYC demo</Span>
       </Heading>
       <Subtitle>
-        Get started by editing <code>src/index.ts</code>
+        Proof of concept
       </Subtitle>
       <CardContainer>
         {state.error && (
@@ -185,9 +185,9 @@ const Index = () => {
         )}
         <Card
           content={{
-            title: 'Send Hello message',
+            title: 'Generate zkKYC proof',
             description:
-              'Display a custom message within a confirmation screen in MetaMask.',
+              'Call Metamask Snap to generate a proof that you hold a zkKYC.',
             button: (
               <SendHelloButton
                 onClick={handleSendHelloClick}
