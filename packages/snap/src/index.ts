@@ -22,16 +22,29 @@ export const getMessage = (originString: string): string =>
  */
 export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
   switch (request.method) {
+    // TODO: create method for ZKP
     case 'hello':
+      // TODO: get ZKP inputs
+      // TODO: generate ZKP
+      // TODO: return ZKP
       return wallet.request({
         method: 'snap_confirm',
         params: [
           {
             prompt: getMessage(origin),
             description:
-              'This custom confirmation is just for display purposes.',
+              'Galactica zkKYC proof creation.',
+            // TODO: list disclosed information
             textAreaContent:
-              'But you can edit the snap source code to make it do something, if you want to!',
+              `Do you want to prove your identity to ${origin}?
+This will create a zkKYC proof.
+It discloses the following information publicly:
+- That you hold a KYC
+- Your KYC expiration date (TODO)
+- ...
+The following private inputs are processed by the zkSNARK and stay hidden:
+- KYC id
+- ...`,
           },
         ],
       });
