@@ -1,5 +1,6 @@
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
+import { RpcMethods } from './../../../snap/src/types';
 
 /**
  * Get the installed snaps in MetaMask.
@@ -61,15 +62,18 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
  */
 
 export const sendHello = async () => {
-  await window.ethereum.request({
+
+  const res = await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
       defaultSnapOrigin,
       {
-        method: 'hello',
+        method: RpcMethods.genZkKycProof,
+        params: {expirationDate: '2021-12-31'},
       },
     ],
   });
+  console.log('Response from snap', res);
 };
 
 export const isLocalSnap = (snapId: string) => snapId.startsWith('local:');
