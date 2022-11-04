@@ -7,12 +7,12 @@
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
   "source": {
-    "shasum": "o5OLQnYyKZviswB1vnKm9WCpqwOpE6FQTIOttBDSJsY=",
+    "shasum": "/ZxADu+JPcHn+NswuYpmvu+K5DedX35B+XbFTR5ievs=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
         "iconPath": "images/icon.svg",
-        "packageName": "snap",
+        "packageName": "galactica-snap",
         "registry": "https://registry.npmjs.org/"
       }
     }
