@@ -56,5 +56,10 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "circomlibjs": "^0.1.7",
+    "ffjavascript": "patch:ffjavascript@npm:0.2.57#../../.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch",
+    "web-worker": "patch:web-worker@npm:1.2.0#../../.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch"
   }
 }

@@ -46,5 +46,9 @@
   "packageManager": "yarn@3.2.1",
   "engines": {
     "node": ">=16.0.0"
+  },
+  "resolutions": {
+    "ffjavascript@0.2.57": "patch:ffjavascript@npm:0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch",
+    "web-worker@1.2.0": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch"
   }
 }

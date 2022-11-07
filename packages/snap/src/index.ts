@@ -1,4 +1,6 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
+import { buildEddsa } from "circomlibjs";
+
 import { generateZkKycProof } from './proofGenerator';
 import { GenZkKycRequestParams, RpcMethods } from './types';
 
@@ -29,6 +31,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       // parse ZKP inputs
       const params = request.params as GenZkKycRequestParams;
       // TODO: check input validity
+
+      console.log("try");
+      const eddsa = await buildEddsa();
+      console.log("done");
 
       // ask user to confirm
       const confirm = await wallet.request({
