@@ -1,5 +1,6 @@
 import { GenZkKycRequestParams, ZkCertProof } from "./types";
 
+
 /**
  * generateZkKycProof constructs and checks the zkKYC proof
  */
