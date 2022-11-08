@@ -7314,7 +7314,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"circomlibjs@npm:^0.1.7":
+"circomlibjs@npm:0.1.7":
   version: 0.1.7
   resolution: "circomlibjs@npm:0.1.7"
   dependencies:
@@ -7323,6 +7323,18 @@ __metadata:
     ethers: ^5.5.1
     ffjavascript: ^0.2.45
   checksum: 843aa422e7a203d06e1ef9ae6bf334d726a8091eda5afcc3a6531727a6ea3acb5c4a2498bf444fda35824064d45c25cb89fe99b02410fc0f7ff2dc6d7101d779
+  languageName: node
+  linkType: hard
+
+"circomlibjs@patch:circomlibjs@npm:0.1.7#../../.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch::locator=galactica-snap%40workspace%3Apackages%2Fsnap":
+  version: 0.1.7
+  resolution: "circomlibjs@patch:circomlibjs@npm%3A0.1.7#../../.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch::version=0.1.7&hash=9a18f8&locator=galactica-snap%40workspace%3Apackages%2Fsnap"
+  dependencies:
+    blake-hash: ^2.0.0
+    blake2b: ^2.1.3
+    ethers: ^5.5.1
+    ffjavascript: ^0.2.45
+  checksum: dc34f0844f15b9256344914b343c6a4f303839f5230d71ac4cbad73549914927ea00b4e9a39c3da2e909046097ca9819dc486af88e7928f95138447176c199a0
   languageName: node
   linkType: hard
 
@@ -9929,12 +9941,12 @@ __metadata:
 
 "ffjavascript@patch:ffjavascript@npm:0.2.57#../../.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::locator=galactica-snap%40workspace%3Apackages%2Fsnap":
   version: 0.2.57
-  resolution: "ffjavascript@patch:ffjavascript@npm%3A0.2.57#../../.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::version=0.2.57&hash=00a46e&locator=galactica-snap%40workspace%3Apackages%2Fsnap"
+  resolution: "ffjavascript@patch:ffjavascript@npm%3A0.2.57#../../.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::version=0.2.57&hash=06c6c6&locator=galactica-snap%40workspace%3Apackages%2Fsnap"
   dependencies:
     wasmbuilder: 0.0.16
     wasmcurves: 0.2.0
     web-worker: ^1.2.0
-  checksum: 5c3a0f9c190d1c08057db8d5092dbbb9d9c92861987428bfa31e508ff0a0a51ee0d9a667d8bb226b827a2618a830d9bdc75f4ebfb57972edd11c4552b34ac2cd
+  checksum: 4c6a585b28b7205eb8aa2eb1becad5a164eeb66029a2153a44ea9fe849ca24af9ef62b00d4329d2d99d9accd1ea78921d5a0591e9cbb9f6000f35bbb1287725d
   languageName: node
   linkType: hard
 
@@ -10307,7 +10319,7 @@ __metadata:
     "@metamask/snaps-cli": ^0.22.0
     "@typescript-eslint/eslint-plugin": ^5.33.0
     "@typescript-eslint/parser": ^5.33.0
-    circomlibjs: ^0.1.7
+    circomlibjs: "patch:circomlibjs@npm:0.1.7#../../.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch"
     eslint: ^8.21.0
     eslint-config-prettier: ^8.1.0
     eslint-plugin-import: ^2.26.0

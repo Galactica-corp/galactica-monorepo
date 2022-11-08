@@ -13,7 +13,10 @@ To interact with (your) Snaps, you will need to install [MetaMask Flask](https:/
 Clone the template-snap repository [using this template](https://github.com/MetaMask/template-snap-monorepo/generate) and setup the development environment:
 
 ```shell
-yarn install && yarn start
+yarn install
+# remove unpatched dependencies (TODO: fix package.json files so that patches for indirect dependencies are patched automatically)
+rm -rf node_modules/circomlibjs/node_modules node_modules/ffjavascript/node_modules
+yarn start
 ```
 
 ## Cloning
