@@ -14,8 +14,12 @@ Clone the template-snap repository [using this template](https://github.com/Meta
 
 ```shell
 yarn install
+
 # remove unpatched dependencies (TODO: fix package.json files so that patches for indirect dependencies are patched automatically)
-rm -rf node_modules/circomlibjs/node_modules node_modules/ffjavascript/node_modules
+cd node_modules
+rm -rf circomlibjs/node_modules ffjavascript/node_modules r1csfile/node_modules/ffjavascript circom_runtime/node_modules/ffjavascript @iden3/binfileutils/node_modules/ffjavascript r1csfile/node_modules/web-worker circom_runtime/node_modules/web-worker @iden3/binfileutils/node_modules/web-worker snarkjs/node_modules/ffjavascript snarkjs/node_modules/web-worker
+cd ..
+
 yarn start
 ```
 

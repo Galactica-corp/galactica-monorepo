@@ -25,16 +25,13 @@ export const getMessage = (originString: string): string =>
  * @throws If the `snap_confirm` call failed.
  */
 export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
+  console.log("got something");
   switch (request.method) {
     // TODO: create method for ZKP
     case RpcMethods.genZkKycProof:
       // parse ZKP inputs
       const params = request.params as GenZkKycRequestParams;
       // TODO: check input validity
-
-      console.log("try");
-      const eddsa = await buildEddsa();
-      console.log("done");
 
       // ask user to confirm
       const confirm = await wallet.request({
@@ -50,10 +47,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             This will create a zkKYC proof.
             It discloses the following information publicly:
             - That you hold a KYC
-            - Your KYC expiration date (${params.expirationDate})
+            - That you are above ${params.input.ageThreshold} years old
             - ...
             The following private inputs are processed by the zkSNARK and stay hidden:
             - KYC id
+            - inputs (e.g. year of birth ${params.input.yearOfBirth})
             - ...`,
           },
         ],

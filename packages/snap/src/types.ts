@@ -3,14 +3,26 @@
  */
 export type GenZkKycRequestParams = {
     // TODO: fill in real parameters
-    expirationDate: string;
+    input: {
+        yearOfBirth: string,
+        monthOfBirth: string,
+        dayOfBirth: string,
+        currentYear: string,
+        currentMonth: string,
+        currentDay: string,
+        ageThreshold: string
+    },
+    wasm: Uint8Array,
+    zkeyHeader: any,
+    zkeySections: any[],
 }
 
 /**
  * zkCert proof to be reterned to the website.
  */
 export type ZkCertProof = {
-    proof: string;
+    proof: string,
+    publicSignals: string[],
 }
 
 /**

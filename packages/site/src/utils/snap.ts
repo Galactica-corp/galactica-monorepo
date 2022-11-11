@@ -1,6 +1,7 @@
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { RpcMethods } from './../../../snap/src/types';
+import { wasm, zkeyHeader, zkeySections } from "../data/ageProof";
 
 /**
  * Get the installed snaps in MetaMask.
@@ -63,13 +64,30 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 
 export const sendHello = async () => {
 
+  // TODO: move filling input inside snap
+  const input: any = {
+    yearOfBirth: "1",
+    monthOfBirth: "1",
+    dayOfBirth: "1",
+    currentYear: "1",
+    currentMonth: "1",
+    currentDay: "1",
+    ageThreshold: "1"
+  };
+
+  console.log('sending request to snap...');
   const res = await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
       defaultSnapOrigin,
       {
         method: RpcMethods.genZkKycProof,
-        params: {expirationDate: '2021-12-31'},
+        params: {
+          input: input,
+          wasm: wasm,
+          zkeyHeader: zkeyHeader,
+          zkeySections: zkeySections,
+        },
       },
     ],
   });
