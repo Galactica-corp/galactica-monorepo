@@ -1,17 +1,9 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
-import { buildEddsa } from "circomlibjs";
 
 import { generateZkKycProof } from './proofGenerator';
 import { GenZkKycRequestParams, RpcMethods } from './types';
+import { getState, saveState } from './stateManagement';
 
-/**
- * Get a message from the origin. For demonstration purposes only.
- *
- * @param originString - The origin string.
- * @returns A message based on the origin.
- */
-export const getMessage = (originString: string): string =>
-  `Hello, ${originString}!`;
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -25,9 +17,12 @@ export const getMessage = (originString: string): string =>
  * @throws If the `snap_confirm` call failed.
  */
 export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
-  console.log("got something");
+  console.log("got request", request.method);
+
+  let state = await getState();
+
   switch (request.method) {
-    // TODO: create method for ZKP
+
     case RpcMethods.genZkKycProof:
       // parse ZKP inputs
       const params = request.params as GenZkKycRequestParams;
@@ -38,7 +33,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         method: 'snap_confirm',
         params: [
           {
-            prompt: getMessage(origin),
+            prompt: "Generate zkCert proof?",
             description:
             'Galactica zkKYC proof creation.',
             // TODO: list disclosed information
@@ -62,7 +57,18 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       
       const proof = generateZkKycProof(params);
       return proof;
-      
+
+    case RpcMethods.clearStorage:
+      await saveState({ zkCerts: [] });
+      return "zkCert storage cleared";
+    case RpcMethods.importZkCert:
+      // TODO: implement
+      throw new Error('Not implemented yet.');
+    case RpcMethods.exportZkCert:
+      // TODO: implement
+      throw new Error('Not implemented yet.');
+
+
     default:
       throw new Error('Method not found.');
   }
