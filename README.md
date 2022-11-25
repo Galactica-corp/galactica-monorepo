@@ -14,14 +14,17 @@ Clone the template-snap repository [using this template](https://github.com/Meta
 
 ```shell
 yarn install
-
-# remove unpatched dependencies (TODO: fix package.json files so that patches for indirect dependencies are patched automatically)
-cd node_modules
-rm -rf circomlibjs/node_modules ffjavascript/node_modules r1csfile/node_modules/ffjavascript circom_runtime/node_modules/ffjavascript @iden3/binfileutils/node_modules/ffjavascript r1csfile/node_modules/web-worker circom_runtime/node_modules/web-worker @iden3/binfileutils/node_modules/web-worker snarkjs/node_modules/ffjavascript snarkjs/node_modules/web-worker
-cd ..
-
 yarn start
 ```
+
+## Proof preparation
+To generate zk proofs, the snap takes the generator wasm and keys as input. This data is preliminarily provided through typescript.
+It can be generated with the script `packages/snap/scripts/proofGenerationPrep.ts`, which can be run with:
+```
+cd packages/snap
+yarn run proofPrep
+```
+You can modify the script to select another proof to prepare.
 
 ## Cloning
 
