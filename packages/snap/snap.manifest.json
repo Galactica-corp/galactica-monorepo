@@ -11,7 +11,7 @@
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
-        "iconPath": "images/icon.svg",
+        "iconPath": "images/galactica_icon.svg",
         "packageName": "galactica-snap",
         "registry": "https://registry.npmjs.org/"
       }
