@@ -48,9 +48,7 @@
     "node": ">=16.0.0"
   },
   "resolutions": {
-    "circomlib/ffjavascript": "patch:ffjavascript@npm:0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch",
-    "circomlib/web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch",
-    "web-worker@1.2.0": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch",
-    "circomlibjs@0.1.7": "patch:circomlibjs@npm:0.1.7#.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch"
+    "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch",
+    "ffjavascript": "patch:ffjavascript@npm:0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch"
   }
 }

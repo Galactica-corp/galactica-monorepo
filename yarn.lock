@@ -6651,13 +6651,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"big-integer@npm:^1.6.42, big-integer@npm:^1.6.48":
-  version: 1.6.51
-  resolution: "big-integer@npm:1.6.51"
-  checksum: 3d444173d1b2e20747e2c175568bedeebd8315b0637ea95d75fd27830d3b8e8ba36c6af40374f36bdaea7b5de376dcada1b07587cb2a79a928fccdb6e6e3c518
-  languageName: node
-  linkType: hard
-
 "big.js@npm:^5.2.2":
   version: 5.2.2
   resolution: "big.js@npm:5.2.2"
@@ -6712,13 +6705,6 @@ __metadata:
     blake2b-wasm: ^2.4.0
     nanoassert: ^2.0.0
   checksum: cd598c96d459017714b7f9cb8892ef2b0a94f362e26e6baa46b7b8b189af0006ce25ab1713e3ec1484eb18ce7ebe1eb24e07d01e42ab1147067de2419c7f6158
-  languageName: node
-  linkType: hard
-
-"blakejs@npm:^1.1.0":
-  version: 1.2.1
-  resolution: "blakejs@npm:1.2.1"
-  checksum: d699ba116cfa21d0b01d12014a03e484dd76d483133e6dc9eb415aa70a119f08beb3bcefb8c71840106a00b542cba77383f8be60cd1f0d4589cb8afb922eefbe
   languageName: node
   linkType: hard
 
@@ -10072,19 +10058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ffjavascript@npm:0.2.48":
-  version: 0.2.48
-  resolution: "ffjavascript@npm:0.2.48"
-  dependencies:
-    big-integer: ^1.6.48
-    wasmbuilder: ^0.0.12
-    wasmcurves: 0.1.0
-    web-worker: ^1.2.0
-  checksum: 68beae9a4f642c06656685353b84fd7655020ca0e628ea046e94452ab779587953cc45cde106d74b68be7177b49c8f19b105d6552c4a1d715e784ae9e7c9ed34
-  languageName: node
-  linkType: hard
-
-"ffjavascript@npm:0.2.57, ffjavascript@npm:^0.2.45, ffjavascript@npm:^0.2.48":
+"ffjavascript@npm:0.2.57":
   version: 0.2.57
   resolution: "ffjavascript@npm:0.2.57"
   dependencies:
@@ -10095,9 +10069,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ffjavascript@patch:ffjavascript@npm:0.2.57#../../.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::locator=galactica-snap%40workspace%3Apackages%2Fsnap":
+"ffjavascript@patch:ffjavascript@npm:0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A.":
   version: 0.2.57
-  resolution: "ffjavascript@patch:ffjavascript@npm%3A0.2.57#../../.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::version=0.2.57&hash=06c6c6&locator=galactica-snap%40workspace%3Apackages%2Fsnap"
+  resolution: "ffjavascript@patch:ffjavascript@npm%3A0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::version=0.2.57&hash=06c6c6&locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A."
   dependencies:
     wasmbuilder: 0.0.16
     wasmcurves: 0.2.0
@@ -10492,14 +10466,12 @@ __metadata:
     eslint-plugin-jsdoc: ^39.2.9
     eslint-plugin-node: ^11.1.0
     eslint-plugin-prettier: ^4.2.1
-    ffjavascript: "patch:ffjavascript@npm:0.2.57#../../.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch"
     prettier: ^2.2.1
     prettier-plugin-packagejson: ^2.2.11
     rimraf: ^3.0.2
     snarkjs: "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap"
     ts-node: ^10.9.1
     typescript: ^4.7.4
-    web-worker: "patch:web-worker@npm:1.2.0#../../.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch"
   languageName: unknown
   linkType: soft
 
@@ -18403,25 +18375,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wasmbuilder@npm:^0.0.12":
-  version: 0.0.12
-  resolution: "wasmbuilder@npm:0.0.12"
-  dependencies:
-    big-integer: ^1.6.48
-  checksum: 327b3c50b0e1e5e3aac9e218e0f96fdc638b7952ab86acc2ad53960371996826dbb0a8095edce482cf1d9c245d96884449701909bc962920aa7ec8241db01214
-  languageName: node
-  linkType: hard
-
-"wasmcurves@npm:0.1.0":
-  version: 0.1.0
-  resolution: "wasmcurves@npm:0.1.0"
-  dependencies:
-    big-integer: ^1.6.42
-    blakejs: ^1.1.0
-  checksum: 6bf6719e659a88904af0b98d152316e3b22435ca6a2cfc8bbf4530576806f17b2776b2c7d91d1a678fe0d51485a0d1748efcd080808c181c7977bee50b26efa9
-  languageName: node
-  linkType: hard
-
 "wasmcurves@npm:0.2.0":
   version: 0.2.0
   resolution: "wasmcurves@npm:0.2.0"
@@ -18448,16 +18401,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-worker@npm:1.2.0, web-worker@npm:^1.2.0":
+"web-worker@npm:1.2.0":
   version: 1.2.0
   resolution: "web-worker@npm:1.2.0"
   checksum: 1bb28348ddcf9b2e7c62c5fd02e49a84098795856cd905456de957271bba288e9618941cf69d8960f0a7ae81f5dfb74b427c0634be47ec69e3e955c4ec5213be
   languageName: node
   linkType: hard
 
-"web-worker@patch:web-worker@npm:1.2.0#../../.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch::locator=galactica-snap%40workspace%3Apackages%2Fsnap":
+"web-worker@patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch::locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A.":
   version: 1.2.0
-  resolution: "web-worker@patch:web-worker@npm%3A1.2.0#../../.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch::version=1.2.0&hash=603182&locator=galactica-snap%40workspace%3Apackages%2Fsnap"
+  resolution: "web-worker@patch:web-worker@npm%3A1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch::version=1.2.0&hash=603182&locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A."
   checksum: 7ef3ae20cddcb991ed767962d156d2889d34b354c62775bd091294fbc8905703ee1e342d1e7cb5b81ee16b52ee53e845c697f67a266f559b22f546054a7089a1
   languageName: node
   linkType: hard
