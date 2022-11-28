@@ -1,7 +1,7 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
 
 import { generateZkKycProof } from './proofGenerator';
-import { GenZkKycRequestParams, RpcMethods } from './types';
+import { GenZkKycRequestParams, ImportRequestParams, RpcMethods } from './types';
 import { getState, saveState } from './stateManagement';
 
 
@@ -26,8 +26,12 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
 
     case RpcMethods.genZkKycProof:
       // parse ZKP inputs
-      const params = request.params as GenZkKycRequestParams;
+      const genParams = request.params as GenZkKycRequestParams;
       // TODO: check input validity
+
+      if (state.zkCerts.length == 0) {
+        throw new Error("No zkCerts available. Please import it first.");
+      }
 
       // ask user to confirm
       confirm = await wallet.request({
@@ -43,20 +47,24 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             This will create a zkKYC proof.
             It discloses the following information publicly:
             - That you hold a KYC
-            - That you are above ${params.input.ageThreshold} years old
+            - That you are above ${genParams.input.ageThreshold} years old
             - ...
             The following private inputs are processed by the zkSNARK and stay hidden:
             - KYC id
-            - inputs (e.g. year of birth ${params.input.yearOfBirth})
+            - inputs (e.g. year of birth)
             - ...`,
           },
         ],
       });
+
       if (!confirm) {
         throw new Error('User rejected confirmation.');
       }
-      
-      const proof = generateZkKycProof(params);
+
+      // TODO: pick correct zkCert with snap dialog
+      const zkCert = state.zkCerts[0];
+
+      const proof = generateZkKycProof(genParams, zkCert);
       return proof;
 
     case RpcMethods.clearStorage:
@@ -80,8 +88,29 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       return "zkCert storage cleared";
     
     case RpcMethods.importZkCert:
-      // TODO: implement
-      throw new Error('Not implemented yet.');
+      const importParams = request.params as ImportRequestParams;
+
+      confirm = await wallet.request({
+        method: 'snap_confirm',
+        params: [
+          {
+            prompt: "Import zkCert?",
+            description:
+            'Galactica zkKYC import.',
+            textAreaContent:
+            `Do you want to import the following zkCert? (provided through ${origin})
+            ${JSON.stringify(importParams.zkCert, null, 2)}
+            `,
+          },
+        ],
+      });
+      if (!confirm) {
+        throw new Error('User rejected confirmation.');
+      }
+      state.zkCerts.push(importParams.zkCert);
+      await saveState(state);
+      return "zkCert added to storage";
+
     case RpcMethods.exportZkCert:
       // TODO: implement
       throw new Error('Not implemented yet.');

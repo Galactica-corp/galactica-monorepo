@@ -64,11 +64,8 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 
 export const generateProof = async () => {
   // TODO: move filling input inside snap
-  const input: any = {
-    yearOfBirth: "1",
-    monthOfBirth: "1",
-    dayOfBirth: "1",
-    currentYear: "1",
+  const publicInput = {
+    currentYear: "5",
     currentMonth: "1",
     currentDay: "1",
     ageThreshold: "1"
@@ -81,7 +78,7 @@ export const generateProof = async () => {
       {
         method: RpcMethods.genZkKycProof,
         params: {
-          input: input,
+          input: publicInput,
           wasm: wasm,
           zkeyHeader: zkeyHeader,
           zkeySections: zkeySections,
@@ -104,14 +101,14 @@ export const clearStorage = async () => {
   });
 };
 
-export const importZkCert = async () => {
+export const importZkCert = async (zkCertJson: any) => {
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
       defaultSnapOrigin,
       {
         method: RpcMethods.importZkCert,
-        params: {}, // TODO: add params
+        params: {zkCert: zkCertJson},
       },
     ],
   });
@@ -123,7 +120,7 @@ export const exportZkCert = async () => {
     params: [
       defaultSnapOrigin,
       {
-        method: RpcMethods.importZkCert,
+        method: RpcMethods.exportZkCert,
         params: {}, // TODO: add params
       },
     ],

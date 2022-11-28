@@ -1,0 +1,14 @@
+{
+    "holder": "0x000",
+    "holderCommitment": "001",
+    "providerSignature": "002",
+    "leafHash": "1234",
+    "did": "did:gip69:1234",
+    "contentHash": "0123",
+    "zkCertStandard": "GIP-69",
+    "content": {
+        "yearOfBirth": "1",
+        "monthOfBirth": "1",
+        "dayOfBirth": "1"
+    }
+}

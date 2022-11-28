@@ -14,13 +14,9 @@ import {
   ConnectButton,
   InstallFlaskButton,
   ReconnectButton,
-  GenerateButton,
   Card,
-  ClearStorageButton,
-  ImportZkCertButton,
-  ExportZkCertButton,
-  TestButton,
   GeneralButton,
+  SelectAndImportButton,
 } from '../components';
 
 const Container = styled.div`
@@ -129,6 +125,19 @@ const Index = () => {
     try {
       console.log('sending request to snap...');
       const res = await method();
+      console.log('Response from snap', res);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const handleOnImportSelect = async (fileContent: string) => {
+    try {
+      const parsedFile = JSON.parse(fileContent);
+
+      console.log('sending request to snap...');
+      const res = await importZkCert(parsedFile);
       console.log('Response from snap', res);
     } catch (e) {
       console.error(e);
@@ -245,10 +254,10 @@ const Index = () => {
             description:
               'Uploads a zkCert file into the Metamask snap storage.',
             button: (
-              <GeneralButton
-                onClick={() => handleSnapCallClick(clearStorage)}
+              <SelectAndImportButton
+                onFileSelected={handleOnImportSelect}
                 disabled={false}
-                text="Import"
+                text="Select & Import"
               />
             ),
           }}
@@ -262,7 +271,7 @@ const Index = () => {
               'Downloads zkCert files from the Metamask snap storage.',
             button: (
               <GeneralButton
-                onClick={() => handleSnapCallClick(clearStorage)}
+                onClick={() => handleSnapCallClick(exportZkCert)}
                 disabled={false}
                 text="Export"
               />

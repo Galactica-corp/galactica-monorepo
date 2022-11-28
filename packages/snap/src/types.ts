@@ -20,6 +20,13 @@ export type GenZkKycRequestParams = {
 }
 
 /**
+ * Parameter for zkCert import.
+ */
+export type ImportRequestParams = {
+    zkCert: ZkCert,
+}
+
+/**
  * zkCert proof to be reterned to the website.
  */
 export type ZkCertProof = {

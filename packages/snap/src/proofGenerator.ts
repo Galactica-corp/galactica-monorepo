@@ -1,14 +1,21 @@
-import { GenZkKycRequestParams, ZkCertProof } from "./types";
+import { GenZkKycRequestParams, ZkCert, ZkCertProof } from "./types";
 import { groth16 } from "snarkjs";
 
 
 /**
  * generateZkKycProof constructs and checks the zkKYC proof
  */
-export const generateZkKycProof = async (params: GenZkKycRequestParams): Promise<ZkCertProof> => {
+export const generateZkKycProof = async (params: GenZkKycRequestParams, zkCert: ZkCert): Promise<ZkCertProof> => {
     params = preprocessInput(params);
 
-    const { proof, publicSignals } = await groth16.fullProveMemory(params.input, Uint8Array.from(params.wasm), params.zkeyHeader, params.zkeySections)
+    const inputs = {
+        ...params.input,
+        yearOfBirth: zkCert.content.yearOfBirth,
+        monthOfBirth: zkCert.content.monthOfBirth,
+        dayOfBirth: zkCert.content.dayOfBirth,
+    };
+
+    const { proof, publicSignals } = await groth16.fullProveMemory(inputs, Uint8Array.from(params.wasm), params.zkeyHeader, params.zkeySections)
 
     console.log("Calculated proof: ");
     console.log(JSON.stringify(proof, null, 1));

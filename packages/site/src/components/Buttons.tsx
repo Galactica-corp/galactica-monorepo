@@ -1,4 +1,4 @@
-import { ComponentProps } from 'react';
+import { ComponentProps, ChangeEvent, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { MetamaskState } from '../hooks';
 import { ReactComponent as FlaskFox } from '../assets/flask_fox.svg';
@@ -45,6 +45,10 @@ const Button = styled.button`
 
 const ButtonText = styled.span`
   margin-left: 1rem;
+`;
+
+const HiddenInput = styled.input`
+  display: none;
 `;
 
 const ConnectedContainer = styled.div`
@@ -96,6 +100,41 @@ export const ReconnectButton = (props: ComponentProps<typeof Button>) => {
 
 export const GeneralButton = (props: ComponentProps<typeof Button>) => {
   return <Button {...props}>{props.text}</Button>;
+};
+
+/**
+ * Button for importing a zkCert into Snap by first selecting it though a file input, reading it and passing the contents to the snap
+ */
+export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
+  const [file, setFile] = useState<File>();
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) {
+      return;
+    }
+    setFile(e.target.files[0]);
+
+    // call snap method with file contents
+    props.onFileSelected(await e.target.files[0]?.text());
+  };
+
+  // Redirect the click event onto the hidden input element to open the file selector dialog
+  // The original click event is executed on the file selection event
+  const handleClick = () => {
+    inputRef.current?.click();
+  };
+
+  return (
+    <div>
+      <HiddenInput
+        type="file"
+        ref={inputRef}
+        onChange={handleFileChange} // TODO: use different event to trigger also on reselecting the same file
+      />
+      <Button {...props} onClick={handleClick}>{props.text}</Button>
+    </div>
+  );
 };
 
 export const HeaderButtons = ({
