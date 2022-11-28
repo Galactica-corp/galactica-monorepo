@@ -4,15 +4,23 @@ import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
   connectSnap,
   getSnap,
-  sendHello,
+  generateProof,
   shouldDisplayReconnectButton,
+  clearStorage,
+  importZkCert,
+  exportZkCert,
 } from '../utils';
 import {
   ConnectButton,
   InstallFlaskButton,
   ReconnectButton,
-  SendHelloButton,
+  GenerateButton,
   Card,
+  ClearStorageButton,
+  ImportZkCertButton,
+  ExportZkCertButton,
+  TestButton,
+  GeneralButton,
 } from '../components';
 
 const Container = styled.div`
@@ -117,9 +125,11 @@ const Index = () => {
     }
   };
 
-  const handleSendHelloClick = async () => {
+  const handleSnapCallClick = async (method : () => Promise<any>) => {
     try {
-      await sendHello();
+      console.log('sending request to snap...');
+      const res = await method();
+      console.log('Response from snap', res);
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -129,10 +139,10 @@ const Index = () => {
   return (
     <Container>
       <Heading>
-        Welcome to the <Span>Galactica zkKYC demo</Span>
+        Welcome to the <Span>Galactica zkKYC</Span> proof of concept
       </Heading>
       <Subtitle>
-        Proof of concept
+        Galactica dApp features
       </Subtitle>
       <CardContainer>
         {state.error && (
@@ -189,23 +199,78 @@ const Index = () => {
             description:
               'Call Metamask Snap to generate a proof that you hold a zkKYC.',
             button: (
-              <SendHelloButton
-                onClick={handleSendHelloClick}
+              <GeneralButton
+                onClick={() => handleSnapCallClick(generateProof)}
                 disabled={false}
+                text="Generate"
               />
             ),
           }}
           disabled={false}
           fullWidth={false}
         />
-        <Notice>
+        {/* <Notice>
           <p>
             Please note that the <b>snap.manifest.json</b> and{' '}
             <b>package.json</b> must be located in the server root directory and
             the bundle must be hosted at the location specified by the location
             field.
           </p>
-        </Notice>
+        </Notice> */}
+      </CardContainer>
+      <br/>
+      <Subtitle>
+        Manage zkCertificate storage (part of Galactica passport website)
+      </Subtitle>
+      <CardContainer>
+        <Card
+          content={{
+            title: 'Clear storage',
+            description:
+              'Asks the Metamask snap to clear the zkCertificate storage.',
+            button: (
+              <GeneralButton
+                onClick={() => handleSnapCallClick(clearStorage)}
+                disabled={false}
+                text="Clear"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Import zkCert',
+            description:
+              'Uploads a zkCert file into the Metamask snap storage.',
+            button: (
+              <GeneralButton
+                onClick={() => handleSnapCallClick(clearStorage)}
+                disabled={false}
+                text="Import"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Export zkCert',
+            description:
+              'Downloads zkCert files from the Metamask snap storage.',
+            button: (
+              <GeneralButton
+                onClick={() => handleSnapCallClick(clearStorage)}
+                disabled={false}
+                text="Export"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
       </CardContainer>
     </Container>
   );

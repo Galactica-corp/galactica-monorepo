@@ -20,6 +20,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
   console.log("got request", request.method);
 
   let state = await getState();
+  let confirm : any;
 
   switch (request.method) {
 
@@ -29,7 +30,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       // TODO: check input validity
 
       // ask user to confirm
-      const confirm = await wallet.request({
+      confirm = await wallet.request({
         method: 'snap_confirm',
         params: [
           {
@@ -59,8 +60,25 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       return proof;
 
     case RpcMethods.clearStorage:
+      confirm = await wallet.request({
+        method: 'snap_confirm',
+        params: [
+          {
+            prompt: "Clear zkCert storage?",
+            description:
+            'Galactica zkCert storage clearing',
+            textAreaContent:
+            `Do you want to delete the zkCertificates stored in Metamask? (requested by ${origin})`,
+          },
+        ],
+      });
+      if (!confirm) {
+        throw new Error('User rejected confirmation.');
+      }
+
       await saveState({ zkCerts: [] });
       return "zkCert storage cleared";
+    
     case RpcMethods.importZkCert:
       // TODO: implement
       throw new Error('Not implemented yet.');

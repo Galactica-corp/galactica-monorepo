@@ -4,14 +4,14 @@ import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
   connectSnap,
   getSnap,
-  sendHello,
+  generateProof,
   shouldDisplayReconnectButton,
 } from '../utils';
 import {
   ConnectButton,
   InstallFlaskButton,
   ReconnectButton,
-  SendHelloButton,
+  GenerateButton,
 } from './Buttons';
 import { Card } from './Card';
 
@@ -119,7 +119,7 @@ export const Home = () => {
 
   const handleSendHelloClick = async () => {
     try {
-      await sendHello();
+      await generateProof();
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -189,7 +189,7 @@ export const Home = () => {
             description:
               'Display a custom message within a confirmation screen in MetaMask.',
             button: (
-              <SendHelloButton
+              <GenerateButton
                 onClick={handleSendHelloClick}
                 disabled={false}
               />

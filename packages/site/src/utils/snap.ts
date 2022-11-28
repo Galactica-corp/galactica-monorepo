@@ -59,11 +59,10 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 };
 
 /**
- * Invoke the "hello" method from the example snap.
+ * Invoke the methods from the example snap.
  */
 
-export const sendHello = async () => {
-
+export const generateProof = async () => {
   // TODO: move filling input inside snap
   const input: any = {
     yearOfBirth: "1",
@@ -75,8 +74,7 @@ export const sendHello = async () => {
     ageThreshold: "1"
   };
 
-  console.log('sending request to snap...');
-  const res = await window.ethereum.request({
+  return await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
       defaultSnapOrigin,
@@ -91,7 +89,45 @@ export const sendHello = async () => {
       },
     ],
   });
-  console.log('Response from snap', res);
+};
+
+export const clearStorage = async () => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.clearStorage,
+        params: {},
+      },
+    ],
+  });
+};
+
+export const importZkCert = async () => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.importZkCert,
+        params: {}, // TODO: add params
+      },
+    ],
+  });
+};
+
+export const exportZkCert = async () => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.importZkCert,
+        params: {}, // TODO: add params
+      },
+    ],
+  });
 };
 
 export const isLocalSnap = (snapId: string) => snapId.startsWith('local:');
