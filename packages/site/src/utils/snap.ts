@@ -1,6 +1,6 @@
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
-import { RpcMethods, ZkCertStandard } from './../../../snap/src/types';
+import { ExportRequestParams, RpcMethods, ZkCertStandard } from './../../../snap/src/types';
 import { wasm, zkeyHeader, zkeySections } from "../data/ageProof";
 
 /**
@@ -118,13 +118,17 @@ export const importZkCert = async (zkCertJson: any) => {
 };
 
 export const exportZkCert = async () => {
+  const params: ExportRequestParams = {
+    zkCertStandard: ZkCertStandard.zkKYC,
+  };
+
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
       defaultSnapOrigin,
       {
         method: RpcMethods.exportZkCert,
-        params: {}, // TODO: add params
+        params: params,
       },
     ],
   });

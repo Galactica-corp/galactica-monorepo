@@ -33,6 +33,13 @@ export type ImportRequestParams = {
 }
 
 /**
+ * Parameter for zkCert export.
+ */
+export type ExportRequestParams = {
+    zkCertStandard: string,
+}
+
+/**
  * zkCert proof to be reterned to the website.
  */
 export type ZkCertProof = {
@@ -48,6 +55,7 @@ export enum RpcMethods {
     clearStorage = 'clearStorage',
     importZkCert = 'importZkCert',
     exportZkCert = 'exportZkCert',
+    // TODO: would be nice to have more storage management methods like deleting a specific zkCert, modifying a zkCert, bulk import/export, ...
 }
 
 /**

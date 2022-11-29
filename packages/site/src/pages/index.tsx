@@ -132,6 +132,27 @@ const Index = () => {
     }
   };
 
+  const handleExportClick = async () => {
+    try {
+      console.log('sending request to snap...');
+      const res = await exportZkCert();
+      console.log('Response from snap', res);
+
+      // save to file
+      // TODO: add a saveAs dialog to let the user choose file name and location
+      const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+        JSON.stringify(res)
+      )}`;
+      const link = document.createElement("a");
+      link.href = jsonString;
+      link.download = "zkCert.json";
+      link.click();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
   const handleOnImportSelect = async (fileContent: string) => {
     try {
       const parsedFile = JSON.parse(fileContent);
@@ -271,7 +292,7 @@ const Index = () => {
               'Downloads zkCert files from the Metamask snap storage.',
             button: (
               <GeneralButton
-                onClick={() => handleSnapCallClick(exportZkCert)}
+                onClick={handleExportClick}
                 disabled={false}
                 text="Export"
               />

@@ -1,7 +1,7 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
 
 import { generateZkKycProof } from './proofGenerator';
-import { GenZkKycRequestParams, ImportRequestParams, RpcMethods } from './types';
+import { ExportRequestParams, GenZkKycRequestParams, ImportRequestParams, RpcMethods } from './types';
 import { getState, saveState } from './stateManagement';
 import { selectZkCert } from './zkCertSelector';
 
@@ -108,9 +108,27 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       return "zkCert added to storage";
 
     case RpcMethods.exportZkCert:
-      // TODO: implement
-      throw new Error('Not implemented yet.');
+      const exportParams = request.params as ExportRequestParams;
 
+      confirm = await wallet.request({
+        method: 'snap_confirm',
+        params: [
+          {
+            prompt: "Import zkCert?",
+            description:
+            'Galactica zkKYC import.',
+            textAreaContent:
+            `Do you want to export a zkCert? (provided to ${origin} for saving it to a file)
+            `,
+          },
+        ],
+      });
+      if (!confirm) {
+        throw new Error('User rejected confirmation.');
+      }
+
+      const zkCertForExport = await selectZkCert(state.zkCerts, {zkCertStandard: exportParams.zkCertStandard});
+      return zkCertForExport;
 
     default:
       throw new Error('Method not found.');
