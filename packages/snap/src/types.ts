@@ -1,19 +1,25 @@
 import { ZkKYCContent } from "./zkCertTypes"
 
+
+// requirements on the zk proof
+export type ZkCertRequirements = {
+    // identifier of the zkCert standard (e.g. zkKYC, zkDiploma, zkGymMembership, ...)
+    zkCertStandard: string, 
+}
+
 /**
  * Parameter for requests to generate a zkKYC proof.
  */
 export type GenZkKycRequestParams = {
-    // TODO: fill in real parameters
+    // public inputs that need to be proven
     input: {
-        yearOfBirth: string,
-        monthOfBirth: string,
-        dayOfBirth: string,
+        // TODO: fill in real parameters
         currentYear: string,
         currentMonth: string,
         currentDay: string,
         ageThreshold: string
     },
+    requirements: ZkCertRequirements,
     wasm: Uint8Array,
     zkeyHeader: any,
     zkeySections: any[],
@@ -44,6 +50,13 @@ export enum RpcMethods {
     exportZkCert = 'exportZkCert',
 }
 
+/**
+ * Enum for zkCert standards
+ */
+export enum ZkCertStandard {
+    zkKYC = 'gip69',
+}
+
 export type ZkCert = {
     holder: string,
     holderCommitment: string,
@@ -53,7 +66,7 @@ export type ZkCert = {
     contentHash: string,
 
     // identifier of the zkCert standard (e.g. zkKYC, zkDiploma, zkGymMembership, ...)
-    zkCertStandard: string, 
+    zkCertStandard: ZkCertStandard, 
     // holding the data specific to the type of zkCert (e.g. zkKYCContent)
     content: ZkKYCContent | any, 
 }

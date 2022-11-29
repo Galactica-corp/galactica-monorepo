@@ -3,6 +3,7 @@ import { OnRpcRequestHandler } from '@metamask/snap-types';
 import { generateZkKycProof } from './proofGenerator';
 import { GenZkKycRequestParams, ImportRequestParams, RpcMethods } from './types';
 import { getState, saveState } from './stateManagement';
+import { selectZkCert } from './zkCertSelector';
 
 
 /**
@@ -28,10 +29,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       // parse ZKP inputs
       const genParams = request.params as GenZkKycRequestParams;
       // TODO: check input validity
-
-      if (state.zkCerts.length == 0) {
-        throw new Error("No zkCerts available. Please import it first.");
-      }
 
       // ask user to confirm
       confirm = await wallet.request({
@@ -61,8 +58,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         throw new Error('User rejected confirmation.');
       }
 
-      // TODO: pick correct zkCert with snap dialog
-      const zkCert = state.zkCerts[0];
+      const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
 
       const proof = generateZkKycProof(genParams, zkCert);
       return proof;

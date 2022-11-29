@@ -1,6 +1,6 @@
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
-import { RpcMethods } from './../../../snap/src/types';
+import { RpcMethods, ZkCertStandard } from './../../../snap/src/types';
 import { wasm, zkeyHeader, zkeySections } from "../data/ageProof";
 
 /**
@@ -79,6 +79,9 @@ export const generateProof = async () => {
         method: RpcMethods.genZkKycProof,
         params: {
           input: publicInput,
+          requirements: {
+            zkCertStandard: ZkCertStandard.zkKYC,
+          },
           wasm: wasm,
           zkeyHeader: zkeyHeader,
           zkeySections: zkeySections,
