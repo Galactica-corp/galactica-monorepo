@@ -4,6 +4,7 @@ import { generateZkKycProof } from './proofGenerator';
 import { ExportRequestParams, GenZkKycRequestParams, ImportRequestParams, RpcMethods } from './types';
 import { getState, saveState } from './stateManagement';
 import { selectZkCert } from './zkCertSelector';
+import { shortenAddrStr } from './utils';
 
 
 /**
@@ -22,6 +23,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
 
   let state = await getState();
   let confirm : any;
+  let responseMsg : string;
 
   switch (request.method) {
     case RpcMethods.setupHoldingKey:
@@ -39,14 +41,25 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       const newAccounts = await wallet.request({
         method: 'eth_requestAccounts',
       }) as string[];
+      const newHolder = newAccounts[0];
+      console.log("Holder to be added:", newHolder);
       
       // TODO: utilize zkKYC repo to get message
       const msg = `0x${Buffer.from("TODO: add message", 'utf8').toString('hex')}`;
       const sign = await wallet.request({
         method: 'personal_sign',
-        params: [msg, newAccounts[0]],
-      });
-      return sign;
+        params: [msg, newHolder],
+      }) as string;
+      
+      if (state.holders.find((holder) => holder.address === newHolder)) {
+        responseMsg = `${shortenAddrStr(newHolder)} already added.`;        
+      }
+      else {
+        state.holders.push({ address: newHolder, holderCommitment: "TODO: add commitment", eddsaKey: sign });
+        await saveState({ holders: state.holders, zkCerts: state.zkCerts });
+        responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;        
+      }
+      return responseMsg;
     
     case RpcMethods.genZkKycProof:
       // parse ZKP inputs
@@ -103,11 +116,13 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         throw new Error('User rejected confirmation.');
       }
 
-      await saveState({ zkCerts: [] });
+      await saveState({ holders: state.holders, zkCerts: [] });
       return "zkCert storage cleared";
     
     case RpcMethods.importZkCert:
       const importParams = request.params as ImportRequestParams;
+
+      // TODO: check that there is a holder setup for this zkCert
 
       confirm = await wallet.request({
         method: 'snap_confirm',
@@ -117,7 +132,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             description:
             'Galactica zkKYC import.',
             textAreaContent:
-            `Do you want to import the following zkCert? (provided through ${origin})
+            `Do you want to import the followingimport { shortenAddrStr } from './utils';
+ zkCert? (provided through ${origin})
             ${JSON.stringify(importParams.zkCert, null, 2)}
             `,
           },

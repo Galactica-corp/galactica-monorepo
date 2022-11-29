@@ -1,4 +1,4 @@
-import { StorageState } from './types';
+import { HolderData, StorageState } from './types';
 
 export async function getState(): Promise<StorageState> {
     const state = await wallet.request<StorageState>({
@@ -7,9 +7,9 @@ export async function getState(): Promise<StorageState> {
     });
     if (
         state === null ||
-        (typeof state === 'object' && state.zkCerts === undefined)
+        (typeof state === 'object' && (state.zkCerts === undefined || state.holders === undefined))
     ) {
-        return { zkCerts: [] };
+        return { holders: [], zkCerts: [] };
     }
     return state as StorageState;
 }

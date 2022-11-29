@@ -80,6 +80,13 @@ export type ZkCert = {
     content: ZkKYCContent | any, 
 }
 
+export type HolderData = {
+    address: string,
+    holderCommitment: string,
+    eddsaKey: string,
+}
+
 export type StorageState = {
+    holders: HolderData[],
     zkCerts: ZkCert[],
 }
