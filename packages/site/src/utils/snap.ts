@@ -62,6 +62,19 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
  * Invoke the methods from the example snap.
  */
 
+export const setupHoldingKey = async () => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.setupHoldingKey,
+        params: {},
+      },
+    ],
+  });
+};
+
 export const generateProof = async () => {
   // TODO: move filling input inside snap
   const publicInput = {

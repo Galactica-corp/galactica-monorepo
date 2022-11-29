@@ -24,7 +24,30 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
   let confirm : any;
 
   switch (request.method) {
+    case RpcMethods.setupHoldingKey:
+      // inform user how setup works
+      await wallet.request({
+        method: 'snap_notify',
+        params: [
+          {
+            type: 'inApp',
+            message: `Connect to the Metamask address holding zkCerts.`,
+          },
+        ],
+      });
 
+      const newAccounts = await wallet.request({
+        method: 'eth_requestAccounts',
+      }) as string[];
+      
+      // TODO: utilize zkKYC repo to get message
+      const msg = `0x${Buffer.from("TODO: add message", 'utf8').toString('hex')}`;
+      const sign = await wallet.request({
+        method: 'personal_sign',
+        params: [msg, newAccounts[0]],
+      });
+      return sign;
+    
     case RpcMethods.genZkKycProof:
       // parse ZKP inputs
       const genParams = request.params as GenZkKycRequestParams;

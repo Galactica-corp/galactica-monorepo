@@ -9,6 +9,7 @@ import {
   clearStorage,
   importZkCert,
   exportZkCert,
+  setupHoldingKey,
 } from '../utils';
 import {
   ConnectButton,
@@ -253,6 +254,22 @@ const Index = () => {
         Manage zkCertificate storage (part of Galactica passport website)
       </Subtitle>
       <CardContainer>
+        <Card
+          content={{
+            title: 'Setup zkCert wallet',
+            description:
+              'Setup Metamask snap with the wallet that holds zkCerts.',
+            button: (
+              <GeneralButton
+                onClick={() => handleSnapCallClick(setupHoldingKey)}
+                disabled={false}
+                text="Setup"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
         <Card
           content={{
             title: 'Clear storage',
