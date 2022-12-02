@@ -60,7 +60,8 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
-    "circomlibjs": "patch:circomlibjs@npm:0.1.7#../../.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch",
-    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap"
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap",
+    "zkkyc": "git+ssh://git@github.com:Galactica-corp/zkKYC.git#module"
   }
 }

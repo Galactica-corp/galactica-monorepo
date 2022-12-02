@@ -6,6 +6,8 @@ import { getState, saveState } from './stateManagement';
 import { selectZkCert } from './zkCertSelector';
 import { shortenAddrStr } from './utils';
 
+import { eddsaKeyGenerationMessage } from 'zkkyc';
+
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -44,8 +46,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       const newHolder = newAccounts[0];
       console.log("Holder to be added:", newHolder);
       
-      // TODO: utilize zkKYC repo to get message
-      const msg = `0x${Buffer.from("TODO: add message", 'utf8').toString('hex')}`;
+      // TODO: Do we need the 0x prefix?
+      const msg = `0x${Buffer.from(eddsaKeyGenerationMessage, 'utf8').toString('hex')}`;
       const sign = await wallet.request({
         method: 'personal_sign',
         params: [msg, newHolder],
