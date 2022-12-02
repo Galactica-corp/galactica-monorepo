@@ -68,7 +68,6 @@ export enum ZkCertStandard {
 }
 
 export type ZkCert = {
-    holder: string,
     holderCommitment: string,
     providerSignature: string,
     leafHash: string,

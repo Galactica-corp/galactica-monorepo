@@ -1,6 +1,6 @@
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
-import { ExportRequestParams, PrepareZkKycRequestParams, RpcMethods, ZkCertStandard } from './../../../snap/src/types';
+import { ExportRequestParams, RpcMethods, ZkCertStandard } from './../../../snap/src/types';
 import { ZkKYCContent } from '../../../snap/src/zkCertTypes';
 import { wasm, zkeyHeader, zkeySections } from "../data/ageProof";
 
