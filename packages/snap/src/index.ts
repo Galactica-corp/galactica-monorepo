@@ -98,6 +98,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
 
       const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
 
+      if (state.holders.find((holder) => holder.address === zkCert.holder) === undefined) {
+        throw new Error(`Holder ${zkCert.holder} of zkCert not imported. Please connect the snap to that address first.`);
+      }
+
       const proof = generateZkKycProof(genParams, zkCert);
       return proof;
 
