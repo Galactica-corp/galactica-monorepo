@@ -51,7 +51,8 @@ export type ZkCertProof = {
  * Enum for RPC methods.
  */
 export enum RpcMethods {
-    setupHoldingKey = "setupHoldingKey",
+    setupHoldingKey = 'setupHoldingKey',
+    getHolderCommitment = 'getHolderCommitment',
     genZkKycProof = 'genZkKycProof',
     clearStorage = 'clearStorage',
     importZkCert = 'importZkCert',

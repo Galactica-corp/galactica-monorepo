@@ -10,6 +10,7 @@ import {
   importZkCert,
   exportZkCert,
   setupHoldingKey,
+  getHolderCommitment,
 } from '../utils';
 import {
   ConnectButton,
@@ -142,11 +143,39 @@ const Index = () => {
       // save to file
       // TODO: add a saveAs dialog to let the user choose file name and location
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(res)
+        JSON.stringify(res, null, 2)
       )}`;
       const link = document.createElement("a");
       link.href = jsonString;
       link.download = "zkCert.json";
+      link.click();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const getHolderCommitmentClick = async () => {
+    try {
+      const  zkKYCContent = {
+        
+      };
+      console.log('sending request to snap...');
+      const res = await getHolderCommitment();
+      console.log('Response from snap', res);
+
+      const jsonExport = {
+        holderCommitment: res
+      };
+
+      // save to file as placeholder
+      // TODO: integrate some kind of provider API to submitt the prepared zkCert to for signing and issuance on chain
+      const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
+        JSON.stringify(jsonExport, null, 2)
+      )}`;
+      const link = document.createElement("a");
+      link.href = jsonString;
+      link.download = "holderCommitment.json";
       link.click();
     } catch (e) {
       console.error(e);
@@ -312,6 +341,28 @@ const Index = () => {
                 onClick={handleExportClick}
                 disabled={false}
                 text="Export"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+      </CardContainer>
+      <br/>
+      <Subtitle>
+        Creating zkKYC (part of zkKYC provider website)
+      </Subtitle>
+      <CardContainer>
+        <Card
+          content={{
+            title: 'Prepare holder commitment',
+            description:
+              'To issue a zkCert, the provider needs your holder commitment. It ties the zkCert to your holding address without revealing the address to the provider.',
+            button: (
+              <GeneralButton
+                onClick={getHolderCommitmentClick}
+                disabled={false}
+                text="Prepare"
               />
             ),
           }}

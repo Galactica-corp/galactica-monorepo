@@ -7,6 +7,7 @@ import { selectZkCert } from './zkCertSelector';
 import { shortenAddrStr } from './utils';
 
 import { eddsaKeyGenerationMessage } from 'zkkyc';
+import { calculateHolderCommitment } from './zkCertHandler';
 
 
 /**
@@ -57,7 +58,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         responseMsg = `${shortenAddrStr(newHolder)} already added.`;        
       }
       else {
-        state.holders.push({ address: newHolder, holderCommitment: "TODO: add commitment", eddsaKey: sign });
+        state.holders.push({
+          address: newHolder,
+          holderCommitment: await calculateHolderCommitment(sign),
+          eddsaKey: sign 
+        });
         await saveState({ holders: state.holders, zkCerts: state.zkCerts });
         responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;        
       }
@@ -174,6 +179,32 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
 
       const zkCertForExport = await selectZkCert(state.zkCerts, {zkCertStandard: exportParams.zkCertStandard});
       return zkCertForExport;
+
+    case RpcMethods.getHolderCommitment:
+      if (state.holders.length === 0) {
+        throw new Error("No holders imported. Please import a holding address first.");
+      }
+
+      // TODO: holder selection if multiple holders are available
+      const holder = state.holders[0];
+
+      confirm = await wallet.request({
+        method: 'snap_confirm',
+        params: [
+          {
+            prompt: "Provide holder commitment?",
+            description:
+            'First step to get a zkCert from a provider.',
+            textAreaContent:
+            `Do you want to provide your holder commitment of ${holder.address} to ${origin}?`,
+          },
+        ],
+      });
+      if (!confirm) {
+        throw new Error('User rejected confirmation.');
+      }
+
+      return holder.holderCommitment;
 
     default:
       throw new Error('Method not found.');
