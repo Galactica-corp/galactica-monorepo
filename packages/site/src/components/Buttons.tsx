@@ -122,6 +122,13 @@ export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
   // Redirect the click event onto the hidden input element to open the file selector dialog
   // The original click event is executed on the file selection event
   const handleClick = () => {
+    // logic to make it react on reselecting the same file
+    const pausedEvent = inputRef.current!.onchange;
+    inputRef.current!.onchange = null;
+    inputRef.current!.value = '';
+    inputRef.current!.onchange = pausedEvent;
+
+    // forward click event to hidden input, so that file dialog is opened
     inputRef.current?.click();
   };
 
