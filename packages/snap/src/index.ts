@@ -1,7 +1,7 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
 
 import { generateZkKycProof } from './proofGenerator';
-import { ExportRequestParams, GenZkKycRequestParams, ImportRequestParams, RpcMethods } from './types';
+import { ExportRequestParams, GenZkKycRequestParams, HolderData, ImportRequestParams, RpcMethods } from './types';
 import { getState, saveState } from './stateManagement';
 import { selectZkCert } from './zkCertSelector';
 import { shortenAddrStr } from './utils';
@@ -27,6 +27,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
   let state = await getState();
   let confirm : any;
   let responseMsg : string;
+  let holder: HolderData;
 
   switch (request.method) {
     case RpcMethods.setupHoldingKey:
@@ -103,11 +104,12 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
 
       const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
 
-      if (state.holders.find((holder) => holder.holderCommitment === zkCert.holderCommitment) === undefined) {
+      holder = state.holders.find((holder) => holder.holderCommitment === zkCert.holderCommitment)!;
+      if (holder === undefined) {
         throw new Error(`Holder for commitment ${zkCert.holderCommitment} could not be found. Please connect the snap to that address to import the corresponding holder.`);
       }
 
-      const proof = generateZkKycProof(genParams, zkCert);
+      const proof = generateZkKycProof(genParams, zkCert, holder);
       return proof;
 
     case RpcMethods.clearStorage:
@@ -186,7 +188,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       }
 
       // TODO: holder selection if multiple holders are available
-      const holder = state.holders[0];
+      holder = state.holders[0];
 
       confirm = await wallet.request({
         method: 'snap_confirm',

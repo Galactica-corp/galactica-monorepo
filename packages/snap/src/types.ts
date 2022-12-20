@@ -1,4 +1,5 @@
 import { ZkKYCContent } from "./zkCertTypes";
+import { ProviderData } from "zkkyc";
 
 
 // requirements on the zk proof
@@ -74,6 +75,8 @@ export type ZkCert = {
     leafHash: string,
     did: string,
     contentHash: string,
+    randomSalt: number,
+    providerData: ProviderData,
 
     // identifier of the zkCert standard (e.g. zkKYC, zkDiploma, zkGymMembership, ...)
     zkCertStandard: ZkCertStandard, 

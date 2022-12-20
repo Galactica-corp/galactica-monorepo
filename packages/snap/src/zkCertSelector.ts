@@ -1,7 +1,10 @@
+import { buildEddsa } from "circomlibjs";
+
 import { ZkCert, ZkCertRequirements } from "./types";
+import { ZKCertificate } from "zkkyc";
 
 
-export async function selectZkCert(availableCerts: ZkCert[], req: ZkCertRequirements): Promise<ZkCert> {
+export async function selectZkCert(availableCerts: ZkCert[], req: ZkCertRequirements): Promise<ZKCertificate> {
     if (availableCerts.length == 0) {
         throw new Error("No zkCerts available. Please import it first.");
     }
@@ -12,15 +15,25 @@ export async function selectZkCert(availableCerts: ZkCert[], req: ZkCertRequirem
         throw new Error(`No zkCerts of standard ${req.zkCertStandard} available. Please import it first.`);
     }
     
-    let selectedCert : ZkCert;
+    let selected : ZkCert;
 
     if (filteredCerts.length == 1) {
-        selectedCert = filteredCerts[0];
+        selected = filteredCerts[0];
     }
     else {
         // TODO: implement selection using snap_dialog
         throw new Error(`zkCerts selection not implemented yet`);
     }
 
-    return selectedCert;
+    const eddsa = await buildEddsa();
+    const zkCert = new ZKCertificate(
+        selected.holderCommitment,
+        selected.zkCertStandard,
+        eddsa,
+        selected.randomSalt,
+        selected.content,
+        selected.providerData,
+    );
+
+    return zkCert;
 }
