@@ -20,6 +20,7 @@ import {
   GeneralButton,
   SelectAndImportButton,
 } from '../components';
+import { wasm, zkeyHeader, zkeySections } from "../data/ageProof";
 
 const Container = styled.div`
   display: flex;
@@ -134,6 +135,22 @@ const Index = () => {
     }
   };
 
+  const handleSimpleProofClick = async () => {
+    try {
+      console.log('sending request to snap...');
+      const ageProver = {
+        wasm: wasm,
+        zkeyHeader: zkeyHeader,
+        zkeySections: zkeySections,
+      }
+      const res = await generateProof(ageProver);
+      console.log('Response from snap', res);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
   const handleExportClick = async () => {
     try {
       console.log('sending request to snap...');
@@ -189,6 +206,19 @@ const Index = () => {
 
       console.log('sending request to snap...');
       const res = await importZkCert(parsedFile);
+      console.log('Response from snap', res);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const handleBigProofGeneration = async (fileContent: string) => {
+    try {
+      const parsedFile = JSON.parse(fileContent);
+
+      console.log('sending request to snap...');
+      const res = await generateProof(parsedFile);
       console.log('Response from snap', res);
     } catch (e) {
       console.error(e);
@@ -255,14 +285,30 @@ const Index = () => {
         )}
         <Card
           content={{
-            title: 'Generate zkKYC proof',
+            title: 'Generate age proof',
             description:
-              'Call Metamask Snap to generate a proof that you hold a zkKYC.',
+              'Call Metamask Snap to generate a simple ZK proof.',
             button: (
               <GeneralButton
-                onClick={() => handleSnapCallClick(generateProof)}
+                onClick={handleSimpleProofClick}
                 disabled={false}
                 text="Generate"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Generate zkKYC age proof',
+            description:
+              'Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old.',
+            button: (
+              <SelectAndImportButton
+                onFileSelected={handleBigProofGeneration}
+                disabled={false}
+                text="Select & Import"
               />
             ),
           }}

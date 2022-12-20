@@ -8,28 +8,30 @@ let binFileUtils = require("@iden3/binfileutils");
 
 /**
  * testStandard tests the usual proof generation process of snarkjs to compare it to the one in the snap
+ * @param circuitName name of the circuit to find the files
  */
-async function testStandard(input: any) {
-    const { proof, publicSignals } = await groth16.fullProve(input, `${__dirname}/../circuits/ageProof/ageProof.wasm`, `${__dirname}/../circuits/ageProof/ageProof.zkey`);
+async function testStandard(circuitName: string, input: any) {
+    const { proof, publicSignals } = await groth16.fullProve(input, `${__dirname}/../circuits/${circuitName}/${circuitName}.wasm`, `${__dirname}/../circuits/${circuitName}/${circuitName}.zkey`);
 
     console.log("Proof: ");
     console.log(JSON.stringify(proof, null, 1));
 
-    const vKey = JSON.parse(fs.readFileSync(`${__dirname}/../circuits/ageProof/ageProof.vkey.json`).toString());
+    const vKey = JSON.parse(fs.readFileSync(`${__dirname}/../circuits/${circuitName}/${circuitName}.vkey.json`).toString());
 
     await verifyProof(proof, publicSignals, vKey);
 }
 
 /**
  * testModified constructs and checks the zkKYC proof with the modified code of snarkjs that does not depend on file reading
+ * @param circuitName name of the circuit to find the files
  */
-async function testModified(params: GenZkKycRequestParams) {
+async function testModified(circuitName: string, params: GenZkKycRequestParams) {
     const { proof, publicSignals } = await groth16.fullProveMemory(params.input, params.wasm, params.zkeyHeader, params.zkeySections);
 
     console.log("Proof: ");
     console.log(JSON.stringify(proof, null, 1));
 
-    const vKey = JSON.parse(fs.readFileSync(`${__dirname}/../circuits/ageProof/ageProof.vkey.json`).toString());
+    const vKey = JSON.parse(fs.readFileSync(`${__dirname}/../circuits/${circuitName}/${circuitName}.vkey.json`).toString());
 
      await verifyProof(proof, publicSignals, vKey);
 }
@@ -45,9 +47,9 @@ async function createCircuitData(circuitName: string, input: any): Promise<GenZk
     // read the wasm file asa array.
     // It becomes a Uint8Array later, but is passed as ordinary number array through the RPC
     // TODO: use more efficient encoding
-    const wasm = Uint8Array.from(fs.readFileSync(`${__dirname}/../circuits/ageProof/ageProof.wasm`));
+    const wasm = Uint8Array.from(fs.readFileSync(`${__dirname}/../circuits/${circuitName}/${circuitName}.wasm`));
 
-    const {fd: fdZKey, sections: sectionsZKey} = await binFileUtils.readBinFile(`${__dirname}/../circuits/ageProof/ageProof.zkey`, "zkey", 2, 1<<25, 1<<23);
+    const {fd: fdZKey, sections: sectionsZKey} = await binFileUtils.readBinFile(`${__dirname}/../circuits/${circuitName}/${circuitName}.zkey`, "zkey", 2, 1<<25, 1<<23);
     const zkeyHeader = await zKey.readHeader(fdZKey, sectionsZKey);
 
     var zkeySections: any[] = [];
@@ -61,6 +63,9 @@ async function createCircuitData(circuitName: string, input: any): Promise<GenZk
         wasm: wasm,
         zkeyHeader: zkeyHeader,
         zkeySections: zkeySections,
+        requirements: {
+            zkCertStandard: "gip69"
+        },
     };
     return params;
 }
@@ -112,24 +117,15 @@ async function verifyProof(proof: any, publicSignals: any, vKey: any) {
 }
 
 async function main() {
-    const input = {
-        yearOfBirth: "1",
-        monthOfBirth: "1",
-        dayOfBirth: "1",
-
-        currentYear: "3",
-        currentMonth: "1",
-        currentDay: "1",
-
-        ageThreshold: "1"
-    };
-
+    const circuitName = "ageProofZkKYC";
+    
+    const input = JSON.parse(fs.readFileSync(`${__dirname}/../circuits/${circuitName}/${circuitName}.input.json`).toString());
+    
     // await testStandard(input);
+    const params = await createCircuitData(circuitName, input);
+    await testModified(circuitName, params);
 
-    const params = await createCircuitData("ageProof", input);
-    await testModified(params);
-
-    await writeCircuitDataToTSFile(`${__dirname}/../../site/src/data/ageProofTest.ts`, params);
+    await writeCircuitDataToTSFile(`${__dirname}/../../site/src/data/${circuitName}.ts`, params);
 }
 
 function uint8ArrayToJSArray(arr: Uint8Array) {

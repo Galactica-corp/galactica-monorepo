@@ -1,19 +1,26 @@
-import { GenZkKycRequestParams, ZkCert, ZkCertProof } from "./types";
+import { GenZkKycRequestParams, ZkCertProof, HolderData } from "./types";
 import { groth16 } from "snarkjs";
+import { ZKCertificate } from "zkkyc";
 
 
 /**
  * generateZkKycProof constructs and checks the zkKYC proof
+ * @param params Parameters defining the proof to be generated
+ * @param zkCert zkCert to be used for the proof
+ * @param holder holder data needed to derive private proof inputs
  */
-export const generateZkKycProof = async (params: GenZkKycRequestParams, zkCert: ZkCert): Promise<ZkCertProof> => {
+export const generateZkKycProof = async (params: GenZkKycRequestParams, zkCert: ZKCertificate, holder: HolderData): Promise<ZkCertProof> => {
     params = preprocessInput(params);
 
     const inputs = {
         ...params.input,
-        yearOfBirth: zkCert.content.yearOfBirth,
-        monthOfBirth: zkCert.content.monthOfBirth,
-        dayOfBirth: zkCert.content.dayOfBirth,
+        ...zkCert.fields,
+        ...zkCert.getOwnershipProofInput(holder.eddsaKey),
+        // TODO: accept authorization for different address than holder
+        ...zkCert.getAuthorizationProofInput(holder.eddsaKey, holder.address),
     };
+
+    console.log("proof inputs: TODO: remove this debug output", inputs);
 
     const { proof, publicSignals } = await groth16.fullProveMemory(inputs, Uint8Array.from(params.wasm), params.zkeyHeader, params.zkeySections)
 

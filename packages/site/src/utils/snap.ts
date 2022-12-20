@@ -2,7 +2,6 @@ import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { ExportRequestParams, RpcMethods, ZkCertStandard } from './../../../snap/src/types';
 import { ZkKYCContent } from '../../../snap/src/zkCertTypes';
-import { wasm, zkeyHeader, zkeySections } from "../data/ageProof";
 
 /**
  * Get the installed snaps in MetaMask.
@@ -76,14 +75,20 @@ export const setupHoldingKey = async () => {
   });
 };
 
-export const generateProof = async () => {
+export const generateProof = async (proverData: any) => {
+  // TODO: add type for proverData
   // TODO: move filling input inside snap
+
+  const currentTimestamp = Math.floor(Date.now() / 1000);
+  const now = new Date();
   const publicInput = {
-    currentYear: "5",
-    currentMonth: "1",
-    currentDay: "1",
-    ageThreshold: "1"
+    currentTime: currentTimestamp,
+    currentYear: now.getUTCFullYear().toString(),
+    currentMonth: (now.getUTCMonth() + 1).toString(),
+    currentDay: now.getUTCDate().toString(),
+    ageThreshold: "18"
   };
+  console.log("publicInput", publicInput);
 
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
@@ -96,9 +101,9 @@ export const generateProof = async () => {
           requirements: {
             zkCertStandard: ZkCertStandard.zkKYC,
           },
-          wasm: wasm,
-          zkeyHeader: zkeyHeader,
-          zkeySections: zkeySections,
+          wasm: proverData.wasm,
+          zkeyHeader: proverData.zkeyHeader,
+          zkeySections: proverData.zkeySections,
         },
       },
     ],

@@ -1,4 +1,4 @@
-import { ZkKYCContent } from "./zkCertTypes"
+import { ZkKYCContent } from "./zkCertTypes";
 
 
 // requirements on the zk proof
@@ -67,6 +67,7 @@ export enum ZkCertStandard {
     zkKYC = 'gip69',
 }
 
+// TODO: remove this type and use the one from the zkKYC package
 export type ZkCert = {
     holderCommitment: string,
     providerSignature: string,

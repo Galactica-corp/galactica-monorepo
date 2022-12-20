@@ -62,6 +62,6 @@
   "dependencies": {
     "circomlibjs": "^0.1.7",
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap",
-    "zkkyc": "git+ssh://git@github.com:Galactica-corp/zkKYC.git#commit=d0bcb7c3ac2e4ff80f9401f0664fd13681d2a896"
+    "zkkyc": "git+ssh://git@github.com:Galactica-corp/zkKYC.git#module"
   }
 }
