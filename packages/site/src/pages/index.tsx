@@ -349,7 +349,7 @@ const Index = () => {
           content={{
             title: 'Clear storage',
             description:
-              'Asks the Metamask snap to clear the zkCertificate storage.',
+              'Asks the Metamask snap to clear the zkCertificate and holder storage.',
             button: (
               <GeneralButton
                 onClick={() => handleSnapCallClick(clearStorage)}

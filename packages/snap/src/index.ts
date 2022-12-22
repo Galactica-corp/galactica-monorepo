@@ -117,11 +117,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         method: 'snap_confirm',
         params: [
           {
-            prompt: "Clear zkCert storage?",
+            prompt: "Clear zkCert and holder storage?",
             description:
             'Galactica zkCert storage clearing',
             textAreaContent:
-            `Do you want to delete the zkCertificates stored in Metamask? (requested by ${origin})`,
+            `Do you want to delete the zkCertificates and holder information stored in Metamask? (requested by ${origin})`,
           },
         ],
       });
@@ -129,7 +129,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         throw new Error('User rejected confirmation.');
       }
 
-      await saveState({ holders: state.holders, zkCerts: [] });
+      await saveState({ holders: [], zkCerts: [] });
       return "zkCert storage cleared";
     
     case RpcMethods.importZkCert:
