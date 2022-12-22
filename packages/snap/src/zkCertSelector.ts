@@ -1,7 +1,7 @@
 import { buildEddsa } from "circomlibjs";
 
 import { ZkCert, ZkCertRequirements } from "./types";
-import { ZKCertificate } from "zkkyc";
+import { MerkleProof, ZKCertificate } from "zkkyc";
 
 
 export async function selectZkCert(availableCerts: ZkCert[], req: ZkCertRequirements): Promise<ZKCertificate> {

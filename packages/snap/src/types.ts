@@ -1,5 +1,5 @@
 import { ZkKYCContent } from "./zkCertTypes";
-import { ProviderData } from "zkkyc";
+import { ProviderData, MerkleProof } from "zkkyc";
 
 
 // requirements on the zk proof
@@ -82,6 +82,9 @@ export type ZkCert = {
     zkCertStandard: ZkCertStandard, 
     // holding the data specific to the type of zkCert (e.g. zkKYCContent)
     content: ZkKYCContent | any, 
+
+    // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
+    merkleProof: MerkleProof,
 }
 
 export type HolderData = {

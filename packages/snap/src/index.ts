@@ -109,7 +109,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         throw new Error(`Holder for commitment ${zkCert.holderCommitment} could not be found. Please connect the snap to that address to import the corresponding holder.`);
       }
 
-      const proof = generateZkKycProof(genParams, zkCert, holder);
+      // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
+      const merkleProof = state.zkCerts.find(cert => cert.leafHash === zkCert.leafHash)!.merkleProof;
+
+      const proof = generateZkKycProof(genParams, zkCert, holder, merkleProof);
       return proof;
 
     case RpcMethods.clearStorage:
@@ -145,9 +148,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             description:
             'Galactica zkKYC import.',
             textAreaContent:
-            `Do you want to import the followingimport { shortenAddrStr } from './utils';
- zkCert? (provided through ${origin})
-            ${JSON.stringify(importParams.zkCert, null, 2)}
+            `Do you want to import the following zkCert? (provided through ${origin})
+            ${importParams.zkCert.did}
             `,
           },
         ],

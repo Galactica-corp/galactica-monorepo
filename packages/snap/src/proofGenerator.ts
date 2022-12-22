@@ -1,6 +1,6 @@
 import { GenZkKycRequestParams, ZkCertProof, HolderData } from "./types";
 import { groth16 } from "snarkjs";
-import { ZKCertificate } from "zkkyc";
+import { MerkleProof, ZKCertificate, fromHexToDec } from "zkkyc";
 
 
 /**
@@ -9,25 +9,57 @@ import { ZKCertificate } from "zkkyc";
  * @param zkCert zkCert to be used for the proof
  * @param holder holder data needed to derive private proof inputs
  */
-export const generateZkKycProof = async (params: GenZkKycRequestParams, zkCert: ZKCertificate, holder: HolderData): Promise<ZkCertProof> => {
+export const generateZkKycProof = async (params: GenZkKycRequestParams, zkCert: ZKCertificate, holder: HolderData, merkleProof: MerkleProof): Promise<ZkCertProof> => {
     params = preprocessInput(params);
 
-    const inputs = {
+    const authorizationProof = zkCert.getAuthorizationProofInput(holder.eddsaKey, holder.address);
+
+    const inputs: any = {
         ...params.input,
+        
         ...zkCert.fields,
+        randomSalt: zkCert.randomSalt,
+
         ...zkCert.getOwnershipProofInput(holder.eddsaKey),
         // TODO: accept authorization for different address than holder
-        ...zkCert.getAuthorizationProofInput(holder.eddsaKey, holder.address),
+
+        // TODO: this line seems to cause some assert to fail in snarkjs
+        userAddress: fromHexToDec(authorizationProof.userAddress),
+        S2: authorizationProof.S,
+        R8x2: authorizationProof.R8x,
+        R8y2: authorizationProof.R8y,
+
+        providerAx: zkCert.providerData.Ax,
+        providerAy: zkCert.providerData.Ay,
+        providerS: zkCert.providerData.S,
+        providerR8x: zkCert.providerData.R8x,
+        providerR8y: zkCert.providerData.R8y,
+
+        root: merkleProof.root,
+        pathElements: merkleProof.path,
+        pathIndices: merkleProof.pathIndices,
     };
 
-    console.log("proof inputs: TODO: remove this debug output", inputs);
+    console.log("proof inputs: TODO: remove this debug output");
+    console.log(JSON.stringify(inputs, null, 1));
 
-    const { proof, publicSignals } = await groth16.fullProveMemory(inputs, Uint8Array.from(params.wasm), params.zkeyHeader, params.zkeySections)
+    Object.keys(inputs).forEach(key => {
+        console.log(key, inputs[key]);
+    });
 
-    console.log("Calculated proof: ");
-    console.log(JSON.stringify(proof, null, 1));
+    try {
+        const { proof, publicSignals } = await groth16.fullProveMemory(inputs, Uint8Array.from(params.wasm), params.zkeyHeader, params.zkeySections)
 
-    return { proof: proof, publicSignals: publicSignals };
+        console.log("Calculated proof: ");
+        console.log(JSON.stringify(proof, null, 1));
+    
+        return { proof: proof, publicSignals: publicSignals };
+    }
+    catch (err) {
+        console.log("proof generation failed");
+        console.log(err.stack);
+        throw err;
+    }
 }
 
 /**
