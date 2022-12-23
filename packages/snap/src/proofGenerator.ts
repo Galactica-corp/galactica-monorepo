@@ -21,10 +21,9 @@ export const generateZkKycProof = async (params: GenZkKycRequestParams, zkCert: 
         randomSalt: zkCert.randomSalt,
 
         ...zkCert.getOwnershipProofInput(holder.eddsaKey),
-        // TODO: accept authorization for different address than holder
 
-        // TODO: this line seems to cause some assert to fail in snarkjs
-        userAddress: fromHexToDec(authorizationProof.userAddress),
+        // TODO: accept authorization for different address than holder
+        userAddress: authorizationProof.userAddress,
         S2: authorizationProof.S,
         R8x2: authorizationProof.R8x,
         R8y2: authorizationProof.R8y,
@@ -42,10 +41,6 @@ export const generateZkKycProof = async (params: GenZkKycRequestParams, zkCert: 
 
     console.log("proof inputs: TODO: remove this debug output");
     console.log(JSON.stringify(inputs, null, 1));
-
-    Object.keys(inputs).forEach(key => {
-        console.log(key, inputs[key]);
-    });
 
     try {
         const { proof, publicSignals } = await groth16.fullProveMemory(inputs, Uint8Array.from(params.wasm), params.zkeyHeader, params.zkeySections)
