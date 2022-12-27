@@ -44,7 +44,7 @@ export type ExportRequestParams = {
  */
 
 export type EncryptionRequestParams = {
-  content: ZkKYCContent;
+  zkCert: ZkCert;
 };
 
 /**

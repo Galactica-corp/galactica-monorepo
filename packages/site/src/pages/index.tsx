@@ -11,6 +11,7 @@ import {
   exportZkCert,
   setupHoldingKey,
   getHolderCommitment,
+  encryptZkCert,
 } from '../utils';
 import {
   ConnectButton,
@@ -20,7 +21,7 @@ import {
   GeneralButton,
   SelectAndImportButton,
 } from '../components';
-import { wasm, zkeyHeader, zkeySections } from "../data/ageProof";
+import { wasm, zkeyHeader, zkeySections } from '../data/ageProof';
 
 const Container = styled.div`
   display: flex;
@@ -124,7 +125,7 @@ const Index = () => {
     }
   };
 
-  const handleSnapCallClick = async (method : () => Promise<any>) => {
+  const handleSnapCallClick = async (method: () => Promise<any>) => {
     try {
       console.log('sending request to snap...');
       const res = await method();
@@ -142,7 +143,7 @@ const Index = () => {
         wasm: wasm,
         zkeyHeader: zkeyHeader,
         zkeySections: zkeySections,
-      }
+      };
       const res = await generateProof(ageProver);
       console.log('Response from snap', res);
     } catch (e) {
@@ -160,11 +161,11 @@ const Index = () => {
       // save to file
       // TODO: add a saveAs dialog to let the user choose file name and location
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(res, null, 2)
+        JSON.stringify(res, null, 2),
       )}`;
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = jsonString;
-      link.download = "zkCert.json";
+      link.download = 'zkCert.json';
       link.click();
     } catch (e) {
       console.error(e);
@@ -177,7 +178,7 @@ const Index = () => {
       const parsedFile = JSON.parse(fileContent);
 
       console.log('sending request to snap...');
-      const res = await importZkCert(parsedFile);
+      const res = await encryptZkCert(parsedFile);
       console.log('Response from snap', res);
     } catch (e) {
       console.error(e);
@@ -187,25 +188,23 @@ const Index = () => {
 
   const getHolderCommitmentClick = async () => {
     try {
-      const  zkKYCContent = {
-
-      };
+      const zkKYCContent = {};
       console.log('sending request to snap...');
       const res = await getHolderCommitment();
       console.log('Response from snap', res);
 
       const jsonExport = {
-        holderCommitment: res
+        holderCommitment: res,
       };
 
       // save to file as placeholder
       // TODO: integrate some kind of provider API to submitt the prepared zkCert to for signing and issuance on chain
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(jsonExport, null, 2)
+        JSON.stringify(jsonExport, null, 2),
       )}`;
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = jsonString;
-      link.download = "holderCommitment.json";
+      link.download = 'holderCommitment.json';
       link.click();
     } catch (e) {
       console.error(e);
@@ -406,8 +405,7 @@ const Index = () => {
         <Card
           content={{
             title: 'Encrypt zkCert',
-            description:
-              'Submit encrypted KYC information onchain.',
+            description: 'Submit encrypted KYC information onchain.',
             button: (
               <GeneralButton
                 onFileSelected={handleEncryptionClick}

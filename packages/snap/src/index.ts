@@ -1,14 +1,20 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
 
 import { generateZkKycProof } from './proofGenerator';
-import { ExportRequestParams, GenZkKycRequestParams, HolderData, ImportRequestParams, EncryptionRequestParams, RpcMethods } from './types';
+import {
+  ExportRequestParams,
+  GenZkKycRequestParams,
+  HolderData,
+  ImportRequestParams,
+  EncryptionRequestParams,
+  RpcMethods,
+} from './types';
 import { getState, saveState } from './stateManagement';
 import { selectZkCert } from './zkCertSelector';
 import { shortenAddrStr } from './utils';
 
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 import { calculateHolderCommitment } from './zkCertHandler';
-
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -21,12 +27,15 @@ import { calculateHolderCommitment } from './zkCertHandler';
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_confirm` call failed.
  */
-export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
-  console.log("got request", request.method);
+export const onRpcRequest: OnRpcRequestHandler = async ({
+  origin,
+  request,
+}) => {
+  console.log('got request', request.method);
 
   let state = await getState();
-  let confirm : any;
-  let responseMsg : string;
+  let confirm: any;
+  let responseMsg: string;
   let holder: HolderData;
 
   switch (request.method) {
@@ -217,14 +226,13 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
     case RpcMethods.encryptZkCert:
       const encryptionParams = request.params as EncryptionRequestParams;
 
-
       confirm = await wallet.request({
         method: 'snap_confirm',
         params: [
           {
-            prompt: 'Import zkCert?',
-            description: 'Galactica zkKYC import.',
-            textAreaContent: `Do you want to import the following zkCert? (provided through ${origin})
+            prompt: 'encrypt zkCert?',
+            description: 'Galactica zkKYC encrypt.',
+            textAreaContent: `Do you want to encrypt the following zkCert and submit it onchain? (provided through ${origin})
             ${encryptionParams.zkCert.did}
             `,
           },
@@ -233,7 +241,19 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       if (!confirm) {
         throw new Error('User rejected confirmation.');
       }
-      state.zkCerts.push(importParams.zkCert);
+
+      // Request accounts from metamask
+      const accounts = await wallet.request({
+        method: 'eth_requestAccounts',
+      });
+
+      // get public key from the account for encryption purpose
+      const encryptionPublicKey = wallet.request({
+        method: 'eth_getEncryptionPublicKey',
+        params: [accounts[0]],
+      });
+
+      state.zkCerts.push(encryptionParams.zkCert);
       await saveState(state);
       return 'zkCert added to storage';
   }
