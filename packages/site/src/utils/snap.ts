@@ -136,6 +136,19 @@ export const importZkCert = async (zkCertJson: any) => {
   });
 };
 
+export const importZkCert = async (zkCertJson: any) => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.importZkCert,
+        params: { zkCert: zkCertJson },
+      },
+    ],
+  });
+};
+
 export const exportZkCert = async () => {
   const params: ExportRequestParams = {
     zkCertStandard: ZkCertStandard.zkKYC,

@@ -172,7 +172,18 @@ const Index = () => {
     }
   };
 
-  
+  const handleEncryptionClick = async (fileContent: string) => {
+    try {
+      const parsedFile = JSON.parse(fileContent);
+
+      console.log('sending request to snap...');
+      const res = await importZkCert(parsedFile);
+      console.log('Response from snap', res);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
 
   const getHolderCommitmentClick = async () => {
     try {
@@ -399,7 +410,7 @@ const Index = () => {
               'Submit encrypted KYC information onchain.',
             button: (
               <GeneralButton
-                onClick={handleEncryptClick}
+                onFileSelected={handleEncryptionClick}
                 disabled={false}
                 text="Encrypt & Submit"
               />
