@@ -172,10 +172,12 @@ const Index = () => {
     }
   };
 
+  
+
   const getHolderCommitmentClick = async () => {
     try {
       const  zkKYCContent = {
-        
+
       };
       console.log('sending request to snap...');
       const res = await getHolderCommitment();
@@ -231,9 +233,7 @@ const Index = () => {
       <Heading>
         Welcome to the <Span>Galactica zkKYC</Span> proof of concept
       </Heading>
-      <Subtitle>
-        Galactica dApp features
-      </Subtitle>
+      <Subtitle>Galactica dApp features</Subtitle>
       <CardContainer>
         {state.error && (
           <ErrorMessage>
@@ -286,8 +286,7 @@ const Index = () => {
         <Card
           content={{
             title: 'Generate age proof',
-            description:
-              'Call Metamask Snap to generate a simple ZK proof.',
+            description: 'Call Metamask Snap to generate a simple ZK proof.',
             button: (
               <GeneralButton
                 onClick={handleSimpleProofClick}
@@ -324,7 +323,7 @@ const Index = () => {
           </p>
         </Notice> */}
       </CardContainer>
-      <br/>
+      <br />
       <Subtitle>
         Manage zkCertificate storage (part of Galactica passport website)
       </Subtitle>
@@ -393,11 +392,25 @@ const Index = () => {
           disabled={false}
           fullWidth={false}
         />
+        <Card
+          content={{
+            title: 'Encrypt zkCert',
+            description:
+              'Submit encrypted KYC information onchain.',
+            button: (
+              <GeneralButton
+                onClick={handleEncryptClick}
+                disabled={false}
+                text="Encrypt & Submit"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
       </CardContainer>
-      <br/>
-      <Subtitle>
-        Creating zkKYC (part of zkKYC provider website)
-      </Subtitle>
+      <br />
+      <Subtitle>Creating zkKYC (part of zkKYC provider website)</Subtitle>
       <CardContainer>
         <Card
           content={{

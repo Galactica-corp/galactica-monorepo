@@ -1,7 +1,7 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
 
 import { generateZkKycProof } from './proofGenerator';
-import { ExportRequestParams, GenZkKycRequestParams, HolderData, ImportRequestParams, EncryptRequestParams, RpcMethods } from './types';
+import { ExportRequestParams, GenZkKycRequestParams, HolderData, ImportRequestParams, EncryptionRequestParams, RpcMethods } from './types';
 import { getState, saveState } from './stateManagement';
 import { selectZkCert } from './zkCertSelector';
 import { shortenAddrStr } from './utils';
@@ -215,9 +215,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       throw new Error('Method not found.');
 
     case RpcMethods.encryptZkCert:
-      const encryptParams = request.params as EncryptRequestParams;
+      const encryptionParams = request.params as EncryptionRequestParams;
 
-      // TODO: check that there is a holder setup for this zkCert
 
       confirm = await wallet.request({
         method: 'snap_confirm',
@@ -226,7 +225,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
             prompt: 'Import zkCert?',
             description: 'Galactica zkKYC import.',
             textAreaContent: `Do you want to import the following zkCert? (provided through ${origin})
-            ${importParams.zkCert.did}
+            ${encryptionParams.zkCert.did}
             `,
           },
         ],
