@@ -16,6 +16,9 @@ import { shortenAddrStr } from './utils';
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 import { calculateHolderCommitment } from './zkCertHandler';
 
+import { ethUtil } from 'ethereumjs-util';
+import { sigUtil } from '@metamask/eth-sig-util';
+
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
  *
@@ -248,13 +251,25 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       });
 
       // get public key from the account for encryption purpose
-      const encryptionPublicKey = wallet.request({
+      const encryptionPublicKey = await wallet.request({
         method: 'eth_getEncryptionPublicKey',
         params: [accounts[0]],
       });
 
-      state.zkCerts.push(encryptionParams.zkCert);
-      await saveState(state);
+      const encryptedMessage = ethUtil.bufferToHex(
+        Buffer.from(
+          JSON.stringify(
+            sigUtil.encrypt({
+              publicKey: encryptionPublicKey,
+              data: JSON.stringify(encryptionParams),
+              version: 'x25519-xsalsa20-poly1305',
+            }),
+          ),
+          'utf8',
+        ),
+      );
+
+      console.log(encryptedMessage);
       return 'zkCert added to storage';
   }
 };

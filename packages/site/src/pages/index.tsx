@@ -407,7 +407,7 @@ const Index = () => {
             title: 'Encrypt zkCert',
             description: 'Submit encrypted KYC information onchain.',
             button: (
-              <GeneralButton
+              <SelectAndImportButton
                 onFileSelected={handleEncryptionClick}
                 disabled={false}
                 text="Encrypt & Submit"
