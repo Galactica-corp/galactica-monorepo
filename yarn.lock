@@ -4128,6 +4128,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@openzeppelin/contracts-upgradeable@npm:^4.7.3":
+  version: 4.8.0
+  resolution: "@openzeppelin/contracts-upgradeable@npm:4.8.0"
+  checksum: c39f3a719830c068d0ae413a8beee4072fa19f777b55bf6155fe21023414eab0633a641318845ac50929837b71848de1efbd00d4c181ddd6d8b735ceb0a82070
+  languageName: node
+  linkType: hard
+
 "@parcel/bundler-default@npm:2.6.2":
   version: 2.6.2
   resolution: "@parcel/bundler-default@npm:2.6.2"
@@ -6929,7 +6936,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bn.js@npm:^5.2.1":
+"bn.js@npm:^5.2.0, bn.js@npm:^5.2.1":
   version: 5.2.1
   resolution: "bn.js@npm:5.2.1"
   checksum: 3dd8c8d38055fedfa95c1d5fc3c99f8dd547b36287b37768db0abab3c239711f88ff58d18d155dd8ad902b0b0cee973747b7ae20ea12a09473272b0201c9edd3
@@ -10877,7 +10884,7 @@ __metadata:
     snarkjs: "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap"
     ts-node: ^10.9.1
     typescript: ^4.7.4
-    zkkyc: "git+ssh://git@github.com:Galactica-corp/zkKYC.git#module"
+    zkkyc: "git+ssh://git@github.com:Galactica-corp/zkKYC.git#deployment"
   languageName: unknown
   linkType: soft
 
@@ -13243,6 +13250,29 @@ __metadata:
   languageName: node
   linkType: hard
 
+"keccak256@npm:^1.0.6":
+  version: 1.0.6
+  resolution: "keccak256@npm:1.0.6"
+  dependencies:
+    bn.js: ^5.2.0
+    buffer: ^6.0.3
+    keccak: ^3.0.2
+  checksum: decafb4b37adcfa6d06b6a5d28546d0d7a9f01ccf4b8cc8963cf8188fcc79a230d7e22988e860813623c602d764259734423e38fd7b9aadfeb409d6928a1d4cf
+  languageName: node
+  linkType: hard
+
+"keccak@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "keccak@npm:3.0.2"
+  dependencies:
+    node-addon-api: ^2.0.0
+    node-gyp: latest
+    node-gyp-build: ^4.2.0
+    readable-stream: ^3.6.0
+  checksum: 39a7d6128b8ee4cb7dcd186fc7e20c6087cc39f573a0f81b147c323f688f1f7c2b34f62c4ae189fe9b81c6730b2d1228d8a399cdc1f3d8a4c8f030cdc4f20272
+  languageName: node
+  linkType: hard
+
 "keyv@npm:^3.0.0":
   version: 3.1.0
   resolution: "keyv@npm:3.1.0"
@@ -14386,6 +14416,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-addon-api@npm:^2.0.0":
+  version: 2.0.2
+  resolution: "node-addon-api@npm:2.0.2"
+  dependencies:
+    node-gyp: latest
+  checksum: 31fb22d674648204f8dd94167eb5aac896c841b84a9210d614bf5d97c74ef059cc6326389cf0c54d2086e35312938401d4cc82e5fcd679202503eb8ac84814f8
+  languageName: node
+  linkType: hard
+
 "node-addon-api@npm:^3.0.0, node-addon-api@npm:^3.2.1":
   version: 3.2.1
   resolution: "node-addon-api@npm:3.2.1"
@@ -14438,7 +14477,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp-build@npm:^4.2.2, node-gyp-build@npm:^4.3.0":
+"node-gyp-build@npm:^4.2.0, node-gyp-build@npm:^4.2.2, node-gyp-build@npm:^4.3.0":
   version: 4.5.0
   resolution: "node-gyp-build@npm:4.5.0"
   bin:
@@ -17370,6 +17409,7 @@ __metadata:
     eslint-plugin-jsdoc: ^39.2.9
     eslint-plugin-node: ^11.1.0
     eslint-plugin-prettier: ^4.2.1
+    ethers: ^5.7.2
     gatsby: ^4.24.4
     gatsby-plugin-manifest: ^4.24.0
     gatsby-plugin-styled-components: ^5.24.0
@@ -19644,10 +19684,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#module":
+"zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#deployment":
   version: 1.0.0
-  resolution: "zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#commit=eb03000474a26906d83f0d2cd83c21603d221204"
+  resolution: "zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#commit=06c45ed27949e73fe1dc8a55f940922e53d37cc2"
   dependencies:
+    "@openzeppelin/contracts-upgradeable": ^4.7.3
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/truffle-v5": ^8.0.2
     "@typechain/web3-v1": ^6.0.2
@@ -19657,7 +19698,8 @@ __metadata:
     circomlibjs: ^0.1.7
     ethers: ^5.7.2
     hardhat-circom: ^3.3.1
+    keccak256: ^1.0.6
     snarkit2: ^0.2.0
-  checksum: f2b80cf533817fb25728046533728ed4779e7ef584599c564581a61e136e44a2f71ec2b1cef1d56ec6a141deb068646ce70c2d86605f3be991e3e6c1ea7c02ba
+  checksum: ff8d952b10534a9caf18bce00543e14a4d1c0847882554056b2778a484ddf031ce8d6d5723180f10c5ecfd125aeaf2daa5852928bbfe8a0a0abc249aa769205e
   languageName: node
   linkType: hard

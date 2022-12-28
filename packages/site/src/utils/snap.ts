@@ -2,6 +2,7 @@ import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { ExportRequestParams, RpcMethods, ZkCertStandard } from './../../../snap/src/types';
 import { ZkKYCContent } from '../../../snap/src/zkCertTypes';
+import { getCurrentBlockTime } from './metamask';
 
 /**
  * Get the installed snaps in MetaMask.
@@ -79,13 +80,17 @@ export const generateProof = async (proverData: any) => {
   // TODO: add type for proverData
   // TODO: move filling input inside snap
 
-  const currentTimestamp = Math.floor(Date.now() / 1000);
-  const now = new Date();
+  // expected time for between pressing the generation button and the verification happening on-chain
+  const estimatedProofCreationDuration = 60; 
+
+  const currentTimestamp = await getCurrentBlockTime() + estimatedProofCreationDuration;
+  const dateNow = new Date(currentTimestamp * 1000);
+
   const publicInput = {
     currentTime: currentTimestamp,
-    currentYear: now.getUTCFullYear().toString(),
-    currentMonth: (now.getUTCMonth() + 1).toString(),
-    currentDay: now.getUTCDate().toString(),
+    currentYear: dateNow.getUTCFullYear().toString(),
+    currentMonth: (dateNow.getUTCMonth() + 1).toString(),
+    currentDay: dateNow.getUTCDate().toString(),
     ageThreshold: "18"
   };
   console.log("publicInput", publicInput);
@@ -124,6 +129,7 @@ export const clearStorage = async () => {
 };
 
 export const importZkCert = async (zkCertJson: any) => {
+  console.log({zkCert: zkCertJson});
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [

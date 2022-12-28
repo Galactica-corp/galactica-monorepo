@@ -1,3 +1,5 @@
+import { ethers } from 'ethers';
+
 /**
  * Detect if the wallet injecting the ethereum object is Flask.
  *
@@ -18,3 +20,10 @@ export const isFlask = async () => {
     return false;
   }
 };
+
+export async function getCurrentBlockTime(): Promise<number> {
+  //@ts-ignore https://github.com/metamask/providers/issues/200
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  
+  return (await provider.getBlock("latest")).timestamp;
+}

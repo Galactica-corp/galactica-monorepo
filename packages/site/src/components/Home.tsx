@@ -8,7 +8,7 @@ import {
   shouldDisplayReconnectButton,
 } from '../utils';
 import {
-  ConnectButton,
+  ConnectSnapButton,
   InstallFlaskButton,
   ReconnectButton,
   GenerateButton,
@@ -158,7 +158,7 @@ export const Home = () => {
               description:
                 'Get started by connecting to and installing the example snap.',
               button: (
-                <ConnectButton
+                <ConnectSnapButton
                   onClick={handleConnectClick}
                   disabled={!state.isFlask}
                 />

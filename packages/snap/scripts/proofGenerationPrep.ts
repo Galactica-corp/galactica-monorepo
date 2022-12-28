@@ -96,7 +96,17 @@ async function writeCircuitDataToTSFile(filePath: string, data: GenZkKycRequestP
     await fs.writeFile(filePath, fileContent, (err) => {
         if (err) throw err;
         console.log(`Written to ${filePath}`);
-      });
+    });
+
+    const jsContent = {
+        wasm: uint8ArrayToJSArray(data.wasm),
+        zkeyHeader: data.zkeyHeader,
+        zkeySections: data.zkeySections,
+    }
+    await fs.writeFile(filePath.replace(".ts", ".json"), JSON.stringify(jsContent), (err) => {
+        if (err) throw err;
+        console.log(`Written to ${filePath}`);
+    });
 }
 
 /**
