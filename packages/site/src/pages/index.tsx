@@ -112,10 +112,6 @@ const ErrorMessage = styled.div`
 
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
-  const { ethereum } = window;
-
-  //@ts-ignore https://github.com/metamask/providers/issues/200
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
 
   const handleSnapConnectClick = async () => {
     try {
@@ -134,8 +130,11 @@ const Index = () => {
 
   const handleMMConnectClick = async () => {
     try {
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+
       // Will open the MetaMask UI
-      ethereum.request({ method: 'eth_requestAccounts' });
+      window.ethereum.request({ method: 'eth_requestAccounts' });
       // TODO: You should disable this button while the request is pending!
       const signer = provider.getSigner();
       console.log('Connected with Metamask to', await signer.getAddress());
@@ -152,6 +151,8 @@ const Index = () => {
 
   const handleSendProofClick = async () => {
     try {
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
 
       // get contracts
