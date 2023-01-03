@@ -22,8 +22,8 @@ export const isFlask = async () => {
 };
 
 export async function getCurrentBlockTime(): Promise<number> {
-  //@ts-ignore https://github.com/metamask/providers/issues/200
+  // @ts-ignore https://github.com/metamask/providers/issues/200
   const provider = new ethers.providers.Web3Provider(window.ethereum);
-  
-  return (await provider.getBlock("latest")).timestamp;
+
+  return (await provider.getBlock('latest')).timestamp;
 }

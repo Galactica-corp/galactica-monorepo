@@ -1,14 +1,18 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
+import { eddsaKeyGenerationMessage } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
-import { ExportRequestParams, GenZkKycRequestParams, HolderData, ImportRequestParams, RpcMethods } from './types';
 import { getState, saveState } from './stateManagement';
-import { selectZkCert } from './zkCertSelector';
+import {
+  ExportRequestParams,
+  GenZkKycRequestParams,
+  HolderData,
+  ImportRequestParams,
+  RpcMethods,
+} from './types';
 import { shortenAddrStr } from './utils';
-
-import { eddsaKeyGenerationMessage } from 'zkkyc';
 import { calculateHolderCommitment } from './zkCertHandler';
-
+import { selectZkCert } from './zkCertSelector';
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -21,12 +25,15 @@ import { calculateHolderCommitment } from './zkCertHandler';
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_confirm` call failed.
  */
-export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => {
-  console.log("got request", request.method);
+export const onRpcRequest: OnRpcRequestHandler = async ({
+  origin,
+  request,
+}) => {
+  console.log('got request', request.method);
 
-  let state = await getState();
-  let confirm : any;
-  let responseMsg : string;
+  const state = await getState();
+  let confirm: any;
+  let responseMsg: string;
   let holder: HolderData;
 
   switch (request.method) {
@@ -42,33 +49,34 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         ],
       });
 
-      const newAccounts = await wallet.request({
+      const newAccounts = (await wallet.request({
         method: 'eth_requestAccounts',
-      }) as string[];
+      })) as string[];
       const newHolder = newAccounts[0];
-      console.log("Holder to be added:", newHolder);
-      
+      console.log('Holder to be added:', newHolder);
+
       // TODO: Do we need the 0x prefix?
-      const msg = `0x${Buffer.from(eddsaKeyGenerationMessage, 'utf8').toString('hex')}`;
-      const sign = await wallet.request({
+      const msg = `0x${Buffer.from(eddsaKeyGenerationMessage, 'utf8').toString(
+        'hex',
+      )}`;
+      const sign = (await wallet.request({
         method: 'personal_sign',
         params: [msg, newHolder],
-      }) as string;
-      
+      })) as string;
+
       if (state.holders.find((holder) => holder.address === newHolder)) {
-        responseMsg = `${shortenAddrStr(newHolder)} already added.`;        
-      }
-      else {
+        responseMsg = `${shortenAddrStr(newHolder)} already added.`;
+      } else {
         state.holders.push({
           address: newHolder,
           holderCommitment: await calculateHolderCommitment(sign),
-          eddsaKey: sign 
+          eddsaKey: sign,
         });
         await saveState({ holders: state.holders, zkCerts: state.zkCerts });
-        responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;        
+        responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;
       }
       return responseMsg;
-    
+
     case RpcMethods.genZkKycProof:
       // parse ZKP inputs
       const genParams = request.params as GenZkKycRequestParams;
@@ -79,12 +87,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         method: 'snap_confirm',
         params: [
           {
-            prompt: "Generate zkCert proof?",
-            description:
-            'Galactica zkKYC proof creation.',
+            prompt: 'Generate zkCert proof?',
+            description: 'Galactica zkKYC proof creation.',
             // TODO: list disclosed information
-            textAreaContent:
-            `Do you want to prove your identity to ${origin}?
+            textAreaContent: `Do you want to prove your identity to ${origin}?
             This will create a zkKYC proof.
             It discloses the following information publicly:
             - That you hold a KYC
@@ -104,13 +110,19 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
 
       const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
 
-      holder = state.holders.find((holder) => holder.holderCommitment === zkCert.holderCommitment)!;
+      holder = state.holders.find(
+        (holder) => holder.holderCommitment === zkCert.holderCommitment,
+      )!;
       if (holder === undefined) {
-        throw new Error(`Holder for commitment ${zkCert.holderCommitment} could not be found. Please connect the snap to that address to import the corresponding holder.`);
+        throw new Error(
+          `Holder for commitment ${zkCert.holderCommitment} could not be found. Please connect the snap to that address to import the corresponding holder.`,
+        );
       }
 
       // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
-      const merkleProof = state.zkCerts.find(cert => cert.leafHash === zkCert.leafHash)!.merkleProof;
+      const { merkleProof } = state.zkCerts.find(
+        (cert) => cert.leafHash === zkCert.leafHash,
+      )!;
 
       const proof = generateZkKycProof(genParams, zkCert, holder, merkleProof);
       return proof;
@@ -120,11 +132,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         method: 'snap_confirm',
         params: [
           {
-            prompt: "Clear zkCert and holder storage?",
-            description:
-            'Galactica zkCert storage clearing',
-            textAreaContent:
-            `Do you want to delete the zkCertificates and holder information stored in Metamask? (requested by ${origin})`,
+            prompt: 'Clear zkCert and holder storage?',
+            description: 'Galactica zkCert storage clearing',
+            textAreaContent: `Do you want to delete the zkCertificates and holder information stored in Metamask? (requested by ${origin})`,
           },
         ],
       });
@@ -133,8 +143,8 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       }
 
       await saveState({ holders: [], zkCerts: [] });
-      return "zkCert storage cleared";
-    
+      return 'zkCert storage cleared';
+
     case RpcMethods.importZkCert:
       const importParams = request.params as ImportRequestParams;
 
@@ -144,11 +154,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         method: 'snap_confirm',
         params: [
           {
-            prompt: "Import zkCert?",
-            description:
-            'Galactica zkKYC import.',
-            textAreaContent:
-            `Do you want to import the following zkCert? (provided through ${origin})
+            prompt: 'Import zkCert?',
+            description: 'Galactica zkKYC import.',
+            textAreaContent: `Do you want to import the following zkCert? (provided through ${origin})
             ${importParams.zkCert.did}
             `,
           },
@@ -159,7 +167,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
       }
       state.zkCerts.push(importParams.zkCert);
       await saveState(state);
-      return "zkCert added to storage";
+      return 'zkCert added to storage';
 
     case RpcMethods.exportZkCert:
       const exportParams = request.params as ExportRequestParams;
@@ -168,11 +176,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         method: 'snap_confirm',
         params: [
           {
-            prompt: "Import zkCert?",
-            description:
-            'Galactica zkKYC import.',
-            textAreaContent:
-            `Do you want to export a zkCert? (provided to ${origin} for saving it to a file)
+            prompt: 'Import zkCert?',
+            description: 'Galactica zkKYC import.',
+            textAreaContent: `Do you want to export a zkCert? (provided to ${origin} for saving it to a file)
             `,
           },
         ],
@@ -181,12 +187,16 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         throw new Error('User rejected confirmation.');
       }
 
-      const zkCertForExport = await selectZkCert(state.zkCerts, {zkCertStandard: exportParams.zkCertStandard});
+      const zkCertForExport = await selectZkCert(state.zkCerts, {
+        zkCertStandard: exportParams.zkCertStandard,
+      });
       return zkCertForExport;
 
     case RpcMethods.getHolderCommitment:
       if (state.holders.length === 0) {
-        throw new Error("No holders imported. Please import a holding address first.");
+        throw new Error(
+          'No holders imported. Please import a holding address first.',
+        );
       }
 
       // TODO: holder selection if multiple holders are available
@@ -196,11 +206,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({ origin, request }) => 
         method: 'snap_confirm',
         params: [
           {
-            prompt: "Provide holder commitment?",
-            description:
-            'First step to get a zkCert from a provider.',
-            textAreaContent:
-            `Do you want to provide your holder commitment of ${holder.address} to ${origin}?`,
+            prompt: 'Provide holder commitment?',
+            description: 'First step to get a zkCert from a provider.',
+            textAreaContent: `Do you want to provide your holder commitment of ${holder.address} to ${origin}?`,
           },
         ],
       });

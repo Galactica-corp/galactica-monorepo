@@ -1,7 +1,11 @@
+import {
+  ExportRequestParams,
+  RpcMethods,
+  ZkCertStandard,
+} from '../../../snap/src/types';
+import { ZkKYCContent } from '../../../snap/src/zkCertTypes';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
-import { ExportRequestParams, RpcMethods, ZkCertStandard } from './../../../snap/src/types';
-import { ZkKYCContent } from '../../../snap/src/zkCertTypes';
 import { getCurrentBlockTime } from './metamask';
 
 /**
@@ -81,9 +85,10 @@ export const generateProof = async (proverData: any) => {
   // TODO: move filling input inside snap
 
   // expected time for between pressing the generation button and the verification happening on-chain
-  const estimatedProofCreationDuration = 60; 
+  const estimatedProofCreationDuration = 60;
 
-  const currentTimestamp = await getCurrentBlockTime() + estimatedProofCreationDuration;
+  const currentTimestamp =
+    (await getCurrentBlockTime()) + estimatedProofCreationDuration;
   const dateNow = new Date(currentTimestamp * 1000);
 
   const publicInput = {
@@ -91,9 +96,9 @@ export const generateProof = async (proverData: any) => {
     currentYear: dateNow.getUTCFullYear().toString(),
     currentMonth: (dateNow.getUTCMonth() + 1).toString(),
     currentDay: dateNow.getUTCDate().toString(),
-    ageThreshold: "18"
+    ageThreshold: '18',
   };
-  console.log("publicInput", publicInput);
+  console.log('publicInput', publicInput);
 
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
@@ -129,14 +134,14 @@ export const clearStorage = async () => {
 };
 
 export const importZkCert = async (zkCertJson: any) => {
-  console.log({zkCert: zkCertJson});
+  console.log({ zkCert: zkCertJson });
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
       defaultSnapOrigin,
       {
         method: RpcMethods.importZkCert,
-        params: {zkCert: zkCertJson},
+        params: { zkCert: zkCertJson },
       },
     ],
   });
@@ -153,14 +158,13 @@ export const exportZkCert = async () => {
       defaultSnapOrigin,
       {
         method: RpcMethods.exportZkCert,
-        params: params,
+        params,
       },
     ],
   });
 };
 
 export const getHolderCommitment = async () => {
-
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
