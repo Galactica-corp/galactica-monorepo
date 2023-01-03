@@ -1,18 +1,18 @@
 import { buildEddsa } from 'circomlibjs';
-import { MerkleProof, ZKCertificate } from 'zkkyc';
+import { ZKCertificate } from 'zkkyc';
 
 import { ZkCert, ZkCertRequirements } from './types';
 
 /**
- *
- * @param availableCerts
- * @param req
+ * @description Selects a ZkCert from the available ones
+ * @param availableCerts - The available ZkCerts to select from
+ * @param req - The requirements for the ZkCert to select
  */
 export async function selectZkCert(
   availableCerts: ZkCert[],
   req: ZkCertRequirements,
 ): Promise<ZKCertificate> {
-  if (availableCerts.length == 0) {
+  if (availableCerts.length === 0) {
     throw new Error('No zkCerts available. Please import it first.');
   }
 
@@ -20,7 +20,7 @@ export async function selectZkCert(
     return value.zkCertStandard === req.zkCertStandard;
   });
 
-  if (filteredCerts.length == 0) {
+  if (filteredCerts.length === 0) {
     throw new Error(
       `No zkCerts of standard ${req.zkCertStandard} available. Please import it first.`,
     );
@@ -28,7 +28,7 @@ export async function selectZkCert(
 
   let selected: ZkCert;
 
-  if (filteredCerts.length == 1) {
+  if (filteredCerts.length === 1) {
     selected = filteredCerts[0];
   } else {
     // TODO: implement selection using snap_dialog
