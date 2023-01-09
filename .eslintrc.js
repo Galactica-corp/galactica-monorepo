@@ -30,6 +30,22 @@ module.exports = {
         ],
       },
     },
+    {
+      // disabled according to https://github.com/import-js/eslint-plugin-import/issues/2215
+      files: ['**/*.d.ts'],
+      rules: {
+        'import/unambiguous': 'off',
+      },
+    },
+    {
+      // less strict rules for developer scripts
+      files: ['**/scripts/*.ts'],
+      rules: {
+        'import/no-nodejs-modules': 'off',
+        'no-restricted-globals': 'off',
+        'no-bitwise': 'off',
+      },
+    },
   ],
 
   ignorePatterns: [

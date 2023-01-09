@@ -1,43 +1,41 @@
+import { readBinFile, readSection } from '@iden3/binfileutils';
 import * as fs from 'fs';
+import { groth16, zKey } from 'snarkjs';
 
-import { GenZkKycRequestParams } from '../src/types';
-
-const binFileUtils = require('@iden3/binfileutils');
-const { groth16 } = require('snarkjs');
-const { zKey } = require('snarkjs');
+import { GenZkKycRequestParams } from '../types';
 
 /**
- * testStandard tests the usual proof generation process of snarkjs to compare it to the one in the snap
+ * TestStandard tests the usual proof generation process of snarkjs to compare it to the one in the snap.
  *
- * @param circuitName - name of the circuit to find the files
- * @param input
+ * @param circuitName - Name of the circuit to find the files.
+ * @param input - Input data for the proof
  */
-async function testStandard(circuitName: string, input: any) {
-  const { proof, publicSignals } = await groth16.fullProve(
-    input,
-    `${__dirname}/../circuits/${circuitName}/${circuitName}.wasm`,
-    `${__dirname}/../circuits/${circuitName}/${circuitName}.zkey`,
-  );
+// async function testStandard(circuitName: string, input: any) {
+//   const { proof, publicSignals } = await groth16.fullProve(
+//     input,
+//     `${__dirname}/../circuits/${circuitName}/${circuitName}.wasm`,
+//     `${__dirname}/../circuits/${circuitName}/${circuitName}.zkey`,
+//   );
 
-  console.log('Proof: ');
-  console.log(JSON.stringify(proof, null, 1));
+//   console.log('Proof: ');
+//   console.log(JSON.stringify(proof, null, 1));
 
-  const vKey = JSON.parse(
-    fs
-      .readFileSync(
-        `${__dirname}/../circuits/${circuitName}/${circuitName}.vkey.json`,
-      )
-      .toString(),
-  );
+//   const vKey = JSON.parse(
+//     fs
+//       .readFileSync(
+//         `${__dirname}/../circuits/${circuitName}/${circuitName}.vkey.json`,
+//       )
+//       .toString(),
+//   );
 
-  await verifyProof(proof, publicSignals, vKey);
-}
+//   await verifyProof(proof, publicSignals, vKey);
+// }
 
 /**
- * testModified constructs and checks the zkKYC proof with the modified code of snarkjs that does not depend on file reading
+ * TestModified constructs and checks the zkKYC proof with the modified code of snarkjs that does not depend on file reading.
  *
- * @param circuitName - name of the circuit to find the files
- * @param params
+ * @param circuitName - Name of the circuit to find the files.
+ * @param params - Parameters to generate the proof with.
  */
 async function testModified(
   circuitName: string,
@@ -65,11 +63,12 @@ async function testModified(
 }
 
 /**
- * @description Because we can not read files inside the SES of a snap, we parse the data here
- *   to have it in typescript and be able to pass it through the RPC endpoint
- * @param circuitName - name of the circuit to find the files
- * @param input - input data TODO: remove this as the input data should be filled from the snap
- * @returns
+ * Because we can not read files inside the SES of a snap, we parse the data here
+ * to have it in typescript and be able to pass it through the RPC endpoint.
+ *
+ * @param circuitName - Name of the circuit to find the files.
+ * @param input - Input data TODO: remove this as the input data should be filled from the snap.
+ * @returns The parameters to generate the proof with.
  */
 async function createCircuitData(
   circuitName: string,
@@ -84,7 +83,7 @@ async function createCircuitData(
     ),
   );
 
-  const { fd: fdZKey, sections: sectionsZKey } = await binFileUtils.readBinFile(
+  const { fd: fdZKey, sections: sectionsZKey } = await readBinFile(
     `${__dirname}/../circuits/${circuitName}/${circuitName}.zkey`,
     'zkey',
     2,
@@ -95,7 +94,7 @@ async function createCircuitData(
 
   const zkeySections: any[] = [];
   for (let i = 4; i < 10; i++) {
-    zkeySections.push(await binFileUtils.readSection(fdZKey, sectionsZKey, i));
+    zkeySections.push(await readSection(fdZKey, sectionsZKey, i));
   }
 
   const params: GenZkKycRequestParams = {
@@ -112,10 +111,11 @@ async function createCircuitData(
 }
 
 /**
- * @description To simplify reading the data in the frontend, we write it to a ts file here.
- * TODO: solve this properly by providing the file in the frontend and let the frontend parse it
- * @param filePath
- * @param data
+ * To simplify reading the data in the frontend, we write it to a ts file here.
+ * TODO: solve this properly by providing the file in the frontend and let the frontend parse it.
+ *
+ * @param filePath - Path to write to.
+ * @param data - Data to write.
  */
 async function writeCircuitDataToTSFile(
   filePath: string,
@@ -143,9 +143,9 @@ async function writeCircuitDataToTSFile(
   fileContent += `export const zkeySections = ${JSON.stringify(
     data.zkeySections,
   )};\n`;
-  await fs.writeFile(filePath, fileContent, (err) => {
-    if (err) {
-      throw err;
+  fs.writeFile(filePath, fileContent, (error) => {
+    if (error) {
+      throw error;
     }
     console.log(`Written to ${filePath}`);
   });
@@ -155,12 +155,12 @@ async function writeCircuitDataToTSFile(
     zkeyHeader: data.zkeyHeader,
     zkeySections: data.zkeySections,
   };
-  await fs.writeFile(
+  fs.writeFile(
     filePath.replace('.ts', '.json'),
     JSON.stringify(jsContent),
-    (err) => {
-      if (err) {
-        throw err;
+    (error) => {
+      if (error) {
+        throw error;
       }
       console.log(`Written to ${filePath}`);
     },
@@ -168,12 +168,12 @@ async function writeCircuitDataToTSFile(
 }
 
 /**
- * Check if a generated  zkProof is valid
+ * Check if a generated  zkProof is valid.
  *
- * @param proof - proof data
- * @param publicSignals - public signals
- * @param vKey - verification key
- * @returns true if the proof is valid
+ * @param proof - Proof data.
+ * @param publicSignals - Public signals.
+ * @param vKey - Verification key.
+ * @returns True if the proof is valid.
  */
 async function verifyProof(proof: any, publicSignals: any, vKey: any) {
   const res = await groth16.verify(vKey, publicSignals, proof);
@@ -186,7 +186,7 @@ async function verifyProof(proof: any, publicSignals: any, vKey: any) {
 }
 
 /**
- *
+ * Main function to run.
  */
 async function main() {
   const circuitName = 'ageProofZkKYC';
@@ -210,12 +210,14 @@ async function main() {
 }
 
 /**
+ * Transforms a Uint8Array to a number array.
  *
- * @param arr
+ * @param arr - Uint8Array to transform.
+ * @returns The number array.
  */
 function uint8ArrayToJSArray(arr: Uint8Array) {
   const res: number[] = [];
-  for (let i = 0; i < arr.length; i++) {
+  for (const i of arr) {
     res.push(arr[i]);
   }
   return res;

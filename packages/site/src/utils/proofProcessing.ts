@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js';
 // TODO: use functions from zkKYC module instead
 
 export function fromHexToDec(hex: string): string {
-  if (hex.slice(0, 2) === '0x') {
+  if (hex.startsWith('0x')) {
     return new BigNumber(hex.slice(2).toUpperCase(), 16).toString(10);
   }
   return new BigNumber(hex, 16).toString(10);

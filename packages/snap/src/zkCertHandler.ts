@@ -2,8 +2,9 @@ import { buildEddsa } from 'circomlibjs';
 import { createHolderCommitment } from 'zkkyc';
 
 /**
- * @description Calculates the holder commitment from the eddsa key. It is used to link a ZkCert to a holder without revealing the holder's identity to the provider.
- * @param holderEddsaKey
+ * Calculates the holder commitment from the eddsa key. It is used to link a ZkCert to a holder without revealing the holder's identity to the provider.
+ *
+ * @param holderEddsaKey - The eddsa key of the holder.
  */
 export async function calculateHolderCommitment(
   holderEddsaKey: string,

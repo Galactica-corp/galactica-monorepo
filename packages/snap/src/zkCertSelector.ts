@@ -4,9 +4,10 @@ import { ZKCertificate } from 'zkkyc';
 import { ZkCert, ZkCertRequirements } from './types';
 
 /**
- * @description Selects a ZkCert from the available ones
- * @param availableCerts - The available ZkCerts to select from
- * @param req - The requirements for the ZkCert to select
+ * Selects a ZkCert from the available ones.
+ *
+ * @param availableCerts - The available ZkCerts to select from.
+ * @param req - The requirements for the ZkCert to select.
  */
 export async function selectZkCert(
   availableCerts: ZkCert[],

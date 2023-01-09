@@ -23,11 +23,17 @@
     "lint:eslint": "eslint . --cache --ext js,ts",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
     "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' --ignore-path .gitignore",
+    "proofPrep": "ts-node src/scripts/proofGenerationPrep.ts",
     "serve": "mm-snap serve",
-    "start": "mm-snap watch",
-    "proofPrep": "ts-node scripts/proofGenerationPrep.ts"
+    "start": "mm-snap watch"
+  },
+  "dependencies": {
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap",
+    "zkkyc": "git+ssh://git@github.com:Galactica-corp/zkKYC.git#deployment"
   },
   "devDependencies": {
+    "@iden3/binfileutils": "^0.0.11",
     "@lavamoat/allow-scripts": "^2.0.3",
     "@metamask/auto-changelog": "^3.1.0",
     "@metamask/eslint-config": "^11.1.0",
@@ -60,10 +66,5 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  },
-  "dependencies": {
-    "circomlibjs": "^0.1.7",
-    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap",
-    "zkkyc": "git+ssh://git@github.com:Galactica-corp/zkKYC.git#deployment"
   }
 }

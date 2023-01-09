@@ -52,12 +52,12 @@ export type ZkCertProof = {
  * Enum for RPC methods.
  */
 export enum RpcMethods {
-  setupHoldingKey = 'setupHoldingKey',
-  getHolderCommitment = 'getHolderCommitment',
-  genZkKycProof = 'genZkKycProof',
-  clearStorage = 'clearStorage',
-  importZkCert = 'importZkCert',
-  exportZkCert = 'exportZkCert',
+  SetupHoldingKey = 'setupHoldingKey',
+  GetHolderCommitment = 'getHolderCommitment',
+  GenZkKycProof = 'genZkKycProof',
+  ClearStorage = 'clearStorage',
+  ImportZkCert = 'importZkCert',
+  ExportZkCert = 'exportZkCert',
   // TODO: would be nice to have more storage management methods like deleting a specific zkCert, modifying a zkCert, bulk import/export, ...
 }
 
@@ -65,7 +65,7 @@ export enum RpcMethods {
  * Enum for zkCert standards
  */
 export enum ZkCertStandard {
-  zkKYC = 'gip69',
+  ZkKYC = 'gip69',
 }
 
 // TODO: remove this type and use the one from the zkKYC package

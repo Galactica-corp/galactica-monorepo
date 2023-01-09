@@ -21,7 +21,6 @@ import {
   SelectAndImportButton,
   ConnectMMButton,
 } from '../components';
-import { wasm, zkeyHeader, zkeySections } from "../data/ageProof";
 import { ethers } from 'ethers';
 import { ageProofZkKYC } from '../config/abi';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
@@ -178,22 +177,6 @@ const Index = () => {
     try {
       console.log('sending request to snap...');
       const res = await method();
-      console.log('Response from snap', res);
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
-
-  const handleSimpleProofClick = async () => {
-    try {
-      console.log('sending request to snap...');
-      const ageProver = {
-        wasm: wasm,
-        zkeyHeader: zkeyHeader,
-        zkeySections: zkeySections,
-      }
-      const res = await generateProof(ageProver);
       console.log('Response from snap', res);
     } catch (e) {
       console.error(e);

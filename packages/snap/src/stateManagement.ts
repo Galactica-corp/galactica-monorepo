@@ -1,7 +1,9 @@
-import { HolderData, StorageState } from './types';
+import { StorageState } from './types';
 
 /**
+ * Get the state from the snap storage in MetaMask's browser extension.
  *
+ * @returns The state.
  */
 export async function getState(): Promise<StorageState> {
   const state = await wallet.request<StorageState>({
@@ -19,8 +21,9 @@ export async function getState(): Promise<StorageState> {
 }
 
 /**
+ * Save updated state to the snap storage in MetaMask's browser extension.
  *
- * @param newState
+ * @param newState - The new state.
  */
 export async function saveState(newState: StorageState): Promise<void> {
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys

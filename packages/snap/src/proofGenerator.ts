@@ -1,15 +1,15 @@
 import { groth16 } from 'snarkjs';
-import { MerkleProof, ZKCertificate, fromHexToDec } from 'zkkyc';
+import { MerkleProof, ZKCertificate } from 'zkkyc';
 
 import { GenZkKycRequestParams, ZkCertProof, HolderData } from './types';
 
 /**
- * generateZkKycProof constructs and checks the zkKYC proof
+ * GenerateZkKycProof constructs and checks the zkKYC proof.
  *
- * @param params - Parameters defining the proof to be generated
- * @param zkCert - zkCert to be used for the proof
- * @param holder - holder data needed to derive private proof inputs
- * @param merkleProof
+ * @param params - Parameters defining the proof to be generated.
+ * @param zkCert - ZkCert to be used for the proof.
+ * @param holder - Holder data needed to derive private proof inputs.
+ * @param merkleProof - Merkle proof of the zkCert in the zkCert registry.
  */
 export const generateZkKycProof = async (
   params: GenZkKycRequestParams,
@@ -17,7 +17,7 @@ export const generateZkKycProof = async (
   holder: HolderData,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> => {
-  params = preprocessInput(params);
+  const processedParams = preprocessInput(params);
 
   const authorizationProof = zkCert.getAuthorizationProofInput(
     holder.eddsaKey,
@@ -25,7 +25,7 @@ export const generateZkKycProof = async (
   );
 
   const inputs: any = {
-    ...params.input,
+    ...processedParams.input,
 
     ...zkCert.fields,
     randomSalt: zkCert.randomSalt,
@@ -55,26 +55,27 @@ export const generateZkKycProof = async (
   try {
     const { proof, publicSignals } = await groth16.fullProveMemory(
       inputs,
-      Uint8Array.from(params.wasm),
-      params.zkeyHeader,
-      params.zkeySections,
+      Uint8Array.from(processedParams.wasm),
+      processedParams.zkeyHeader,
+      processedParams.zkeySections,
     );
 
     console.log('Calculated proof: ');
     console.log(JSON.stringify(proof, null, 1));
 
     return { proof, publicSignals };
-  } catch (err) {
+  } catch (error) {
     console.log('proof generation failed');
-    console.log(err.stack);
-    throw err;
+    console.log(error.stack);
+    throw error;
   }
 };
 
 /**
- * @description Prepare data from RPC request for snarkjs by converting it to the correct data types
- * @param params - GenZkKycRequestParams
- * @returns prepared GenZkKycRequestParams
+ * Prepare data from RPC request for snarkjs by converting it to the correct data types.
+ *
+ * @param params - GenZkKycRequestParams.
+ * @returns Prepared GenZkKycRequestParams.
  */
 function preprocessInput(params: GenZkKycRequestParams): GenZkKycRequestParams {
   params.zkeyHeader.q = BigInt(params.zkeyHeader.q);
