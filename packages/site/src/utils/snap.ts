@@ -3,7 +3,6 @@ import {
   RpcMethods,
   ZkCertStandard,
 } from '../../../snap/src/types';
-import { ZkKYCContent } from '../../../snap/src/zkCertTypes';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { getCurrentBlockTime } from './metamask';
@@ -57,8 +56,8 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
       (snap) =>
         snap.id === defaultSnapOrigin && (!version || snap.version === version),
     );
-  } catch (e) {
-    console.log('Failed to obtain installed snap', e);
+  } catch (error) {
+    console.log('Failed to obtain installed snap', error);
     return undefined;
   }
 };
@@ -73,7 +72,7 @@ export const setupHoldingKey = async () => {
     params: [
       defaultSnapOrigin,
       {
-        method: RpcMethods.setupHoldingKey,
+        method: RpcMethods.SetupHoldingKey,
         params: {},
       },
     ],
@@ -105,11 +104,11 @@ export const generateProof = async (proverData: any) => {
     params: [
       defaultSnapOrigin,
       {
-        method: RpcMethods.genZkKycProof,
+        method: RpcMethods.GenZkKycProof,
         params: {
           input: publicInput,
           requirements: {
-            zkCertStandard: ZkCertStandard.zkKYC,
+            zkCertStandard: ZkCertStandard.ZkKYC,
           },
           wasm: proverData.wasm,
           zkeyHeader: proverData.zkeyHeader,
@@ -126,7 +125,7 @@ export const clearStorage = async () => {
     params: [
       defaultSnapOrigin,
       {
-        method: RpcMethods.clearStorage,
+        method: RpcMethods.ClearStorage,
         params: {},
       },
     ],
@@ -140,7 +139,7 @@ export const importZkCert = async (zkCertJson: any) => {
     params: [
       defaultSnapOrigin,
       {
-        method: RpcMethods.importZkCert,
+        method: RpcMethods.ImportZkCert,
         params: { zkCert: zkCertJson },
       },
     ],
@@ -149,7 +148,7 @@ export const importZkCert = async (zkCertJson: any) => {
 
 export const exportZkCert = async () => {
   const params: ExportRequestParams = {
-    zkCertStandard: ZkCertStandard.zkKYC,
+    zkCertStandard: ZkCertStandard.ZkKYC,
   };
 
   return await window.ethereum.request({
@@ -157,7 +156,7 @@ export const exportZkCert = async () => {
     params: [
       defaultSnapOrigin,
       {
-        method: RpcMethods.exportZkCert,
+        method: RpcMethods.ExportZkCert,
         params,
       },
     ],
@@ -170,7 +169,7 @@ export const getHolderCommitment = async () => {
     params: [
       defaultSnapOrigin,
       {
-        method: RpcMethods.getHolderCommitment,
+        method: RpcMethods.GetHolderCommitment,
         params: {},
       },
     ],
