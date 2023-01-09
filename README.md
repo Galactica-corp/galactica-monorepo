@@ -18,15 +18,19 @@ yarn start
 ```
 
 ## Proof preparation
+
 To generate zk proofs, the snap takes the generator wasm and keys as input. This data is preliminarily provided through uploading a json file to the Snap.
 It can be generated with the script `packages/snap/scripts/proofGenerationPrep.ts`, which can be run with:
+
 ```
 cd packages/snap
 yarn run proofPrep
 ```
+
 You can modify the script to select another proof to prepare.
 
 ## Usage
+
 1. Open http://localhost:8000/
 2. Connect to Metamask Flask. This also installs the Snap. (redo after compiling a new Snap version)
 3. Setup holder account and connect Snap to Metamask wallet
