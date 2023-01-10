@@ -8,12 +8,12 @@ import {
 } from 'react';
 import { Snap } from '../types';
 import { isFlask, getSnap } from '../utils';
-import { ethers } from 'ethers';
 
 export type MetamaskState = {
   isFlask: boolean;
   installedSnap?: Snap;
   error?: Error;
+  info?: string;
   signer?: string;
   proofData?: any;
 };
@@ -21,6 +21,7 @@ export type MetamaskState = {
 const initialState: MetamaskState = {
   isFlask: false,
   error: undefined,
+  info: undefined,
   signer: "Connect",
   proofData: undefined,
 };
@@ -40,6 +41,7 @@ export enum MetamaskActions {
   SetInstalled = 'SetInstalled',
   SetFlaskDetected = 'SetFlaskDetected',
   SetError = 'SetError',
+  SetInfo = 'SetInfo',
   SetConnected = 'SetConnected',
   SetProofData = 'SetProofData',
 }
@@ -62,6 +64,12 @@ const reducer: Reducer<MetamaskState, MetamaskDispatch> = (state, action) => {
       return {
         ...state,
         error: action.payload,
+      };
+
+    case MetamaskActions.SetInfo:
+      return {
+        ...state,
+        info: action.payload,
       };
 
     case MetamaskActions.SetConnected:
@@ -138,6 +146,25 @@ export const MetaMaskProvider = ({ children }: { children: ReactNode }) => {
       }
     };
   }, [state.error]);
+
+  useEffect(() => {
+    let timeoutId: number;
+
+    if (state.info) {
+      timeoutId = window.setTimeout(() => {
+        dispatch({
+          type: MetamaskActions.SetInfo,
+          payload: undefined,
+        });
+      }, 10000);
+    }
+
+    return () => {
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [state.info]);
 
   return (
     <MetaMaskContext.Provider value={[state, dispatch]}>

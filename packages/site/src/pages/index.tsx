@@ -109,6 +109,24 @@ const ErrorMessage = styled.div`
   }
 `;
 
+const InfoMessage = styled.div`
+  background-color: ${({ theme }) => theme.colors.info.muted};
+  border: 1px solid ${({ theme }) => theme.colors.info.default};
+  color: ${({ theme }) => theme.colors.info.alternative};
+  border-radius: ${({ theme }) => theme.radii.default};
+  padding: 2.4rem;
+  margin-bottom: 2.4rem;
+  margin-top: 2.4rem;
+  max-width: 60rem;
+  width: 100%;
+  ${({ theme }) => theme.mediaQueries.small} {
+    padding: 1.6rem;
+    margin-bottom: 1.2rem;
+    margin-top: 1.2rem;
+    max-width: 100%;
+  }
+`;
+
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
 
@@ -121,6 +139,7 @@ const Index = () => {
         type: MetamaskActions.SetInstalled,
         payload: installedSnap,
       });
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Connected to Galactica Snap` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -142,6 +161,7 @@ const Index = () => {
         type: MetamaskActions.SetConnected,
         payload: await signer.getAddress(),
       });
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Connected to Metamask` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -165,6 +185,7 @@ const Index = () => {
       console.log(`Sending proof for on-chain verification...`);
       let tx = await ageProofSC.registerAddress(a, b, c, publicInputs);
       console.log("tx", tx);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
       const receipt = await tx.wait();
       console.log("receipt", receipt);
     } catch (e) {
@@ -178,6 +199,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await method();
       console.log('Response from snap', res);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Reponse from Snap: ${res} ` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -189,6 +211,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await exportZkCert();
       console.log('Response from snap', res);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${res}` });
 
       // save to file
       // TODO: add a saveAs dialog to let the user choose file name and location
@@ -213,6 +236,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await getHolderCommitment();
       console.log('Response from snap', res);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${res}` });
 
       const jsonExport = {
         holderCommitment: res
@@ -240,6 +264,8 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await importZkCert(parsedFile);
       console.log('Response from snap', res);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${res}` });
+
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -249,10 +275,11 @@ const Index = () => {
   const handleBigProofGeneration = async (fileContent: string) => {
     try {
       const parsedFile = JSON.parse(fileContent);
-
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Generating ZK proof in Snap.` });
       console.log('sending request to snap...');
       const res = await generateProof(parsedFile);
       console.log('Response from snap', res);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       console.log(JSON.stringify(res, null, 2));
       dispatch({ type: MetamaskActions.SetProofData, payload: res });
     } catch (e) {
@@ -274,6 +301,11 @@ const Index = () => {
           <ErrorMessage>
             <b>An error happened:</b> {state.error.message}
           </ErrorMessage>
+        )}
+        {state.info && (
+          <InfoMessage>
+            {state.info}
+          </InfoMessage>
         )}
         {!state.isFlask && (
           <Card
