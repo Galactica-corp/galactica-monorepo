@@ -168,32 +168,6 @@ const Index = () => {
     }
   };
 
-  const handleSendProofClick = async () => {
-    try {
-      //@ts-ignore https://github.com/metamask/providers/issues/200
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-
-      // get contracts
-      const ageProofSC = new ethers.Contract(ageProofZkKYC.address, ageProofZkKYC.abi, signer);
-
-      let [a, b, c] = processProof(state.proofData.proof);
-      let publicInputs = processPublicSignals(state.proofData.publicSignals);
-      console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
-      console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
-
-      console.log(`Sending proof for on-chain verification...`);
-      let tx = await ageProofSC.registerAddress(a, b, c, publicInputs);
-      console.log("tx", tx);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
-      const receipt = await tx.wait();
-      console.log("receipt", receipt);
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
-
   const handleSnapCallClick = async (method : () => Promise<any>) => {
     try {
       console.log('sending request to snap...');
@@ -275,13 +249,38 @@ const Index = () => {
   const handleBigProofGeneration = async (fileContent: string) => {
     try {
       const parsedFile = JSON.parse(fileContent);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Generating ZK proof in Snap.` });
+      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
       console.log('sending request to snap...');
-      const res = await generateProof(parsedFile);
+      const res : any = await generateProof(parsedFile);
       console.log('Response from snap', res);
+      if (res === undefined || res === null ){
+        throw new Error('Proof generation failed: empty response');
+      }
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       console.log(JSON.stringify(res, null, 2));
       dispatch({ type: MetamaskActions.SetProofData, payload: res });
+
+      // send proof direcly on chain
+
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      // get contracts
+      const ageProofSC = new ethers.Contract(ageProofZkKYC.address, ageProofZkKYC.abi, signer);
+
+      let [a, b, c] = processProof(res.proof);
+      let publicInputs = processPublicSignals(res.publicSignals);
+      console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
+      console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
+
+      console.log(`Sending proof for on-chain verification...`);
+      let tx = await ageProofSC.registerAddress(a, b, c, publicInputs);
+      console.log("tx", tx);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
+      const receipt = await tx.wait();
+      console.log("receipt", receipt);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -385,30 +384,14 @@ const Index = () => {
         /> */}
         <Card
           content={{
-            title: 'Generate zkKYC age proof',
+            title: 'zkKYC + age proof',
             description:
-              'Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old.',
+              '1. Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old. 2. Send proof tx for on-chain verification.',
             button: (
               <SelectAndImportButton
                 onFileSelected={handleBigProofGeneration}
                 disabled={false}
                 text="Select & Import"
-              />
-            ),
-          }}
-          disabled={false}
-          fullWidth={false}
-        />
-        <Card
-          content={{
-            title: 'Verify zkKYC age proof on-chain',
-            description:
-              'Send proof in an on-chain transaction.',
-            button: (
-              <GeneralButton
-                onClick={handleSendProofClick}
-                disabled={state.proofData === undefined}
-                text={state.proofData ? "Send proof" : "Generate proof first"}
               />
             ),
           }}
