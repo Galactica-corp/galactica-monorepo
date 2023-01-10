@@ -180,6 +180,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await encryptZkCert(parsedFile);
       console.log('Response from snap', res);
+      
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });

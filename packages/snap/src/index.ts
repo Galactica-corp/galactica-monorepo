@@ -227,7 +227,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       throw new Error('Method not found.');
 
     case RpcMethods.encryptZkCert:
-    
       const encryptionParams = request.params as EncryptionRequestParams;
 
       confirm = await wallet.request({
@@ -280,6 +279,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       );
 
       /* console.log(encryptedMessage); */
-      return `The encrypted zkCert info is ${encryptedMessage}`;
+      return encryptedMessage;
   }
 };
