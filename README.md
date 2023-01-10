@@ -18,13 +18,23 @@ yarn start
 ```
 
 ## Proof preparation
-To generate zk proofs, the snap takes the generator wasm and keys as input. This data is preliminarily provided through typescript.
+To generate zk proofs, the snap takes the generator wasm and keys as input. This data is preliminarily provided through uploading a json file to the Snap.
 It can be generated with the script `packages/snap/scripts/proofGenerationPrep.ts`, which can be run with:
 ```
 cd packages/snap
 yarn run proofPrep
 ```
 You can modify the script to select another proof to prepare.
+
+## Usage
+1. Open http://localhost:8000/
+2. Connect to Metamask Flask. This also installs the Snap. (redo after compiling a new Snap version)
+3. Setup holder account and connect Snap to Metamask wallet
+4. Export holder commitment
+5. Create zkKYC from holder commitment and personal data with zkKYC repo task `npx hardhat createZkKYC`
+6. Add Merkle tree proof form `npx hardhat run scripts/merkleTreeGenerator.ts` to zkKYC json
+7. Import zkKYC certificate in Snap
+8. Generate zkKYC + age proof
 
 ## Cloning
 
