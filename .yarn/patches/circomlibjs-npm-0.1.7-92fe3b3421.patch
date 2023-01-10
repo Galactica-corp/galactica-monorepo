@@ -1,0 +1,39 @@
+diff --git a/build/main.cjs b/build/main.cjs
+index 41b3edbbb541a4bfc9bff2b1c7af543af7585305..4adb6b91f6b417fe5f24de39a50f8c8daba82482 100644
+--- a/build/main.cjs
++++ b/build/main.cjs
+@@ -2,6 +2,7 @@
+ 
+ Object.defineProperty(exports, '__esModule', { value: true });
+ 
++let Buffer = require("buffer").Buffer;
+ var ffjavascript = require('ffjavascript');
+ var blake2b = require('blake2b');
+ var createBlakeHash = require('blake-hash');
+diff --git a/src/eddsa.js b/src/eddsa.js
+index 426971c2360cf7ec8b897653d2abae724bef4da0..6ba562f8343c758b3a0c386a2d395f65fda06bcf 100644
+--- a/src/eddsa.js
++++ b/src/eddsa.js
+@@ -1,3 +1,4 @@
++let Buffer = require("buffer").Buffer;
+ import { Scalar } from "ffjavascript";
+ import buildBabyJub from "./babyjub.js";
+ import buildPedersenHash from "./pedersen_hash.js";
+diff --git a/src/pedersen_hash.js b/src/pedersen_hash.js
+index 34b286b8c3feff3f02c8651e2b4c741151cb1380..dc60c10a5d7fb973262a4de3c36176af76591d5c 100644
+--- a/src/pedersen_hash.js
++++ b/src/pedersen_hash.js
+@@ -1,3 +1,4 @@
++let Buffer = require("buffer").Buffer;
+ import buildBabyJub from "./babyjub.js";
+ import blake2b from "blake2b";
+ import createBlakeHash from "blake-hash";
+diff --git a/src/testblake.js b/src/testblake.js
+index 9499939986e2861b72632ac007efd39a7f474da7..af60a0bf051dd73b40d56246516857987ce6df08 100644
+--- a/src/testblake.js
++++ b/src/testblake.js
+@@ -1,3 +1,4 @@
++let Buffer = require("buffer").Buffer;
+ import createBlakeHash from 'blake-hash';
+ import blake2b from "blake2b";
+ 

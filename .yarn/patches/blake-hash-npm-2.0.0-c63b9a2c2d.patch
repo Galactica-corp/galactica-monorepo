@@ -1,0 +1,54 @@
+diff --git a/lib/api/blake.js b/lib/api/blake.js
+index d0454ece64a9f75415f514efe665918c5c984fb8..0952098c329a62e764d155c4256417c477a4896a 100644
+--- a/lib/api/blake.js
++++ b/lib/api/blake.js
+@@ -1,3 +1,4 @@
++let Buffer = require("buffer").Buffer
+ const Transform = require('readable-stream').Transform
+ 
+ module.exports = class Blake extends Transform {
+diff --git a/lib/blake.js b/lib/blake.js
+index 6e1c7ff5d8f790a2e82be372766262c5525d7d03..bbc0b6735708c038e5301e6d98c7db1f37c23932 100644
+--- a/lib/blake.js
++++ b/lib/blake.js
+@@ -1,3 +1,4 @@
++let Buffer = require("buffer").Buffer
+ class Blake {
+   _lengthCarry (arr) {
+     for (let j = 0; j < arr.length; ++j) {
+diff --git a/lib/blake224.js b/lib/blake224.js
+index 143865d5abed06ede55ad75abd16349d4fd05b18..17bb35c65c51200cb7212f62e428a357df6e59d1 100644
+--- a/lib/blake224.js
++++ b/lib/blake224.js
+@@ -1,3 +1,4 @@
++let Buffer = require("buffer").Buffer
+ const Blake256 = require('./blake256')
+ 
+ const zo = Buffer.from([0x00])
+diff --git a/lib/blake256.js b/lib/blake256.js
+index 09c6983473be7228e3be5f61cf94f30d795ac982..7f2cfcd2e8580160eceed61bf06131003d904079 100644
+--- a/lib/blake256.js
++++ b/lib/blake256.js
+@@ -1,3 +1,4 @@
++let Buffer = require("buffer").Buffer
+ const Blake = require('./blake')
+ 
+ const zo = Buffer.from([0x01])
+diff --git a/lib/blake384.js b/lib/blake384.js
+index 6e7f629f6d5338d7100b278e4b56f30a81c17870..0f9f6c846c8b086d60f259ff9b355bfe55b332e0 100644
+--- a/lib/blake384.js
++++ b/lib/blake384.js
+@@ -1,3 +1,4 @@
++let Buffer = require("buffer").Buffer
+ const Blake512 = require('./blake512')
+ 
+ const zo = Buffer.from([0x00])
+diff --git a/lib/blake512.js b/lib/blake512.js
+index 752cc0f3b46c67e72fbec2142132b943822ab34f..be846921b2e33b5971612cafb8248d1c99aefd37 100644
+--- a/lib/blake512.js
++++ b/lib/blake512.js
+@@ -1,3 +1,4 @@
++let Buffer = require("buffer").Buffer
+ const Blake = require('./blake')
+ 
+ const zo = Buffer.from([0x01])
