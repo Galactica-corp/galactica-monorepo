@@ -1,4 +1,6 @@
 import { OnRpcRequestHandler } from '@metamask/snap-types';
+import { stringToBytes, bytesToHex } from '@metamask/utils';
+import { eddsaKeyGenerationMessage } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
 import {
@@ -10,14 +12,12 @@ import {
   RpcMethods,
 } from './types';
 import { getState, saveState } from './stateManagement';
-import { selectZkCert } from './zkCertSelector';
 import { shortenAddrStr } from './utils';
-
-import { eddsaKeyGenerationMessage } from 'zkkyc';
 import { calculateHolderCommitment } from './zkCertHandler';
 
 import * as ethUtil from 'ethereumjs-util';
 import * as sigUtil from '@metamask/eth-sig-util';
+import { selectZkCert } from './zkCertSelector';
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -36,13 +36,13 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 }) => {
   console.log('got request', request.method);
 
-  let state = await getState();
+  const state = await getState();
   let confirm: any;
   let responseMsg: string;
   let holder: HolderData;
 
   switch (request.method) {
-    case RpcMethods.setupHoldingKey:
+    case RpcMethods.SetupHoldingKey: {
       // inform user how setup works
       await wallet.request({
         method: 'snap_notify',
@@ -61,15 +61,14 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       console.log('Holder to be added:', newHolder);
 
       // TODO: Do we need the 0x prefix?
-      const msg = `0x${Buffer.from(eddsaKeyGenerationMessage, 'utf8').toString(
-        'hex',
-      )}`;
+      const msgToSign = bytesToHex(stringToBytes(eddsaKeyGenerationMessage));
+
       const sign = (await wallet.request({
         method: 'personal_sign',
-        params: [msg, newHolder],
+        params: [msgToSign, newHolder],
       })) as string;
 
-      if (state.holders.find((holder) => holder.address === newHolder)) {
+      if (state.holders.find((candidate) => candidate.address === newHolder)) {
         responseMsg = `${shortenAddrStr(newHolder)} already added.`;
       } else {
         state.holders.push({
@@ -81,8 +80,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;
       }
       return responseMsg;
+    }
 
-    case RpcMethods.genZkKycProof:
+    case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
       const genParams = request.params as GenZkKycRequestParams;
       // TODO: check input validity
@@ -115,24 +115,37 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
       const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
 
-      holder = state.holders.find(
-        (holder) => holder.holderCommitment === zkCert.holderCommitment,
-      )!;
-      if (holder === undefined) {
+      const searchedHolder = state.holders.find(
+        (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
+      );
+      if (searchedHolder === undefined) {
         throw new Error(
           `Holder for commitment ${zkCert.holderCommitment} could not be found. Please connect the snap to that address to import the corresponding holder.`,
         );
+      } else {
+        holder = searchedHolder;
       }
 
       // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
-      const merkleProof = state.zkCerts.find(
+      const searchedZkCert = state.zkCerts.find(
         (cert) => cert.leafHash === zkCert.leafHash,
-      )!.merkleProof;
+      );
+      if (searchedZkCert === undefined) {
+        throw new Error(
+          `zkCert with leafHash ${zkCert.leafHash} could not be found.`,
+        );
+      }
 
-      const proof = generateZkKycProof(genParams, zkCert, holder, merkleProof);
+      const proof = generateZkKycProof(
+        genParams,
+        zkCert,
+        holder,
+        searchedZkCert.merkleProof,
+      );
       return proof;
+    }
 
-    case RpcMethods.clearStorage:
+    case RpcMethods.ClearStorage: {
       confirm = await wallet.request({
         method: 'snap_confirm',
         params: [
@@ -149,8 +162,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
       await saveState({ holders: [], zkCerts: [] });
       return 'zkCert storage cleared';
+    }
 
-    case RpcMethods.importZkCert:
+    case RpcMethods.ImportZkCert: {
       const importParams = request.params as ImportRequestParams;
 
       // TODO: check that there is a holder setup for this zkCert
@@ -173,8 +187,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       state.zkCerts.push(importParams.zkCert);
       await saveState(state);
       return 'zkCert added to storage';
+    }
 
-    case RpcMethods.exportZkCert:
+    case RpcMethods.ExportZkCert: {
       const exportParams = request.params as ExportRequestParams;
 
       confirm = await wallet.request({
@@ -196,8 +211,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         zkCertStandard: exportParams.zkCertStandard,
       });
       return zkCertForExport;
+    }
 
-    case RpcMethods.getHolderCommitment:
+    case RpcMethods.GetHolderCommitment: {
       if (state.holders.length === 0) {
         throw new Error(
           'No holders imported. Please import a holding address first.',
@@ -222,11 +238,12 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       }
 
       return holder.holderCommitment;
+    }
 
-    default:
+    default: {
       throw new Error('Method not found.');
 
-    case RpcMethods.encryptZkCert:
+    case RpcMethods.EncryptZkCert:
       const encryptionParams = request.params as EncryptionRequestParams;
 
       confirm = await wallet.request({

@@ -14,14 +14,17 @@ import {
   encryptZkCert,
 } from '../utils';
 import {
-  ConnectButton,
+  ConnectSnapButton,
   InstallFlaskButton,
   ReconnectButton,
   Card,
   GeneralButton,
   SelectAndImportButton,
+  ConnectMMButton,
 } from '../components';
-import { wasm, zkeyHeader, zkeySections } from '../data/ageProof';
+import { ethers } from 'ethers';
+import { ageProofZkKYC } from '../config/abi';
+import { processProof, processPublicSignals } from '../utils/proofProcessing';
 
 const Container = styled.div`
   display: flex;
@@ -110,7 +113,7 @@ const ErrorMessage = styled.div`
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
 
-  const handleConnectClick = async () => {
+  const handleSnapConnectClick = async () => {
     try {
       await connectSnap();
       const installedSnap = await getSnap();
@@ -125,26 +128,56 @@ const Index = () => {
     }
   };
 
-  const handleSnapCallClick = async (method: () => Promise<any>) => {
+  const handleMMConnectClick = async () => {
     try {
-      console.log('sending request to snap...');
-      const res = await method();
-      console.log('Response from snap', res);
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+      // Will open the MetaMask UI
+      window.ethereum.request({ method: 'eth_requestAccounts' });
+      // TODO: You should disable this button while the request is pending!
+      const signer = provider.getSigner();
+      console.log('Connected with Metamask to', await signer.getAddress());
+
+      dispatch({
+        type: MetamaskActions.SetConnected,
+        payload: await signer.getAddress(),
+      });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }
   };
 
-  const handleSimpleProofClick = async () => {
+  const handleSendProofClick = async () => {
+    try {
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      // get contracts
+      const ageProofSC = new ethers.Contract(ageProofZkKYC.address, ageProofZkKYC.abi, signer);
+
+      let [a, b, c] = processProof(state.proofData.proof);
+      let publicInputs = processPublicSignals(state.proofData.publicSignals);
+      console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
+      console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
+
+      console.log(`Sending proof for on-chain verification...`);
+      let tx = await ageProofSC.registerAddress(a, b, c, publicInputs);
+      console.log("tx", tx);
+      const receipt = await tx.wait();
+      console.log("receipt", receipt);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const handleSnapCallClick = async (method : () => Promise<any>) => {
     try {
       console.log('sending request to snap...');
-      const ageProver = {
-        wasm: wasm,
-        zkeyHeader: zkeyHeader,
-        zkeySections: zkeySections,
-      };
-      const res = await generateProof(ageProver);
+      const res = await method();
       console.log('Response from snap', res);
     } catch (e) {
       console.error(e);
@@ -180,7 +213,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await encryptZkCert(parsedFile);
       console.log('Response from snap', res);
-      
+
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -233,6 +266,8 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await generateProof(parsedFile);
       console.log('Response from snap', res);
+      console.log(JSON.stringify(res, null, 2));
+      dispatch({ type: MetamaskActions.SetProofData, payload: res });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -265,12 +300,12 @@ const Index = () => {
         {!state.installedSnap && (
           <Card
             content={{
-              title: 'Connect',
+              title: 'Connect to Galactica Snap',
               description:
-                'Get started by connecting to and installing the example snap.',
+                'Get started by connecting to and installing the Galactica proof generation snap.',
               button: (
-                <ConnectButton
-                  onClick={handleConnectClick}
+                <ConnectSnapButton
+                  onClick={handleSnapConnectClick}
                   disabled={!state.isFlask}
                 />
               ),
@@ -281,12 +316,12 @@ const Index = () => {
         {shouldDisplayReconnectButton(state.installedSnap) && (
           <Card
             content={{
-              title: 'Reconnect',
+              title: 'Reconnect to Galactica Snap',
               description:
                 'While connected to a local running snap this button will always be displayed in order to update the snap if a change is made.',
               button: (
                 <ReconnectButton
-                  onClick={handleConnectClick}
+                  onClick={handleSnapConnectClick}
                   disabled={!state.installedSnap}
                 />
               ),
@@ -294,7 +329,24 @@ const Index = () => {
             disabled={!state.installedSnap}
           />
         )}
-        <Card
+        {state.isFlask && state.installedSnap && (
+          <Card
+            content={{
+              title: 'Connect to Metamask',
+              description:
+                `Standard Metamask connection to send transactions.`,
+              button: (
+                <ConnectMMButton
+                  onClick={handleMMConnectClick}
+                  id={"connectMM"}
+                  text={state.signer}
+                />
+              ),
+            }}
+            disabled={!state.isFlask}
+          />
+        )}
+        {/* <Card
           content={{
             title: 'Generate age proof',
             description: 'Call Metamask Snap to generate a simple ZK proof.',
@@ -308,7 +360,7 @@ const Index = () => {
           }}
           disabled={false}
           fullWidth={false}
-        />
+        /> */}
         <Card
           content={{
             title: 'Generate zkKYC age proof',
@@ -319,6 +371,22 @@ const Index = () => {
                 onFileSelected={handleBigProofGeneration}
                 disabled={false}
                 text="Select & Import"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Verify zkKYC age proof on-chain',
+            description:
+              'Send proof in an on-chain transaction.',
+            button: (
+              <GeneralButton
+                onClick={handleSendProofClick}
+                disabled={state.proofData === undefined}
+                text={state.proofData ? "Send proof" : "Generate proof first"}
               />
             ),
           }}

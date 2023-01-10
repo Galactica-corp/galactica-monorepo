@@ -80,11 +80,20 @@ export const InstallFlaskButton = () => (
   </Link>
 );
 
-export const ConnectButton = (props: ComponentProps<typeof Button>) => {
+export const ConnectSnapButton = (props: ComponentProps<typeof Button>) => {
   return (
     <Button {...props}>
       <FlaskFox />
       <ButtonText>Connect</ButtonText>
+    </Button>
+  );
+};
+
+export const ConnectMMButton = (props: ComponentProps<typeof Button>) => {
+  return (
+    <Button {...props}>
+      <FlaskFox />
+      <ButtonText>{props.text}</ButtonText>
     </Button>
   );
 };
@@ -156,7 +165,7 @@ export const HeaderButtons = ({
   }
 
   if (!state.installedSnap) {
-    return <ConnectButton onClick={onConnectClick} />;
+    return <ConnectSnapButton onClick={onConnectClick} />;
   }
 
   if (shouldDisplayReconnectButton(state.installedSnap)) {
