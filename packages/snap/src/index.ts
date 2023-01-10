@@ -16,8 +16,8 @@ import { shortenAddrStr } from './utils';
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 import { calculateHolderCommitment } from './zkCertHandler';
 
-import { ethUtil } from 'ethereumjs-util';
-import { sigUtil } from '@metamask/eth-sig-util';
+import * as ethUtil from 'ethereumjs-util';
+import * as sigUtil from '@metamask/eth-sig-util';
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -227,6 +227,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       throw new Error('Method not found.');
 
     case RpcMethods.encryptZkCert:
+    
       const encryptionParams = request.params as EncryptionRequestParams;
 
       confirm = await wallet.request({
@@ -256,6 +257,15 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         params: [accounts[0]],
       });
 
+      const encryptionParamsString = JSON.stringify(encryptionParams);
+      const result2 = JSON.stringify(
+        sigUtil.encrypt({
+          publicKey: encryptionPublicKey,
+          data: JSON.stringify(encryptionParams),
+          version: 'x25519-xsalsa20-poly1305',
+        }),
+      );
+
       const encryptedMessage = ethUtil.bufferToHex(
         Buffer.from(
           JSON.stringify(
@@ -269,7 +279,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         ),
       );
 
-      console.log(encryptedMessage);
-      return 'zkCert added to storage';
+      /* console.log(encryptedMessage); */
+      return `The encrypted zkCert info is ${encryptedMessage}`;
   }
 };

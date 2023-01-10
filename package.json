@@ -50,5 +50,9 @@
   "resolutions": {
     "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch",
     "ffjavascript": "patch:ffjavascript@npm:0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch"
+  },
+  "dependencies": {
+    "@metamask/eth-sig-util": "^5.0.2",
+    "ethereumjs-util": "^7.1.5"
   }
 }
