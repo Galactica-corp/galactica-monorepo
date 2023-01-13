@@ -242,7 +242,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
     default: {
       throw new Error('Method not found.');
-
+    }
     case RpcMethods.EncryptZkCert:
       const encryptionParams = request.params as EncryptionRequestParams;
 
@@ -273,16 +273,30 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         params: [accounts[0]],
       });
 
-      const encryptionParamsString = JSON.stringify(encryptionParams);
-      const result2 = JSON.stringify(
+      /* const encryptionParamsString = JSON.stringify(encryptionParams); */
+      const result = JSON.stringify(
         sigUtil.encrypt({
           publicKey: encryptionPublicKey,
           data: JSON.stringify(encryptionParams),
           version: 'x25519-xsalsa20-poly1305',
-        }),
-      );
+        }).ciphertext,
+      ).slice(2, -2);
 
-      const encryptedMessage = ethUtil.bufferToHex(
+      /* const enc = sigUtil.encrypt({
+        publicKey: encryptionPublicKey,
+        data: JSON.stringify(encryptionParams),
+        version: 'x25519-xsalsa20-poly1305',
+      });
+
+      const result = JSON.stringify(
+        Buffer.concat([
+          Buffer.from(enc.ephemPublicKey, 'base64'),
+          Buffer.from(enc.nonce, 'base64'),
+          Buffer.from(enc.ciphertext, 'base64'),
+        ]),
+      ); */
+
+      /* const encryptedMessage = JSON.stringify(
         Buffer.from(
           JSON.stringify(
             sigUtil.encrypt({
@@ -293,9 +307,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
           ),
           'utf8',
         ),
-      );
+      ); */
 
       /* console.log(encryptedMessage); */
-      return encryptedMessage;
+      return result;
   }
 };

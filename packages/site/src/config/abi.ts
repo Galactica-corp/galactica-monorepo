@@ -236,3 +236,41 @@ export const ageProofZkKYC = {
     },
   ],
 };
+
+export const UserEncryptedData = {
+  address: '0xb5e4A15F468AC505Bf0D53ceA2144b52135cCEF9',
+  abi: [
+    {
+      anonymous: false,
+      inputs: [
+        {
+          indexed: true,
+          internalType: 'address',
+          name: 'user',
+          type: 'address',
+        },
+        {
+          indexed: false,
+          internalType: 'bytes',
+          name: 'data',
+          type: 'bytes',
+        },
+      ],
+      name: 'AddEncryptedData',
+      type: 'event',
+    },
+    {
+      inputs: [
+        {
+          internalType: 'bytes',
+          name: 'data',
+          type: 'bytes',
+        },
+      ],
+      name: 'addEncryptedData',
+      outputs: [],
+      stateMutability: 'nonpayable',
+      type: 'function',
+    },
+  ],
+};

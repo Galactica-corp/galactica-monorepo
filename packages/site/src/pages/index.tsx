@@ -23,7 +23,7 @@ import {
   ConnectMMButton,
 } from '../components';
 import { ethers } from 'ethers';
-import { ageProofZkKYC } from '../config/abi';
+import { ageProofZkKYC, UserEncryptedData } from '../config/abi';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
 
 const Container = styled.div`
@@ -156,25 +156,33 @@ const Index = () => {
       const signer = provider.getSigner();
 
       // get contracts
-      const ageProofSC = new ethers.Contract(ageProofZkKYC.address, ageProofZkKYC.abi, signer);
+      const ageProofSC = new ethers.Contract(
+        ageProofZkKYC.address,
+        ageProofZkKYC.abi,
+        signer,
+      );
 
       let [a, b, c] = processProof(state.proofData.proof);
       let publicInputs = processPublicSignals(state.proofData.publicSignals);
-      console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
-      console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
+      console.log(
+        `Formated proof: ${JSON.stringify({ a: a, b: b, c: c }, null, 2)}`,
+      );
+      console.log(
+        `Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`,
+      );
 
       console.log(`Sending proof for on-chain verification...`);
       let tx = await ageProofSC.registerAddress(a, b, c, publicInputs);
-      console.log("tx", tx);
+      console.log('tx', tx);
       const receipt = await tx.wait();
-      console.log("receipt", receipt);
+      console.log('receipt', receipt);
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }
   };
 
-  const handleSnapCallClick = async (method : () => Promise<any>) => {
+  const handleSnapCallClick = async (method: () => Promise<any>) => {
     try {
       console.log('sending request to snap...');
       const res = await method();
@@ -207,13 +215,38 @@ const Index = () => {
   };
 
   const handleEncryptionClick = async (fileContent: string) => {
+    let res;
     try {
       const parsedFile = JSON.parse(fileContent);
 
       console.log('sending request to snap...');
-      const res = await encryptZkCert(parsedFile);
+      res = await encryptZkCert(parsedFile);
       console.log('Response from snap', res);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
 
+    try {
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send('eth_requestAccounts', []);
+      const signer = provider.getSigner();
+
+      // get contracts
+      const UserEncryptedDataSC = new ethers.Contract(
+        UserEncryptedData.address,
+        UserEncryptedData.abi,
+        signer,
+      );
+
+      let utf8Encode = new TextEncoder();
+      let data = utf8Encode.encode(res);
+      console.log(`Submit encrypted data onchain...`);
+      let tx = await UserEncryptedDataSC.addEncryptedData(data);
+      console.log('tx', tx);
+      const receipt = await tx.wait();
+      console.log('receipt', receipt);
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -333,12 +366,11 @@ const Index = () => {
           <Card
             content={{
               title: 'Connect to Metamask',
-              description:
-                `Standard Metamask connection to send transactions.`,
+              description: `Standard Metamask connection to send transactions.`,
               button: (
                 <ConnectMMButton
                   onClick={handleMMConnectClick}
-                  id={"connectMM"}
+                  id={'connectMM'}
                   text={state.signer}
                 />
               ),
@@ -380,13 +412,12 @@ const Index = () => {
         <Card
           content={{
             title: 'Verify zkKYC age proof on-chain',
-            description:
-              'Send proof in an on-chain transaction.',
+            description: 'Send proof in an on-chain transaction.',
             button: (
               <GeneralButton
                 onClick={handleSendProofClick}
                 disabled={state.proofData === undefined}
-                text={state.proofData ? "Send proof" : "Generate proof first"}
+                text={state.proofData ? 'Send proof' : 'Generate proof first'}
               />
             ),
           }}

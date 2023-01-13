@@ -5,11 +5,6 @@ import {
 } from '../../../snap/src/types';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
-import {
-  ExportRequestParams,
-  RpcMethods,
-  ZkCertStandard,
-} from './../../../snap/src/types';
 import { ZkKYCContent } from '../../../snap/src/zkCertTypes';
 import { getCurrentBlockTime } from './metamask';
 
