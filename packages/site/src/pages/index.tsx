@@ -253,6 +253,45 @@ const Index = () => {
     }
   };
 
+  const handleDecryptionClick = async (fileContent: string) => {
+    let res;
+    try {
+      const parsedFile = JSON.parse(fileContent);
+
+      console.log('sending request to snap...');
+      res = await encryptZkCert(parsedFile);
+      console.log('Response from snap', res);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+
+    try {
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send('eth_requestAccounts', []);
+      const signer = provider.getSigner();
+
+      // get contracts
+      const UserEncryptedDataSC = new ethers.Contract(
+        UserEncryptedData.address,
+        UserEncryptedData.abi,
+        signer,
+      );
+
+      let utf8Encode = new TextEncoder();
+      let data = utf8Encode.encode(res);
+      console.log(`Submit encrypted data onchain...`);
+      let tx = await UserEncryptedDataSC.addEncryptedData(data);
+      console.log('tx', tx);
+      const receipt = await tx.wait();
+      console.log('receipt', receipt);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
   const getHolderCommitmentClick = async () => {
     try {
       const zkKYCContent = {};
@@ -511,6 +550,22 @@ const Index = () => {
                 onFileSelected={handleEncryptionClick}
                 disabled={false}
                 text="Encrypt & Submit"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Find and decrypt zkCert',
+            description:
+              'Decrypt corresponding submitted KYC information onchain.',
+            button: (
+              <GeneralButton
+                onClick={handleDecryptionClick}
+                disabled={false}
+                text="Decrypt and import"
               />
             ),
           }}
