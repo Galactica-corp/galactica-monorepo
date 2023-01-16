@@ -54,7 +54,7 @@ async function testModified(
   const vKey = JSON.parse(
     fs
       .readFileSync(
-        `${__dirname}/../circuits/${circuitName}/${circuitName}.vkey.json`,
+        `${__dirname}/../../circuits/${circuitName}/${circuitName}.vkey.json`,
       )
       .toString(),
   );
@@ -79,12 +79,12 @@ async function createCircuitData(
   // TODO: use more efficient encoding
   const wasm = Uint8Array.from(
     fs.readFileSync(
-      `${__dirname}/../circuits/${circuitName}/${circuitName}.wasm`,
+      `${__dirname}/../../circuits/${circuitName}/${circuitName}.wasm`,
     ),
   );
 
   const { fd: fdZKey, sections: sectionsZKey } = await readBinFile(
-    `${__dirname}/../circuits/${circuitName}/${circuitName}.zkey`,
+    `${__dirname}/../../circuits/${circuitName}/${circuitName}.zkey`,
     'zkey',
     2,
     1 << 25,
@@ -194,7 +194,7 @@ async function main() {
   const input = JSON.parse(
     fs
       .readFileSync(
-        `${__dirname}/../circuits/${circuitName}/${circuitName}.input.json`,
+        `${__dirname}/../../circuits/${circuitName}/${circuitName}.input.json`,
       )
       .toString(),
   );
@@ -204,7 +204,7 @@ async function main() {
   await testModified(circuitName, params);
 
   await writeCircuitDataToTSFile(
-    `${__dirname}/../../site/src/data/${circuitName}.ts`,
+    `${__dirname}/../../../../test/${circuitName}check.ts`,
     params,
   );
 }

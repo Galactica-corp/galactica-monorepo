@@ -84,7 +84,7 @@ export const generateProof = async (proverData: any) => {
   // TODO: move filling input inside snap
 
   // expected time for between pressing the generation button and the verification happening on-chain
-  const estimatedProofCreationDuration = 60;
+  const estimatedProofCreationDuration = 100;
 
   const currentTimestamp =
     (await getCurrentBlockTime()) + estimatedProofCreationDuration;
