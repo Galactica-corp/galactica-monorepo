@@ -1,5 +1,6 @@
 import { groth16 } from 'snarkjs';
 import { MerkleProof, ZKCertificate } from 'zkkyc';
+import { Buffer } from 'buffer';
 
 import { GenZkKycRequestParams, ZkCertProof, HolderData } from './types';
 
@@ -55,7 +56,7 @@ export const generateZkKycProof = async (
   try {
     const { proof, publicSignals } = await groth16.fullProveMemory(
       inputs,
-      Uint8Array.from(processedParams.wasm),
+      processedParams.wasm,
       processedParams.zkeyHeader,
       processedParams.zkeySections,
     );
@@ -78,17 +79,19 @@ export const generateZkKycProof = async (
  * @returns Prepared GenZkKycRequestParams.
  */
 function preprocessInput(params: GenZkKycRequestParams): GenZkKycRequestParams {
+  params.wasm = Buffer.from(params.wasm, 'base64');
+
   params.zkeyHeader.q = BigInt(params.zkeyHeader.q);
   params.zkeyHeader.r = BigInt(params.zkeyHeader.r);
   for (let i = 0; i < params.zkeySections.length; i++) {
-    params.zkeySections[i] = Uint8Array.from(params.zkeySections[i]);
+    params.zkeySections[i] = Buffer.from(params.zkeySections[i], 'base64');
   }
-  params.zkeyHeader.vk_alpha_1 = Uint8Array.from(params.zkeyHeader.vk_alpha_1);
-  params.zkeyHeader.vk_beta_1 = Uint8Array.from(params.zkeyHeader.vk_beta_1);
-  params.zkeyHeader.vk_beta_2 = Uint8Array.from(params.zkeyHeader.vk_beta_2);
-  params.zkeyHeader.vk_gamma_2 = Uint8Array.from(params.zkeyHeader.vk_gamma_2);
-  params.zkeyHeader.vk_delta_1 = Uint8Array.from(params.zkeyHeader.vk_delta_1);
-  params.zkeyHeader.vk_delta_2 = Uint8Array.from(params.zkeyHeader.vk_delta_2);
+  params.zkeyHeader.vk_alpha_1 = Buffer.from(params.zkeyHeader.vk_alpha_1, 'base64');
+  params.zkeyHeader.vk_beta_1 = Buffer.from(params.zkeyHeader.vk_beta_1, 'base64');
+  params.zkeyHeader.vk_beta_2 = Buffer.from(params.zkeyHeader.vk_beta_2, 'base64');
+  params.zkeyHeader.vk_gamma_2 = Buffer.from(params.zkeyHeader.vk_gamma_2, 'base64');
+  params.zkeyHeader.vk_delta_1 = Buffer.from(params.zkeyHeader.vk_delta_1, 'base64');
+  params.zkeyHeader.vk_delta_2 = Buffer.from(params.zkeyHeader.vk_delta_2, 'base64');
 
   return params;
 }

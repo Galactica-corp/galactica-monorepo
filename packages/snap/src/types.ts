@@ -21,7 +21,7 @@ export type GenZkKycRequestParams = {
     ageThreshold: string;
   };
   requirements: ZkCertRequirements;
-  wasm: Uint8Array;
+  wasm: any;
   zkeyHeader: any;
   zkeySections: any[];
 };

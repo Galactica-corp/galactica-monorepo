@@ -6,6 +6,7 @@ import {
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { getCurrentBlockTime } from './metamask';
+import { bytesToString } from '@metamask/utils';
 
 /**
  * Get the installed snaps in MetaMask.
@@ -81,7 +82,6 @@ export const setupHoldingKey = async () => {
 
 export const generateProof = async (proverData: any) => {
   // TODO: add type for proverData
-  // TODO: move filling input inside snap
 
   // expected time for between pressing the generation button and the verification happening on-chain
   const estimatedProofCreationDuration = 100;

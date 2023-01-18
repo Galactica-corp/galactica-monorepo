@@ -1,4 +1,5 @@
 import { readBinFile, readSection } from '@iden3/binfileutils';
+import { Buffer } from 'buffer';
 import * as fs from 'fs';
 import { groth16, zKey } from 'snarkjs';
 
@@ -111,52 +112,39 @@ async function createCircuitData(
 }
 
 /**
- * To simplify reading the data in the frontend, we write it to a ts file here.
+ * To simplify reading the data in the frontend, we write it to a json file here.
  * TODO: solve this properly by providing the file in the frontend and let the frontend parse it.
  *
  * @param filePath - Path to write to.
  * @param data - Data to write.
  */
-async function writeCircuitDataToTSFile(
+async function writeCircuitDataToJSON(
   filePath: string,
   data: GenZkKycRequestParams,
 ) {
   // format data for writing to file (othewise arrays look like objects)
+  // using base64 encoding for Uint8Arrays to minimize file size while still being able to send it though the RPC in JSON format
   data.zkeyHeader.q = data.zkeyHeader.q.toString();
   data.zkeyHeader.r = data.zkeyHeader.r.toString();
   for (let i = 0; i < data.zkeySections.length; i++) {
-    data.zkeySections[i] = uint8ArrayToJSArray(data.zkeySections[i]);
+    data.zkeySections[i] = Buffer.from(data.zkeySections[i]).toString('base64');
   }
-  data.zkeyHeader.vk_alpha_1 = uint8ArrayToJSArray(data.zkeyHeader.vk_alpha_1);
-  data.zkeyHeader.vk_beta_1 = uint8ArrayToJSArray(data.zkeyHeader.vk_beta_1);
-  data.zkeyHeader.vk_beta_2 = uint8ArrayToJSArray(data.zkeyHeader.vk_beta_2);
-  data.zkeyHeader.vk_gamma_2 = uint8ArrayToJSArray(data.zkeyHeader.vk_gamma_2);
-  data.zkeyHeader.vk_delta_1 = uint8ArrayToJSArray(data.zkeyHeader.vk_delta_1);
-  data.zkeyHeader.vk_delta_2 = uint8ArrayToJSArray(data.zkeyHeader.vk_delta_2);
-
-  let fileContent = `export const wasm = ${JSON.stringify(
-    uint8ArrayToJSArray(data.wasm),
-  )};\n`;
-  fileContent += `export const zkeyHeader = ${JSON.stringify(
-    data.zkeyHeader,
-  )};\n`;
-  fileContent += `export const zkeySections = ${JSON.stringify(
-    data.zkeySections,
-  )};\n`;
-  fs.writeFile(filePath, fileContent, (error) => {
-    if (error) {
-      throw error;
-    }
-    console.log(`Written to ${filePath}`);
-  });
+  data.zkeyHeader.vk_alpha_1 = Buffer.from(data.zkeyHeader.vk_alpha_1).toString('base64');
+  data.zkeyHeader.vk_beta_1 = Buffer.from(data.zkeyHeader.vk_beta_1).toString('base64');
+  data.zkeyHeader.vk_beta_2 = Buffer.from(data.zkeyHeader.vk_beta_2).toString('base64');
+  data.zkeyHeader.vk_gamma_2 = Buffer.from(data.zkeyHeader.vk_gamma_2).toString('base64');
+  data.zkeyHeader.vk_delta_1 = Buffer.from(data.zkeyHeader.vk_delta_1).toString('base64');
+  data.zkeyHeader.vk_delta_2 = Buffer.from(data.zkeyHeader.vk_delta_2).toString('base64');
 
   const jsContent = {
-    wasm: uint8ArrayToJSArray(data.wasm),
+    wasm: Buffer.from(data.wasm).toString('base64'),
     zkeyHeader: data.zkeyHeader,
     zkeySections: data.zkeySections,
   };
+  console.log(`resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)} MB`);
+
   fs.writeFile(
-    filePath.replace('.ts', '.json'),
+    filePath,
     JSON.stringify(jsContent),
     (error) => {
       if (error) {
@@ -203,24 +191,10 @@ async function main() {
   const params = await createCircuitData(circuitName, input);
   await testModified(circuitName, params);
 
-  await writeCircuitDataToTSFile(
-    `${__dirname}/../../../../test/${circuitName}check.ts`,
+  await writeCircuitDataToJSON(
+    `${__dirname}/../../../../test/${circuitName}b64.json`,
     params,
   );
-}
-
-/**
- * Transforms a Uint8Array to a number array.
- *
- * @param arr - Uint8Array to transform.
- * @returns The number array.
- */
-function uint8ArrayToJSArray(arr: Uint8Array) {
-  const res: number[] = [];
-  for (const i of arr) {
-    res.push(arr[i]);
-  }
-  return res;
 }
 
 main().catch((error) => {
