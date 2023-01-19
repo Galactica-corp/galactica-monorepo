@@ -1,5 +1,5 @@
 export const ageProofZkKYC = {
-  address: '0xece9753deE91fA20eA2aCb3D321DB826DF493dAD',
+  address: '0x9a17084bb850FBF1431BBEC6e7b316F374E2b49c',
   abi: [
     {
       inputs: [

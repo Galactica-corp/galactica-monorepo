@@ -166,7 +166,7 @@ async function main() {
   await testModified(circuitName, params);
 
   await writeCircuitDataToJSON(
-    `${__dirname}/../../../../test/${circuitName}b64.json`,
+    `${__dirname}/../../../../test/${circuitName}.json`,
     params,
   );
 }
