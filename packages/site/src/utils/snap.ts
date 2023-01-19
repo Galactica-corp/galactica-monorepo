@@ -84,7 +84,7 @@ export const generateProof = async (proverData: any) => {
   // TODO: add type for proverData
 
   // expected time for between pressing the generation button and the verification happening on-chain
-  const estimatedProofCreationDuration = 100;
+  const estimatedProofCreationDuration = 20;
 
   const currentTimestamp =
     (await getCurrentBlockTime()) + estimatedProofCreationDuration;

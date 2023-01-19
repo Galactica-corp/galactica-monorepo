@@ -5,32 +5,6 @@ import { groth16, zKey } from 'snarkjs';
 
 import { GenZkKycRequestParams } from '../types';
 
-/**
- * TestStandard tests the usual proof generation process of snarkjs to compare it to the one in the snap.
- *
- * @param circuitName - Name of the circuit to find the files.
- * @param input - Input data for the proof
- */
-// async function testStandard(circuitName: string, input: any) {
-//   const { proof, publicSignals } = await groth16.fullProve(
-//     input,
-//     `${__dirname}/../circuits/${circuitName}/${circuitName}.wasm`,
-//     `${__dirname}/../circuits/${circuitName}/${circuitName}.zkey`,
-//   );
-
-//   console.log('Proof: ');
-//   console.log(JSON.stringify(proof, null, 1));
-
-//   const vKey = JSON.parse(
-//     fs
-//       .readFileSync(
-//         `${__dirname}/../circuits/${circuitName}/${circuitName}.vkey.json`,
-//       )
-//       .toString(),
-//   );
-
-//   await verifyProof(proof, publicSignals, vKey);
-// }
 
 /**
  * TestModified constructs and checks the zkKYC proof with the modified code of snarkjs that does not depend on file reading.
@@ -77,7 +51,6 @@ async function createCircuitData(
 ): Promise<GenZkKycRequestParams> {
   // read the wasm file asa array.
   // It becomes a Uint8Array later, but is passed as ordinary number array through the RPC
-  // TODO: use more efficient encoding
   const wasm = Uint8Array.from(
     fs.readFileSync(
       `${__dirname}/../../circuits/${circuitName}/${circuitName}.wasm`,
@@ -126,6 +99,7 @@ async function writeCircuitDataToJSON(
   // using base64 encoding for Uint8Arrays to minimize file size while still being able to send it though the RPC in JSON format
   data.zkeyHeader.q = data.zkeyHeader.q.toString();
   data.zkeyHeader.r = data.zkeyHeader.r.toString();
+
   for (let i = 0; i < data.zkeySections.length; i++) {
     data.zkeySections[i] = Buffer.from(data.zkeySections[i]).toString('base64');
   }
