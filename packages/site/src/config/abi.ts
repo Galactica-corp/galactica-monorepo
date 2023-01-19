@@ -238,7 +238,7 @@ export const ageProofZkKYC = {
 };
 
 export const UserEncryptedData = {
-  address: '0xb5e4A15F468AC505Bf0D53ceA2144b52135cCEF9',
+  address: '0x6A2abBFC400aEd3f5282028FBbf08e97FC6935DA',
   abi: [
     {
       anonymous: false,
@@ -270,6 +270,25 @@ export const UserEncryptedData = {
       name: 'addEncryptedData',
       outputs: [],
       stateMutability: 'nonpayable',
+      type: 'function',
+    },
+    {
+      inputs: [
+        {
+          internalType: 'address',
+          name: '',
+          type: 'address',
+        },
+      ],
+      name: 'encryptedData',
+      outputs: [
+        {
+          internalType: 'bytes',
+          name: '',
+          type: 'bytes',
+        },
+      ],
+      stateMutability: 'view',
       type: 'function',
     },
   ],

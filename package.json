@@ -54,5 +54,8 @@
   "packageManager": "yarn@3.2.1",
   "engines": {
     "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "buffer": "^6.0.3"
   }
 }

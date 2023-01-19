@@ -25,6 +25,10 @@ import {
 import { ethers } from 'ethers';
 import { ageProofZkKYC, UserEncryptedData } from '../config/abi';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
+import { Buffer } from 'buffer';
+
+// @ts-ignore
+window.Buffer = Buffer;
 
 const Container = styled.div`
   display: flex;
@@ -240,10 +244,8 @@ const Index = () => {
         signer,
       );
 
-      let utf8Encode = new TextEncoder();
-      let data = utf8Encode.encode(res);
       console.log(`Submit encrypted data onchain...`);
-      let tx = await UserEncryptedDataSC.addEncryptedData(data);
+      let tx = await UserEncryptedDataSC.addEncryptedData(res);
       console.log('tx', tx);
       const receipt = await tx.wait();
       console.log('receipt', receipt);
@@ -254,42 +256,29 @@ const Index = () => {
   };
 
   const handleDecryptionClick = async (fileContent: string) => {
-    let res;
-    try {
-      const parsedFile = JSON.parse(fileContent);
+    //@ts-ignore https://github.com/metamask/providers/issues/200
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const accounts = await provider.send('eth_requestAccounts', []);
+    const account = accounts[0];
+    const signer = provider.getSigner();
 
-      console.log('sending request to snap...');
-      res = await encryptZkCert(parsedFile);
-      console.log('Response from snap', res);
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
+    // get contract
+    const UserEncryptedDataSC = new ethers.Contract(
+      UserEncryptedData.address,
+      UserEncryptedData.abi,
+      signer,
+    );
 
-    try {
-      //@ts-ignore https://github.com/metamask/providers/issues/200
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send('eth_requestAccounts', []);
-      const signer = provider.getSigner();
+    // retrieve events corresponding to the current address
+    const encryptedData = await UserEncryptedDataSC.encryptedData(account);
 
-      // get contracts
-      const UserEncryptedDataSC = new ethers.Contract(
-        UserEncryptedData.address,
-        UserEncryptedData.abi,
-        signer,
-      );
+    const decryptedData = await provider.send('eth_decrypt', [
+      encryptedData,
+      account,
+    ]);
 
-      let utf8Encode = new TextEncoder();
-      let data = utf8Encode.encode(res);
-      console.log(`Submit encrypted data onchain...`);
-      let tx = await UserEncryptedDataSC.addEncryptedData(data);
-      console.log('tx', tx);
-      const receipt = await tx.wait();
-      console.log('receipt', receipt);
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
+    console.log(decryptedData);
+    console.log(JSON.parse(decryptedData));
   };
 
   const getHolderCommitmentClick = async () => {

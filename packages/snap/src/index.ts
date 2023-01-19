@@ -18,6 +18,10 @@ import { calculateHolderCommitment } from './zkCertHandler';
 import * as ethUtil from 'ethereumjs-util';
 import * as sigUtil from '@metamask/eth-sig-util';
 import { selectZkCert } from './zkCertSelector';
+import { Buffer } from 'buffer';
+
+// @ts-ignore
+window.Buffer = Buffer;
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -274,42 +278,18 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       });
 
       /* const encryptionParamsString = JSON.stringify(encryptionParams); */
-      const result = JSON.stringify(
-        sigUtil.encrypt({
-          publicKey: encryptionPublicKey,
-          data: JSON.stringify(encryptionParams),
-          version: 'x25519-xsalsa20-poly1305',
-        }).ciphertext,
-      ).slice(2, -2);
 
-      /* const enc = sigUtil.encrypt({
-        publicKey: encryptionPublicKey,
-        data: JSON.stringify(encryptionParams),
-        version: 'x25519-xsalsa20-poly1305',
-      });
-
-      const result = JSON.stringify(
-        Buffer.concat([
-          Buffer.from(enc.ephemPublicKey, 'base64'),
-          Buffer.from(enc.nonce, 'base64'),
-          Buffer.from(enc.ciphertext, 'base64'),
-        ]),
-      ); */
-
-      /* const encryptedMessage = JSON.stringify(
-        Buffer.from(
-          JSON.stringify(
-            sigUtil.encrypt({
-              publicKey: encryptionPublicKey,
-              data: JSON.stringify(encryptionParams),
-              version: 'x25519-xsalsa20-poly1305',
-            }),
-          ),
-          'utf8',
+      const result = Buffer.from(
+        JSON.stringify(
+          sigUtil.encrypt({
+            publicKey: encryptionPublicKey,
+            data: JSON.stringify(encryptionParams),
+            version: 'x25519-xsalsa20-poly1305',
+          }),
         ),
-      ); */
+        'utf8',
+      ).toJSON().data;
 
-      /* console.log(encryptedMessage); */
       return result;
   }
 };
