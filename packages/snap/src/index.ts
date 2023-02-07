@@ -1,4 +1,4 @@
-import { OnRpcRequestHandler, SnapRpcProcessor } from '@metamask/snap-types';
+import { OnRpcRequestHandler } from '@metamask/snap-types';
 import { stringToBytes, bytesToHex } from '@metamask/utils';
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 
@@ -9,11 +9,16 @@ import {
   GenZkKycRequestParams,
   HolderData,
   ImportRequestParams,
-  RpcMethods,
 } from './types';
+import {
+  RpcResponseErr,
+  RpcMethods,
+  RpcResponseMsg,
+} from './rpcEnums';
 import { shortenAddrStr } from './utils';
 import { calculateHolderCommitment } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
+import { SnapRpcProcessor } from './types';
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -32,7 +37,33 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 }) => {
   console.log('got request', request.method);
 
-  const state = await getState();
+  // forward to common function shared with unit tests
+  // passing global wallet object from snap environment
+  return await processRpcRequest({ origin, request }, wallet);
+};
+
+/**
+ * processRpcRequest is a handler for the rpc request that processes real requests and unit tests alike.
+ * It has all inputs as function parameters instead of relying on global variables.
+ * 
+ * @param args - The request handler args as object.
+ * @param args.origin - The origin of the request, e.g., the website that
+ * invoked the snap.
+ * @param args.request - A validated JSON-RPC request object.
+ * @param wallet - The SnapProvider (wallet).
+ * @returns `null` if the request succeeded.
+ * @throws If the request method is not valid for this snap.
+ * @throws If the `snap_confirm` call failed.
+ */
+export const processRpcRequest: SnapRpcProcessor = async (
+  {
+    origin,
+    request,
+  },
+  wallet
+) => {
+
+  const state = await getState(wallet);
   let confirm: any;
   let responseMsg: string;
   let holder: HolderData;
@@ -72,7 +103,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
           holderCommitment: await calculateHolderCommitment(sign),
           eddsaKey: sign,
         });
-        await saveState({ holders: state.holders, zkCerts: state.zkCerts });
+        await saveState(wallet, { holders: state.holders, zkCerts: state.zkCerts });
         responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;
       }
       return responseMsg;
@@ -106,7 +137,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       });
 
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.Rejected);
       }
 
       const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
@@ -153,11 +184,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         ],
       });
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.Rejected);
       }
 
-      await saveState({ holders: [], zkCerts: [] });
-      return 'zkCert storage cleared';
+      await saveState(wallet, { holders: [], zkCerts: [] });
+      return RpcResponseMsg.StorageCleared;
     }
 
     case RpcMethods.ImportZkCert: {
@@ -178,10 +209,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         ],
       });
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.Rejected);
       }
       state.zkCerts.push(importParams.zkCert);
-      await saveState(state);
+      await saveState(wallet, state);
       return 'zkCert added to storage';
     }
 
@@ -200,7 +231,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         ],
       });
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.Rejected);
       }
 
       const zkCertForExport = await selectZkCert(state.zkCerts, {
@@ -211,9 +242,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
     case RpcMethods.GetHolderCommitment: {
       if (state.holders.length === 0) {
-        throw new Error(
-          'No holders imported. Please import a holding address first.',
-        );
+        throw new Error(RpcResponseErr.MissingHolder);
       }
 
       // TODO: holder selection if multiple holders are available
@@ -230,37 +259,14 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         ],
       });
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.Rejected);
       }
 
       return holder.holderCommitment;
     }
 
     default: {
-      throw new Error('Method not found.');
+      throw new Error(RpcResponseErr.UnknownMethod);
     }
   }
-};
-
-/**
- * processRpcRequest is a handler for the rpc request that processes real requests and unit tests alike.
- * It has all inputs as function parameters instead of relying on global variables.
- * 
- * @param args - The request handler args as object.
- * @param args.origin - The origin of the request, e.g., the website that
- * invoked the snap.
- * @param args.request - A validated JSON-RPC request object.
- * @param wallet - The SnapProvider (wallet).
- * @returns `null` if the request succeeded.
- * @throws If the request method is not valid for this snap.
- * @throws If the `snap_confirm` call failed.
- */
-export const processRpcRequest: SnapRpcProcessor = async (
-  {
-    origin,
-    request,
-  },
-  wallet
-) => {
-  return "1";
 };

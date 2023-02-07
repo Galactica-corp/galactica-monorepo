@@ -1,3 +1,15 @@
+import { RpcArgs } from "../src/types";
+
+export const defaultRPCRequest: RpcArgs = {
+  origin: 'localhost',
+  request: {
+    id: 'test-id',
+    jsonrpc: '2.0',
+    method: 'defaultTest',
+    params: {},
+  },
+};
+
 export const testSeedPhrase =
   "host void flip concert spare few spin advice nuclear age cigar collect";
 

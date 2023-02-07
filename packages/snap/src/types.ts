@@ -1,6 +1,18 @@
-import { ProviderData, MerkleProof } from 'zkkyc';
-
+import { JsonRpcRequest } from '@metamask/types';
+import { SnapProvider } from '@metamask/snap-types';
+import { ProviderData, MerkleProof, ZkCertStandard } from 'zkkyc';
 import { ZkKYCContent } from './zkCertTypes';
+
+
+export type RpcArgs = {
+  origin: string;
+  request: JsonRpcRequest<unknown[] | { [key: string]: unknown }>;
+};
+
+export type SnapRpcProcessor = (
+  args: RpcArgs,
+  wallet: SnapProvider,
+) => Promise<unknown>;
 
 // requirements on the zk proof
 export type ZkCertRequirements = {
@@ -47,26 +59,6 @@ export type ZkCertProof = {
   proof: string;
   publicSignals: string[];
 };
-
-/**
- * Enum for RPC methods.
- */
-export enum RpcMethods {
-  SetupHoldingKey = 'setupHoldingKey',
-  GetHolderCommitment = 'getHolderCommitment',
-  GenZkKycProof = 'genZkKycProof',
-  ClearStorage = 'clearStorage',
-  ImportZkCert = 'importZkCert',
-  ExportZkCert = 'exportZkCert',
-  // TODO: would be nice to have more storage management methods like deleting a specific zkCert, modifying a zkCert, bulk import/export, ...
-}
-
-/**
- * Enum for zkCert standards
- */
-export enum ZkCertStandard {
-  ZkKYC = 'gip69',
-}
 
 // TODO: remove this type and use the one from the zkKYC package
 export type ZkCert = {

@@ -1,3 +1,4 @@
+import { SnapProvider } from '@metamask/snap-types';
 import { StorageState } from './types';
 
 /**
@@ -5,7 +6,7 @@ import { StorageState } from './types';
  *
  * @returns The state.
  */
-export async function getState(): Promise<StorageState> {
+export async function getState(wallet: SnapProvider): Promise<StorageState> {
   const state = await wallet.request<StorageState>({
     method: 'snap_manageState',
     params: ['get'],
@@ -25,7 +26,7 @@ export async function getState(): Promise<StorageState> {
  *
  * @param newState - The new state.
  */
-export async function saveState(newState: StorageState): Promise<void> {
+export async function saveState(wallet: SnapProvider, newState: StorageState): Promise<void> {
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys
   await wallet.request({
     method: 'snap_manageState',

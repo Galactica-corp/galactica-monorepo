@@ -1,10 +1,8 @@
-import {
-  ExportRequestParams,
-  RpcMethods,
-  ZkCertStandard,
-} from '../../../snap/src/types';
+import { ExportRequestParams } from '../../../snap/src/types';
+import { RpcMethods } from '../../../snap/src/rpcEnums';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
+import { ZkCertStandard } from 'zkkyc';
 import { getCurrentBlockTime } from './metamask';
 import { bytesToString } from '@metamask/utils';
 
