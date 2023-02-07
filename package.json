@@ -23,7 +23,7 @@
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
     "lint:misc": "prettier '**/*.json' '**/*.md' '!**/CHANGELOG.md' '!test/**' '**/*.yml' --ignore-path .gitignore",
     "start": "yarn workspaces foreach --parallel --interlaced --verbose run start",
-    "test": "echo \"TODO\""
+    "test": "yarn workspaces foreach -vp run test"
   },
   "resolutions": {
     "blake-hash": "patch:blake-hash@npm:2.0.0#.yarn/patches/blake-hash-npm-2.0.0-c63b9a2c2d.patch",

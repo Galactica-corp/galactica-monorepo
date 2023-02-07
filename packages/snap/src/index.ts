@@ -1,4 +1,4 @@
-import { OnRpcRequestHandler } from '@metamask/snap-types';
+import { OnRpcRequestHandler, SnapRpcProcessor } from '@metamask/snap-types';
 import { stringToBytes, bytesToHex } from '@metamask/utils';
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 
@@ -22,7 +22,7 @@ import { selectZkCert } from './zkCertSelector';
  * @param args.origin - The origin of the request, e.g., the website that
  * invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
- * @returns `null` if the request succeeded.
+ * @returns The result of the request as string. TODO: Use more strict type.
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_confirm` call failed.
  */
@@ -240,4 +240,27 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       throw new Error('Method not found.');
     }
   }
+};
+
+/**
+ * processRpcRequest is a handler for the rpc request that processes real requests and unit tests alike.
+ * It has all inputs as function parameters instead of relying on global variables.
+ * 
+ * @param args - The request handler args as object.
+ * @param args.origin - The origin of the request, e.g., the website that
+ * invoked the snap.
+ * @param args.request - A validated JSON-RPC request object.
+ * @param wallet - The SnapProvider (wallet).
+ * @returns `null` if the request succeeded.
+ * @throws If the request method is not valid for this snap.
+ * @throws If the `snap_confirm` call failed.
+ */
+export const processRpcRequest: SnapRpcProcessor = async (
+  {
+    origin,
+    request,
+  },
+  wallet
+) => {
+  return "1";
 };
