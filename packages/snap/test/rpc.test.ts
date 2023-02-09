@@ -4,7 +4,7 @@ import chaiAsPromised from "chai-as-promised";
 import { processRpcRequest } from "../src/index";
 import { mockSnapProvider } from "./wallet.mock";
 import { defaultRPCRequest } from "./constants.mock";
-import { RpcArgs } from "../src/types";
+import { RpcArgs, StorageState } from "../src/types";
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from "../src/rpcEnums";
 
 chai.use(sinonChai);
@@ -22,8 +22,6 @@ describe("Test rpc handler function: getBalance", function () {
     const walletStub = mockSnapProvider();
 
     beforeEach(function () {
-        // prepare stubs
-        walletStub.prepareForKeyPair();
     });
 
     afterEach(function () {
@@ -49,6 +47,37 @@ describe("Test rpc handler function: getBalance", function () {
             expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
             expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('update', { holders: [], zkCerts: [] });
             expect(result).to.be.eq(RpcResponseMsg.StorageCleared);
+        });
+    });
+
+    describe("Get Holder Commitment method", function () {
+        beforeEach(function() {
+            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+                holders: [{
+                    address: "0x1234",
+                    holderCommitment: "0x2345",
+                    eddsaKey: "0x3456",
+                }],
+                zkCerts: []
+            });            
+        });
+
+        it("should throw error if not confirmed", async function () {
+            walletStub.rpcStubs.snap_confirm.resolves(false);
+
+            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.GetHolderCommitment, []), walletStub);
+
+            await expect(callPromise).to.be.rejectedWith(Error, RpcResponseErr.Rejected);
+        });
+
+        it("should return holder commitment", async function () {
+            walletStub.rpcStubs.snap_confirm.resolves(true);
+
+            const result = await processRpcRequest(buildRPCRequest(RpcMethods.GetHolderCommitment, []), walletStub);
+
+            expect(walletStub.rpcStubs.snap_confirm).to.have.been.calledOnce;
+            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
+            expect(result).to.be.eq("0x2345");
         });
     });
 });

@@ -42,12 +42,6 @@ class WalletMock implements SnapProvider {
       (stub: ReturnType<typeof sinon.stub>) => stub.reset()
     );
   }
-
-  public prepareForKeyPair(): void {
-    this.rpcStubs.snap_manageState.withArgs("get").resolves({
-      // TODO: do we need this?
-    });
-  }
 }
 
 //risky hack but it's hard to stub all provider methods
