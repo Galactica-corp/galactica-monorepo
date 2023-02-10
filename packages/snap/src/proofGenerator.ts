@@ -50,8 +50,8 @@ export const generateZkKycProof = async (
     pathIndices: merkleProof.pathIndices,
   };
 
-  console.log('proof inputs: TODO: remove this debug output');
-  console.log(JSON.stringify(inputs, null, 1));
+  // console.log('proof inputs: TODO: remove this debug output');
+  // console.log(JSON.stringify(inputs, null, 1));
 
   try {
     const { proof, publicSignals } = await groth16.fullProveMemory(
@@ -61,8 +61,8 @@ export const generateZkKycProof = async (
       processedParams.zkeySections,
     );
 
-    console.log('Calculated proof: ');
-    console.log(JSON.stringify(proof, null, 1));
+    // console.log('Calculated proof: ');
+    // console.log(JSON.stringify(proof, null, 1));
 
     return { proof, publicSignals };
   } catch (error) {

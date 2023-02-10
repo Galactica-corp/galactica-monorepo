@@ -17814,7 +17814,7 @@ __metadata:
 
 "snarkjs@https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap":
   version: 0.4.14
-  resolution: "snarkjs@https://github.com/Galactica-corp/snarkjs-ses.git#commit=6cd8a95872226b8deb7137163c8d2de006a33dae"
+  resolution: "snarkjs@https://github.com/Galactica-corp/snarkjs-ses.git#commit=bdcbf2af805fad00c8239e30f818bc51ff6406c8"
   dependencies:
     "@iden3/binfileutils": 0.0.10
     blake2b-wasm: ^2.4.0
@@ -17828,7 +17828,7 @@ __metadata:
     readline: ^1.3.0
   bin:
     snarkjs: build/cli.cjs
-  checksum: ab74124d9f333ca0e4e8279068759f291f1a4f41ae283d1edce50a8dcb541ba64de888f00328a6d065898c1420ed0fc6db396049d9b46530026f0722509e0064
+  checksum: bc02399f409969fbbca4360e1538740cd3535e1f34a3993d3edb740e1efb21f0e616ed77cf8aed04fdf944c7d60816c169886ee1255cf6538bb8ac307e913dc7
   languageName: node
   linkType: hard
 

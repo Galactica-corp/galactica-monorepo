@@ -1,4 +1,5 @@
 import { HolderData, RpcArgs } from "../src/types";
+import proverData from "../../../test/ageProofZkKYC.json";
 
 export const defaultRPCRequest: RpcArgs = {
   origin: 'localhost',
@@ -24,4 +25,20 @@ export const testHolder: HolderData = {
   address: testAddress,
   holderCommitment: testHodlerCommitment,
   eddsaKey: testEdDSAKey,
+};
+
+export const testZkpParams = {
+  input: {
+    currentTime: 1676033833,
+    currentYear: "2023",
+    currentMonth: "2",
+    currentDay: "10",
+    ageThreshold: '18',
+  },
+  requirements: {
+    zkCertStandard: "gip69",
+  },
+  wasm: proverData["wasm"],
+  zkeyHeader: proverData["zkeyHeader"],
+  zkeySections: proverData["zkeySections"],
 };

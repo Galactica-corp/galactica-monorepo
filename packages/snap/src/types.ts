@@ -56,7 +56,7 @@ export type ExportRequestParams = {
  * zkCert proof to be reterned to the website.
  */
 export type ZkCertProof = {
-  proof: string;
+  proof: any;
   publicSignals: string[];
 };
 

@@ -3,11 +3,13 @@ import sinonChai from "sinon-chai";
 import chaiAsPromised from "chai-as-promised";
 import { processRpcRequest } from "../src/index";
 import { mockSnapProvider } from "./wallet.mock";
-import { defaultRPCRequest, testAddress, testHolder, testSigForEdDSA } from "./constants.mock";
-import { RpcArgs, StorageState } from "../src/types";
+import { defaultRPCRequest, testAddress, testHolder, testSigForEdDSA, testZkpParams } from "./constants.mock";
+import { RpcArgs, StorageState, ZkCertProof } from "../src/types";
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from "../src/rpcEnums";
 import { shortenAddrStr } from "../src/utils";
 import zkCert from "../../../test/zkCert.json";
+import { groth16 } from 'snarkjs';
+import * as fs from 'fs';
 
 
 chai.use(sinonChai);
@@ -115,7 +117,7 @@ describe("Test rpc handler function: getBalance", function () {
             await expect(callPromise).to.be.rejectedWith(Error, RpcResponseErr.RejectedConfirm);
         });
 
-        it("should add holder successfully", async function () {
+        it("should import zkCert successfully", async function () {
             walletStub.rpcStubs.snap_confirm.resolves(true);
 
             const result = await processRpcRequest(buildRPCRequest(RpcMethods.ImportZkCert, { zkCert: zkCert }), walletStub);
@@ -126,6 +128,46 @@ describe("Test rpc handler function: getBalance", function () {
         });
     });
 
-    describe.skip("TODO: Generate ZKP", function () { });
+    describe("Generate ZKP method", function () {
+        beforeEach(function () {
+            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert]
+            });
+        });
+
+        it("should throw error if not confirmed", async function () {
+            walletStub.rpcStubs.snap_confirm.resolves(false);
+
+            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), walletStub);
+
+            await expect(callPromise).to.be.rejectedWith(Error, RpcResponseErr.RejectedConfirm);
+        });
+
+        it("should generate ZKP successfully", async function (this: Mocha.Context) {
+            // extend timeout for this test
+            this.timeout(10000);
+
+            walletStub.rpcStubs.snap_confirm.resolves(true);
+            const result = (await processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), walletStub)) as ZkCertProof;
+
+            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
+            expect(walletStub.rpcStubs.snap_confirm).to.have.been.calledOnce;
+            expect(result.proof.pi_a.length).to.be.eq(3);
+            expect(result.proof.pi_b.length).to.be.eq(3);
+            expect(result.proof.pi_c.length).to.be.eq(3);
+            expect(result.publicSignals.length).to.be.gt(5);
+
+            // verify proof
+            const vKey = JSON.parse(fs.readFileSync(
+                `${__dirname}/../circuits/ageProofZkKYC/ageProofZkKYC.vkey.json`,
+                    )
+                    .toString()
+            );
+            const verification = await groth16.verify(vKey, result.publicSignals, result.proof);
+            expect(verification).to.be.true;
+        });
+     });
+
     describe.skip("TODO: Export zkCert", function () { });
 });
