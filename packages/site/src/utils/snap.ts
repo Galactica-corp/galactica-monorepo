@@ -1,9 +1,8 @@
-import { ExportRequestParams } from '../../../snap/src/types';
 import { RpcMethods } from '../../../snap/src/rpcEnums';
+import { ExportRequestParams } from '../../../snap/src/types';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { getCurrentBlockTime } from './metamask';
-import { bytesToString } from '@metamask/utils';
 
 /**
  * Get the installed snaps in MetaMask.
@@ -105,7 +104,7 @@ export const generateProof = async (proverData: any) => {
         params: {
           input: publicInput,
           requirements: {
-            zkCertStandard: "gip69",
+            zkCertStandard: 'gip69',
           },
           wasm: proverData.wasm,
           zkeyHeader: proverData.zkeyHeader,
@@ -145,7 +144,7 @@ export const importZkCert = async (zkCertJson: any) => {
 
 export const exportZkCert = async () => {
   const params: ExportRequestParams = {
-    zkCertStandard: "gip69",
+    zkCertStandard: 'gip69',
   };
 
   return await window.ethereum.request({

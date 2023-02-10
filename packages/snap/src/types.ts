@@ -1,8 +1,8 @@
-import { JsonRpcRequest } from '@metamask/types';
 import { SnapProvider } from '@metamask/snap-types';
+import { JsonRpcRequest } from '@metamask/types';
 import { ProviderData, MerkleProof, ZkCertStandard } from 'zkkyc';
-import { ZkKYCContent } from './zkCertTypes';
 
+import { ZkKYCContent } from './zkCertTypes';
 
 export type RpcArgs = {
   origin: string;

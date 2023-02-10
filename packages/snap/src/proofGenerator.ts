@@ -1,6 +1,6 @@
+import { Buffer } from 'buffer';
 import { groth16 } from 'snarkjs';
 import { MerkleProof, ZKCertificate } from 'zkkyc';
-import { Buffer } from 'buffer';
 
 import { GenZkKycRequestParams, ZkCertProof, HolderData } from './types';
 
@@ -86,14 +86,28 @@ function preprocessInput(params: GenZkKycRequestParams): GenZkKycRequestParams {
   params.zkeyHeader.q = BigInt(params.zkeyHeader.q);
   params.zkeyHeader.r = BigInt(params.zkeyHeader.r);
   for (let i = 0; i < params.zkeySections.length; i++) {
-    params.zkeySections[i] = Uint8Array.from(Buffer.from(params.zkeySections[i], 'base64'));
+    params.zkeySections[i] = Uint8Array.from(
+      Buffer.from(params.zkeySections[i], 'base64'),
+    );
   }
-  params.zkeyHeader.vk_alpha_1 = Uint8Array.from(Buffer.from(params.zkeyHeader.vk_alpha_1, 'base64'));
-  params.zkeyHeader.vk_beta_1 = Uint8Array.from(Buffer.from(params.zkeyHeader.vk_beta_1, 'base64'));
-  params.zkeyHeader.vk_beta_2 = Uint8Array.from(Buffer.from(params.zkeyHeader.vk_beta_2, 'base64'));
-  params.zkeyHeader.vk_gamma_2 = Uint8Array.from(Buffer.from(params.zkeyHeader.vk_gamma_2, 'base64'));
-  params.zkeyHeader.vk_delta_1 = Uint8Array.from(Buffer.from(params.zkeyHeader.vk_delta_1, 'base64'));
-  params.zkeyHeader.vk_delta_2 = Uint8Array.from(Buffer.from(params.zkeyHeader.vk_delta_2, 'base64'));
+  params.zkeyHeader.vk_alpha_1 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_alpha_1, 'base64'),
+  );
+  params.zkeyHeader.vk_beta_1 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_beta_1, 'base64'),
+  );
+  params.zkeyHeader.vk_beta_2 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_beta_2, 'base64'),
+  );
+  params.zkeyHeader.vk_gamma_2 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_gamma_2, 'base64'),
+  );
+  params.zkeyHeader.vk_delta_1 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_delta_1, 'base64'),
+  );
+  params.zkeyHeader.vk_delta_2 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_delta_2, 'base64'),
+  );
 
   return params;
 }

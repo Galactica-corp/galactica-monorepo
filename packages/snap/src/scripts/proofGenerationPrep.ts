@@ -5,7 +5,6 @@ import { groth16, zKey } from 'snarkjs';
 
 import { GenZkKycRequestParams } from '../types';
 
-
 /**
  * TestModified constructs and checks the zkKYC proof with the modified code of snarkjs that does not depend on file reading.
  *
@@ -103,30 +102,42 @@ async function writeCircuitDataToJSON(
   for (let i = 0; i < data.zkeySections.length; i++) {
     data.zkeySections[i] = Buffer.from(data.zkeySections[i]).toString('base64');
   }
-  data.zkeyHeader.vk_alpha_1 = Buffer.from(data.zkeyHeader.vk_alpha_1).toString('base64');
-  data.zkeyHeader.vk_beta_1 = Buffer.from(data.zkeyHeader.vk_beta_1).toString('base64');
-  data.zkeyHeader.vk_beta_2 = Buffer.from(data.zkeyHeader.vk_beta_2).toString('base64');
-  data.zkeyHeader.vk_gamma_2 = Buffer.from(data.zkeyHeader.vk_gamma_2).toString('base64');
-  data.zkeyHeader.vk_delta_1 = Buffer.from(data.zkeyHeader.vk_delta_1).toString('base64');
-  data.zkeyHeader.vk_delta_2 = Buffer.from(data.zkeyHeader.vk_delta_2).toString('base64');
+  data.zkeyHeader.vk_alpha_1 = Buffer.from(data.zkeyHeader.vk_alpha_1).toString(
+    'base64',
+  );
+  data.zkeyHeader.vk_beta_1 = Buffer.from(data.zkeyHeader.vk_beta_1).toString(
+    'base64',
+  );
+  data.zkeyHeader.vk_beta_2 = Buffer.from(data.zkeyHeader.vk_beta_2).toString(
+    'base64',
+  );
+  data.zkeyHeader.vk_gamma_2 = Buffer.from(data.zkeyHeader.vk_gamma_2).toString(
+    'base64',
+  );
+  data.zkeyHeader.vk_delta_1 = Buffer.from(data.zkeyHeader.vk_delta_1).toString(
+    'base64',
+  );
+  data.zkeyHeader.vk_delta_2 = Buffer.from(data.zkeyHeader.vk_delta_2).toString(
+    'base64',
+  );
 
   const jsContent = {
     wasm: Buffer.from(data.wasm).toString('base64'),
     zkeyHeader: data.zkeyHeader,
     zkeySections: data.zkeySections,
   };
-  console.log(`resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)} MB`);
-
-  fs.writeFile(
-    filePath,
-    JSON.stringify(jsContent),
-    (error) => {
-      if (error) {
-        throw error;
-      }
-      console.log(`Written to ${filePath}`);
-    },
+  console.log(
+    `resulting JSON has size: ${
+      JSON.stringify(jsContent).length / (1024 * 1024)
+    } MB`,
   );
+
+  fs.writeFile(filePath, JSON.stringify(jsContent), (error) => {
+    if (error) {
+      throw error;
+    }
+    console.log(`Written to ${filePath}`);
+  });
 }
 
 /**

@@ -3,52 +3,25 @@ import { stringToBytes, bytesToHex } from '@metamask/utils';
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
+import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
 import { getState, saveState } from './stateManagement';
 import {
   ExportRequestParams,
   GenZkKycRequestParams,
   HolderData,
   ImportRequestParams,
+  SnapRpcProcessor,
 } from './types';
-import {
-  RpcResponseErr,
-  RpcMethods,
-  RpcResponseMsg,
-} from './rpcEnums';
 import { shortenAddrStr } from './utils';
 import { calculateHolderCommitment } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
-import { SnapRpcProcessor } from './types';
 
 /**
- * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
+ * Handler for the rpc request that processes real requests and unit tests alike.
+ * It has all inputs as function parameters instead of relying on global variables.
  *
  * @param args - The request handler args as object.
- * @param args.origin - The origin of the request, e.g., the website that
- * invoked the snap.
- * @param args.request - A validated JSON-RPC request object.
- * @returns The result of the request as string. TODO: Use more strict type.
- * @throws If the request method is not valid for this snap.
- * @throws If the `snap_confirm` call failed.
- */
-export const onRpcRequest: OnRpcRequestHandler = async ({
-  origin,
-  request,
-}) => {
-  console.log('got request', request.method);
-
-  // forward to common function shared with unit tests
-  // passing global wallet object from snap environment
-  return await processRpcRequest({ origin, request }, wallet);
-};
-
-/**
- * processRpcRequest is a handler for the rpc request that processes real requests and unit tests alike.
- * It has all inputs as function parameters instead of relying on global variables.
- * 
- * @param args - The request handler args as object.
- * @param args.origin - The origin of the request, e.g., the website that
- * invoked the snap.
+ * @param args.origin - The origin of the request, e.g., the website that invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
  * @param wallet - The SnapProvider (wallet).
  * @returns `null` if the request succeeded.
@@ -56,13 +29,9 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
  * @throws If the `snap_confirm` call failed.
  */
 export const processRpcRequest: SnapRpcProcessor = async (
-  {
-    origin,
-    request,
-  },
-  wallet
+  { origin, request },
+  wallet,
 ) => {
-
   const state = await getState(wallet);
   let confirm: any;
   let responseMsg: string;
@@ -102,7 +71,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
           holderCommitment: await calculateHolderCommitment(sign),
           eddsaKey: sign,
         });
-        await saveState(wallet, { holders: state.holders, zkCerts: state.zkCerts });
+        await saveState(wallet, {
+          holders: state.holders,
+          zkCerts: state.zkCerts,
+        });
         responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;
       }
       return responseMsg;
@@ -268,4 +240,26 @@ export const processRpcRequest: SnapRpcProcessor = async (
       throw new Error(RpcResponseErr.UnknownMethod);
     }
   }
+};
+
+/**
+ * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
+ *
+ * @param args - The request handler args as object.
+ * @param args.origin - The origin of the request, e.g., the website that
+ * invoked the snap.
+ * @param args.request - A validated JSON-RPC request object.
+ * @returns The result of the request as string. TODO: Use more strict type.
+ * @throws If the request method is not valid for this snap.
+ * @throws If the `snap_confirm` call failed.
+ */
+export const onRpcRequest: OnRpcRequestHandler = async ({
+  origin,
+  request,
+}) => {
+  console.log('got request', request.method);
+
+  // forward to common function shared with unit tests
+  // passing global wallet object from snap environment
+  return await processRpcRequest({ origin, request }, wallet);
 };

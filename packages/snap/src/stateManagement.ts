@@ -1,9 +1,11 @@
 import { SnapProvider } from '@metamask/snap-types';
+
 import { StorageState } from './types';
 
 /**
  * Get the state from the snap storage in MetaMask's browser extension.
  *
+ * @param wallet - The wallet for interaction with Metamask.
  * @returns The state.
  */
 export async function getState(wallet: SnapProvider): Promise<StorageState> {
@@ -12,7 +14,8 @@ export async function getState(wallet: SnapProvider): Promise<StorageState> {
     params: ['get'],
   });
   if (
-    state === null || state === undefined ||
+    state === null ||
+    state === undefined ||
     (typeof state === 'object' &&
       (state.zkCerts === undefined || state.holders === undefined))
   ) {
@@ -24,9 +27,13 @@ export async function getState(wallet: SnapProvider): Promise<StorageState> {
 /**
  * Save updated state to the snap storage in MetaMask's browser extension.
  *
+ * @param wallet - The wallet for interaction with Metamask.
  * @param newState - The new state.
  */
-export async function saveState(wallet: SnapProvider, newState: StorageState): Promise<void> {
+export async function saveState(
+  wallet: SnapProvider,
+  newState: StorageState,
+): Promise<void> {
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys
   await wallet.request({
     method: 'snap_manageState',
