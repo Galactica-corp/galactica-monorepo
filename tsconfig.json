@@ -5,6 +5,7 @@
     "forceConsistentCasingInFileNames": true,
     "module": "CommonJS",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "useUnknownInCatchVariables": false,
     "sourceMap": true,
     "strict": true,

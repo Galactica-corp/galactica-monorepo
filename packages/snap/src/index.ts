@@ -85,7 +85,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
         method: 'eth_requestAccounts',
       })) as string[];
       const newHolder = newAccounts[0];
-      console.log('Holder to be added:', newHolder);
 
       // TODO: Do we need the 0x prefix?
       const msgToSign = bytesToHex(stringToBytes(eddsaKeyGenerationMessage));
@@ -137,7 +136,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       });
 
       if (!confirm) {
-        throw new Error(RpcResponseErr.Rejected);
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
       const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
@@ -184,7 +183,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         ],
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.Rejected);
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
       await saveState(wallet, { holders: [], zkCerts: [] });
@@ -209,11 +208,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         ],
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.Rejected);
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
       state.zkCerts.push(importParams.zkCert);
       await saveState(wallet, state);
-      return 'zkCert added to storage';
+      return RpcResponseMsg.ZkCertImported;
     }
 
     case RpcMethods.ExportZkCert: {
@@ -231,7 +230,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         ],
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.Rejected);
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
       const zkCertForExport = await selectZkCert(state.zkCerts, {
@@ -259,7 +258,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         ],
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.Rejected);
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
       return holder.holderCommitment;

@@ -12,6 +12,8 @@ class WalletMock implements SnapProvider {
   public readonly requestStub = sinon.stub();
 
   public readonly rpcStubs = {
+    eth_requestAccounts: sinon.stub(),
+    personal_sign: sinon.stub(),
     snap_confirm: sinon.stub(),
     snap_getBip44Entropy: sinon.stub(),
     snap_getBip44Entropy_461: sinon.stub(),

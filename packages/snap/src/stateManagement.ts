@@ -12,7 +12,7 @@ export async function getState(wallet: SnapProvider): Promise<StorageState> {
     params: ['get'],
   });
   if (
-    state === null ||
+    state === null || state === undefined ||
     (typeof state === 'object' &&
       (state.zkCerts === undefined || state.holders === undefined))
   ) {

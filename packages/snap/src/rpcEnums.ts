@@ -16,13 +16,16 @@ export enum RpcMethods {
  */
 export enum RpcResponseMsg {
   StorageCleared = 'zkCert storage cleared',
+  ZkCertImported = 'zkCert added to storage',
 }
 
 /**
  * Enum for string responses by the snap.
  */
 export enum RpcResponseErr {
-  Rejected = 'User rejected confirmation.',
+  RejectedConfirm = 'User rejected confirmation.',
   UnknownMethod = 'Method not found.',
   MissingHolder = 'No holders imported. Please import a holding address first.',
+  RejectedConnect = 'User rejected the request.',
+  RejectedSignature = 'User denied message signature.',
 }
