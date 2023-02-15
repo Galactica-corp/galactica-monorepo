@@ -17,6 +17,8 @@ module.exports = {
       extends: ['@metamask/eslint-config-typescript'],
       rules: {
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
+        // Importing buffer for base64 decoding
+        'import/no-nodejs-modules': 'off',
       },
     },
 
