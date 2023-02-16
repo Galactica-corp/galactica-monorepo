@@ -15,6 +15,7 @@ class WalletMock implements SnapProvider {
     eth_requestAccounts: sinon.stub(),
     personal_sign: sinon.stub(),
     snap_confirm: sinon.stub(),
+    snap_dialog: sinon.stub(),
     snap_getBip44Entropy: sinon.stub(),
     snap_getBip44Entropy_461: sinon.stub(),
     snap_manageState: sinon.stub(),

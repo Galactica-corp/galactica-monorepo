@@ -8,6 +8,7 @@ import { RpcArgs, StorageState, ZkCertProof } from "../src/types";
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from "../src/rpcEnums";
 import { shortenAddrStr } from "../src/utils";
 import zkCert from "../../../test/zkCert.json";
+import zkCert2 from "../../../test/zkCert2.json";
 import { groth16 } from 'snarkjs';
 import * as fs from 'fs';
 
@@ -20,6 +21,22 @@ function buildRPCRequest(method: RpcMethods, params: any = []) : RpcArgs {
     res.request.method = method;
     res.request.params = params;
     return res;
+}
+
+async function verifyProof(result: ZkCertProof) {
+    expect(result.proof.pi_a.length).to.be.eq(3);
+    expect(result.proof.pi_b.length).to.be.eq(3);
+    expect(result.proof.pi_c.length).to.be.eq(3);
+    expect(result.publicSignals.length).to.be.gt(5);
+
+    // verify proof
+    const vKey = JSON.parse(fs.readFileSync(
+        `${__dirname}/../circuits/ageProofZkKYC/ageProofZkKYC.vkey.json`,
+    )
+        .toString()
+    );
+    const verification = await groth16.verify(vKey, result.publicSignals, result.proof);
+    expect(verification).to.be.true;
 }
 
 
@@ -130,14 +147,14 @@ describe("Test rpc handler function: getBalance", function () {
 
     describe("Generate ZKP method", function () {
         beforeEach(function () {
-            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
-                holders: [testHolder],
-                zkCerts: [zkCert]
-            });
         });
 
         it("should throw error if not confirmed", async function () {
             walletStub.rpcStubs.snap_confirm.resolves(false);
+            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert]
+            });
 
             const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), walletStub);
 
@@ -149,23 +166,33 @@ describe("Test rpc handler function: getBalance", function () {
             this.timeout(10000);
 
             walletStub.rpcStubs.snap_confirm.resolves(true);
+            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert]
+            });
+
             const result = (await processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), walletStub)) as ZkCertProof;
 
             expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
             expect(walletStub.rpcStubs.snap_confirm).to.have.been.calledOnce;
-            expect(result.proof.pi_a.length).to.be.eq(3);
-            expect(result.proof.pi_b.length).to.be.eq(3);
-            expect(result.proof.pi_c.length).to.be.eq(3);
-            expect(result.publicSignals.length).to.be.gt(5);
 
-            // verify proof
-            const vKey = JSON.parse(fs.readFileSync(
-                `${__dirname}/../circuits/ageProofZkKYC/ageProofZkKYC.vkey.json`,
-                    )
-                    .toString()
-            );
-            const verification = await groth16.verify(vKey, result.publicSignals, result.proof);
-            expect(verification).to.be.true;
+            await verifyProof(result);
+        });
+
+        it("should be able to select from multiple zkCerts", async function () {
+            walletStub.rpcStubs.snap_confirm.resolves(true);
+            walletStub.rpcStubs.snap_dialog.resolves(1); // TODO: check what is actually returned
+            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert, zkCert2]
+            });
+
+            const result = (await processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), walletStub)) as ZkCertProof;
+
+            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
+            expect(walletStub.rpcStubs.snap_confirm).to.have.been.calledOnce;
+
+            await verifyProof(result);
         });
      });
 
