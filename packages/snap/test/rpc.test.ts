@@ -2,7 +2,7 @@ import chai, { expect } from "chai";
 import sinonChai from "sinon-chai";
 import chaiAsPromised from "chai-as-promised";
 import { processRpcRequest } from "../src/index";
-import { mockSnapProvider } from "./wallet.mock";
+import { mockSnapProvider, mockEthereumProvider } from "./wallet.mock";
 import { defaultRPCRequest, testAddress, testHolder, testSigForEdDSA, testZkpParams } from "./constants.mock";
 import { RpcArgs, StorageState, ZkCertProof } from "../src/types";
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from "../src/rpcEnums";
@@ -16,10 +16,12 @@ import * as fs from 'fs';
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
-function buildRPCRequest(method: RpcMethods, params: any = []) : RpcArgs {
+function buildRPCRequest(method: RpcMethods, params: any | undefined = undefined): RpcArgs {
     let res = defaultRPCRequest;
     res.request.method = method;
-    res.request.params = params;
+    if (params){
+        res.request.params = params;
+    }
     return res;
 }
 
@@ -41,40 +43,41 @@ async function verifyProof(result: ZkCertProof) {
 
 
 describe("Test rpc handler function: getBalance", function () {
-    const walletStub = mockSnapProvider();
+    const snapProvider = mockSnapProvider();
+    const ethereumProvider = mockEthereumProvider();
 
     beforeEach(function () {
     });
 
     afterEach(function () {
-        walletStub.reset();
+        expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({ operation: 'get' });
+        snapProvider.reset();
     });
 
     describe("Clear Storage method", function () {
         it("should throw error if not confirmed", async function () {
-            walletStub.rpcStubs.snap_confirm.resolves(false);
+            snapProvider.rpcStubs.snap_dialog.resolves(false);
 
-            const clearPromise = processRpcRequest(buildRPCRequest(RpcMethods.ClearStorage, []), walletStub);
+            const clearPromise = processRpcRequest(buildRPCRequest(RpcMethods.ClearStorage), snapProvider, ethereumProvider);
 
             await expect(clearPromise).to.be.rejectedWith(Error, RpcResponseErr.RejectedConfirm);
         });
 
 
         it("should clear storage", async function () {
-            walletStub.rpcStubs.snap_confirm.resolves(true);
+            snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-            const result = await processRpcRequest(buildRPCRequest(RpcMethods.ClearStorage, []), walletStub);
+            const result = await processRpcRequest(buildRPCRequest(RpcMethods.ClearStorage), snapProvider, ethereumProvider);
 
-            expect(walletStub.rpcStubs.snap_confirm).to.have.been.calledOnce;
-            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
-            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('update', { holders: [], zkCerts: [] });
+            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+            expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({ operation: 'update', newState: { holders: [], zkCerts: [] }});
             expect(result).to.be.eq(RpcResponseMsg.StorageCleared);
         });
     });
 
     describe("Get Holder Commitment method", function () {
         beforeEach(function () {
-            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
                 holders: [{
                     address: "0x1234",
                     holderCommitment: "0x2345",
@@ -85,62 +88,71 @@ describe("Test rpc handler function: getBalance", function () {
         });
 
         it("should throw error if not confirmed", async function () {
-            walletStub.rpcStubs.snap_confirm.resolves(false);
+            snapProvider.rpcStubs.snap_dialog.resolves(false);
 
-            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.GetHolderCommitment, []), walletStub);
+            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.GetHolderCommitment), snapProvider, ethereumProvider);
 
             await expect(callPromise).to.be.rejectedWith(Error, RpcResponseErr.RejectedConfirm);
         });
 
         it("should return holder commitment", async function () {
-            walletStub.rpcStubs.snap_confirm.resolves(true);
+            snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-            const result = await processRpcRequest(buildRPCRequest(RpcMethods.GetHolderCommitment, []), walletStub);
+            const result = await processRpcRequest(buildRPCRequest(RpcMethods.GetHolderCommitment), snapProvider, ethereumProvider);
 
-            expect(walletStub.rpcStubs.snap_confirm).to.have.been.calledOnce;
-            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
+            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
             expect(result).to.be.eq("0x2345");
         });
     });
 
     describe("Add Holder method", function () {
         it("should add holder successfully", async function () {
-            walletStub.rpcStubs.eth_requestAccounts.resolves([testAddress]);
-            walletStub.rpcStubs.personal_sign.resolves(testSigForEdDSA);
+            ethereumProvider.rpcStubs.eth_requestAccounts.resolves([testAddress]);
+            ethereumProvider.rpcStubs.personal_sign.resolves(testSigForEdDSA);
 
-            const result = await processRpcRequest(buildRPCRequest(RpcMethods.SetupHoldingKey, []), walletStub);
+            const result = await processRpcRequest(buildRPCRequest(RpcMethods.SetupHoldingKey), snapProvider, ethereumProvider);
 
-            expect(walletStub.rpcStubs.eth_requestAccounts).to.have.been.calledOnce;
-            expect(walletStub.rpcStubs.personal_sign).to.have.been.calledOnce;
-            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
-            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('update');
+            expect(ethereumProvider.rpcStubs.eth_requestAccounts).to.have.been.calledOnce;
+            expect(ethereumProvider.rpcStubs.personal_sign).to.have.been.calledOnce;
+            expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+                operation: 'update',
+                newState: {
+                    holders: [testHolder],
+                    zkCerts: []
+                }
+            });
             expect(result).to.be.eq(`Added holder ${shortenAddrStr(testAddress)}`);
         });
     });
 
     describe("Import zkCert method", function () {
         beforeEach(function () {
-            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
                 holders: [testHolder],
                 zkCerts: []
             });
         });
 
         it("should throw error if not confirmed", async function () {
-            walletStub.rpcStubs.snap_confirm.resolves(false);
+            snapProvider.rpcStubs.snap_dialog.resolves(false);
 
-            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.ImportZkCert, {zkCert: zkCert}), walletStub);
+            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.ImportZkCert, { zkCert: zkCert }), snapProvider, ethereumProvider);
 
             await expect(callPromise).to.be.rejectedWith(Error, RpcResponseErr.RejectedConfirm);
         });
 
         it("should import zkCert successfully", async function () {
-            walletStub.rpcStubs.snap_confirm.resolves(true);
+            snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-            const result = await processRpcRequest(buildRPCRequest(RpcMethods.ImportZkCert, { zkCert: zkCert }), walletStub);
+            const result = await processRpcRequest(buildRPCRequest(RpcMethods.ImportZkCert, { zkCert: zkCert }), snapProvider, ethereumProvider);
 
-            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
-            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('update');
+            expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+                operation: 'update',
+                newState: {
+                    holders: [testHolder],
+                    zkCerts: [zkCert]
+                }
+             });
             expect(result).to.be.eq(RpcResponseMsg.ZkCertImported);
         });
     });
@@ -150,13 +162,13 @@ describe("Test rpc handler function: getBalance", function () {
         });
 
         it("should throw error if not confirmed", async function () {
-            walletStub.rpcStubs.snap_confirm.resolves(false);
-            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+            snapProvider.rpcStubs.snap_dialog.resolves(false);
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
                 holders: [testHolder],
                 zkCerts: [zkCert]
             });
 
-            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), walletStub);
+            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), snapProvider, ethereumProvider);
 
             await expect(callPromise).to.be.rejectedWith(Error, RpcResponseErr.RejectedConfirm);
         });
@@ -165,36 +177,34 @@ describe("Test rpc handler function: getBalance", function () {
             // extend timeout for this test
             this.timeout(10000);
 
-            walletStub.rpcStubs.snap_confirm.resolves(true);
-            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+            snapProvider.rpcStubs.snap_dialog.resolves(true);
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
                 holders: [testHolder],
                 zkCerts: [zkCert]
             });
 
-            const result = (await processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), walletStub)) as ZkCertProof;
+            const result = (await processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), snapProvider, ethereumProvider)) as ZkCertProof;
 
-            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
-            expect(walletStub.rpcStubs.snap_confirm).to.have.been.calledOnce;
+            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
 
             await verifyProof(result);
         });
 
         it("should be able to select from multiple zkCerts", async function () {
-            walletStub.rpcStubs.snap_confirm.resolves(true);
-            walletStub.rpcStubs.snap_dialog.resolves(1); // TODO: check what is actually returned
-            walletStub.rpcStubs.snap_manageState.withArgs("get").resolves({
+            snapProvider.rpcStubs.snap_dialog.resolves(true);
+            snapProvider.rpcStubs.snap_dialog.resolves(1); // TODO: check what is actually returned
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
                 holders: [testHolder],
                 zkCerts: [zkCert, zkCert2]
             });
 
-            const result = (await processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), walletStub)) as ZkCertProof;
+            const result = (await processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), snapProvider, ethereumProvider)) as ZkCertProof;
 
-            expect(walletStub.rpcStubs.snap_manageState).to.have.been.calledWith('get');
-            expect(walletStub.rpcStubs.snap_confirm).to.have.been.calledOnce;
+            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
 
             await verifyProof(result);
         });
-     });
+    });
 
     describe.skip("TODO: Export zkCert", function () { });
 });
