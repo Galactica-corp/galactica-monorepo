@@ -1,6 +1,7 @@
 import { buildEddsa } from 'circomlibjs';
-import { ZKCertificate } from 'zkkyc';
+import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
+import { ZKCertificate } from 'zkkyc';
 import { ZkCert, ZkCertRequirements } from './types';
 
 /**
@@ -20,6 +21,7 @@ export async function selectZkCert(
   const filteredCerts = availableCerts.filter((value) => {
     return value.zkCertStandard === req.zkCertStandard;
   });
+  // TODO: filter out expired certs
 
   if (filteredCerts.length === 0) {
     throw new Error(
@@ -32,8 +34,31 @@ export async function selectZkCert(
   if (filteredCerts.length === 1) {
     selected = filteredCerts[0];
   } else {
-    // TODO: implement selection using snap_dialog
-    throw new Error(`zkCerts selection not implemented yet`);
+    // build selection dialog    
+    const options = [];
+    for (let i = 0; i < filteredCerts.length; i++) {
+      const did = filteredCerts[i].did;
+      options.push(panel([
+        heading(`${i + 1}`),
+        text(`${did.slice(0, 14)}...${did.slice(did.length - 4)}`),
+      ]));
+      options.push(divider());
+    }
+
+    const answer = await snap.request({
+      method: 'snap_dialog',
+      params: {
+        type: 'Prompt',
+        content: panel([
+          ...options,
+          text('Please enter the number of the zkCertificate:'),
+        ]),
+      },
+    });
+    // TODO: check if answer is a valid number
+    // TODO: Handle cancel
+
+    selected = filteredCerts[parseInt(answer as string) - 1];
   }
 
   const eddsa = await buildEddsa();

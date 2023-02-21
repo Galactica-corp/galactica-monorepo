@@ -197,7 +197,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'Confirmation',
           content: panel([
-            heading('Import zkCert?'),
+            heading('Export zkCert?'),
             text(`Do you want to export a zkCert? (provided to ${origin} for saving it to a file)`),
           ]),
         },
@@ -206,9 +206,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      const zkCertForExport = await selectZkCert(state.zkCerts, {
-        zkCertStandard: exportParams.zkCertStandard,
-      });
+      const zkCertForExport = await selectZkCert(
+        state.zkCerts,
+        { zkCertStandard: exportParams.zkCertStandard },
+      );
       return zkCertForExport;
     }
 
