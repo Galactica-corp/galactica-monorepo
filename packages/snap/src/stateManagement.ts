@@ -1,42 +1,52 @@
-import { SnapProvider } from '@metamask/snap-types';
-
-import { StorageState } from './types';
+import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
+import { HolderData, StorageState, ZkCert } from './types';
+import { panel, text } from '@metamask/snaps-ui';
 
 /**
  * Get the state from the snap storage in MetaMask's browser extension.
  *
- * @param wallet - The wallet for interaction with Metamask.
+ * @param snap - The snap for interaction with Metamask.
  * @returns The state.
  */
-export async function getState(wallet: SnapProvider): Promise<StorageState> {
-  const state = await wallet.request<StorageState>({
+export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
+  const state_record = await snap.request({
     method: 'snap_manageState',
-    params: ['get'],
-  });
+    params: { operation: "get" },
+  }) as Record<string, Json>;
   if (
-    state === null ||
-    state === undefined ||
-    (typeof state === 'object' &&
-      (state.zkCerts === undefined || state.holders === undefined))
+    state_record === null ||
+    state_record === undefined ||
+    (typeof state_record === 'object' &&
+      (state_record.zkCerts === undefined || state_record.holders === undefined))
   ) {
     return { holders: [], zkCerts: [] };
   }
-  return state as StorageState;
+
+  const state: StorageState = {
+    holders: state_record.holders?.valueOf() as HolderData[],
+    zkCerts: state_record.zkCerts?.valueOf() as ZkCert[],
+  };
+  return state;
 }
 
 /**
  * Save updated state to the snap storage in MetaMask's browser extension.
  *
- * @param wallet - The wallet for interaction with Metamask.
+ * @param snap - The snap for interaction with Metamask.
  * @param newState - The new state.
  */
 export async function saveState(
-  wallet: SnapProvider,
+  snap: SnapsGlobalObject,
   newState: StorageState,
 ): Promise<void> {
+  const state_record: Record<string, Json> = {
+    holders: newState.holders,
+    // using unknown to avoid ts error converting ZkCert[] to Json[]
+    zkCerts: newState.zkCerts as unknown as Json[],
+  };
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys
-  await wallet.request({
+  await snap.request({
     method: 'snap_manageState',
-    params: ['update', newState],
+    params: { operation: 'update', newState: state_record },
   });
 }
