@@ -1,6 +1,6 @@
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { stringToBytes, bytesToHex } from '@metamask/utils';
-import { panel, text, heading } from '@metamask/snaps-ui';
+import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
@@ -86,24 +86,30 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const genParams = request.params as GenZkKycRequestParams;
       // TODO: check input validity
 
-      // ask user to confirm
+      const proofConfirmDioalog = [
+        heading('Generate zkCert proof?'),
+        text(`Do you want to prove your identity to ${origin}?`),
+        text(`This will create a ${genParams.requirements.zkCertStandard} proof.`),
+        divider(),
+      ];
+
+      // TODO: generalize disclosure of inputs to any kind of inputs
+      proofConfirmDioalog.push(
+        text(`It discloses the following information publically:`),
+        text(`That you are at least ${genParams.input.ageThreshold} years old`),
+        text(`The date of generating this proof`),
+      );
+
+      proofConfirmDioalog.push(
+        divider(),
+        text(`The following private inputs are processed by the zkSNARK and stay hidden: zkKYC ID, personal details that are not listed above`),
+      );
+
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
           type: 'Confirmation',
-          content: panel([
-            heading('Generate zkCert proof?'),
-            text(`Do you want to prove your identity to ${origin}?
-            This will create a zkKYC proof.
-            It discloses the following information publicly:
-            - That you hold a KYC
-            - That you are above ${genParams.input.ageThreshold} years old
-            - ...
-            The following private inputs are processed by the zkSNARK and stay hidden:
-            - KYC id
-            - inputs (e.g. year of birth)
-            - ...`),
-          ]),
+          content: panel(proofConfirmDioalog),
         },
       });
 
