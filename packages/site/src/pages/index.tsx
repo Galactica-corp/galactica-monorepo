@@ -246,12 +246,14 @@ const Index = () => {
     }
   };
 
-  const handleBigProofGeneration = async (fileContent: string) => {
+  const bigProofGenerationClick = async () => {
     try {
-      const parsedFile = JSON.parse(fileContent);
+      // get prover data (separately loaded because the large json should not slow down initial site loading)
+      const proverText = await fetch("/provers/ageProofZkKYC.json");
+      const parsedFile = JSON.parse(await proverText.text());
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
       console.log('sending request to snap...');
-      const res : any = await generateProof(parsedFile);
+      const res: any = await generateProof(parsedFile);
       console.log('Response from snap', res);
       if (res === undefined || res === null ){
         throw new Error('Proof generation failed: empty response');
@@ -388,8 +390,8 @@ const Index = () => {
             description:
               '1. Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old. 2. Send proof tx for on-chain verification.',
             button: (
-              <SelectAndImportButton
-                onFileSelected={handleBigProofGeneration}
+              <GeneralButton
+                onClick={bigProofGenerationClick}
                 disabled={false}
                 text="Select & Import"
               />

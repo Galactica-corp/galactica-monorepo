@@ -48,6 +48,9 @@ export async function selectZkCert(
       let zkCertDisplay = [
         text(`**${i + 1}**: ${did.slice(0, 14)}...${did.slice(did.length - 4)}`),
       ];
+
+      // custom information to display depnding on the type of zkCert
+      // TODO: use more dynamic approach (e.g. let the request define what information to display)
       if (req.zkCertStandard === 'gip69') {
         const expirationDate = new Date(filteredCerts[i].content['expirationDate'] * 1000);
         zkCertDisplay.push(text(`Valid until: ${expirationDate.toDateString()}`));
