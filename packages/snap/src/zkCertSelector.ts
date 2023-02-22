@@ -24,9 +24,10 @@ export async function selectZkCert(
   }
 
   const filteredCerts = availableCerts.filter((value) => {
-    return value.zkCertStandard === req.zkCertStandard;
+    return value.zkCertStandard === req.zkCertStandard // same zkCert Standard
+      // not expired (if expirationDate is set)
+      && (value.content["expirationDate"] === undefined || value.content["expirationDate"] >= Date.now() / 1000);
   });
-  // TODO: filter out expired certs
 
   if (filteredCerts.length === 0) {
     throw new Error(
@@ -43,10 +44,16 @@ export async function selectZkCert(
     const options = [];
     for (let i = 0; i < filteredCerts.length; i++) {
       const did = filteredCerts[i].did;
-      options.push(panel([
-        heading(`${i + 1}`),
-        text(`${did.slice(0, 14)}...${did.slice(did.length - 4)}`),
-      ]));
+
+      let zkCertDisplay = [
+        text(`**${i + 1}**: ${did.slice(0, 14)}...${did.slice(did.length - 4)}`),
+      ];
+      if (req.zkCertStandard === 'gip69') {
+        const expirationDate = new Date(filteredCerts[i].content['expirationDate'] * 1000);
+        zkCertDisplay.push(text(`Valid until: ${expirationDate.toDateString()}`));
+      }
+
+      options.push(panel(zkCertDisplay));
       options.push(divider());
     }
 
@@ -57,8 +64,9 @@ export async function selectZkCert(
         params: {
           type: 'Prompt',
           content: panel([
+            heading(`zkCertificate Selection`),
             ...options,
-            text('Please enter the number of the zkCertificate:'),
+            text(`Please enter the number of the zkCertificate you want to use (${1} to ${filteredCerts.length}):`),
           ]),
         },
       });
@@ -68,13 +76,13 @@ export async function selectZkCert(
       }
 
       indexSelection = parseInt(answer as string) - 1;
-      
+
       if (filteredCerts[indexSelection] === undefined) {
         await snap.request({
           method: 'snap_notify',
           params: {
             type: 'native',
-            message: `zkCertificate selection failed. You need to enter the number of the zkCert between ${1} and ${filteredCerts.length}. You entered '${answer}''`,
+            message: `Selection failed. Answer not between ${1} and ${filteredCerts.length}.`,
           },
         });
       }
