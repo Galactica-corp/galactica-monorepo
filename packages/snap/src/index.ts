@@ -111,7 +111,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
+      const zkCert = await selectZkCert(snap, state.zkCerts, genParams.requirements);
 
       const searchedHolder = state.holders.find(
         (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
@@ -207,6 +207,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       const zkCertForExport = await selectZkCert(
+        snap,
         state.zkCerts,
         { zkCertStandard: exportParams.zkCertStandard },
       );

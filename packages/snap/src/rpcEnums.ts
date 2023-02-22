@@ -28,4 +28,5 @@ export enum RpcResponseErr {
   MissingHolder = 'No holders imported. Please import a holding address first.',
   RejectedConnect = 'User rejected the request.',
   RejectedSignature = 'User denied message signature.',
+  RejectedSelect = 'User did not choose a zkCertificate.',
 }

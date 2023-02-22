@@ -1,6 +1,7 @@
 import chai, { expect } from "chai";
 import sinonChai from "sinon-chai";
 import chaiAsPromised from "chai-as-promised";
+import sinon from "sinon";
 import { processRpcRequest } from "../src/index";
 import { mockSnapProvider, mockEthereumProvider } from "./wallet.mock";
 import { defaultRPCRequest, testAddress, testHolder, testSigForEdDSA, testZkpParams } from "./constants.mock";
@@ -42,7 +43,7 @@ async function verifyProof(result: ZkCertProof) {
 }
 
 
-describe("Test rpc handler function: getBalance", function () {
+describe("Test rpc handler function", function () {
     const snapProvider = mockSnapProvider();
     const ethereumProvider = mockEthereumProvider();
 
@@ -190,9 +191,11 @@ describe("Test rpc handler function: getBalance", function () {
             await verifyProof(result);
         });
 
-        it("should be able to select from multiple zkCerts", async function () {
-            snapProvider.rpcStubs.snap_dialog.resolves(true);
-            snapProvider.rpcStubs.snap_dialog.resolves(1); // TODO: check what is actually returned
+        it("should be able to select from multiple zkCerts", async function (this: Mocha.Context) {
+            this.timeout(10000);
+
+            snapProvider.rpcStubs.snap_dialog.withArgs(sinon.match.has('type', 'Confirmation')).resolves(true);
+            snapProvider.rpcStubs.snap_dialog.withArgs(sinon.match.has('type', 'Prompt')).resolves(1); // The text entered by the user
             snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
                 holders: [testHolder],
                 zkCerts: [zkCert, zkCert2]
@@ -200,9 +203,43 @@ describe("Test rpc handler function: getBalance", function () {
 
             const result = (await processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), snapProvider, ethereumProvider)) as ZkCertProof;
 
-            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice;
 
             await verifyProof(result);
+        });
+
+        it("should reject when user refuses zkCert selection", async function () {
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert, zkCert2]
+            });
+            snapProvider.rpcStubs.snap_dialog.withArgs(sinon.match.has('type', 'Confirmation')).resolves(true);
+            snapProvider.rpcStubs.snap_dialog.withArgs(sinon.match.has('type', 'Prompt')).resolves(null); // user clicked reject or entered nothing before pressing accept
+
+            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), snapProvider, ethereumProvider);
+
+            await expect(callPromise).to.be.rejectedWith(Error, RpcResponseErr.RejectedSelect);
+
+            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice;
+        });
+
+        it("should repeat zkCert selection if user enters garbage", async function () {
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert, zkCert2]
+            });
+            snapProvider.rpcStubs.snap_dialog.withArgs(sinon.match.has('type', 'Confirmation')).resolves(true);
+            snapProvider.rpcStubs.snap_dialog.withArgs(sinon.match.has('type', 'Prompt')).
+                onFirstCall().resolves('garbage'). // no valid number
+                onSecondCall().resolves(10000000). // index out of bounds
+                onThirdCall().resolves(null); // user clicked reject or entered nothing before pressing accept
+
+            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams), snapProvider, ethereumProvider);
+
+            await expect(callPromise).to.be.rejectedWith(Error, RpcResponseErr.RejectedSelect);
+
+            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.callCount(4);
+            expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledTwice;
         });
     });
 

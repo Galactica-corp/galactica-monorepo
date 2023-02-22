@@ -38,6 +38,7 @@ class SnapMock extends ProviderMock {
 
   public readonly rpcStubs = {
     snap_confirm: sinon.stub(),
+    snap_notify: sinon.stub(),
     snap_dialog: sinon.stub(),
     snap_getBip44Entropy: sinon.stub(),
     snap_getBip44Entropy_461: sinon.stub(),

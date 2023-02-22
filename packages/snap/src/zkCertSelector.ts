@@ -1,16 +1,21 @@
 import { buildEddsa } from 'circomlibjs';
+import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
+
 
 import { ZKCertificate } from 'zkkyc';
 import { ZkCert, ZkCertRequirements } from './types';
+import { RpcResponseErr } from './rpcEnums';
 
 /**
  * Selects a ZkCert from the available ones.
  *
+ * @param snap - The snap for interaction with Metamask.
  * @param availableCerts - The available ZkCerts to select from.
  * @param req - The requirements for the ZkCert to select.
  */
 export async function selectZkCert(
+  snap: SnapsGlobalObject,
   availableCerts: ZkCert[],
   req: ZkCertRequirements,
 ): Promise<ZKCertificate> {
@@ -45,20 +50,36 @@ export async function selectZkCert(
       options.push(divider());
     }
 
-    const answer = await snap.request({
-      method: 'snap_dialog',
-      params: {
-        type: 'Prompt',
-        content: panel([
-          ...options,
-          text('Please enter the number of the zkCertificate:'),
-        ]),
-      },
-    });
-    // TODO: check if answer is a valid number
-    // TODO: Handle cancel
+    let indexSelection = NaN;
+    while (filteredCerts[indexSelection] === undefined) {
+      const answer = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'Prompt',
+          content: panel([
+            ...options,
+            text('Please enter the number of the zkCertificate:'),
+          ]),
+        },
+      });
 
-    selected = filteredCerts[parseInt(answer as string) - 1];
+      if (answer === null) {
+        throw new Error(RpcResponseErr.RejectedSelect);
+      }
+
+      indexSelection = parseInt(answer as string) - 1;
+      
+      if (filteredCerts[indexSelection] === undefined) {
+        await snap.request({
+          method: 'snap_notify',
+          params: {
+            type: 'native',
+            message: `zkCertificate selection failed. You need to enter the number of the zkCert between ${1} and ${filteredCerts.length}. You entered '${answer}''`,
+          },
+        });
+      }
+    }
+    selected = filteredCerts[indexSelection];
   }
 
   const eddsa = await buildEddsa();
