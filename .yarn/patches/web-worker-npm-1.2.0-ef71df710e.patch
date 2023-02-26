@@ -1,0 +1,16 @@
+diff --git a/cjs/browser.js b/cjs/browser.js
+index e9a5c1e9cdc8c6eea714b8a2122851517f317a63..4dee7df0750665cf11711c4ef69713b3e1e6c281 100644
+--- a/cjs/browser.js
++++ b/cjs/browser.js
+@@ -13,4 +13,11 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++
++// Patch for SES compatibility.
++// Somehow this should export the Worker from web-worker/cjs/node.js
++// but it is missing in the bundle.js created by mm-snap build
++// this is just a workaround. If we run into problems, we might have to move the worker code here.
++var Worker;
++
+ module.exports = Worker;

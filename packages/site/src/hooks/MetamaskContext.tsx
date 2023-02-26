@@ -8,16 +8,21 @@ import {
 } from 'react';
 import { Snap } from '../types';
 import { isFlask, getSnap } from '../utils';
+import { ethers } from 'ethers';
 
 export type MetamaskState = {
   isFlask: boolean;
   installedSnap?: Snap;
   error?: Error;
+  signer?: string;
+  proofData?: any;
 };
 
 const initialState: MetamaskState = {
   isFlask: false,
   error: undefined,
+  signer: "Connect",
+  proofData: undefined,
 };
 
 type MetamaskDispatch = { type: MetamaskActions; payload: any };
@@ -35,6 +40,8 @@ export enum MetamaskActions {
   SetInstalled = 'SetInstalled',
   SetFlaskDetected = 'SetFlaskDetected',
   SetError = 'SetError',
+  SetConnected = 'SetConnected',
+  SetProofData = 'SetProofData',
 }
 
 const reducer: Reducer<MetamaskState, MetamaskDispatch> = (state, action) => {
@@ -55,6 +62,18 @@ const reducer: Reducer<MetamaskState, MetamaskDispatch> = (state, action) => {
       return {
         ...state,
         error: action.payload,
+      };
+
+    case MetamaskActions.SetConnected:
+      return {
+        ...state,
+        signer: action.payload,
+      };
+
+    case MetamaskActions.SetProofData:
+      return {
+        ...state,
+        proofData: action.payload,
       };
 
     default:

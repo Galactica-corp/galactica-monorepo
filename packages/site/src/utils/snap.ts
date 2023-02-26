@@ -1,5 +1,11 @@
+import {
+  ExportRequestParams,
+  RpcMethods,
+  ZkCertStandard,
+} from '../../../snap/src/types';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
+import { getCurrentBlockTime } from './metamask';
 
 /**
  * Get the installed snaps in MetaMask.
@@ -50,23 +56,121 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
       (snap) =>
         snap.id === defaultSnapOrigin && (!version || snap.version === version),
     );
-  } catch (e) {
-    console.log('Failed to obtain installed snap', e);
+  } catch (error) {
+    console.log('Failed to obtain installed snap', error);
     return undefined;
   }
 };
 
 /**
- * Invoke the "hello" method from the example snap.
+ * Invoke the methods from the example snap.
  */
 
-export const sendHello = async () => {
-  await window.ethereum.request({
+export const setupHoldingKey = async () => {
+  return await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: [
       defaultSnapOrigin,
       {
-        method: 'hello',
+        method: RpcMethods.SetupHoldingKey,
+        params: {},
+      },
+    ],
+  });
+};
+
+export const generateProof = async (proverData: any) => {
+  // TODO: add type for proverData
+  // TODO: move filling input inside snap
+
+  // expected time for between pressing the generation button and the verification happening on-chain
+  const estimatedProofCreationDuration = 60;
+
+  const currentTimestamp =
+    (await getCurrentBlockTime()) + estimatedProofCreationDuration;
+  const dateNow = new Date(currentTimestamp * 1000);
+
+  const publicInput = {
+    currentTime: currentTimestamp,
+    currentYear: dateNow.getUTCFullYear().toString(),
+    currentMonth: (dateNow.getUTCMonth() + 1).toString(),
+    currentDay: dateNow.getUTCDate().toString(),
+    ageThreshold: '18',
+  };
+  console.log('publicInput', publicInput);
+
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.GenZkKycProof,
+        params: {
+          input: publicInput,
+          requirements: {
+            zkCertStandard: ZkCertStandard.ZkKYC,
+          },
+          wasm: proverData.wasm,
+          zkeyHeader: proverData.zkeyHeader,
+          zkeySections: proverData.zkeySections,
+        },
+      },
+    ],
+  });
+};
+
+export const clearStorage = async () => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.ClearStorage,
+        params: {},
+      },
+    ],
+  });
+};
+
+export const importZkCert = async (zkCertJson: any) => {
+  console.log({ zkCert: zkCertJson });
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.ImportZkCert,
+        params: { zkCert: zkCertJson },
+      },
+    ],
+  });
+};
+
+export const exportZkCert = async () => {
+  const params: ExportRequestParams = {
+    zkCertStandard: ZkCertStandard.ZkKYC,
+  };
+
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.ExportZkCert,
+        params,
+      },
+    ],
+  });
+};
+
+export const getHolderCommitment = async () => {
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: [
+      defaultSnapOrigin,
+      {
+        method: RpcMethods.GetHolderCommitment,
+        params: {},
       },
     ],
   });

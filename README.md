@@ -13,14 +13,36 @@ To interact with (your) Snaps, you will need to install [MetaMask Flask](https:/
 Clone the template-snap repository [using this template](https://github.com/MetaMask/template-snap-monorepo/generate) and setup the development environment:
 
 ```shell
-yarn install && yarn start
+yarn install
+yarn start
 ```
+
+## Proof preparation
+
+To generate zk proofs, the snap takes the generator wasm and keys as input. This data is preliminarily provided through uploading a json file to the Snap.
+It can be generated with the script `packages/snap/scripts/proofGenerationPrep.ts`, which can be run with:
+
+```
+cd packages/snap
+yarn run proofPrep
+```
+
+You can modify the script to select another proof to prepare.
+
+## Usage
+
+1. Open http://localhost:8000/
+2. Connect to Metamask Flask. This also installs the Snap. (redo after compiling a new Snap version)
+3. Setup holder account and connect Snap to Metamask wallet
+4. Export holder commitment
+5. Create zkKYC from holder commitment and personal data with zkKYC repo task `npx hardhat createZkKYC`
+6. Add Merkle tree proof form `npx hardhat run scripts/merkleTreeGenerator.ts` to zkKYC json
+7. Import zkKYC certificate in Snap
+8. Generate zkKYC + age proof
 
 ## Cloning
 
 This repository contains GitHub Actions that you may find useful, see `.github/workflows` and [Releasing & Publishing](https://github.com/MetaMask/template-snap-monorepo/edit/main/README.md#releasing--publishing) below for more information.
-
-If you clone or create this repository outside the MetaMask GitHub organization, you probably want to run `./scripts/cleanup.sh` to remove some files that will not work properly outside the MetaMask GitHub organization.
 
 Note that the `action-publish-relase.yml` workflow contains a step that publishes the frontend of this snap (contained in the `public/` directory) to GitHub pages. If you do not want to publish the frontend to GitHub pages, simply remove the step named "Publish to GitHub Pages" in that workflow.
 

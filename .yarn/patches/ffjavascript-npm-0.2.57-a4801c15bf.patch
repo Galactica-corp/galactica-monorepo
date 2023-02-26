@@ -1,0 +1,46 @@
+diff --git a/build/main.cjs b/build/main.cjs
+index b38251476a420514bfb37208613c1ba806cf8b5e..89f6aa0a818c312c4abcb859eafc844874908efb 100644
+--- a/build/main.cjs
++++ b/build/main.cjs
+@@ -504,7 +504,8 @@ class PolField {
+         return v;
+     }
+ 
+-    eval(p,x) {
++    // renamed from eval to make it work in SES
++    eval_sesRename(p,x) {
+         const F = this.F;
+         if (p.length == 0) return F.zero;
+         const m = this._next2Power(p.length);
+@@ -535,7 +536,7 @@ class PolField {
+             let mpol = this.ruffini(roots, points[i][0]);
+             const factor =
+                 this.F.mul(
+-                    this.F.inv(this.eval(mpol, points[i][0])),
++                    this.F.inv(this.eva_sesRename(mpol, points[i][0])),
+                     points[i][1]);
+             mpol = this.mulScalar(mpol, factor);
+             sum = this.add(sum, mpol);
+diff --git a/src/polfield.js b/src/polfield.js
+index 6f570cbe6a431bcfb96ac31bd8dea4b3336ea133..26b301ceae30c7c22a279cc81b13f21a3f852b8a 100644
+--- a/src/polfield.js
++++ b/src/polfield.js
+@@ -192,7 +192,8 @@ export default class PolField {
+         return v;
+     }
+ 
+-    eval(p,x) {
++    // renamed from eval to make it work in SES
++    eval_sesRename(p,x) {
+         const F = this.F;
+         if (p.length == 0) return F.zero;
+         const m = this._next2Power(p.length);
+@@ -223,7 +224,7 @@ export default class PolField {
+             let mpol = this.ruffini(roots, points[i][0]);
+             const factor =
+                 this.F.mul(
+-                    this.F.inv(this.eval(mpol, points[i][0])),
++                    this.F.inv(this.eval_sesRename(mpol, points[i][0])),
+                     points[i][1]);
+             mpol = this.mulScalar(mpol, factor);
+             sum = this.add(sum, mpol);
