@@ -67,6 +67,10 @@ describe("Test rpc handler function", function () {
 
         it("should clear storage", async function () {
             snapProvider.rpcStubs.snap_dialog.resolves(true);
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert]
+            });
 
             const result = await processRpcRequest(buildRPCRequest(RpcMethods.ClearStorage), snapProvider, ethereumProvider);
 
