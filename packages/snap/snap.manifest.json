@@ -1,6 +1,6 @@
 {
-  "version": "0.1.0",
-  "description": "A Snap for managing and using zkCerts in Galactica.",
+  "version": "0.1.1",
+  "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
   "proposedName": "galactica-snap",
   "repository": {
     "type": "git",
