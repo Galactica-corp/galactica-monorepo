@@ -1,7 +1,7 @@
 {
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
-  "proposedName": "galactica-snap",
+  "proposedName": "@galactica-corp/snap",
   "repository": {
     "type": "git",
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
@@ -12,7 +12,7 @@
       "npm": {
         "filePath": "dist/bundle.js",
         "iconPath": "images/galactica_icon.svg",
-        "packageName": "galactica-snap",
+        "packageName": "@galactica-corp/snap",
         "registry": "https://registry.npmjs.org/"
       }
     }
