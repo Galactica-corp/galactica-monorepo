@@ -287,13 +287,32 @@ await window.ethereum.request({
 
 ### `listZkCerts`
 
-::: warning Figure out privacy
-How to ensure no private data is leaked (requiring confirmation, limitation to connected address, ...)?
-:::
-
 #### Description
+Requests overview of zkCertificates held in the Snap for management
+
+To not limit the privacy risks of the user, this overview only contains zkCertificate metadata that is usually not shown in a ZKP. This should prevent cross referencing multiple disclosures submitted from different addresses.
+
 #### Parameters
+None
+
 #### Returns
+- `Object`
+  - `[zkCertStandard: string]`: JSON `object` holding zkCertificate metadata.
+    - `zkCertStandard` - `string` identifying the standard of the zkCertificate.
+    - `expirationDate` - `number` Unix timestamp of expiration date.
+    - `holderCommitment` - Holder commitment of the address controling the zkCertificate.
+    - `provider` - JSON `object` including publickey of provider.
+    - `did` - `string` zkCertificate DID including it's hash.
+
 #### Example
 ```javascript
+return await window.ethereum.request({
+  method: 'wallet_invokeSnap',
+  params: {
+    snapId: defaultSnapOrigin,
+    request: {
+      method: "listZkCerts",
+    },
+  },
+});
 ```
