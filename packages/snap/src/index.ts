@@ -37,7 +37,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
 ) => {
   const state = await getState(snap);
   let confirm: any;
-  let responseMsg: string;
+  let response: any;
   let holder: HolderData;
 
   switch (request.method) {
@@ -65,7 +65,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       })) as string;
 
       if (state.holders.find((candidate) => candidate.address === newHolder)) {
-        responseMsg = `${shortenAddrStr(newHolder)} already added.`;
+        response = true;
       } else {
         state.holders.push({
           address: newHolder,
@@ -76,9 +76,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           holders: state.holders,
           zkCerts: state.zkCerts,
         });
-        responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;
+        response = true;
       }
-      return responseMsg;
+      return response;
     }
 
     case RpcMethods.GenZkKycProof: {
