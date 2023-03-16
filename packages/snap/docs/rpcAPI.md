@@ -292,6 +292,8 @@ Requests overview of zkCertificates held in the Snap for management
 
 To not limit the privacy risks of the user, this overview only contains zkCertificate metadata that is usually not shown in a ZKP. This should prevent cross referencing multiple disclosures submitted from different addresses.
 
+Asks the user for confirmation. As a website you only need to query this once and then you can cache and reuse this data until the hash from the `getZkCertStorageHash` changes.
+
 #### Parameters
 None
 
@@ -300,8 +302,7 @@ None
   - `[zkCertStandard: string]`: JSON `object` holding zkCertificate metadata.
     - `provider` - JSON `object` including publickey of provider.
     - `expirationDate` - `number` Unix timestamp of expiration date.
-    <!-- - `holderCommitment` - Holder commitment of the address controling the zkCertificate.
-    - `did` - `string` zkCertificate DID including it's hash. -->
+Throws an error if the user rejected the confirmation.
 
 #### Example
 ```javascript
@@ -311,6 +312,29 @@ return await window.ethereum.request({
     snapId: defaultSnapOrigin,
     request: {
       method: "listZkCerts",
+    },
+  },
+});
+```
+
+### `getZkCertStorageHashes`
+#### Description
+You can use `getZkCertStorageHash` to detect changes in the zkCert storage of the snap. This can be done without requiring user interaction (besides the initial connect) and therefore does not dirsturb the user flow.
+#### Parameters
+None
+
+#### Returns
+- `Object`
+  - `[zkCertStandard: string]`: `string` for the storage hash of all zkCerts of this type held by the Snap.
+
+#### Example
+```javascript
+let currentStorageHash = await window.ethereum.request({
+  method: 'wallet_invokeSnap',
+  params: {
+    snapId: defaultSnapOrigin,
+    request: {
+      method: "getZkCertStorageHashes",
     },
   },
 });

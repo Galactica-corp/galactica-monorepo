@@ -20,7 +20,7 @@ chai.use(chaiAsPromised);
 function buildRPCRequest(method: RpcMethods, params: any | undefined = undefined): RpcArgs {
     let res = defaultRPCRequest;
     res.request.method = method;
-    if (params){
+    if (params) {
         res.request.params = params;
     }
     return res;
@@ -47,9 +47,6 @@ describe("Test rpc handler function", function () {
     const snapProvider = mockSnapProvider();
     const ethereumProvider = mockEthereumProvider();
 
-    beforeEach(function () {
-    });
-
     afterEach(function () {
         expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({ operation: 'get' });
         snapProvider.reset();
@@ -75,7 +72,7 @@ describe("Test rpc handler function", function () {
             const result = await processRpcRequest(buildRPCRequest(RpcMethods.ClearStorage), snapProvider, ethereumProvider);
 
             expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
-            expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({ operation: 'update', newState: { holders: [], zkCerts: [] }});
+            expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({ operation: 'update', newState: { holders: [], zkCerts: [] } });
             expect(result).to.be.eq(RpcResponseMsg.StorageCleared);
         });
     });
@@ -159,15 +156,12 @@ describe("Test rpc handler function", function () {
                     holders: [testHolder],
                     zkCerts: [zkCert]
                 }
-             });
+            });
             expect(result).to.be.eq(RpcResponseMsg.ZkCertImported);
         });
     });
 
     describe("Generate ZKP method", function () {
-        beforeEach(function () {
-        });
-
         it("should throw error if not confirmed", async function () {
             snapProvider.rpcStubs.snap_dialog.resolves(false);
             snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
@@ -251,7 +245,17 @@ describe("Test rpc handler function", function () {
 
 
     describe("List zkCerts", function () {
-        beforeEach(function () {
+        it("should throw error if not confirmed", async function () {
+            snapProvider.rpcStubs.snap_dialog.resolves(false);
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert]
+            });
+
+            const callPromise = processRpcRequest(buildRPCRequest(RpcMethods.ListZkCerts, testZkpParams), snapProvider, ethereumProvider);
+
+            await expect(callPromise).to.be.rejectedWith(Error, RpcResponseErr.RejectedConfirm);
+            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
         });
 
         it("should show imported zkCert selection", async function () {
@@ -270,6 +274,45 @@ describe("Test rpc handler function", function () {
             expect(res[zkCert.zkCertStandard][0].expirationDate).to.equal(zkCert.content.expirationDate);
             expect(res[zkCert.zkCertStandard][1].expirationDate).to.equal(zkCert2.content.expirationDate);
             expect(res[zkCert.zkCertStandard][0].verificationLevel).to.equal(zkCert2.content.verificationLevel);
+            expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+        });
+    });
+
+
+    describe("Get ZkCert Storage hash", function () {
+        afterEach(function () {
+            expect(snapProvider.rpcStubs.snap_dialog).to.not.have.been.called;
+        });
+
+        it("should stay the same if the storage is the same", async function () {
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert, zkCert2]
+            });
+
+            const hashes0 = await processRpcRequest(buildRPCRequest(RpcMethods.getZkCertStorageHashes), snapProvider, ethereumProvider);
+            const hashes1 = await processRpcRequest(buildRPCRequest(RpcMethods.getZkCertStorageHashes), snapProvider, ethereumProvider);
+
+            expect(hashes0).to.have.key(zkCert.zkCertStandard);
+            expect(hashes0).to.deep.equal(hashes1);
+        });
+
+        it("should change when the storage chanes", async function () {
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).
+                onFirstCall().resolves({
+                    holders: [testHolder],
+                    zkCerts: [zkCert]
+                }).onSecondCall().resolves({
+                    holders: [testHolder],
+                    zkCerts: [zkCert, zkCert2]
+                });
+
+            const hashes0 = await processRpcRequest(buildRPCRequest(RpcMethods.getZkCertStorageHashes), snapProvider, ethereumProvider);
+            const hashes1 = await processRpcRequest(buildRPCRequest(RpcMethods.getZkCertStorageHashes), snapProvider, ethereumProvider);
+
+            expect(hashes0).to.have.key(zkCert.zkCertStandard);
+            expect(hashes1).to.have.key(zkCert.zkCertStandard);
+            expect(hashes0).to.not.deep.equal(hashes1);
         });
     });
 

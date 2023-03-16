@@ -1,7 +1,7 @@
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { stringToBytes, bytesToHex } from '@metamask/utils';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
-import { eddsaKeyGenerationMessage, ZkCertStandard } from 'zkkyc';
+import { eddsaKeyGenerationMessage } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
 import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
@@ -13,8 +13,7 @@ import {
   ImportRequestParams,
   SnapRpcProcessor,
 } from './types';
-import { shortenAddrStr } from './utils';
-import { calculateHolderCommitment } from './zkCertHandler';
+import { calculateHolderCommitment, getZkCertStorageHashes, getZkCertStorageOverview } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
 
 /**
@@ -246,28 +245,26 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.ListZkCerts: {
-      // not asking for confirmation here because the user already accepted the connection
-      // the data shared here must not reveal any private information or possibility to track users)
-      
-      let sharedZkCerts: any = {};
-      for (const zkCert of state.zkCerts) {
-        if (sharedZkCerts[zkCert.zkCertStandard] === undefined) {
-          sharedZkCerts[zkCert.zkCertStandard] = [];
-        }
-
-        let disclosableData: any = {
-          providerPubKey: {
-            Ax: zkCert.providerData.Ax,
-            Ay: zkCert.providerData.Ay,
-          }
-        };
-        if (zkCert.zkCertStandard === ZkCertStandard.zkKYC) {
-          disclosableData["expirationDate"] = zkCert.content.expirationDate;
-          disclosableData["verificationLevel"] = zkCert.content.verificationLevel;
-        }
-        sharedZkCerts[zkCert.zkCertStandard].push(disclosableData);
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'Confirmation',
+          content: panel([
+            heading('Provide zkCert Storage metadata?'),
+            text(`The website ${origin} asks to get an overview of zkCerts stored in Metamask. The overview only contains metadata, no personal and no tracking data.`),
+          ]),
+        },
+      });
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
-      return sharedZkCerts;
+
+      return getZkCertStorageOverview(state.zkCerts);
+    }
+
+    case RpcMethods.getZkCertStorageHashes: {
+      // does not need confirmation as it does not leak any personal or trackng data
+      return getZkCertStorageHashes(state.zkCerts, origin);
     }
 
     default: {

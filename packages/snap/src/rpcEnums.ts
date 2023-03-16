@@ -9,6 +9,7 @@ export enum RpcMethods {
   ImportZkCert = 'importZkCert',
   ExportZkCert = 'exportZkCert',
   ListZkCerts = 'listZkCerts',
+  getZkCertStorageHashes = 'getZkCertStorageHashes',
   // TODO: would be nice to have more storage management methods like deleting a specific zkCert, modifying a zkCert, bulk import/export, ...
 }
 
