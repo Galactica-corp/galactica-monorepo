@@ -126,7 +126,7 @@ describe("Test rpc handler function", function () {
                     zkCerts: []
                 }
             });
-            expect(result).to.be.eq(`Added holder ${shortenAddrStr(testAddress)}`);
+            expect(result).to.be.eq(true);
         });
     });
 

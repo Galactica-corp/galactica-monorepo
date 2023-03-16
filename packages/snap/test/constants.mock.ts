@@ -1,5 +1,5 @@
 import { HolderData, RpcArgs } from "../src/types";
-import proverData from "../../../test/ageProofZkKYC.json";
+import proverData from "../../site/public/provers/ageProofZkKYC.json";
 
 export const defaultRPCRequest: RpcArgs = {
   origin: 'http://localhost:8000',
