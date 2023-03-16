@@ -269,6 +269,7 @@ describe("Test rpc handler function", function () {
             expect(res[zkCert.zkCertStandard][0].providerPubKey.Ay).to.equal(zkCert.providerData.Ay);
             expect(res[zkCert.zkCertStandard][0].expirationDate).to.equal(zkCert.content.expirationDate);
             expect(res[zkCert.zkCertStandard][1].expirationDate).to.equal(zkCert2.content.expirationDate);
+            expect(res[zkCert.zkCertStandard][0].verificationLevel).to.equal(zkCert2.content.verificationLevel);
         });
     });
 

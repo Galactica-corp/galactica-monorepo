@@ -263,6 +263,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         };
         if (zkCert.zkCertStandard === ZkCertStandard.zkKYC) {
           disclosableData["expirationDate"] = zkCert.content.expirationDate;
+          disclosableData["verificationLevel"] = zkCert.content.verificationLevel;
         }
         sharedZkCerts[zkCert.zkCertStandard].push(disclosableData);
       }
