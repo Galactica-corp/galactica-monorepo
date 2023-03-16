@@ -1,7 +1,7 @@
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { stringToBytes, bytesToHex } from '@metamask/utils';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
-import { eddsaKeyGenerationMessage } from 'zkkyc';
+import { eddsaKeyGenerationMessage, ZkCertStandard } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
 import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
@@ -243,6 +243,30 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       return holder.holderCommitment;
+    }
+
+    case RpcMethods.ListZkCerts: {
+      // not asking for confirmation here because the user already accepted the connection
+      // the data shared here must not reveal any private information or possibility to track users)
+      
+      let sharedZkCerts: any = {};
+      for (const zkCert of state.zkCerts) {
+        if (sharedZkCerts[zkCert.zkCertStandard] === undefined) {
+          sharedZkCerts[zkCert.zkCertStandard] = [];
+        }
+
+        let disclosableData: any = {
+          providerPubKey: {
+            Ax: zkCert.providerData.Ax,
+            Ay: zkCert.providerData.Ay,
+          }
+        };
+        if (zkCert.zkCertStandard === ZkCertStandard.zkKYC) {
+          disclosableData["expirationDate"] = zkCert.content.expirationDate;
+        }
+        sharedZkCerts[zkCert.zkCertStandard].push(disclosableData);
+      }
+      return sharedZkCerts;
     }
 
     default: {

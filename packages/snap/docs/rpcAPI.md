@@ -298,11 +298,10 @@ None
 #### Returns
 - `Object`
   - `[zkCertStandard: string]`: JSON `object` holding zkCertificate metadata.
-    - `zkCertStandard` - `string` identifying the standard of the zkCertificate.
-    - `expirationDate` - `number` Unix timestamp of expiration date.
-    - `holderCommitment` - Holder commitment of the address controling the zkCertificate.
     - `provider` - JSON `object` including publickey of provider.
-    - `did` - `string` zkCertificate DID including it's hash.
+    - `expirationDate` - `number` Unix timestamp of expiration date.
+    <!-- - `holderCommitment` - Holder commitment of the address controling the zkCertificate.
+    - `did` - `string` zkCertificate DID including it's hash. -->
 
 #### Example
 ```javascript

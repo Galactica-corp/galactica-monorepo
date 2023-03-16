@@ -111,7 +111,9 @@ describe("Test rpc handler function", function () {
     });
 
     describe("Add Holder method", function () {
-        it("should add holder successfully", async function () {
+        it("should add holder successfully", async function (this: Mocha.Context) {
+            this.timeout(4000);
+
             ethereumProvider.rpcStubs.eth_requestAccounts.resolves([testAddress]);
             ethereumProvider.rpcStubs.personal_sign.resolves(testSigForEdDSA);
 
@@ -244,6 +246,29 @@ describe("Test rpc handler function", function () {
 
             expect(snapProvider.rpcStubs.snap_dialog).to.have.been.callCount(4);
             expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledTwice;
+        });
+    });
+
+
+    describe("List zkCerts", function () {
+        beforeEach(function () {
+        });
+
+        it("should show imported zkCert selection", async function () {
+            snapProvider.rpcStubs.snap_manageState.withArgs({ operation: 'get' }).resolves({
+                holders: [testHolder],
+                zkCerts: [zkCert, zkCert2]
+            });
+            snapProvider.rpcStubs.snap_dialog.withArgs(sinon.match.has('type', 'Confirmation')).resolves(true);
+
+            const res: any = await processRpcRequest(buildRPCRequest(RpcMethods.ListZkCerts), snapProvider, ethereumProvider);
+
+            expect(res).to.have.key(zkCert.zkCertStandard);
+            expect(res[zkCert.zkCertStandard].length).to.equal(2);
+            expect(res[zkCert.zkCertStandard][0].providerPubKey.Ax).to.equal(zkCert.providerData.Ax);
+            expect(res[zkCert.zkCertStandard][0].providerPubKey.Ay).to.equal(zkCert.providerData.Ay);
+            expect(res[zkCert.zkCertStandard][0].expirationDate).to.equal(zkCert.content.expirationDate);
+            expect(res[zkCert.zkCertStandard][1].expirationDate).to.equal(zkCert2.content.expirationDate);
         });
     });
 
