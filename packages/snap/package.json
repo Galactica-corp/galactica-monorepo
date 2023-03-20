@@ -19,6 +19,7 @@
     "build:clean": "yarn clean && yarn build",
     "build:website": "node ./scripts/build-website.js",
     "clean": "rimraf dist",
+    "eval:snap": "mm-snap eval -b dist/bundle.js --verboseErrors",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,ts",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
@@ -27,8 +28,7 @@
     "serve": "mm-snap serve",
     "start": "mm-snap watch",
     "test": "yarn run test:unit",
-    "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\"",
-    "eval:snap": "mm-snap eval -b dist/bundle.js --verboseErrors"
+    "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\""
   },
   "dependencies": {
     "circomlibjs": "^0.1.7",
@@ -54,6 +54,7 @@
     "@typescript-eslint/eslint-plugin": "^5.33.0",
     "@typescript-eslint/parser": "^5.33.0",
     "buffer": "^6.0.3",
+    "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "eslint": "^8.21.0",
     "eslint-config-prettier": "^8.1.0",

@@ -7714,7 +7714,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^4.2.0, chai@npm:^4.3.4":
+"chai@npm:^4.2.0, chai@npm:^4.3.4, chai@npm:^4.3.7":
   version: 4.3.7
   resolution: "chai@npm:4.3.7"
   dependencies:
@@ -11130,6 +11130,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^5.33.0
     "@typescript-eslint/parser": ^5.33.0
     buffer: ^6.0.3
+    chai: ^4.3.7
     chai-as-promised: ^7.1.1
     circomlibjs: ^0.1.7
     eslint: ^8.21.0
