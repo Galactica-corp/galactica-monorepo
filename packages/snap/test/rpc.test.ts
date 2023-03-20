@@ -208,8 +208,8 @@ describe('Test rpc handler function: getBalance', function () {
     /* eslint-disable jest/no-done-callback, no-invalid-this */
     // (found no better way to increase timeouts for async tests)
     it('should generate ZKP successfully', async function (this: Mocha.Context) {
-      // extend timeout for this test because the zk proof generation is slow
-      this.timeout(10000);
+      // extend timeout for this test because the zk proof generation is slow and github actions are also slow
+      this.timeout(15000);
 
       walletStub.rpcStubs.snap_confirm.resolves(true);
       const result = (await processRpcRequest(
