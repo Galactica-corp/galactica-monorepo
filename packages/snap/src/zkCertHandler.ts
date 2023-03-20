@@ -1,5 +1,5 @@
-import { keccak256 } from 'js-sha3';
 import { buildEddsa } from 'circomlibjs';
+import { keccak256 } from 'js-sha3';
 import { createHolderCommitment, ZkCertStandard } from 'zkkyc';
 
 import { ZkCert } from './types';
@@ -18,27 +18,27 @@ export async function calculateHolderCommitment(
 
 /**
  * Provides an overview of the zkCert storage. This data can be querried by front-ends.
- * The data shared here must not reveal any private information or possibility to track users)
- * 
- * @param zkCertStorage The list of zkCerts stored.
- * @returns zkCerts metadata listed for each zkCertStandard.
+ * The data shared here must not reveal any private information or possibility to track users).
+ *
+ * @param zkCertStorage - The list of zkCerts stored.
+ * @returns ZkCerts metadata listed for each zkCertStandard.
  */
 export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
-  let sharedZkCerts: any = {};
+  const sharedZkCerts: any = {};
   for (const zkCert of zkCertStorage) {
     if (sharedZkCerts[zkCert.zkCertStandard] === undefined) {
       sharedZkCerts[zkCert.zkCertStandard] = [];
     }
 
-    let disclosableData: any = {
+    const disclosableData: any = {
       providerPubKey: {
         Ax: zkCert.providerData.Ax,
         Ay: zkCert.providerData.Ay,
-      }
+      },
     };
     if (zkCert.zkCertStandard === ZkCertStandard.zkKYC) {
-      disclosableData["expirationDate"] = zkCert.content.expirationDate;
-      disclosableData["verificationLevel"] = zkCert.content.verificationLevel;
+      disclosableData.expirationDate = zkCert.content.expirationDate;
+      disclosableData.verificationLevel = zkCert.content.verificationLevel;
     }
     sharedZkCerts[zkCert.zkCertStandard].push(disclosableData);
   }
@@ -47,18 +47,23 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
 
 /**
  * Provides hashes of zkCerts stored in the snap. Used to detect changes in the storage.
- * 
- * @param zkCertStorage The list of zkCerts stored.
- * @param origin The site asking for the hash. Used as salt to prevent tracking.
+ *
+ * @param zkCertStorage - The list of zkCerts stored.
+ * @param origin - The site asking for the hash. Used as salt to prevent tracking.
  * @returns Storage hash for each zkCertStandard.
  */
-export function getZkCertStorageHashes(zkCertStorage: ZkCert[], origin: string): any {
-  let storageHashes: any = {};
+export function getZkCertStorageHashes(
+  zkCertStorage: ZkCert[],
+  origin: string,
+): any {
+  const storageHashes: any = {};
   for (const zkCert of zkCertStorage) {
     if (storageHashes[zkCert.zkCertStandard] === undefined) {
       storageHashes[zkCert.zkCertStandard] = keccak256(origin);
     }
-    storageHashes[zkCert.zkCertStandard] = keccak256(storageHashes[zkCert.zkCertStandard] + JSON.stringify(zkCert));
+    storageHashes[zkCert.zkCertStandard] = keccak256(
+      (storageHashes[zkCert.zkCertStandard] as string) + JSON.stringify(zkCert),
+    );
   }
   return storageHashes;
 }

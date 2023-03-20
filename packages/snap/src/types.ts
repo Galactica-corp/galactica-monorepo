@@ -1,6 +1,6 @@
+import { MetaMaskInpageProvider } from '@metamask/providers';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { JsonRpcRequest } from '@metamask/types';
-import { MetaMaskInpageProvider } from '@metamask/providers';
 import { ProviderData, MerkleProof, ZkCertStandard } from 'zkkyc';
 
 import { ZkKYCContent } from './zkCertTypes';

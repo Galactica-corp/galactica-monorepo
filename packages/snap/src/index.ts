@@ -1,6 +1,6 @@
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
-import { stringToBytes, bytesToHex } from '@metamask/utils';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
+import { stringToBytes, bytesToHex } from '@metamask/utils';
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
@@ -13,7 +13,11 @@ import {
   ImportRequestParams,
   SnapRpcProcessor,
 } from './types';
-import { calculateHolderCommitment, getZkCertStorageHashes, getZkCertStorageOverview } from './zkCertHandler';
+import {
+  calculateHolderCommitment,
+  getZkCertStorageHashes,
+  getZkCertStorageOverview,
+} from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
 
 /**
@@ -32,7 +36,7 @@ import { selectZkCert } from './zkCertSelector';
 export const processRpcRequest: SnapRpcProcessor = async (
   { origin, request },
   snap,
-  ethereum
+  ethereum,
 ) => {
   const state = await getState(snap);
   let confirm: any;
@@ -88,7 +92,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const proofConfirmDioalog = [
         heading('Generate zkCert proof?'),
         text(`Do you want to prove your identity to ${origin}?`),
-        text(`This will create a ${genParams.requirements.zkCertStandard} proof.`),
+        text(
+          `This will create a ${genParams.requirements.zkCertStandard} proof.`,
+        ),
         divider(),
       ];
 
@@ -101,7 +107,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       proofConfirmDioalog.push(
         divider(),
-        text(`The following private inputs are processed by the zkSNARK and stay hidden: zkKYC ID, personal details that are not listed above`),
+        text(
+          `The following private inputs are processed by the zkSNARK and stay hidden: zkKYC ID, personal details that are not listed above`,
+        ),
       );
 
       confirm = await snap.request({
@@ -116,7 +124,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      const zkCert = await selectZkCert(snap, state.zkCerts, genParams.requirements);
+      const zkCert = await selectZkCert(
+        snap,
+        state.zkCerts,
+        genParams.requirements,
+      );
 
       const searchedHolder = state.holders.find(
         (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
@@ -149,14 +161,15 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.ClearStorage: {
-
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
           type: 'Confirmation',
           content: panel([
             heading('Clear zkCert and holder storage?'),
-            text(`Do you want to delete the zkCertificates and holder information stored in Metamask? (requested by ${origin})`),
+            text(
+              `Do you want to delete the zkCertificates and holder information stored in Metamask? (requested by ${origin})`,
+            ),
           ]),
         },
       });
@@ -172,7 +185,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const importParams = request.params as ImportRequestParams;
 
       // TODO: check that there is a holder setup for this zkCert
-
 
       confirm = await snap.request({
         method: 'snap_dialog',
@@ -196,14 +208,15 @@ export const processRpcRequest: SnapRpcProcessor = async (
     case RpcMethods.ExportZkCert: {
       const exportParams = request.params as ExportRequestParams;
 
-
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
           type: 'Confirmation',
           content: panel([
             heading('Export zkCert?'),
-            text(`Do you want to export a zkCert? (provided to ${origin} for saving it to a file)`),
+            text(
+              `Do you want to export a zkCert? (provided to ${origin} for saving it to a file)`,
+            ),
           ]),
         },
       });
@@ -211,11 +224,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      const zkCertForExport = await selectZkCert(
-        snap,
-        state.zkCerts,
-        { zkCertStandard: exportParams.zkCertStandard },
-      );
+      const zkCertForExport = await selectZkCert(snap, state.zkCerts, {
+        zkCertStandard: exportParams.zkCertStandard,
+      });
       return zkCertForExport;
     }
 
@@ -233,7 +244,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           type: 'Confirmation',
           content: panel([
             heading('Provide holder commitment?'),
-            text(`Do you want to provide your holder commitment of ${holder.address} to ${origin}?`),
+            text(
+              `Do you want to provide your holder commitment of ${holder.address} to ${origin}?`,
+            ),
           ]),
         },
       });
@@ -251,7 +264,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           type: 'Confirmation',
           content: panel([
             heading('Provide zkCert Storage metadata?'),
-            text(`The website ${origin} asks to get an overview of zkCerts stored in Metamask. The overview only contains metadata, no personal and no tracking data.`),
+            text(
+              `The website ${origin} asks to get an overview of zkCerts stored in Metamask. The overview only contains metadata, no personal and no tracking data.`,
+            ),
           ]),
         },
       });
@@ -262,7 +277,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       return getZkCertStorageOverview(state.zkCerts);
     }
 
-    case RpcMethods.getZkCertStorageHashes: {
+    case RpcMethods.GetZkCertStorageHashes: {
       // does not need confirmation as it does not leak any personal or trackng data
       return getZkCertStorageHashes(state.zkCerts, origin);
     }

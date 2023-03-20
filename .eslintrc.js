@@ -30,6 +30,7 @@ module.exports = {
           'error',
           { allow: ['describe', 'expect', 'it'] },
         ],
+        '@typescript-eslint/no-unused-expressions': 'off', // allow expect() expressions without assignment
       },
     },
     {
@@ -59,4 +60,10 @@ module.exports = {
     '**/public',
     '**/.cache',
   ],
+
+  settings: {
+    jest: {
+      version: 26,
+    },
+  },
 };

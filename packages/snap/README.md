@@ -1,6 +1,7 @@
 # Galactica Snap
 
 This Metamask Snap adds Galactica Network features to Metamaks.
+
 - Self custody for zero-knowledge certificates, such as zkKYC
 - Generation of zero-knowledge proof on your local machine for compliance, selective disclosures and reputation proofs
 

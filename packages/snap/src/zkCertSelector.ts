@@ -1,11 +1,10 @@
-import { buildEddsa } from 'circomlibjs';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
-
-
+import { buildEddsa } from 'circomlibjs';
 import { ZKCertificate } from 'zkkyc';
-import { ZkCert, ZkCertRequirements } from './types';
+
 import { RpcResponseErr } from './rpcEnums';
+import { ZkCert, ZkCertRequirements } from './types';
 
 /**
  * Selects a ZkCert from the available ones.
@@ -24,9 +23,12 @@ export async function selectZkCert(
   }
 
   const filteredCerts = availableCerts.filter((value) => {
-    return value.zkCertStandard === req.zkCertStandard // same zkCert Standard
+    return (
+      value.zkCertStandard === req.zkCertStandard && // same zkCert Standard
       // not expired (if expirationDate is set)
-      && (value.content["expirationDate"] === undefined || value.content["expirationDate"] >= Date.now() / 1000);
+      (value.content.expirationDate === undefined ||
+        value.content.expirationDate >= Date.now() / 1000)
+    );
   });
 
   if (filteredCerts.length === 0) {
@@ -40,20 +42,26 @@ export async function selectZkCert(
   if (filteredCerts.length === 1) {
     selected = filteredCerts[0];
   } else {
-    // build selection dialog    
+    // build selection dialog
     const options = [];
     for (let i = 0; i < filteredCerts.length; i++) {
-      const did = filteredCerts[i].did;
+      const { did } = filteredCerts[i];
 
-      let zkCertDisplay = [
-        text(`**${i + 1}**: ${did.slice(0, 14)}...${did.slice(did.length - 4)}`),
+      const zkCertDisplay = [
+        text(
+          `**${i + 1}**: ${did.slice(0, 14)}...${did.slice(did.length - 4)}`,
+        ),
       ];
 
       // custom information to display depnding on the type of zkCert
       // TODO: use more dynamic approach (e.g. let the request define what information to display)
       if (req.zkCertStandard === 'gip69') {
-        const expirationDate = new Date(filteredCerts[i].content['expirationDate'] * 1000);
-        zkCertDisplay.push(text(`Valid until: ${expirationDate.toDateString()}`));
+        const expirationDate = new Date(
+          filteredCerts[i].content.expirationDate * 1000,
+        );
+        zkCertDisplay.push(
+          text(`Valid until: ${expirationDate.toDateString()}`),
+        );
       }
 
       options.push(panel(zkCertDisplay));
@@ -69,7 +77,11 @@ export async function selectZkCert(
           content: panel([
             heading(`zkCertificate Selection`),
             ...options,
-            text(`Please enter the number of the zkCertificate you want to use (${1} to ${filteredCerts.length}):`),
+            text(
+              `Please enter the number of the zkCertificate you want to use (${1} to ${
+                filteredCerts.length
+              }):`,
+            ),
           ]),
         },
       });
@@ -78,14 +90,16 @@ export async function selectZkCert(
         throw new Error(RpcResponseErr.RejectedSelect);
       }
 
-      indexSelection = parseInt(answer as string) - 1;
+      indexSelection = parseInt(answer as string, 10) - 1;
 
       if (filteredCerts[indexSelection] === undefined) {
         await snap.request({
           method: 'snap_notify',
           params: {
             type: 'native',
-            message: `Selection failed. Answer not between ${1} and ${filteredCerts.length}.`,
+            message: `Selection failed. Answer not between ${1} and ${
+              filteredCerts.length
+            }.`,
           },
         });
       }

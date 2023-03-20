@@ -25,7 +25,7 @@ export const connectSnap = async (
   snapId: string = defaultSnapOrigin,
   params: Record<'version' | string, unknown> = {},
 ) => {
-  const res= await window.ethereum.request({
+  const res = await window.ethereum.request({
     method: 'wallet_requestSnaps',
     params: {
       [snapId]: {
