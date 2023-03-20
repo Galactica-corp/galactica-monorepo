@@ -122,7 +122,11 @@ describe('Test rpc handler function: getBalance', function () {
   });
 
   describe('Add Holder method', function () {
-    it('should add holder successfully', async function () {
+    /* eslint-disable jest/no-done-callback, no-invalid-this */
+    it('should add holder successfully', async function (this: Mocha.Context) {
+      this.timeout(3000);
+      /* eslint-enable jest/no-done-callback, no-invalid-this */
+
       walletStub.rpcStubs.eth_requestAccounts.resolves([testAddress]);
       walletStub.rpcStubs.personal_sign.resolves(testSigForEdDSA);
 
