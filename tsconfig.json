@@ -5,11 +5,12 @@
     "forceConsistentCasingInFileNames": true,
     "module": "CommonJS",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "useUnknownInCatchVariables": false,
     "sourceMap": true,
     "strict": true,
     "target": "ES2017",
     "typeRoots": ["node_modules/@types", "packages/snap/types"]
   },
-  "exclude": ["**/__snapshots__/**", "**/test/**", "**/*.test.ts"]
+  "exclude": ["**/__snapshots__/**"]
 }

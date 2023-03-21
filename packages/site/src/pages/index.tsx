@@ -109,6 +109,24 @@ const ErrorMessage = styled.div`
   }
 `;
 
+const InfoMessage = styled.div`
+  background-color: ${({ theme }) => theme.colors.info.muted};
+  border: 1px solid ${({ theme }) => theme.colors.info.default};
+  color: ${({ theme }) => theme.colors.info.alternative};
+  border-radius: ${({ theme }) => theme.radii.default};
+  padding: 2.4rem;
+  margin-bottom: 2.4rem;
+  margin-top: 2.4rem;
+  max-width: 60rem;
+  width: 100%;
+  ${({ theme }) => theme.mediaQueries.small} {
+    padding: 1.6rem;
+    margin-bottom: 1.2rem;
+    margin-top: 1.2rem;
+    max-width: 100%;
+  }
+`;
+
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
 
@@ -121,6 +139,7 @@ const Index = () => {
         type: MetamaskActions.SetInstalled,
         payload: installedSnap,
       });
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Connected to Galactica Snap` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -142,31 +161,7 @@ const Index = () => {
         type: MetamaskActions.SetConnected,
         payload: await signer.getAddress(),
       });
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
-
-  const handleSendProofClick = async () => {
-    try {
-      //@ts-ignore https://github.com/metamask/providers/issues/200
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-
-      // get contracts
-      const ageProofSC = new ethers.Contract(ageProofZkKYC.address, ageProofZkKYC.abi, signer);
-
-      let [a, b, c] = processProof(state.proofData.proof);
-      let publicInputs = processPublicSignals(state.proofData.publicSignals);
-      console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
-      console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
-
-      console.log(`Sending proof for on-chain verification...`);
-      let tx = await ageProofSC.registerAddress(a, b, c, publicInputs);
-      console.log("tx", tx);
-      const receipt = await tx.wait();
-      console.log("receipt", receipt);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Connected to Metamask` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -178,6 +173,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await method();
       console.log('Response from snap', res);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Reponse from Snap: ${res} ` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -189,6 +185,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await exportZkCert();
       console.log('Response from snap', res);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${res}` });
 
       // save to file
       // TODO: add a saveAs dialog to let the user choose file name and location
@@ -213,6 +210,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await getHolderCommitment();
       console.log('Response from snap', res);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${res}` });
 
       const jsonExport = {
         holderCommitment: res
@@ -240,6 +238,8 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await importZkCert(parsedFile);
       console.log('Response from snap', res);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${res}` });
+
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -249,12 +249,38 @@ const Index = () => {
   const handleBigProofGeneration = async (fileContent: string) => {
     try {
       const parsedFile = JSON.parse(fileContent);
-
+      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
       console.log('sending request to snap...');
-      const res = await generateProof(parsedFile);
+      const res : any = await generateProof(parsedFile);
       console.log('Response from snap', res);
+      if (res === undefined || res === null ){
+        throw new Error('Proof generation failed: empty response');
+      }
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       console.log(JSON.stringify(res, null, 2));
       dispatch({ type: MetamaskActions.SetProofData, payload: res });
+
+      // send proof direcly on chain
+
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      // get contracts
+      const ageProofSC = new ethers.Contract(ageProofZkKYC.address, ageProofZkKYC.abi, signer);
+
+      let [a, b, c] = processProof(res.proof);
+      let publicInputs = processPublicSignals(res.publicSignals);
+      console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
+      console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
+
+      console.log(`Sending proof for on-chain verification...`);
+      let tx = await ageProofSC.registerAddress(a, b, c, publicInputs);
+      console.log("tx", tx);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
+      const receipt = await tx.wait();
+      console.log("receipt", receipt);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -274,6 +300,11 @@ const Index = () => {
           <ErrorMessage>
             <b>An error happened:</b> {state.error.message}
           </ErrorMessage>
+        )}
+        {state.info && (
+          <InfoMessage>
+            {state.info}
+          </InfoMessage>
         )}
         {!state.isFlask && (
           <Card
@@ -353,30 +384,14 @@ const Index = () => {
         /> */}
         <Card
           content={{
-            title: 'Generate zkKYC age proof',
+            title: 'zkKYC + age proof',
             description:
-              'Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old.',
+              '1. Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old. 2. Send proof tx for on-chain verification.',
             button: (
               <SelectAndImportButton
                 onFileSelected={handleBigProofGeneration}
                 disabled={false}
                 text="Select & Import"
-              />
-            ),
-          }}
-          disabled={false}
-          fullWidth={false}
-        />
-        <Card
-          content={{
-            title: 'Verify zkKYC age proof on-chain',
-            description:
-              'Send proof in an on-chain transaction.',
-            button: (
-              <GeneralButton
-                onClick={handleSendProofClick}
-                disabled={state.proofData === undefined}
-                text={state.proofData ? "Send proof" : "Generate proof first"}
               />
             ),
           }}

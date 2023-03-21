@@ -1,8 +1,5 @@
-import {
-  ExportRequestParams,
-  RpcMethods,
-  ZkCertStandard,
-} from '../../../snap/src/types';
+import { RpcMethods } from '../../../snap/src/rpcEnums';
+import { ExportRequestParams } from '../../../snap/src/types';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { getCurrentBlockTime } from './metamask';
@@ -81,10 +78,9 @@ export const setupHoldingKey = async () => {
 
 export const generateProof = async (proverData: any) => {
   // TODO: add type for proverData
-  // TODO: move filling input inside snap
 
   // expected time for between pressing the generation button and the verification happening on-chain
-  const estimatedProofCreationDuration = 60;
+  const estimatedProofCreationDuration = 20;
 
   const currentTimestamp =
     (await getCurrentBlockTime()) + estimatedProofCreationDuration;
@@ -108,7 +104,7 @@ export const generateProof = async (proverData: any) => {
         params: {
           input: publicInput,
           requirements: {
-            zkCertStandard: ZkCertStandard.ZkKYC,
+            zkCertStandard: 'gip69',
           },
           wasm: proverData.wasm,
           zkeyHeader: proverData.zkeyHeader,
@@ -148,7 +144,7 @@ export const importZkCert = async (zkCertJson: any) => {
 
 export const exportZkCert = async () => {
   const params: ExportRequestParams = {
-    zkCertStandard: ZkCertStandard.ZkKYC,
+    zkCertStandard: 'gip69',
   };
 
   return await window.ethereum.request({

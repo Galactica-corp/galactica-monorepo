@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import { groth16 } from 'snarkjs';
 import { MerkleProof, ZKCertificate } from 'zkkyc';
 
@@ -49,19 +50,19 @@ export const generateZkKycProof = async (
     pathIndices: merkleProof.pathIndices,
   };
 
-  console.log('proof inputs: TODO: remove this debug output');
-  console.log(JSON.stringify(inputs, null, 1));
+  // console.log('proof inputs: TODO: remove this debug output');
+  // console.log(JSON.stringify(inputs, null, 1));
 
   try {
     const { proof, publicSignals } = await groth16.fullProveMemory(
       inputs,
-      Uint8Array.from(processedParams.wasm),
+      processedParams.wasm,
       processedParams.zkeyHeader,
       processedParams.zkeySections,
     );
 
-    console.log('Calculated proof: ');
-    console.log(JSON.stringify(proof, null, 1));
+    // console.log('Calculated proof: ');
+    // console.log(JSON.stringify(proof, null, 1));
 
     return { proof, publicSignals };
   } catch (error) {
@@ -73,22 +74,40 @@ export const generateZkKycProof = async (
 
 /**
  * Prepare data from RPC request for snarkjs by converting it to the correct data types.
+ * In the JSON message, arrays are base64 encoded.
  *
  * @param params - GenZkKycRequestParams.
  * @returns Prepared GenZkKycRequestParams.
  */
 function preprocessInput(params: GenZkKycRequestParams): GenZkKycRequestParams {
+  // Somehow we need to convert them to Uint8Array to avoid an error inside snarkjs.
+  params.wasm = Uint8Array.from(Buffer.from(params.wasm, 'base64'));
+
   params.zkeyHeader.q = BigInt(params.zkeyHeader.q);
   params.zkeyHeader.r = BigInt(params.zkeyHeader.r);
   for (let i = 0; i < params.zkeySections.length; i++) {
-    params.zkeySections[i] = Uint8Array.from(params.zkeySections[i]);
+    params.zkeySections[i] = Uint8Array.from(
+      Buffer.from(params.zkeySections[i], 'base64'),
+    );
   }
-  params.zkeyHeader.vk_alpha_1 = Uint8Array.from(params.zkeyHeader.vk_alpha_1);
-  params.zkeyHeader.vk_beta_1 = Uint8Array.from(params.zkeyHeader.vk_beta_1);
-  params.zkeyHeader.vk_beta_2 = Uint8Array.from(params.zkeyHeader.vk_beta_2);
-  params.zkeyHeader.vk_gamma_2 = Uint8Array.from(params.zkeyHeader.vk_gamma_2);
-  params.zkeyHeader.vk_delta_1 = Uint8Array.from(params.zkeyHeader.vk_delta_1);
-  params.zkeyHeader.vk_delta_2 = Uint8Array.from(params.zkeyHeader.vk_delta_2);
+  params.zkeyHeader.vk_alpha_1 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_alpha_1, 'base64'),
+  );
+  params.zkeyHeader.vk_beta_1 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_beta_1, 'base64'),
+  );
+  params.zkeyHeader.vk_beta_2 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_beta_2, 'base64'),
+  );
+  params.zkeyHeader.vk_gamma_2 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_gamma_2, 'base64'),
+  );
+  params.zkeyHeader.vk_delta_1 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_delta_1, 'base64'),
+  );
+  params.zkeyHeader.vk_delta_2 = Uint8Array.from(
+    Buffer.from(params.zkeyHeader.vk_delta_2, 'base64'),
+  );
 
   return params;
 }

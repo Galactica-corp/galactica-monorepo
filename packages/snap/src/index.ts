@@ -3,36 +3,36 @@ import { stringToBytes, bytesToHex } from '@metamask/utils';
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
+import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
 import { getState, saveState } from './stateManagement';
 import {
   ExportRequestParams,
   GenZkKycRequestParams,
   HolderData,
   ImportRequestParams,
-  RpcMethods,
+  SnapRpcProcessor,
 } from './types';
 import { shortenAddrStr } from './utils';
 import { calculateHolderCommitment } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
 
 /**
- * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
+ * Handler for the rpc request that processes real requests and unit tests alike.
+ * It has all inputs as function parameters instead of relying on global variables.
  *
  * @param args - The request handler args as object.
- * @param args.origin - The origin of the request, e.g., the website that
- * invoked the snap.
+ * @param args.origin - The origin of the request, e.g., the website that invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
+ * @param wallet - The SnapProvider (wallet).
  * @returns `null` if the request succeeded.
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_confirm` call failed.
  */
-export const onRpcRequest: OnRpcRequestHandler = async ({
-  origin,
-  request,
-}) => {
-  console.log('got request', request.method);
-
-  const state = await getState();
+export const processRpcRequest: SnapRpcProcessor = async (
+  { origin, request },
+  wallet,
+) => {
+  const state = await getState(wallet);
   let confirm: any;
   let responseMsg: string;
   let holder: HolderData;
@@ -54,7 +54,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         method: 'eth_requestAccounts',
       })) as string[];
       const newHolder = newAccounts[0];
-      console.log('Holder to be added:', newHolder);
 
       // TODO: Do we need the 0x prefix?
       const msgToSign = bytesToHex(stringToBytes(eddsaKeyGenerationMessage));
@@ -72,7 +71,10 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
           holderCommitment: await calculateHolderCommitment(sign),
           eddsaKey: sign,
         });
-        await saveState({ holders: state.holders, zkCerts: state.zkCerts });
+        await saveState(wallet, {
+          holders: state.holders,
+          zkCerts: state.zkCerts,
+        });
         responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;
       }
       return responseMsg;
@@ -106,7 +108,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
       });
 
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
       const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
@@ -153,11 +155,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         ],
       });
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      await saveState({ holders: [], zkCerts: [] });
-      return 'zkCert storage cleared';
+      await saveState(wallet, { holders: [], zkCerts: [] });
+      return RpcResponseMsg.StorageCleared;
     }
 
     case RpcMethods.ImportZkCert: {
@@ -178,11 +180,11 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         ],
       });
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
       state.zkCerts.push(importParams.zkCert);
-      await saveState(state);
-      return 'zkCert added to storage';
+      await saveState(wallet, state);
+      return RpcResponseMsg.ZkCertImported;
     }
 
     case RpcMethods.ExportZkCert: {
@@ -200,7 +202,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         ],
       });
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
       const zkCertForExport = await selectZkCert(state.zkCerts, {
@@ -211,9 +213,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
     case RpcMethods.GetHolderCommitment: {
       if (state.holders.length === 0) {
-        throw new Error(
-          'No holders imported. Please import a holding address first.',
-        );
+        throw new Error(RpcResponseErr.MissingHolder);
       }
 
       // TODO: holder selection if multiple holders are available
@@ -230,14 +230,36 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
         ],
       });
       if (!confirm) {
-        throw new Error('User rejected confirmation.');
+        throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
       return holder.holderCommitment;
     }
 
     default: {
-      throw new Error('Method not found.');
+      throw new Error(RpcResponseErr.UnknownMethod);
     }
   }
+};
+
+/**
+ * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
+ *
+ * @param args - The request handler args as object.
+ * @param args.origin - The origin of the request, e.g., the website that
+ * invoked the snap.
+ * @param args.request - A validated JSON-RPC request object.
+ * @returns The result of the request as string. TODO: Use more strict type.
+ * @throws If the request method is not valid for this snap.
+ * @throws If the `snap_confirm` call failed.
+ */
+export const onRpcRequest: OnRpcRequestHandler = async ({
+  origin,
+  request,
+}) => {
+  console.log('got request', request.method);
+
+  // forward to common function shared with unit tests
+  // passing global wallet object from snap environment
+  return await processRpcRequest({ origin, request }, wallet);
 };
