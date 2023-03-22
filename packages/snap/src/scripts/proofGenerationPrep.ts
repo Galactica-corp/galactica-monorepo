@@ -1,7 +1,9 @@
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
 import * as fs from 'fs';
+import path from 'path';
 import { groth16, zKey } from 'snarkjs';
+import { parse } from 'ts-command-line-args';
 
 import { GenZkKycRequestParams } from '../types';
 
@@ -41,23 +43,23 @@ async function testModified(
  * to have it in typescript and be able to pass it through the RPC endpoint.
  *
  * @param circuitName - Name of the circuit to find the files.
+ * @param circuitDir - Directory holding the .wasm and .zkey files.
  * @param input - Input data TODO: remove this as the input data should be filled from the snap.
  * @returns The parameters to generate the proof with.
  */
 async function createCircuitData(
   circuitName: string,
+  circuitDir: string,
   input: any,
 ): Promise<GenZkKycRequestParams> {
   // read the wasm file asa array.
   // It becomes a Uint8Array later, but is passed as ordinary number array through the RPC
   const wasm = Uint8Array.from(
-    fs.readFileSync(
-      `${__dirname}/../../circuits/${circuitName}/${circuitName}.wasm`,
-    ),
+    fs.readFileSync(path.join(circuitDir, circuitName + '.wasm'))
   );
 
   const { fd: fdZKey, sections: sectionsZKey } = await readBinFile(
-    `${__dirname}/../../circuits/${circuitName}/${circuitName}.zkey`,
+    path.join(circuitDir, circuitName + '.zkey'),
     'zkey',
     2,
     1 << 25,
@@ -127,8 +129,7 @@ async function writeCircuitDataToJSON(
     zkeySections: data.zkeySections,
   };
   console.log(
-    `resulting JSON has size: ${
-      JSON.stringify(jsContent).length / (1024 * 1024)
+    `resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)
     } MB`,
   );
 
@@ -158,28 +159,67 @@ async function verifyProof(proof: any, publicSignals: any, vKey: any) {
   return res === true;
 }
 
+interface IProofGenPrepArguments {
+  circuitName: string;
+  circuitsDir: string;
+  testInput: string;
+  output?: string;
+  help?: boolean;
+}
+
+function printUsage() {
+  console.log('Usage:');
+  console.log('yarn run proofPrep -- --circuitName <name> --circuitsDir <path> --testInput <path> [--output <path>]');
+}
+
 /**
  * Main function to run.
  */
 async function main() {
-  const circuitName = 'ageProofZkKYC';
-
-  const input = JSON.parse(
-    fs
-      .readFileSync(
-        `${__dirname}/../../circuits/${circuitName}/${circuitName}.input.json`,
-      )
-      .toString(),
+  // proccess command line arguments
+  let args = parse<IProofGenPrepArguments>( {
+      circuitName: { type: String, description: 'Name of the circuit to generate the proof for' },
+      circuitsDir: { type: String, description: 'Path to the directory containing the wasm and zkey files' },
+      testInput: { type: String, description: 'Path to the input file to use for testing'},
+      output: { 
+        type: String, optional: true,
+        description: '(optional) Path to the output file to write the result to. Defaults to packages/site/public/provers/<name>.json',
+        defaultValue: undefined,
+      },
+      help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide' },
+    },
+    {
+      helpArg: 'help',
+      headerContentSections: [{ header: 'Proof Generation Preparation', content: 'Script for turning compile circom files into provers for the Galactica Snap.' }],
+      showHelpWhenArgsMissing: true,
+    }
   );
+
+  if (!args.output) {
+    args.output = `${__dirname}/../../../site/public/provers/${args.circuitName}.json`;
+  }
+  if (!fs.existsSync(args.testInput)) {
+    throw new Error(`Test input file ${args.testInput} does not exist.`);
+  }
+  if (!fs.existsSync(args.circuitsDir)) {
+    throw new Error(`Circuit dir ${args.circuitsDir} does not exist.`);
+  }
+  if (!fs.existsSync(args.testInput)) {
+    throw new Error(`Test input ${args.testInput} does not exist.`);
+  }
+  if (!fs.existsSync(path.dirname(args.output))) {
+    throw new Error(`Target dir for ${args.output} does not exist.`);
+  }
+
+  const input = JSON.parse(fs.readFileSync(args.testInput).toString());
+
+  // extract needed circuit data
+  const params = await createCircuitData(args.circuitName, args.circuitsDir, input);
 
   // await testStandard(input);
-  const params = await createCircuitData(circuitName, input);
-  await testModified(circuitName, params);
+  await testModified(args.circuitName, params);
 
-  await writeCircuitDataToJSON(
-    `${__dirname}/../../../../test/${circuitName}.json`,
-    params,
-  );
+  await writeCircuitDataToJSON(args.output, params);
 }
 
 main().catch((error) => {
