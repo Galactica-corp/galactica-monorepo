@@ -11,10 +11,12 @@ import { GenZkKycRequestParams } from '../types';
  * TestModified constructs and checks the zkKYC proof with the modified code of snarkjs that does not depend on file reading.
  *
  * @param circuitName - Name of the circuit to find the files.
+ * @param circuitDir - Directory holding the .wasm and .zkey files.
  * @param params - Parameters to generate the proof with.
  */
 async function testModified(
   circuitName: string,
+  circuitDir: string,
   params: GenZkKycRequestParams,
 ) {
   const { proof, publicSignals } = await groth16.fullProveMemory(
@@ -28,12 +30,9 @@ async function testModified(
   console.log(JSON.stringify(proof, null, 1));
 
   const vKey = JSON.parse(
-    fs
-      .readFileSync(
-        `${__dirname}/../../circuits/${circuitName}/${circuitName}.vkey.json`,
-      )
-      .toString(),
-  );
+    fs.readFileSync(
+      path.join(circuitDir, circuitName + '.vkey.json')
+    ).toString());
 
   await verifyProof(proof, publicSignals, vKey);
 }
@@ -133,12 +132,8 @@ async function writeCircuitDataToJSON(
     } MB`,
   );
 
-  fs.writeFile(filePath, JSON.stringify(jsContent), (error) => {
-    if (error) {
-      throw error;
-    }
-    console.log(`Written to ${filePath}`);
-  });
+  fs.writeFileSync(filePath, JSON.stringify(jsContent));
+  console.log(`Written to ${filePath}`);
 }
 
 /**
@@ -177,17 +172,17 @@ function printUsage() {
  */
 async function main() {
   // proccess command line arguments
-  let args = parse<IProofGenPrepArguments>( {
-      circuitName: { type: String, description: 'Name of the circuit to generate the proof for' },
-      circuitsDir: { type: String, description: 'Path to the directory containing the wasm and zkey files' },
-      testInput: { type: String, description: 'Path to the input file to use for testing'},
-      output: { 
-        type: String, optional: true,
-        description: '(optional) Path to the output file to write the result to. Defaults to packages/site/public/provers/<name>.json',
-        defaultValue: undefined,
-      },
-      help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide' },
+  let args = parse<IProofGenPrepArguments>({
+    circuitName: { type: String, description: 'Name of the circuit to generate the proof for' },
+    circuitsDir: { type: String, description: 'Path to the directory containing the wasm and zkey files' },
+    testInput: { type: String, description: 'Path to the input file to use for testing' },
+    output: {
+      type: String, optional: true,
+      description: '(optional) Path to the output file to write the result to. Defaults to packages/site/public/provers/<name>.json',
+      defaultValue: undefined,
     },
+    help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide' },
+  },
     {
       helpArg: 'help',
       headerContentSections: [{ header: 'Proof Generation Preparation', content: 'Script for turning compile circom files into provers for the Galactica Snap.' }],
@@ -217,7 +212,7 @@ async function main() {
   const params = await createCircuitData(args.circuitName, args.circuitsDir, input);
 
   // await testStandard(input);
-  await testModified(args.circuitName, params);
+  await testModified(args.circuitName, args.circuitsDir, params);
 
   await writeCircuitDataToJSON(args.output, params);
 }
