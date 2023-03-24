@@ -22,6 +22,7 @@ export const generateZkKycProof = async (
 
   const authorizationProof = zkCert.getAuthorizationProofInput(
     holder.eddsaKey,
+    // TODO: add selection of the using wallet
     holder.address,
   );
 
@@ -48,6 +49,11 @@ export const generateZkKycProof = async (
     root: merkleProof.root,
     pathElements: merkleProof.path,
     pathIndices: merkleProof.pathIndices,
+
+    // TODO: add selection of the using wallet
+    userPrivKey: holder.eddsaKey,
+
+    humanID: zkCert.getHumanID(processedParams.input.dAppAddress),
   };
 
   // console.log('proof inputs: TODO: remove this debug output');

@@ -11,6 +11,7 @@ export type ZkKYCContent = {
   birthDay: string;
 
   citizenship: string;
+  passportID: string;
 
   verificationLevel: string;
 

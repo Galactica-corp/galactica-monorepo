@@ -215,6 +215,13 @@ async function main() {
   await testModified(args.circuitName, args.circuitsDir, params);
 
   await writeCircuitDataToJSON(args.output, params);
+
+  // copy vkey file to make it available for off-chain verification
+  const vkeyPath = path.join(args.circuitsDir, args.circuitName + '.vkey.json');
+  if (!fs.existsSync(vkeyPath)) {
+    throw new Error(`Verification key ${vkeyPath} does not exist.`);
+  }
+  fs.copyFileSync(vkeyPath, path.join(path.dirname(args.output), args.circuitName + '.vkey.json'));
 }
 
 main().catch((error) => {

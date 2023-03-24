@@ -52,6 +52,7 @@ If you don't wish to use any of the existing GitHub actions in this repository, 
 ### Testing and Linting
 
 Run `yarn test` to run the tests once.
+Please note that the Snap test generates and verifies an ageProofZkKYC. Therefore it requires having the prover files in `packages/site/public/provers/`. If they are missing you can add them using the `proofGenerationPrep.ts` script as explained above.
 
 Run `yarn lint` to run the linter, or run `yarn lint:fix` to run the linter and fix any automatically fixable issues.
 

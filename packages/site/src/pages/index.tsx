@@ -22,7 +22,7 @@ import {
   ConnectMMButton,
 } from '../components';
 import { ethers } from 'ethers';
-import { ageProofZkKYC } from '../config/abi';
+import { mockDApp } from '../config/abi';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
 
 const Container = styled.div`
@@ -269,7 +269,7 @@ const Index = () => {
       const signer = provider.getSigner();
 
       // get contracts
-      const ageProofSC = new ethers.Contract(ageProofZkKYC.address, ageProofZkKYC.abi, signer);
+      const exampleDAppSC = new ethers.Contract(mockDApp.address, mockDApp.abi, signer);
 
       let [a, b, c] = processProof(res.proof);
       let publicInputs = processPublicSignals(res.publicSignals);
@@ -277,7 +277,7 @@ const Index = () => {
       console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
 
       console.log(`Sending proof for on-chain verification...`);
-      let tx = await ageProofSC.registerAddress(a, b, c, publicInputs);
+      let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
       console.log("tx", tx);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
       const receipt = await tx.wait();

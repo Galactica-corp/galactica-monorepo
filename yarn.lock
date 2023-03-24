@@ -3263,7 +3263,7 @@ __metadata:
     ts-command-line-args: ^2.4.2
     ts-node: ^10.9.1
     typescript: ^4.7.4
-    zkkyc: "git+ssh://git@github.com:Galactica-corp/zkKYC.git#deployment"
+    zkkyc: "git+ssh://git@github.com:Galactica-corp/zkKYC.git#verificationCheck"
   languageName: unknown
   linkType: soft
 
@@ -4374,6 +4374,13 @@ __metadata:
   version: 4.8.0
   resolution: "@openzeppelin/contracts-upgradeable@npm:4.8.0"
   checksum: c39f3a719830c068d0ae413a8beee4072fa19f777b55bf6155fe21023414eab0633a641318845ac50929837b71848de1efbd00d4c181ddd6d8b735ceb0a82070
+  languageName: node
+  linkType: hard
+
+"@openzeppelin/contracts@npm:^4.0.0":
+  version: 4.8.2
+  resolution: "@openzeppelin/contracts@npm:4.8.2"
+  checksum: 1d362f0b9c880549cb82544e23fb70270fbbbe24a69e10bd5aa07649fd82347686173998ae484defafdc473d04004d519f839e3cd3d3e7733d0895b950622243
   languageName: node
   linkType: hard
 
@@ -20506,10 +20513,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#deployment":
+"zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#verificationCheck":
   version: 1.0.0
-  resolution: "zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#commit=06c45ed27949e73fe1dc8a55f940922e53d37cc2"
+  resolution: "zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#commit=7fee8fc45c89777c7be6f36cc1864e667a843883"
   dependencies:
+    "@openzeppelin/contracts": ^4.0.0
     "@openzeppelin/contracts-upgradeable": ^4.7.3
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/truffle-v5": ^8.0.2
@@ -20522,6 +20530,6 @@ __metadata:
     hardhat-circom: ^3.3.1
     keccak256: ^1.0.6
     snarkit2: ^0.2.0
-  checksum: ff8d952b10534a9caf18bce00543e14a4d1c0847882554056b2778a484ddf031ce8d6d5723180f10c5ecfd125aeaf2daa5852928bbfe8a0a0abc249aa769205e
+  checksum: fc652bd505d5f1efcd1448114377b790e628902d15119a2a7a90bf563abe332b3b2d8e6321098c886202db942d026346bbc008d19ad6f2cf9dba05f4d9544453
   languageName: node
   linkType: hard
