@@ -35,9 +35,10 @@ async function testModified(
   console.log(JSON.stringify(proof, null, 1));
 
   const vKey = JSON.parse(
-    fs.readFileSync(
-      path.join(circuitDir, circuitName + '.vkey.json')
-    ).toString());
+    fs
+      .readFileSync(path.join(circuitDir, `${circuitName}.vkey.json`))
+      .toString(),
+  );
 
   await verifyProof(proof, publicSignals, vKey);
 }
@@ -59,11 +60,11 @@ async function createCircuitData(
   // read the wasm file asa array.
   // It becomes a Uint8Array later, but is passed as ordinary number array through the RPC
   const wasm = Uint8Array.from(
-    fs.readFileSync(path.join(circuitDir, circuitName + '.wasm'))
+    fs.readFileSync(path.join(circuitDir, `${circuitName}.wasm`)),
   );
 
   const { fd: fdZKey, sections: sectionsZKey } = await readBinFile(
-    path.join(circuitDir, circuitName + '.zkey'),
+    path.join(circuitDir, `${circuitName}.zkey`),
     'zkey',
     2,
     1 << 25,
@@ -138,7 +139,9 @@ async function writeCircuitDataToJSON(
     zkeySections: data.zkeySections,
   };
   console.log(
-    `resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)} MB`,
+    `resulting JSON has size: ${
+      JSON.stringify(jsContent).length / (1024 * 1024)
+    } MB`,
   );
 
   fs.writeFileSync(filePath, JSON.stringify(jsContent));
@@ -163,35 +166,58 @@ async function verifyProof(proof: any, publicSignals: any, vKey: any) {
   return res === true;
 }
 
-interface IProofGenPrepArguments {
+type IProofGenPrepArguments = {
   circuitName: string;
   circuitsDir: string;
   testInput: string;
   output?: string;
   help?: boolean;
-}
+};
 
 /**
  * Main function to run.
  */
 async function main() {
   // proccess command line arguments
-  let args = parse<IProofGenPrepArguments>({
-    circuitName: { type: String, description: 'Name of the circuit to generate the proof for' },
-    circuitsDir: { type: String, description: 'Path to the directory containing the wasm and zkey files' },
-    testInput: { type: String, description: 'Path to the input file to use for testing' },
-    output: {
-      type: String, optional: true,
-      description: '(optional) Path to the output file to write the result to. Defaults to packages/site/public/provers/<name>.json',
-      defaultValue: undefined,
+  const args = parse<IProofGenPrepArguments>(
+    {
+      circuitName: {
+        type: String,
+        description: 'Name of the circuit to generate the proof for',
+      },
+      circuitsDir: {
+        type: String,
+        description: 'Path to the directory containing the wasm and zkey files',
+      },
+      testInput: {
+        type: String,
+        description: 'Path to the input file to use for testing',
+      },
+      output: {
+        type: String,
+        optional: true,
+        description:
+          '(optional) Path to the output file to write the result to. Defaults to packages/site/public/provers/<name>.json',
+        defaultValue: undefined,
+      },
+      help: {
+        type: Boolean,
+        optional: true,
+        alias: 'h',
+        description: 'Prints this usage guide',
+      },
     },
-    help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide' },
-  },
     {
       helpArg: 'help',
-      headerContentSections: [{ header: 'Proof Generation Preparation', content: 'Script for turning compile circom files into provers for the Galactica Snap.' }],
+      headerContentSections: [
+        {
+          header: 'Proof Generation Preparation',
+          content:
+            'Script for turning compile circom files into provers for the Galactica Snap.',
+        },
+      ],
       showHelpWhenArgsMissing: true,
-    }
+    },
   );
 
   if (!args.output) {
@@ -213,7 +239,11 @@ async function main() {
   const input = JSON.parse(fs.readFileSync(args.testInput).toString());
 
   // extract needed circuit data
-  const params = await createCircuitData(args.circuitName, args.circuitsDir, input);
+  const params = await createCircuitData(
+    args.circuitName,
+    args.circuitsDir,
+    input,
+  );
 
   // await testStandard(input);
   await testModified(args.circuitName, args.circuitsDir, params);
@@ -221,11 +251,14 @@ async function main() {
   await writeCircuitDataToJSON(args.output, params);
 
   // copy vkey file to make it available for off-chain verification
-  const vkeyPath = path.join(args.circuitsDir, args.circuitName + '.vkey.json');
+  const vkeyPath = path.join(args.circuitsDir, `${args.circuitName}.vkey.json`);
   if (!fs.existsSync(vkeyPath)) {
     throw new Error(`Verification key ${vkeyPath} does not exist.`);
   }
-  fs.copyFileSync(vkeyPath, path.join(path.dirname(args.output), args.circuitName + '.vkey.json'));
+  fs.copyFileSync(
+    vkeyPath,
+    path.join(path.dirname(args.output), `${args.circuitName}.vkey.json`),
+  );
 }
 
 main().catch((error) => {

@@ -65,6 +65,7 @@
     "eslint-plugin-jsdoc": "^39.2.9",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "ffjavascript": "^0.2.56",
     "js-sha3": "^0.8.0",
     "mocha": "^10.2.0",
     "prettier": "^2.2.1",

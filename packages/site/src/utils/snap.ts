@@ -74,13 +74,17 @@ export const setupHoldingKey = async () => {
 
 /**
  * GenerateProof prepares and executes the call to generate a ZKP in the Galactica snap.
- * 
- * @param proverData Prover data passed to the snap (including wasm and zkey).
- * @param dAppAddress Contract address to send the ZKP to.
- * @param investigationInstitutionPubKey Public key of the institution that can investigate the ZKP.
+ *
+ * @param proverData - Prover data passed to the snap (including wasm and zkey).
+ * @param dAppAddress - Contract address to send the ZKP to.
+ * @param investigationInstitutionPubKey - Public key of the institution that can investigate the ZKP.
  * @returns Request result that should contain the ZKP.
  */
-export const generateProof = async (proverData: any, dAppAddress: string, investigationInstitutionPubKey: [string, string]) => {
+export const generateProof = async (
+  proverData: any,
+  dAppAddress: string,
+  investigationInstitutionPubKey: [string, string],
+) => {
   // TODO: add type for proverData
 
   // expected time for between pressing the generation button and the verification happening on-chain
@@ -93,8 +97,8 @@ export const generateProof = async (proverData: any, dAppAddress: string, invest
   const publicInput = {
     // general zkKYC inputs
     currentTime: currentTimestamp,
-    dAppAddress: dAppAddress,
-    investigationInstitutionPubKey: investigationInstitutionPubKey,
+    dAppAddress,
+    investigationInstitutionPubKey,
 
     // age proof specific inputs
     currentYear: dateNow.getUTCFullYear().toString(),
