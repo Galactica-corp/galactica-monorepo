@@ -21,9 +21,12 @@ import {
   SelectAndImportButton,
   ConnectMMButton,
 } from '../components';
-import { ethers } from 'ethers';
-import { mockDApp } from '../config/abi';
+import { BigNumber, ethers } from 'ethers';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
+
+import addresses from '../config/addresses';
+import mockDAppABI from '../config/abi/MockDApp.json';
+import galacticaInstitutionABI from '../config/abi/IGalacticaInstitution.json';
 
 const Container = styled.div`
   display: flex;
@@ -251,10 +254,24 @@ const Index = () => {
       // get prover data (separately loaded because the large json should not slow down initial site loading)
       const proverText = await fetch("/provers/ageProofZkKYC.json");
       const parsedFile = JSON.parse(await proverText.text());
+
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      // get contracts
+      const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
+      // fetch institution pubkey from chain
+      const institutionContract = new ethers.Contract(addresses.galacticaInstitution, galacticaInstitutionABI.abi, signer);
+      const institutionPubKey: [string, string] = [
+        BigNumber.from(await institutionContract.institutionPubKey(0)).toString(),
+        BigNumber.from(await institutionContract.institutionPubKey(1)).toString(),
+      ];
+
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
       console.log('sending request to snap...');
-      const res: any = await generateProof(parsedFile);
+      const res: any = await generateProof(parsedFile, addresses.mockDApp, institutionPubKey);
       console.log('Response from snap', res);
+      
       if (res === undefined || res === null ){
         throw new Error('Proof generation failed: empty response');
       }
@@ -263,14 +280,6 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetProofData, payload: res });
 
       // send proof direcly on chain
-
-      //@ts-ignore https://github.com/metamask/providers/issues/200
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-
-      // get contracts
-      const exampleDAppSC = new ethers.Contract(mockDApp.address, mockDApp.abi, signer);
-
       let [a, b, c] = processProof(res.proof);
       let publicInputs = processPublicSignals(res.publicSignals);
       console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
@@ -393,7 +402,7 @@ const Index = () => {
               <GeneralButton
                 onClick={bigProofGenerationClick}
                 disabled={false}
-                text="Select & Import"
+                text="Generate & Submit"
               />
             ),
           }}
