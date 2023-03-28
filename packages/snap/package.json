@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "circomlibjs": "^0.1.7",
-    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap",
+    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap",
     "zkkyc": "git+ssh://git@github.com:Galactica-corp/zkKYC.git#verificationCheck"
   },
   "devDependencies": {

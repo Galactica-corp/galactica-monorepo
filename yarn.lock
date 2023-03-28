@@ -3259,7 +3259,7 @@ __metadata:
     rimraf: ^3.0.2
     sinon: ^15.0.1
     sinon-chai: ^3.7.0
-    snarkjs: "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap"
+    snarkjs: "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
     ts-command-line-args: ^2.4.2
     ts-node: ^10.9.1
     typescript: ^4.7.4
@@ -3586,16 +3586,6 @@ __metadata:
   version: 0.0.2
   resolution: "@iden3/bigarray@npm:0.0.2"
   checksum: a58a4aa75284f7c74ef8a43dd0720764e94389ae4314213f18de9d712fbdb170dd0e9b48672ad297b5f15bd1658d3bff33fe1998e189b48cbf501f1fe78f0adc
-  languageName: node
-  linkType: hard
-
-"@iden3/binfileutils@npm:0.0.10":
-  version: 0.0.10
-  resolution: "@iden3/binfileutils@npm:0.0.10"
-  dependencies:
-    fastfile: 0.0.19
-    ffjavascript: ^0.2.48
-  checksum: cdeb8ac01e12f485d9fb236654c00d5d5016fc89eae24f7822885dd42f09935cbef601dbdd8a0c96dfb00ded9f4f623e0eec0b568aa86d16522cf77ce6f9498b
   languageName: node
   linkType: hard
 
@@ -8177,17 +8167,6 @@ __metadata:
   bin:
     calcwit: calcwit.js
   checksum: 7bab6c3a0587a6c7e2c19d87e0ef412cf678babeeecb33f8ea843e8d961da0eb842271b3ebb449e76226698a991a9954c8bc28a361865b26d1dee10f16461416
-  languageName: node
-  linkType: hard
-
-"circom_runtime@npm:0.1.17":
-  version: 0.1.17
-  resolution: "circom_runtime@npm:0.1.17"
-  dependencies:
-    ffjavascript: 0.2.48
-  bin:
-    calcwit: calcwit.js
-  checksum: 595fc0cc3a62ba5daf8d849feae41c48805c0df43965f85dde4dc434efb607e455fa7801d41c1feacfe0c3c71952a45cd3985abf26fde40c54138392891afd8c
   languageName: node
   linkType: hard
 
@@ -16838,18 +16817,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"r1csfile@npm:0.0.35":
-  version: 0.0.35
-  resolution: "r1csfile@npm:0.0.35"
-  dependencies:
-    "@iden3/bigarray": 0.0.2
-    "@iden3/binfileutils": 0.0.10
-    fastfile: 0.0.19
-    ffjavascript: 0.2.48
-  checksum: 84f7b4eab5bcdd6a3f6d699998c9479a5eff8d670383d4f0c5afc08431f45353abab9a8b07eeabaef89807e24b0ba50611d4d6280eb6c3a7483e1487a91f0ac6
-  languageName: node
-  linkType: hard
-
 "r1csfile@npm:0.0.41":
   version: 0.0.41
   resolution: "r1csfile@npm:0.0.41"
@@ -18221,23 +18188,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snarkjs@https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap":
-  version: 0.4.14
-  resolution: "snarkjs@https://github.com/Galactica-corp/snarkjs-ses.git#commit=bdcbf2af805fad00c8239e30f818bc51ff6406c8"
+"snarkjs@https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap":
+  version: 0.5.0
+  resolution: "snarkjs@https://github.com/Galactica-corp/snarkjs-ses.git#commit=0b13bd83166e8508e86ea6fe8c1693c731f6f8bd"
   dependencies:
-    "@iden3/binfileutils": 0.0.10
+    "@iden3/binfileutils": 0.0.11
+    bfj: ^7.0.2
     blake2b-wasm: ^2.4.0
-    circom_runtime: 0.1.17
+    circom_runtime: 0.1.21
     ejs: ^3.1.6
-    fastfile: 0.0.19
-    ffjavascript: 0.2.48
+    fastfile: 0.0.20
+    ffjavascript: 0.2.56
     js-sha3: ^0.8.0
     logplease: ^1.2.15
-    r1csfile: 0.0.35
-    readline: ^1.3.0
+    r1csfile: 0.0.41
   bin:
     snarkjs: build/cli.cjs
-  checksum: bc02399f409969fbbca4360e1538740cd3535e1f34a3993d3edb740e1efb21f0e616ed77cf8aed04fdf944c7d60816c169886ee1255cf6538bb8ac307e913dc7
+  checksum: 86f9f01aeba05f252c6f89fb3e8e5bc3fdaf85fc44b32897b92bbb056a8b174d600f8cc867b0c59d12a60060e37c48bfe40646724fc0e95f308a225aea18371c
   languageName: node
   linkType: hard
 

@@ -7,6 +7,11 @@ import { parse } from 'ts-command-line-args';
 
 import { GenZkKycRequestParams } from '../types';
 
+// Tell JSON how to serialize BigInts
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 /**
  * TestModified constructs and checks the zkKYC proof with the modified code of snarkjs that does not depend on file reading.
  *
@@ -122,14 +127,18 @@ async function writeCircuitDataToJSON(
     'base64',
   );
 
+  console.log(`curve name: ${JSON.stringify(data.zkeyHeader.curve.name)}`);
+  // removing curve data because it would increase the transmission size dramatically and it can be reconstructed from the curve name
+  data.zkeyHeader.curveName = data.zkeyHeader.curve.name;
+  delete data.zkeyHeader.curve;
+
   const jsContent = {
     wasm: Buffer.from(data.wasm).toString('base64'),
     zkeyHeader: data.zkeyHeader,
     zkeySections: data.zkeySections,
   };
   console.log(
-    `resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)
-    } MB`,
+    `resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)} MB`,
   );
 
   fs.writeFileSync(filePath, JSON.stringify(jsContent));
@@ -160,11 +169,6 @@ interface IProofGenPrepArguments {
   testInput: string;
   output?: string;
   help?: boolean;
-}
-
-function printUsage() {
-  console.log('Usage:');
-  console.log('yarn run proofPrep -- --circuitName <name> --circuitsDir <path> --testInput <path> [--output <path>]');
 }
 
 /**
