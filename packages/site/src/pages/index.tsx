@@ -11,6 +11,8 @@ import {
   exportZkCert,
   setupHoldingKey,
   getHolderCommitment,
+  queryVerificationSBTs,
+  formatVerificationSBTs,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -292,6 +294,23 @@ const Index = () => {
       const receipt = await tx.wait();
       console.log("receipt", receipt);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
+
+      console.log(`Updating verification SBTs...`);
+      await showVerificationSBTs();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const showVerificationSBTs = async () => {
+    try {
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const sbts = await queryVerificationSBTs(addresses.verificationSBT, provider, await signer.getAddress());
+
+      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: sbts });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -433,6 +452,21 @@ const Index = () => {
                 onClick={() => handleSnapCallClick(setupHoldingKey)}
                 disabled={false}
                 text="Setup"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Show valid Verification SBTs',
+            description: formatVerificationSBTs(state.verificationSbtMap),
+            button: (
+              <GeneralButton
+                onClick={showVerificationSBTs}
+                disabled={false}
+                text="Query"
               />
             ),
           }}
