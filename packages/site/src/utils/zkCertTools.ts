@@ -97,9 +97,13 @@ export function formatVerificationSBTs(sbtMap: Map<string, any[]>): string {
     for (const sbt of sbtList) {
       res += `SBT ${count}:\n`;
       res += `  proven to DApp ${dAppAddr}\n`;
-      res += `  expiration ${new Date(sbt.expirationTime * 1000).toDateString()}\n`;
+      res += `  expiration ${new Date(
+        sbt.expirationTime * 1000,
+      ).toDateString()}\n`;
+      /* eslint-disable @typescript-eslint/restrict-template-expressions */
       res += `  humanID ${sbt.humanID}\n`;
       res += `  provider ${sbt.providerPubKey}\n`;
+      /* eslint-enable @typescript-eslint/restrict-template-expressions */
 
       count += 1;
     }
