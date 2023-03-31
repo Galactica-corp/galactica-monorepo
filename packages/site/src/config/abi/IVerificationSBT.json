@@ -78,6 +78,11 @@
               "internalType": "bytes32",
               "name": "humanID",
               "type": "bytes32"
+            },
+            {
+              "internalType": "uint256[2]",
+              "name": "providerPubKey",
+              "type": "uint256[2]"
             }
           ],
           "internalType": "struct IVerificationSBT.VerificationSBTInfo",
@@ -135,9 +140,19 @@
           "type": "bytes32[2]"
         },
         {
+          "internalType": "uint256[2]",
+          "name": "_userPubKey",
+          "type": "uint256[2]"
+        },
+        {
           "internalType": "bytes32",
           "name": "_humanID",
           "type": "bytes32"
+        },
+        {
+          "internalType": "uint256[2]",
+          "name": "_providerPubKey",
+          "type": "uint256[2]"
         }
       ],
       "name": "mintVerificationSBT",

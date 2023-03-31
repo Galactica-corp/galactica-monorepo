@@ -42,22 +42,24 @@ export async function queryVerificationSBTs(
       humanID ? ethers.utils.hexZeroPad(humanID, 32) : null,
     ],
   };
-  console.log(JSON.stringify(filter, null, 2));
+  console.log(`filter: ${JSON.stringify(filter, null, 2)}}`);
 
   // TODO: add dynamic way to find first block
-  const firstBlock = 600000;
+  const firstBlock = 680000;
   const maxBlockInterval = 10000;
 
-  // get logs in batches of 10000 blocks
+  // get logs in batches of 10000 blocks because of rpc call size limit
   for (let i = firstBlock; i < currentBlock; i += maxBlockInterval) {
-    console.log(`Querying logs from block ${i} to ${i + maxBlockInterval}...`);
+    const maxBlock = Math.min(i + maxBlockInterval, currentBlock);
+    console.log(`Querying logs from block ${i} to ${maxBlock}...`);
     const createStakeLogs = await sbtContract.queryFilter(
       filter as EventFilter,
       i,
-      i + maxBlockInterval,
+      maxBlock,
     );
 
     for (const log of createStakeLogs) {
+      console.log(`sbtInfo: ${JSON.stringify(log, null, 2)}}`);
       if (log.topics === undefined) {
         continue;
       }
@@ -93,11 +95,13 @@ export function formatVerificationSBTs(sbtMap: Map<string, any[]>): string {
   let count = 1;
   sbtMap.forEach((sbtList, dAppAddr) => {
     for (const sbt of sbtList) {
-      console.log(`sbt ${count}: ${JSON.stringify(sbt, null, 2)}}`);
       res += `SBT ${count}:\n`;
       res += `  proven to DApp ${dAppAddr}\n`;
       res += `  expiration ${new Date(sbt.expirationTime * 1000).toDateString()}\n`;
       res += `  humanID ${sbt.humanID}\n`;
+      res += `  provider ${sbt.providerPubKey}\n`;
+
+      count += 1;
     }
   });
   return res;

@@ -309,6 +309,7 @@ const Index = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const sbts = await queryVerificationSBTs(addresses.verificationSBT, provider, await signer.getAddress());
+      console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts)} `);
 
       dispatch({ type: MetamaskActions.SetVerificationSBT, payload: sbts });
     } catch (e) {

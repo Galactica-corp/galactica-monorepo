@@ -206,6 +206,32 @@
     },
     {
       "inputs": [],
+      "name": "INDEX_PROVIDER_PUBKEY_AX",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "INDEX_PROVIDER_PUBKEY_AY",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "INDEX_ROOT",
       "outputs": [
         {
@@ -246,6 +272,19 @@
     {
       "inputs": [],
       "name": "INDEX_USER_PUBKEY_AY",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "INDEX_VERIFICATION_EXPIRATION",
       "outputs": [
         {
           "internalType": "uint8",
@@ -418,9 +457,9 @@
           "type": "uint256[2]"
         },
         {
-          "internalType": "uint256[16]",
+          "internalType": "uint256[19]",
           "name": "input",
-          "type": "uint256[16]"
+          "type": "uint256[19]"
         }
       ],
       "name": "verifyProof",
