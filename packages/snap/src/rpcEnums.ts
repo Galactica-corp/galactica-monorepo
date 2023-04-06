@@ -8,6 +8,8 @@ export enum RpcMethods {
   ClearStorage = 'clearStorage',
   ImportZkCert = 'importZkCert',
   ExportZkCert = 'exportZkCert',
+  ListZkCerts = 'listZkCerts',
+  GetZkCertStorageHashes = 'getZkCertStorageHashes',
   // TODO: would be nice to have more storage management methods like deleting a specific zkCert, modifying a zkCert, bulk import/export, ...
 }
 
@@ -28,4 +30,5 @@ export enum RpcResponseErr {
   MissingHolder = 'No holders imported. Please import a holding address first.',
   RejectedConnect = 'User rejected the request.',
   RejectedSignature = 'User denied message signature.',
+  RejectedSelect = 'User did not choose a zkCertificate.',
 }

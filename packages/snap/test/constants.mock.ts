@@ -1,13 +1,12 @@
-import proverData from '../../../test/ageProofZkKYC.json';
+import proverData from '../../site/public/provers/ageProofZkKYC.json';
 import { HolderData, RpcArgs } from '../src/types';
 
 export const defaultRPCRequest: RpcArgs = {
-  origin: 'localhost',
+  origin: 'http://localhost:8000',
   request: {
     id: 'test-id',
     jsonrpc: '2.0',
     method: 'defaultTest',
-    params: {},
   },
 };
 

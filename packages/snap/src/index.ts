@@ -1,4 +1,5 @@
-import { OnRpcRequestHandler } from '@metamask/snap-types';
+import { OnRpcRequestHandler } from '@metamask/snaps-types';
+import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { stringToBytes, bytesToHex } from '@metamask/utils';
 import { eddsaKeyGenerationMessage } from 'zkkyc';
 
@@ -12,8 +13,11 @@ import {
   ImportRequestParams,
   SnapRpcProcessor,
 } from './types';
-import { shortenAddrStr } from './utils';
-import { calculateHolderCommitment } from './zkCertHandler';
+import {
+  calculateHolderCommitment,
+  getZkCertStorageHashes,
+  getZkCertStorageOverview,
+} from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
 
 /**
@@ -23,34 +27,34 @@ import { selectZkCert } from './zkCertSelector';
  * @param args - The request handler args as object.
  * @param args.origin - The origin of the request, e.g., the website that invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
- * @param wallet - The SnapProvider (wallet).
+ * @param snap - The SnapProvider (snap).
+ * @param ethereum - The Ethereum provider for interacting with the ordinary Metamask.
  * @returns `null` if the request succeeded.
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_confirm` call failed.
  */
 export const processRpcRequest: SnapRpcProcessor = async (
   { origin, request },
-  wallet,
+  snap,
+  ethereum,
 ) => {
-  const state = await getState(wallet);
+  const state = await getState(snap);
   let confirm: any;
-  let responseMsg: string;
+  let response: any;
   let holder: HolderData;
 
   switch (request.method) {
     case RpcMethods.SetupHoldingKey: {
       // inform user how setup works
-      await wallet.request({
+      await snap.request({
         method: 'snap_notify',
-        params: [
-          {
-            type: 'inApp',
-            message: `Connect to the Metamask address holding zkCerts.`,
-          },
-        ],
+        params: {
+          type: 'native', // not using 'inApp' bacause it is hidden in the MM UI
+          message: `Connect to the Metamask address holding zkCerts.`,
+        },
       });
 
-      const newAccounts = (await wallet.request({
+      const newAccounts = (await ethereum.request({
         method: 'eth_requestAccounts',
       })) as string[];
       const newHolder = newAccounts[0];
@@ -58,26 +62,26 @@ export const processRpcRequest: SnapRpcProcessor = async (
       // TODO: Do we need the 0x prefix?
       const msgToSign = bytesToHex(stringToBytes(eddsaKeyGenerationMessage));
 
-      const sign = (await wallet.request({
+      const sign = (await ethereum.request({
         method: 'personal_sign',
         params: [msgToSign, newHolder],
       })) as string;
 
       if (state.holders.find((candidate) => candidate.address === newHolder)) {
-        responseMsg = `${shortenAddrStr(newHolder)} already added.`;
+        response = true;
       } else {
         state.holders.push({
           address: newHolder,
           holderCommitment: await calculateHolderCommitment(sign),
           eddsaKey: sign,
         });
-        await saveState(wallet, {
+        await saveState(snap, {
           holders: state.holders,
           zkCerts: state.zkCerts,
         });
-        responseMsg = `Added holder ${shortenAddrStr(newHolder)}`;
+        response = true;
       }
-      return responseMsg;
+      return response;
     }
 
     case RpcMethods.GenZkKycProof: {
@@ -85,33 +89,46 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const genParams = request.params as GenZkKycRequestParams;
       // TODO: check input validity
 
-      // ask user to confirm
-      confirm = await wallet.request({
-        method: 'snap_confirm',
-        params: [
-          {
-            prompt: 'Generate zkCert proof?',
-            description: 'Galactica zkKYC proof creation.',
-            // TODO: list disclosed information
-            textAreaContent: `Do you want to prove your identity to ${origin}?
-            This will create a zkKYC proof.
-            It discloses the following information publicly:
-            - That you hold a KYC
-            - That you are above ${genParams.input.ageThreshold} years old
-            - ...
-            The following private inputs are processed by the zkSNARK and stay hidden:
-            - KYC id
-            - inputs (e.g. year of birth)
-            - ...`,
-          },
-        ],
+      const proofConfirmDioalog = [
+        heading('Generate zkCert proof?'),
+        text(`Do you want to prove your identity to ${origin}?`),
+        text(
+          `This will create a ${genParams.requirements.zkCertStandard} proof.`,
+        ),
+        divider(),
+      ];
+
+      // TODO: generalize disclosure of inputs to any kind of inputs
+      proofConfirmDioalog.push(
+        text(`It discloses the following information publically:`),
+        text(`That you are at least ${genParams.input.ageThreshold} years old`),
+        text(`The date of generating this proof`),
+      );
+
+      proofConfirmDioalog.push(
+        divider(),
+        text(
+          `The following private inputs are processed by the zkSNARK and stay hidden: zkKYC ID, personal details that are not listed above`,
+        ),
+      );
+
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'Confirmation',
+          content: panel(proofConfirmDioalog),
+        },
       });
 
       if (!confirm) {
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      const zkCert = await selectZkCert(state.zkCerts, genParams.requirements);
+      const zkCert = await selectZkCert(
+        snap,
+        state.zkCerts,
+        genParams.requirements,
+      );
 
       const searchedHolder = state.holders.find(
         (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
@@ -144,21 +161,23 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.ClearStorage: {
-      confirm = await wallet.request({
-        method: 'snap_confirm',
-        params: [
-          {
-            prompt: 'Clear zkCert and holder storage?',
-            description: 'Galactica zkCert storage clearing',
-            textAreaContent: `Do you want to delete the zkCertificates and holder information stored in Metamask? (requested by ${origin})`,
-          },
-        ],
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'Confirmation',
+          content: panel([
+            heading('Clear zkCert and holder storage?'),
+            text(
+              `Do you want to delete the zkCertificates and holder information stored in Metamask? (requested by ${origin})`,
+            ),
+          ]),
+        },
       });
       if (!confirm) {
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      await saveState(wallet, { holders: [], zkCerts: [] });
+      await saveState(snap, { holders: [], zkCerts: [] });
       return RpcResponseMsg.StorageCleared;
     }
 
@@ -167,45 +186,45 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       // TODO: check that there is a holder setup for this zkCert
 
-      confirm = await wallet.request({
-        method: 'snap_confirm',
-        params: [
-          {
-            prompt: 'Import zkCert?',
-            description: 'Galactica zkKYC import.',
-            textAreaContent: `Do you want to import the following zkCert? (provided through ${origin})
-            ${importParams.zkCert.did}
-            `,
-          },
-        ],
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'Confirmation',
+          content: panel([
+            heading('Import zkCertificate?'),
+            text(`Do you want to import the following zkCert? (provided through ${origin})
+              ${importParams.zkCert.did}`),
+          ]),
+        },
       });
       if (!confirm) {
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
       state.zkCerts.push(importParams.zkCert);
-      await saveState(wallet, state);
+      await saveState(snap, state);
       return RpcResponseMsg.ZkCertImported;
     }
 
     case RpcMethods.ExportZkCert: {
       const exportParams = request.params as ExportRequestParams;
 
-      confirm = await wallet.request({
-        method: 'snap_confirm',
-        params: [
-          {
-            prompt: 'Import zkCert?',
-            description: 'Galactica zkKYC import.',
-            textAreaContent: `Do you want to export a zkCert? (provided to ${origin} for saving it to a file)
-            `,
-          },
-        ],
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'Confirmation',
+          content: panel([
+            heading('Export zkCert?'),
+            text(
+              `Do you want to export a zkCert? (provided to ${origin} for saving it to a file)`,
+            ),
+          ]),
+        },
       });
       if (!confirm) {
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      const zkCertForExport = await selectZkCert(state.zkCerts, {
+      const zkCertForExport = await selectZkCert(snap, state.zkCerts, {
         zkCertStandard: exportParams.zkCertStandard,
       });
       return zkCertForExport;
@@ -219,21 +238,48 @@ export const processRpcRequest: SnapRpcProcessor = async (
       // TODO: holder selection if multiple holders are available
       holder = state.holders[0];
 
-      confirm = await wallet.request({
-        method: 'snap_confirm',
-        params: [
-          {
-            prompt: 'Provide holder commitment?',
-            description: 'First step to get a zkCert from a provider.',
-            textAreaContent: `Do you want to provide your holder commitment of ${holder.address} to ${origin}?`,
-          },
-        ],
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'Confirmation',
+          content: panel([
+            heading('Provide holder commitment?'),
+            text(
+              `Do you want to provide your holder commitment of ${holder.address} to ${origin}?`,
+            ),
+          ]),
+        },
       });
       if (!confirm) {
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
       return holder.holderCommitment;
+    }
+
+    case RpcMethods.ListZkCerts: {
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'Confirmation',
+          content: panel([
+            heading('Provide zkCert Storage metadata?'),
+            text(
+              `The website ${origin} asks to get an overview of zkCerts stored in Metamask. The overview only contains metadata, no personal and no tracking data.`,
+            ),
+          ]),
+        },
+      });
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
+      }
+
+      return getZkCertStorageOverview(state.zkCerts);
+    }
+
+    case RpcMethods.GetZkCertStorageHashes: {
+      // does not need confirmation as it does not leak any personal or trackng data
+      return getZkCertStorageHashes(state.zkCerts, origin);
     }
 
     default: {
@@ -260,6 +306,6 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   console.log('got request', request.method);
 
   // forward to common function shared with unit tests
-  // passing global wallet object from snap environment
-  return await processRpcRequest({ origin, request }, wallet);
+  // passing global objects object from snap environment
+  return await processRpcRequest({ origin, request }, snap, ethereum);
 };

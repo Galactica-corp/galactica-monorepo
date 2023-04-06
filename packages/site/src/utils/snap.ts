@@ -25,18 +25,15 @@ export const connectSnap = async (
   snapId: string = defaultSnapOrigin,
   params: Record<'version' | string, unknown> = {},
 ) => {
-  await window.ethereum.request({
-    method: 'wallet_enable',
-    params: [
-      {
-        wallet_snap: {
-          [snapId]: {
-            ...params,
-          },
-        },
+  const res = await window.ethereum.request({
+    method: 'wallet_requestSnaps',
+    params: {
+      [snapId]: {
+        ...params,
       },
-    ],
+    },
   });
+  console.log(JSON.stringify(res, null, 2));
 };
 
 /**
@@ -66,13 +63,12 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 export const setupHoldingKey = async () => {
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
-    params: [
-      defaultSnapOrigin,
-      {
+    params: {
+      snapId: defaultSnapOrigin,
+      request: {
         method: RpcMethods.SetupHoldingKey,
-        params: {},
       },
-    ],
+    },
   });
 };
 
@@ -97,9 +93,9 @@ export const generateProof = async (proverData: any) => {
 
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
-    params: [
-      defaultSnapOrigin,
-      {
+    params: {
+      snapId: defaultSnapOrigin,
+      request: {
         method: RpcMethods.GenZkKycProof,
         params: {
           input: publicInput,
@@ -111,20 +107,19 @@ export const generateProof = async (proverData: any) => {
           zkeySections: proverData.zkeySections,
         },
       },
-    ],
+    },
   });
 };
 
 export const clearStorage = async () => {
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
-    params: [
-      defaultSnapOrigin,
-      {
+    params: {
+      snapId: defaultSnapOrigin,
+      request: {
         method: RpcMethods.ClearStorage,
-        params: {},
       },
-    ],
+    },
   });
 };
 
@@ -132,13 +127,13 @@ export const importZkCert = async (zkCertJson: any) => {
   console.log({ zkCert: zkCertJson });
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
-    params: [
-      defaultSnapOrigin,
-      {
+    params: {
+      snapId: defaultSnapOrigin,
+      request: {
         method: RpcMethods.ImportZkCert,
         params: { zkCert: zkCertJson },
       },
-    ],
+    },
   });
 };
 
@@ -149,26 +144,25 @@ export const exportZkCert = async () => {
 
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
-    params: [
-      defaultSnapOrigin,
-      {
+    params: {
+      snapId: defaultSnapOrigin,
+      request: {
         method: RpcMethods.ExportZkCert,
         params,
       },
-    ],
+    },
   });
 };
 
 export const getHolderCommitment = async () => {
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
-    params: [
-      defaultSnapOrigin,
-      {
+    params: {
+      snapId: defaultSnapOrigin,
+      request: {
         method: RpcMethods.GetHolderCommitment,
-        params: {},
       },
-    ],
+    },
   });
 };
 

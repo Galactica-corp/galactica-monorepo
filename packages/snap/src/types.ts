@@ -1,4 +1,5 @@
-import { SnapProvider } from '@metamask/snap-types';
+import { MetaMaskInpageProvider } from '@metamask/providers';
+import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { JsonRpcRequest } from '@metamask/types';
 import { ProviderData, MerkleProof, ZkCertStandard } from 'zkkyc';
 
@@ -11,7 +12,8 @@ export type RpcArgs = {
 
 export type SnapRpcProcessor = (
   args: RpcArgs,
-  wallet: SnapProvider,
+  snap: SnapsGlobalObject,
+  ethereum: MetaMaskInpageProvider,
 ) => Promise<unknown>;
 
 // requirements on the zk proof
