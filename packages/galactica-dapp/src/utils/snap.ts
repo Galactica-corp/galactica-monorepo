@@ -58,22 +58,6 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 };
 
 /**
- * Invoke the methods from the example snap.
- */
-
-export const setupHoldingKey = async () => {
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.SetupHoldingKey,
-      },
-    },
-  });
-};
-
-/**
  * GenerateProof prepares and executes the call to generate a ZKP in the Galactica snap.
  *
  * @param proverData - Prover data passed to the snap (including wasm and zkey).
@@ -124,61 +108,6 @@ export const generateProof = async (
           zkeyHeader: proverData.zkeyHeader,
           zkeySections: proverData.zkeySections,
         },
-      },
-    },
-  });
-};
-
-export const clearStorage = async () => {
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.ClearStorage,
-      },
-    },
-  });
-};
-
-export const importZkCert = async (zkCertJson: any) => {
-  console.log({ zkCert: zkCertJson });
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.ImportZkCert,
-        params: { zkCert: zkCertJson },
-      },
-    },
-  });
-};
-
-export const exportZkCert = async () => {
-  const params: ExportRequestParams = {
-    zkCertStandard: 'gip69',
-  };
-
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.ExportZkCert,
-        params,
-      },
-    },
-  });
-};
-
-export const getHolderCommitment = async () => {
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.GetHolderCommitment,
       },
     },
   });

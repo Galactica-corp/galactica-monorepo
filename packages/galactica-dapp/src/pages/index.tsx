@@ -173,85 +173,7 @@ const Index = () => {
     }
   };
 
-  const handleSnapCallClick = async (method : () => Promise<any>) => {
-    try {
-      console.log('sending request to snap...');
-      const res = await method();
-      console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Reponse from Snap: ${res} ` });
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
-
-  const handleExportClick = async () => {
-    try {
-      console.log('sending request to snap...');
-      const res = await exportZkCert();
-      console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${res}` });
-
-      // save to file
-      // TODO: add a saveAs dialog to let the user choose file name and location
-      const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(res, null, 2)
-      )}`;
-      const link = document.createElement("a");
-      link.href = jsonString;
-      link.download = "zkCert.json";
-      link.click();
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
-
-  const getHolderCommitmentClick = async () => {
-    try {
-      const  zkKYCContent = {
-        
-      };
-      console.log('sending request to snap...');
-      const res = await getHolderCommitment();
-      console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${res}` });
-
-      const jsonExport = {
-        holderCommitment: res
-      };
-
-      // save to file as placeholder
-      // TODO: integrate some kind of provider API to submitt the prepared zkCert to for signing and issuance on chain
-      const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(jsonExport, null, 2)
-      )}`;
-      const link = document.createElement("a");
-      link.href = jsonString;
-      link.download = "holderCommitment.json";
-      link.click();
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
-
-  const handleOnImportSelect = async (fileContent: string) => {
-    try {
-      const parsedFile = JSON.parse(fileContent);
-
-      console.log('sending request to snap...');
-      const res = await importZkCert(parsedFile);
-      console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${res}` });
-
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
-
-  const bigProofGenerationClick = async () => {
+  const proofGenerationClick = async () => {
     try {
       // get prover data (separately loaded because the large json should not slow down initial site loading)
       const proverText = await fetch("/provers/ageProofZkKYC.json");
@@ -321,11 +243,8 @@ const Index = () => {
   return (
     <Container>
       <Heading>
-        Welcome to the <Span>Galactica zkKYC</Span> proof of concept
+        Welcome to the <Span>Galactica zkKYC DApp</Span> example
       </Heading>
-      <Subtitle>
-        Galactica dApp features
-      </Subtitle>
       <CardContainer>
         {state.error && (
           <ErrorMessage>
@@ -397,22 +316,6 @@ const Index = () => {
             disabled={!state.isFlask}
           />
         )}
-        {/* <Card
-          content={{
-            title: 'Generate age proof',
-            description:
-              'Call Metamask Snap to generate a simple ZK proof.',
-            button: (
-              <GeneralButton
-                onClick={handleSimpleProofClick}
-                disabled={false}
-                text="Generate"
-              />
-            ),
-          }}
-          disabled={false}
-          fullWidth={false}
-        /> */}
         <Card
           content={{
             title: 'zkKYC + age proof',
@@ -420,39 +323,9 @@ const Index = () => {
               '1. Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old. 2. Send proof tx for on-chain verification.',
             button: (
               <GeneralButton
-                onClick={bigProofGenerationClick}
+                onClick={proofGenerationClick}
                 disabled={false}
                 text="Generate & Submit"
-              />
-            ),
-          }}
-          disabled={false}
-          fullWidth={false}
-        />
-        {/* <Notice>
-          <p>
-            Please note that the <b>snap.manifest.json</b> and{' '}
-            <b>package.json</b> must be located in the server root directory and
-            the bundle must be hosted at the location specified by the location
-            field.
-          </p>
-        </Notice> */}
-      </CardContainer>
-      <br/>
-      <Subtitle>
-        Manage zkCertificate storage (part of Galactica passport website)
-      </Subtitle>
-      <CardContainer>
-        <Card
-          content={{
-            title: 'Setup zkCert wallet',
-            description:
-              'Setup Metamask snap with the wallet that holds zkCerts.',
-            button: (
-              <GeneralButton
-                onClick={() => handleSnapCallClick(setupHoldingKey)}
-                disabled={false}
-                text="Setup"
               />
             ),
           }}
@@ -474,76 +347,14 @@ const Index = () => {
           disabled={false}
           fullWidth={false}
         />
-        <Card
-          content={{
-            title: 'Clear storage',
-            description:
-              'Asks the Metamask snap to clear the zkCertificate and holder storage.',
-            button: (
-              <GeneralButton
-                onClick={() => handleSnapCallClick(clearStorage)}
-                disabled={false}
-                text="Clear"
-              />
-            ),
-          }}
-          disabled={false}
-          fullWidth={false}
-        />
-        <Card
-          content={{
-            title: 'Import zkCert',
-            description:
-              'Uploads a zkCert file into the Metamask snap storage.',
-            button: (
-              <SelectAndImportButton
-                onFileSelected={handleOnImportSelect}
-                disabled={false}
-                text="Select & Import"
-              />
-            ),
-          }}
-          disabled={false}
-          fullWidth={false}
-        />
-        <Card
-          content={{
-            title: 'Export zkCert',
-            description:
-              'Downloads zkCert files from the Metamask snap storage.',
-            button: (
-              <GeneralButton
-                onClick={handleExportClick}
-                disabled={false}
-                text="Export"
-              />
-            ),
-          }}
-          disabled={false}
-          fullWidth={false}
-        />
-      </CardContainer>
-      <br/>
-      <Subtitle>
-        Creating zkKYC (part of zkKYC provider website)
-      </Subtitle>
-      <CardContainer>
-        <Card
-          content={{
-            title: 'Prepare holder commitment',
-            description:
-              'To issue a zkCert, the provider needs your holder commitment. It ties the zkCert to your holding address without revealing the address to the provider.',
-            button: (
-              <GeneralButton
-                onClick={getHolderCommitmentClick}
-                disabled={false}
-                text="Prepare"
-              />
-            ),
-          }}
-          disabled={false}
-          fullWidth={false}
-        />
+        {/* <Notice>
+          <p>
+            Please note that the <b>snap.manifest.json</b> and{' '}
+            <b>package.json</b> must be located in the server root directory and
+            the bundle must be hosted at the location specified by the location
+            field.
+          </p>
+        </Notice> */}
       </CardContainer>
     </Container>
   );
