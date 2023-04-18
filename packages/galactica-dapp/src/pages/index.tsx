@@ -6,11 +6,6 @@ import {
   getSnap,
   generateProof,
   shouldDisplayReconnectButton,
-  clearStorage,
-  importZkCert,
-  exportZkCert,
-  setupHoldingKey,
-  getHolderCommitment,
   queryVerificationSBTs,
   formatVerificationSBTs,
 } from '../utils';

@@ -1,5 +1,4 @@
 import { RpcMethods } from '../../../snap/src/rpcEnums';
-import { ExportRequestParams } from '../../../snap/src/types';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { getCurrentBlockTime } from './metamask';
