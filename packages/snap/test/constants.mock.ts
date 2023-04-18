@@ -1,5 +1,5 @@
 import proverData from '../../site/public/provers/ageProofZkKYC.json';
-import { HolderData, RpcArgs } from '../src/types';
+import { GenZkKycRequestParams, HolderData, RpcArgs } from '../src/types';
 
 export const defaultRPCRequest: RpcArgs = {
   origin: 'http://localhost:8000',
@@ -29,13 +29,16 @@ export const testHolder: HolderData = {
   eddsaKey: testEdDSAKey,
 };
 
-export const testZkpParams = {
+export const testZkpParams: GenZkKycRequestParams = {
   input: {
+    // most values do not matter becase they are checked on-chain only
     currentTime: 1676033833,
     currentYear: '2023',
     currentMonth: '2',
     currentDay: '10',
     ageThreshold: '18',
+    investigationInstitutionPubKey: ['1', '2'],
+    dAppAddress: '0x80c8C09868E97CF789e10666Ad10dD96639aCB6e',
   },
   requirements: {
     zkCertStandard: 'gip69',

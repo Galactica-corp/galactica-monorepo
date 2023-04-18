@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer';
+import { buildBn128, buildBls12381 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
 import { MerkleProof, ZKCertificate } from 'zkkyc';
 
@@ -18,10 +19,11 @@ export const generateZkKycProof = async (
   holder: HolderData,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> => {
-  const processedParams = preprocessInput(params);
+  const processedParams = await preprocessInput(params);
 
   const authorizationProof = zkCert.getAuthorizationProofInput(
     holder.eddsaKey,
+    // TODO: add selection of the using wallet
     holder.address,
   );
 
@@ -48,6 +50,11 @@ export const generateZkKycProof = async (
     root: merkleProof.root,
     pathElements: merkleProof.path,
     pathIndices: merkleProof.pathIndices,
+
+    // TODO: add selection of the using wallet
+    userPrivKey: holder.eddsaKey,
+
+    humanID: zkCert.getHumanID(processedParams.input.dAppAddress),
   };
 
   // console.log('proof inputs: TODO: remove this debug output');
@@ -79,7 +86,9 @@ export const generateZkKycProof = async (
  * @param params - GenZkKycRequestParams.
  * @returns Prepared GenZkKycRequestParams.
  */
-function preprocessInput(params: GenZkKycRequestParams): GenZkKycRequestParams {
+async function preprocessInput(
+  params: GenZkKycRequestParams,
+): Promise<GenZkKycRequestParams> {
   // Somehow we need to convert them to Uint8Array to avoid an error inside snarkjs.
   params.wasm = Uint8Array.from(Buffer.from(params.wasm, 'base64'));
 
@@ -109,5 +118,34 @@ function preprocessInput(params: GenZkKycRequestParams): GenZkKycRequestParams {
     Buffer.from(params.zkeyHeader.vk_delta_2, 'base64'),
   );
 
+  /* eslint-disable-next-line require-atomic-updates */
+  params.zkeyHeader.curve = await getCurveForSnarkJS(
+    params.zkeyHeader.curveName,
+  );
+
   return params;
+}
+
+/**
+ * Reconstruct curve from name for the snarkjs zkey header.
+ *
+ * @param name - Name of the curve used for the ZKP.
+ * @returns Curve object.
+ */
+async function getCurveForSnarkJS(name: string): Promise<any> {
+  let curve;
+  // normalize name
+  const validChars = name.toUpperCase().match(/[A-Za-z0-9]+/gu);
+  if (!validChars) {
+    throw new Error(`Invalid curve name '${name}'`);
+  }
+  const normalizedName = validChars.join('');
+  if (['BN128', 'BN254', 'ALTBN128'].includes(normalizedName)) {
+    curve = await buildBn128(true);
+  } else if (['BLS12381'].includes(normalizedName)) {
+    curve = await buildBls12381(true);
+  } else {
+    throw new Error(`Curve not supported: ${name}`);
+  }
+  return curve;
 }

@@ -28,7 +28,14 @@ export type ZkCertRequirements = {
 export type GenZkKycRequestParams = {
   // public inputs that need to be proven
   input: {
-    // TODO: fill in real parameters
+    // time to check against the expiration date
+    currentTime: number;
+    // institution pubkey for eventual fraud investigations
+    investigationInstitutionPubKey: [string, string];
+    // dApp address to prove the ZKP to
+    dAppAddress: string;
+
+    // TODO: adjust depending on ZKP type
     currentYear: string;
     currentMonth: string;
     currentDay: string;

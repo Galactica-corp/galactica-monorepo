@@ -11,6 +11,8 @@ import {
   exportZkCert,
   setupHoldingKey,
   getHolderCommitment,
+  queryVerificationSBTs,
+  formatVerificationSBTs,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -21,9 +23,12 @@ import {
   SelectAndImportButton,
   ConnectMMButton,
 } from '../components';
-import { ethers } from 'ethers';
-import { ageProofZkKYC } from '../config/abi';
+import { BigNumber, ethers } from 'ethers';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
+
+import addresses from '../config/addresses';
+import mockDAppABI from '../config/abi/MockDApp.json';
+import galacticaInstitutionABI from '../config/abi/IGalacticaInstitution.json';
 
 const Container = styled.div`
   display: flex;
@@ -251,10 +256,24 @@ const Index = () => {
       // get prover data (separately loaded because the large json should not slow down initial site loading)
       const proverText = await fetch("/provers/ageProofZkKYC.json");
       const parsedFile = JSON.parse(await proverText.text());
+
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      // get contracts
+      const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
+      // fetch institution pubkey from chain
+      const institutionContract = new ethers.Contract(addresses.galacticaInstitution, galacticaInstitutionABI.abi, signer);
+      const institutionPubKey: [string, string] = [
+        BigNumber.from(await institutionContract.institutionPubKey(0)).toString(),
+        BigNumber.from(await institutionContract.institutionPubKey(1)).toString(),
+      ];
+
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
       console.log('sending request to snap...');
-      const res: any = await generateProof(parsedFile);
+      const res: any = await generateProof(parsedFile, addresses.mockDApp, institutionPubKey);
       console.log('Response from snap', res);
+      
       if (res === undefined || res === null ){
         throw new Error('Proof generation failed: empty response');
       }
@@ -263,26 +282,36 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetProofData, payload: res });
 
       // send proof direcly on chain
-
-      //@ts-ignore https://github.com/metamask/providers/issues/200
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-
-      // get contracts
-      const ageProofSC = new ethers.Contract(ageProofZkKYC.address, ageProofZkKYC.abi, signer);
-
       let [a, b, c] = processProof(res.proof);
       let publicInputs = processPublicSignals(res.publicSignals);
       console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
       console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
 
       console.log(`Sending proof for on-chain verification...`);
-      let tx = await ageProofSC.registerAddress(a, b, c, publicInputs);
+      let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
       console.log("tx", tx);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
       const receipt = await tx.wait();
       console.log("receipt", receipt);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
+
+      console.log(`Updating verification SBTs...`);
+      await showVerificationSBTs();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const showVerificationSBTs = async () => {
+    try {
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const sbts = await queryVerificationSBTs(addresses.verificationSBT, provider, await signer.getAddress());
+      console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts)} `);
+
+      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: sbts });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -393,7 +422,7 @@ const Index = () => {
               <GeneralButton
                 onClick={bigProofGenerationClick}
                 disabled={false}
-                text="Select & Import"
+                text="Generate & Submit"
               />
             ),
           }}
@@ -424,6 +453,21 @@ const Index = () => {
                 onClick={() => handleSnapCallClick(setupHoldingKey)}
                 disabled={false}
                 text="Setup"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Show valid Verification SBTs',
+            description: formatVerificationSBTs(state.verificationSbtMap),
+            button: (
+              <GeneralButton
+                onClick={showVerificationSBTs}
+                disabled={false}
+                text="Query"
               />
             ),
           }}

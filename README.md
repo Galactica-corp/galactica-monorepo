@@ -20,11 +20,11 @@ yarn start
 ## Proof preparation
 
 To generate zk proofs, the snap takes the generator wasm and keys as input. This data is preliminarily provided through uploading a json file to the Snap.
-It can be generated with the script `packages/snap/scripts/proofGenerationPrep.ts`, which can be run with:
+It can be generated with the script `packages/snap/scripts/proofGenerationPrep.ts` that takes the circut name, test input and the circom build folder as input.
 
 ```
 cd packages/snap
-yarn run proofPrep
+yarn run proofPrep --circuitName <name> --circuitsDir <path> --testInput <path>
 ```
 
 You can modify the script to select another proof to prepare.
@@ -53,6 +53,7 @@ If you don't wish to use any of the existing GitHub actions in this repository, 
 ### Testing and Linting
 
 Run `yarn test` to run the tests once.
+Please note that the Snap test generates and verifies an ageProofZkKYC. Therefore it requires having the prover files in `packages/site/public/provers/`. If they are missing you can add them using the `proofGenerationPrep.ts` script as explained above.
 
 Run `yarn lint` to run the linter, or run `yarn lint:fix` to run the linter and fix any automatically fixable issues.
 

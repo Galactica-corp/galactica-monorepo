@@ -16,6 +16,7 @@ export type MetamaskState = {
   info?: string;
   signer?: string;
   proofData?: any;
+  verificationSbtMap: Map<string, any[]>;
 };
 
 const initialState: MetamaskState = {
@@ -24,6 +25,7 @@ const initialState: MetamaskState = {
   info: undefined,
   signer: "Connect",
   proofData: undefined,
+  verificationSbtMap: new Map<string, any[]>()
 };
 
 type MetamaskDispatch = { type: MetamaskActions; payload: any };
@@ -44,6 +46,7 @@ export enum MetamaskActions {
   SetInfo = 'SetInfo',
   SetConnected = 'SetConnected',
   SetProofData = 'SetProofData',
+  SetVerificationSBT = 'SetVerificationSBT',
 }
 
 const reducer: Reducer<MetamaskState, MetamaskDispatch> = (state, action) => {
@@ -82,6 +85,12 @@ const reducer: Reducer<MetamaskState, MetamaskDispatch> = (state, action) => {
       return {
         ...state,
         proofData: action.payload,
+      };
+
+    case MetamaskActions.SetVerificationSBT:
+      return {
+        ...state,
+        verificationSbtMap: action.payload,
       };
 
     default:

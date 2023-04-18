@@ -23,7 +23,7 @@
     "lint:eslint": "eslint . --cache --ext js,ts",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
     "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' --ignore-path .gitignore",
-    "proofPrep": "ts-node src/scripts/proofGenerationPrep.ts",
+    "proofPrep": "ts-node src/scripts/proofGenerationPrep.ts \"$@\"",
     "serve": "mm-snap serve",
     "start": "mm-snap watch",
     "test": "yarn run test:unit",
@@ -31,8 +31,8 @@
   },
   "dependencies": {
     "circomlibjs": "^0.1.7",
-    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#ses-mm-snap",
-    "zkkyc": "git+ssh://git@github.com:Galactica-corp/zkKYC.git#deployment"
+    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap",
+    "zkkyc": "git+ssh://git@github.com:Galactica-corp/zkKYC.git#verificationCheck"
   },
   "devDependencies": {
     "@iden3/binfileutils": "^0.0.11",
@@ -65,6 +65,7 @@
     "eslint-plugin-jsdoc": "^39.2.9",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "ffjavascript": "^0.2.56",
     "js-sha3": "^0.8.0",
     "mocha": "^10.2.0",
     "prettier": "^2.2.1",
@@ -72,6 +73,7 @@
     "rimraf": "^3.0.2",
     "sinon": "^15.0.1",
     "sinon-chai": "^3.7.0",
+    "ts-command-line-args": "^2.4.2",
     "ts-node": "^10.9.1",
     "typescript": "^4.7.4"
   },
