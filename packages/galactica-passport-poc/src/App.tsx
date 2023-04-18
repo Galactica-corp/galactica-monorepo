@@ -1,8 +1,8 @@
 import { FunctionComponent, ReactNode, useContext } from 'react';
 import styled from 'styled-components';
-import { Footer, Header } from './components';
+import { Footer, Header } from '../../galactica-dapp/src/components';
 
-import { GlobalStyle } from './config/theme';
+import { GlobalStyle } from '../../galactica-dapp/src/config/theme';
 import { ToggleThemeContext } from './Root';
 
 const Wrapper = styled.div`

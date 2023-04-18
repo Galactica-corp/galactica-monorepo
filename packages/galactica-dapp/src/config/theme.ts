@@ -70,6 +70,11 @@ export const light: DefaultTheme = {
       alternative: '#b92534',
       muted: '#d73a4919',
     },
+    info: {
+      default: '#3CF528',
+      alternative: '#1F7015',
+      muted: '#8CF082',
+    },
   },
   ...theme,
 };

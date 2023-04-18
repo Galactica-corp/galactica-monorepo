@@ -8,5 +8,5 @@
     "jsx": "preserve"
   },
   "files": ["../../node_modules/@metamask/snaps-types/dist/global.d.ts"],
-  "include": ["src"]
+  "include": ["src", "../galactica-dapp/src/types"]
 }

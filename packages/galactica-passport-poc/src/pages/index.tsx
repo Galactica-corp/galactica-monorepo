@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import styled from 'styled-components';
-import { MetamaskActions, MetaMaskContext } from '../hooks';
+import { MetamaskActions, MetaMaskContext } from '../../../galactica-dapp/src/hooks';
 import {
   connectSnap,
   getSnap,
@@ -22,13 +22,13 @@ import {
   GeneralButton,
   SelectAndImportButton,
   ConnectMMButton,
-} from '../components';
+} from '../../../galactica-dapp/src/components';
 import { BigNumber, ethers } from 'ethers';
-import { processProof, processPublicSignals } from '../utils/proofProcessing';
+import { processProof, processPublicSignals } from '../../../galactica-dapp/src/utils/proofProcessing';
 
-import addresses from '../config/addresses';
-import mockDAppABI from '../config/abi/MockDApp.json';
-import galacticaInstitutionABI from '../config/abi/IGalacticaInstitution.json';
+import addresses from '../../../galactica-dapp/src/config/addresses';
+import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
+import galacticaInstitutionABI from '../../../galactica-dapp/src/config/abi/IGalacticaInstitution.json';
 
 const Container = styled.div`
   display: flex;

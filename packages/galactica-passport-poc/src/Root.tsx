@@ -1,8 +1,8 @@
 import { createContext, FunctionComponent, ReactNode, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 import { getThemePreference, setLocalStorage } from './utils';
-import { dark, light } from './config/theme';
-import { MetaMaskProvider } from './hooks';
+import { dark, light } from '../../galactica-dapp/src/config/theme';
+import { MetaMaskProvider } from '../../galactica-dapp/src/hooks';
 
 export type RootProps = {
   children: ReactNode;
