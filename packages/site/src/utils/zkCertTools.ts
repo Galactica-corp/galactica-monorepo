@@ -1,6 +1,35 @@
 import { ethers, BigNumber, EventFilter } from 'ethers';
 
 import VerificationSbtABI from '../config/abi/IVerificationSBT.json';
+import { getLocalStorage } from './localStorage';
+
+
+
+export class SBT {
+  constructor(
+    public dApp: string,
+    public verifierWrapper: string,
+    public expirationTime: number,
+    public verifierCodehash: string,
+    public encryptedData: string[],
+    public userPubKey: string[],
+    public humanID: string,
+    public providerPubKey: string) {
+  }
+}
+
+export class SBTsPerAddress {
+  // mapping user addresses to SBTs
+  public verificationSBTs: SBT[];
+  public latestBlockChecked: number;
+  public userAddress: string;
+
+  constructor(userAddress: string) {
+    this.latestBlockChecked = 0;
+    this.verificationSBTs = [];
+    this.userAddress = userAddress;
+  }
+}
 
 /**
  * Finds verification SBTs for a user. Searches through logs of created verificationSBTs
@@ -8,7 +37,7 @@ import VerificationSbtABI from '../config/abi/IVerificationSBT.json';
  *
  * @param sbtContractAddr - Address of the verification SBT contract holding the mapping of completed verifications.
  * @param provider - Provider to use to query logs.
- * @param userAddr - Address of the user to find verification SBTs for (default: undefined).
+ * @param userAddr - Address of the user to find verification SBTs for.
  * @param dAppAddr - Address of the dApp the SBT was created for (default: undefined).
  * @param humanID - HumanID of the user the SBT was created for (default: undefined).
  * @param filterExpiration - Whether to filter out expired SBTs (default: false).
@@ -17,11 +46,11 @@ import VerificationSbtABI from '../config/abi/IVerificationSBT.json';
 export async function queryVerificationSBTs(
   sbtContractAddr: string,
   provider: ethers.providers.Web3Provider,
-  userAddr: string | undefined = undefined,
+  userAddr: string,
   dAppAddr: string | undefined = undefined,
   humanID: string | undefined = undefined,
   filterExpiration = false,
-): Promise<Map<string, any>> {
+): Promise<SBT[]> {
   const sbtContract = new ethers.Contract(
     sbtContractAddr,
     VerificationSbtABI.abi,
@@ -30,7 +59,30 @@ export async function queryVerificationSBTs(
 
   const currentBlock = await provider.getBlockNumber();
   const lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
-  const sbtListRes = new Map<string, any>();
+
+  let cachedSBTString = getLocalStorage('cachedVerificationSBTs');
+  let cachedSBTs: SBTsPerAddress[];
+
+  if (cachedSBTString === null) {
+    cachedSBTs = [];
+  }
+  else {
+    cachedSBTs = JSON.parse(cachedSBTString);
+  }
+
+  // find users cached SBTs
+  let userSBTs: SBTsPerAddress = new SBTsPerAddress(userAddr);
+  for (let i of cachedSBTs) {
+    if (i.userAddress === userAddr) {
+      userSBTs = i;
+      // filter out expired SBTs
+      userSBTs.verificationSBTs = userSBTs.verificationSBTs.filter((sbt) => {
+        return sbt.expirationTime > BigInt(lastBlockTime);
+      });
+    }
+    // it might happen that the browser cache contains SBTs that are not in the current blockchain fork
+    // we ignore this because this function is not relevant for security
+  }
 
   // go through all logs adding a verification SBT for the user
   const filter = {
@@ -45,7 +97,7 @@ export async function queryVerificationSBTs(
   console.log(`filter: ${JSON.stringify(filter, null, 2)}}`);
 
   // TODO: add dynamic way to find first block
-  const firstBlock = 680000;
+  const firstBlock = userSBTs.latestBlockChecked;
   const maxBlockInterval = 10000;
 
   // get logs in batches of 10000 blocks because of rpc call size limit
@@ -64,10 +116,9 @@ export async function queryVerificationSBTs(
         continue;
       }
       const loggedDApp = ethers.utils.hexDataSlice(log.topics[1], 12);
-      const loggedUser = ethers.utils.hexDataSlice(log.topics[2], 12);
 
       const sbtInfo = await sbtContract.getVerificationSBTInfo(
-        loggedUser,
+        userAddr,
         loggedDApp,
       );
 
@@ -79,15 +130,23 @@ export async function queryVerificationSBTs(
         continue;
       }
 
-      const previousEntries = sbtListRes.get(loggedDApp);
-      if (previousEntries === undefined) {
-        sbtListRes.set(loggedDApp, [sbtInfo]);
-      } else {
-        previousEntries.push(sbtInfo);
-      }
+      userSBTs.verificationSBTs.push(
+        new SBT(
+          sbtInfo.dApp,
+          sbtInfo.verifierWrapper,
+          sbtInfo.expirationTime,
+          sbtInfo.verifierCodehash,
+          sbtInfo.encryptedData,
+          sbtInfo.userPubKey,
+          sbtInfo.humanID,
+          sbtInfo.providerPubKey,
+      ));
     }
   }
-  return sbtListRes;
+
+  userSBTs.latestBlockChecked = currentBlock;
+
+  return userSBTs.verificationSBTs;
 }
 
 export function formatVerificationSBTs(sbtMap: Map<string, any[]>): string {
