@@ -12,3 +12,9 @@ For more details, check out https://galactica.com/
 - Install the Metamask Flask browser extention (Development version of Metamask): https://metamask.io/flask/
 - As a user: Visit any dApp or website requiring Galactica's zero-knowledge features. There you can connect with Metamask and it will ask you for permission to install this Snap. It is identified with the name of this package on NPM `npm:@galactica-corp/snap`.
 - As a developer: Integrate the galactica snap on your web front-end by using the snapId `npm:@galactica-corp/snap` in the [requestSnaps call](https://docs.metamask.io/guide/snaps-rpc-api.html#unrestricted-methods).
+
+## RPC API
+
+RPC functions specific to the Galactica Snap can be found [the docs folder](docs/rpcAPI.md).
+
+You can also take a look at the example front-end DApp located in [packages/galactica-dapp](../galactica-dapp/).

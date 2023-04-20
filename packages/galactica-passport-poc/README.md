@@ -1,5 +1,14 @@
 # TypeScript Example Snap Front-end
 
+This package provides a demo front-end for the Galactica Network passport. It shows how to interact with the Galactica Metamask Snap by providing the folloing functions:
+- Connect to Metamask and install Galactica Snap
+- Setup wallet holding zkCertificates
+- Manage zkCertificates stored in Metamask (import, export, clear)
+- Create holder commitment to pass to provider for issuing a zkCertificate without being able to link it to an on-chain address
+- Show completed verification SBTs
+- Generate zero-knowledge proof for holding a zkKYC, and being at least 18 years old
+- Submitting the ZKP on-chain to create the verification SBT
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
@@ -9,7 +18,7 @@ In the project directory, you can run:
 ### `yarn start`
 
 Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Open [http://localhost:8001](http://localhost:8001) to view it in the browser.
 
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
