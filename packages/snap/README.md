@@ -17,9 +17,11 @@ More context on Galactica can be found here: https://galactica.com/
 ## Installation
 
 1. Install the Metamask Flask browser extension (Development version of Metamask): https://metamask.io/flask/
-2. Go to any website that provides Galactica services, such as [passport.galactica.com](https://passport.galactica.com). TODO: confirm URL
-3. Connect to Metamask. This will check that you have the current Galactica Snap installed. It is identified with the name of this package on NPM [npm:@galactica-corp/snap](https://www.npmjs.com/package/@galactica-corp/snap).
-4. If the Galactica Snap needs to be (re-)installed, Metamask will ask you to accept the permissions used by the Snap, similar to how app permissions work on Android and iOS.
+2. Import the wallets you are going to use in Metamask.
+3. Go to any website that provides Galactica services, such as [passport.galactica.com](https://passport.galactica.com). TODO: confirm URL
+4. Connect to Metamask. This will check that you have the current Galactica Snap installed. It is identified with the name of this package on NPM [npm:@galactica-corp/snap](https://www.npmjs.com/package/@galactica-corp/snap).
+5. If the Galactica Snap needs to be (re-)installed, Metamask will ask you to accept the permissions used by the Snap, similar to how app permissions work on Android and iOS.
+6. If it was not done by the website automatically, add the Galactica Network in Metamask with the following parameters: TODO
 
 ## Getting started
 ### As a user
@@ -34,11 +36,8 @@ In general, the following steps are performed by a user:
 4. *Proof generation:* To utilize a zkCert, the Galactica Snap can create various zero knowledge proofs. In the process, the Snap informs about the selective disclosures you are going to make publicly and generates the proof. This proof can then be sent by the front-end in a usual smart contract transaction through Metamask.
 
 ### As a developer
--  Integrate the Galactica snap on your web front-end by using the snapId `npm:@galactica-corp/snap` in the [requestSnaps call](https://docs.metamask.io/guide/snaps-rpc-api.html#unrestricted-methods).
+To integrate the Galactica snap on a web front-end by using the snapId `npm:@galactica-corp/snap` in the [requestSnaps call](https://docs.metamask.io/guide/snaps-rpc-api.html#unrestricted-methods).
 
-
-## RPC API
-
-RPC functions specific to the Galactica Snap can be found [the docs folder](docs/rpcAPI.md).
+RPC functions specific to the Galactica Snap can be found in the [JSON RPC API](docs/rpcAPI.md).
 
 You can also take a look at the example front-end DApp located in [packages/galactica-dapp](../galactica-dapp/).
