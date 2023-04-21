@@ -309,12 +309,7 @@ const Index = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const sbts = await queryVerificationSBTs(addresses.verificationSBT, provider, await signer.getAddress());
-      console.log(`Verification SBTs:\n ${JSON.stringify(sbts, null, 2)} `);
-
-
-
-      // console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts)} `);
-
+      console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts)} `);
       dispatch({ type: MetamaskActions.SetVerificationSBT, payload: sbts });
     } catch (e) {
       console.error(e);
@@ -466,7 +461,7 @@ const Index = () => {
         <Card
           content={{
             title: 'Show valid Verification SBTs',
-            description: formatVerificationSBTs(state.verificationSbtMap),
+            description: formatVerificationSBTs(state.verificationSbts),
             button: (
               <GeneralButton
                 onClick={showVerificationSBTs}
