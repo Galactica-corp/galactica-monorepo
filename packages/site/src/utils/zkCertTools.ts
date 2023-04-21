@@ -3,7 +3,6 @@ import { ethers, BigNumber, EventFilter } from 'ethers';
 import VerificationSbtABI from '../config/abi/IVerificationSBT.json';
 import { getLocalStorage, setLocalStorage } from './localStorage';
 
-
 /**
  * Data structure for a verification SBT.
  * Fields should match the VerificationSBTInfo struct in the smart contract.
@@ -17,8 +16,8 @@ export class SBT {
     public encryptedData: string[],
     public userPubKey: string[],
     public humanID: string,
-    public providerPubKey: string) {
-  }
+    public providerPubKey: string,
+  ) {}
 }
 
 /**
@@ -28,8 +27,10 @@ export class SBT {
 export class SBTsPerAddress {
   // users verification SBTs, expired ones are filtered out
   public verificationSBTs: SBT[];
+
   // latest block that was checked for verification SBTs so that the next search can start from there
   public latestBlockChecked: number;
+
   // address of the user (multiple wallets might have been used on the same browser)
   public userAddress: string;
 
@@ -72,7 +73,7 @@ export async function queryVerificationSBTs(
   const currentBlock = await provider.getBlockNumber();
   const lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
 
-  let localStorage = getLocalStorage(LOCAL_STORAGE_KEY_SBT);
+  const localStorage = getLocalStorage(LOCAL_STORAGE_KEY_SBT);
   let cachedSBTsPerAddr: SBTsPerAddress[];
   if (localStorage === null) {
     cachedSBTsPerAddr = [];
@@ -91,13 +92,15 @@ export async function queryVerificationSBTs(
 
   let userSBTs: SBTsPerAddress;
   if (userIndex === -1) {
-    userSBTs = new SBTsPerAddress(userAddr)
+    userSBTs = new SBTsPerAddress(userAddr);
     cachedSBTsPerAddr.push(userSBTs);
     userIndex = cachedSBTsPerAddr.length - 1;
   } else {
     userSBTs = cachedSBTsPerAddr[userIndex];
     // filter out SBTs that expired since the last time they were checked
-    userSBTs.verificationSBTs = userSBTs.verificationSBTs.filter((sbt) => sbt.expirationTime > lastBlockTime);
+    userSBTs.verificationSBTs = userSBTs.verificationSBTs.filter(
+      (sbt) => sbt.expirationTime > lastBlockTime,
+    );
     // It might happen that the browser cache contains SBTs that are not in the blockchain anymore because of a fork.
     // We ignore this because it is unlikeluy and it is not relevant for security because it only impacts the user's browser.
   }
@@ -146,16 +149,18 @@ export async function queryVerificationSBTs(
         continue; // skip expired SBT
       }
 
-      userSBTs.verificationSBTs.push(new SBT(
-        sbtInfo.dApp,
-        sbtInfo.verifierWrapper,
-        BigNumber.from(sbtInfo.expirationTime).toNumber(),
-        sbtInfo.verifierCodehash,
-        sbtInfo.encryptedData,
-        sbtInfo.userPubKey,
-        sbtInfo.humanID,
-        sbtInfo.providerPubKey,
-      ));
+      userSBTs.verificationSBTs.push(
+        new SBT(
+          sbtInfo.dApp,
+          sbtInfo.verifierWrapper,
+          BigNumber.from(sbtInfo.expirationTime).toNumber(),
+          sbtInfo.verifierCodehash,
+          sbtInfo.encryptedData,
+          sbtInfo.userPubKey,
+          sbtInfo.humanID,
+          sbtInfo.providerPubKey,
+        ),
+      );
     }
   }
 
@@ -166,7 +171,6 @@ export async function queryVerificationSBTs(
 
   return userSBTs.verificationSBTs;
 }
-
 
 export function formatVerificationSBTs(sbts: SBT[]): string {
   let res = '';
@@ -182,7 +186,7 @@ export function formatVerificationSBTs(sbts: SBT[]): string {
     res += `  provider ${JSON.stringify(sbt.providerPubKey)}\n`;
     /* eslint-enable @typescript-eslint/restrict-template-expressions */
     res += `\n`;
-    
+
     count += 1;
   }
   return res;
