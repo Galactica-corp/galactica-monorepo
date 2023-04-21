@@ -4,6 +4,19 @@
   "sourceName": "contracts/interfaces/IVerificationSBT.sol",
   "abi": [
     {
+      "inputs": [],
+      "name": "deploymentBlock",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "",
+          "type": "uint64"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",

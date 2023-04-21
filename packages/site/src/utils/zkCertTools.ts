@@ -113,8 +113,9 @@ export async function queryVerificationSBTs(
     ],
   };
 
-  // TODO: add block of deployment to verification SBT contract so that new users do not have to search from genesis
-  const firstBlock = userSBTs.latestBlockChecked;
+  // query block of verification SBT contract deployment so that new users do not have to search from genesis
+  const earliestBlock = await sbtContract.deploymentBlock();
+  const firstBlock = Math.max(userSBTs.latestBlockChecked, earliestBlock);
   const maxBlockInterval = 10000;
 
   // get logs in batches of 10000 blocks because of rpc call size limit
@@ -178,9 +179,10 @@ export function formatVerificationSBTs(sbts: SBT[]): string {
     ).toDateString()}\n`;
     /* eslint-disable @typescript-eslint/restrict-template-expressions */
     res += `  humanID ${sbt.humanID}\n`;
-    res += `  provider ${sbt.providerPubKey}\n`;
+    res += `  provider ${JSON.stringify(sbt.providerPubKey)}\n`;
     /* eslint-enable @typescript-eslint/restrict-template-expressions */
-
+    res += `\n`;
+    
     count += 1;
   }
   return res;
