@@ -6,7 +6,7 @@ import { groth16 } from 'snarkjs';
 
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
-import ageProofVKey from '../../site/public/provers/ageProofZkKYC.vkey.json';
+import ageProofVKey from '../../galactica-dapp/public/provers/ageProofZkKYC.vkey.json';
 import { processRpcRequest } from '../src';
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from '../src/rpcEnums';
 import { RpcArgs, ZkCertProof } from '../src/types';

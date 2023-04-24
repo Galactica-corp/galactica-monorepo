@@ -49,7 +49,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       await snap.request({
         method: 'snap_notify',
         params: {
-          type: 'native', // not using 'inApp' bacause it is hidden in the MM UI
+          type: 'native', // not using 'inApp' because it is hidden in the MM UI
           message: `Connect to the Metamask address holding zkCerts.`,
         },
       });
@@ -86,10 +86,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
-      const genParams = request.params as GenZkKycRequestParams;
+      const genParams = request.params as GenZkKycRequestParams<any>;
       // TODO: check input validity
 
-      const proofConfirmDioalog = [
+      const proofConfirmDialog = [
         heading('Generate zkCert proof?'),
         text(`Do you want to prove your identity to ${origin}?`),
         text(
@@ -99,13 +99,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
       ];
 
       // TODO: generalize disclosure of inputs to any kind of inputs
-      proofConfirmDioalog.push(
-        text(`It discloses the following information publically:`),
+      proofConfirmDialog.push(
+        text(`It discloses the following information publicly:`),
         text(`That you are at least ${genParams.input.ageThreshold} years old`),
         text(`The date of generating this proof`),
       );
 
-      proofConfirmDioalog.push(
+      proofConfirmDialog.push(
         divider(),
         text(
           `The following private inputs are processed by the zkSNARK and stay hidden: zkKYC ID, personal details that are not listed above`,
@@ -116,7 +116,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         method: 'snap_dialog',
         params: {
           type: 'Confirmation',
-          content: panel(proofConfirmDioalog),
+          content: panel(proofConfirmDialog),
         },
       });
 

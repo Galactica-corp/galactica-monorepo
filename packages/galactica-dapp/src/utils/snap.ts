@@ -1,4 +1,5 @@
 import { RpcMethods } from '../../../snap/src/rpcEnums';
+import { ZkKYCAgeProofInput } from '../../../snap/src/types';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { getCurrentBlockTime } from './metamask';
@@ -78,11 +79,12 @@ export const generateProof = async (
     (await getCurrentBlockTime()) + estimatedProofCreationDuration;
   const dateNow = new Date(currentTimestamp * 1000);
 
-  const publicInput = {
+  const proofInput: ZkKYCAgeProofInput = {
     // general zkKYC inputs
     currentTime: currentTimestamp,
     dAppAddress,
     investigationInstitutionPubKey,
+    // the zkKYC itself is not needed here. It is filled by the snap for user privacy.
 
     // age proof specific inputs
     currentYear: dateNow.getUTCFullYear().toString(),
@@ -90,7 +92,7 @@ export const generateProof = async (
     currentDay: dateNow.getUTCDate().toString(),
     ageThreshold: '18',
   };
-  console.log('publicInput', publicInput);
+  console.log('publicInput', proofInput);
 
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
@@ -99,7 +101,7 @@ export const generateProof = async (
       request: {
         method: RpcMethods.GenZkKycProof,
         params: {
-          input: publicInput,
+          input: proofInput,
           requirements: {
             zkCertStandard: 'gip69',
           },
