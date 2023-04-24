@@ -75,18 +75,18 @@ export const generateProof = async (
   // expected time for between pressing the generation button and the verification happening on-chain
   const estimatedProofCreationDuration = 20;
 
-  const currentTimestamp =
+  const expectedValidationTimestamp =
     (await getCurrentBlockTime()) + estimatedProofCreationDuration;
-  const dateNow = new Date(currentTimestamp * 1000);
+  const dateNow = new Date(expectedValidationTimestamp * 1000);
 
   const proofInput: ZkKYCAgeProofInput = {
     // general zkKYC inputs
-    currentTime: currentTimestamp,
+    currentTime: expectedValidationTimestamp,
     dAppAddress,
     investigationInstitutionPubKey,
     // the zkKYC itself is not needed here. It is filled by the snap for user privacy.
 
-    // age proof specific inputs
+    // specific inputs to prove that the holder is at least 18 years old
     currentYear: dateNow.getUTCFullYear().toString(),
     currentMonth: (dateNow.getUTCMonth() + 1).toString(),
     currentDay: dateNow.getUTCDate().toString(),

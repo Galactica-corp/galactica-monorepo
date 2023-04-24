@@ -179,7 +179,7 @@ const Index = () => {
       const signer = provider.getSigner();
       // get contracts
       const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
-      // fetch institution pubkey from chain
+      // fetch institution pubkey from chain because it is needed as proof input
       const institutionContract = new ethers.Contract(addresses.galacticaInstitution, galacticaInstitutionABI.abi, signer);
       const institutionPubKey: [string, string] = [
         BigNumber.from(await institutionContract.institutionPubKey(0)).toString(),
@@ -205,6 +205,7 @@ const Index = () => {
       console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
 
       console.log(`Sending proof for on-chain verification...`);
+      // this is the on-chain function that requires a ZKP
       let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
       console.log("tx", tx);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
