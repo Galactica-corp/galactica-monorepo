@@ -22,7 +22,7 @@ import { GenZkKycRequestParams } from '../types';
 async function testModified(
   circuitName: string,
   circuitDir: string,
-  params: GenZkKycRequestParams,
+  params: GenZkKycRequestParams<any>,
 ) {
   const { proof, publicSignals } = await groth16.fullProveMemory(
     params.input,
@@ -56,7 +56,7 @@ async function createCircuitData(
   circuitName: string,
   circuitDir: string,
   input: any,
-): Promise<GenZkKycRequestParams> {
+): Promise<GenZkKycRequestParams<any>> {
   // read the wasm file asa array.
   // It becomes a Uint8Array later, but is passed as ordinary number array through the RPC
   const wasm = Uint8Array.from(
@@ -77,7 +77,7 @@ async function createCircuitData(
     zkeySections.push(await readSection(fdZKey, sectionsZKey, i));
   }
 
-  const params: GenZkKycRequestParams = {
+  const params: GenZkKycRequestParams<any> = {
     input,
     // dummy values
     wasm,
@@ -99,7 +99,7 @@ async function createCircuitData(
  */
 async function writeCircuitDataToJSON(
   filePath: string,
-  data: GenZkKycRequestParams,
+  data: GenZkKycRequestParams<any>,
 ) {
   // format data for writing to file (othewise arrays look like objects)
   // using base64 encoding for Uint8Arrays to minimize file size while still being able to send it though the RPC in JSON format
@@ -197,7 +197,7 @@ async function main() {
         type: String,
         optional: true,
         description:
-          '(optional) Path to the output file to write the result to. Defaults to packages/site/public/provers/<name>.json',
+          '(optional) Path to the output file to write the result to. Defaults to packages/galactica-dapp/public/provers/<name>.json',
         defaultValue: undefined,
       },
       help: {
@@ -221,7 +221,7 @@ async function main() {
   );
 
   if (!args.output) {
-    args.output = `${__dirname}/../../../site/public/provers/${args.circuitName}.json`;
+    args.output = `${__dirname}/../../../galactica-dapp/public/provers/${args.circuitName}.json`;
   }
   if (!fs.existsSync(args.testInput)) {
     throw new Error(`Test input file ${args.testInput} does not exist.`);

@@ -28,7 +28,7 @@ yarn start
 To generate zk proofs, the snap takes the generator wasm and keys as input. This data is preliminarily provided through uploading a json file to the Snap.
 It can be generated with the script `packages/snap/scripts/proofGenerationPrep.ts` that takes the circut name, test input and the circom build folder as input.
 
-```
+```shell
 cd packages/snap
 yarn run proofPrep --circuitName <name> --circuitsDir <path> --testInput <path>
 ```
