@@ -66,7 +66,7 @@ Asks the user for approval.
 
 #### Parameters
 
-None
+- `holderAddr` - `string`, the address of the wallet to use as holder.
 
 #### Returns
 
