@@ -1,6 +1,7 @@
 # TypeScript Example Snap Front-end
 
 This package provides a demo front-end for the Galactica Network passport. It shows how to interact with the Galactica Metamask Snap by providing the folloing functions:
+
 - Connect to Metamask and install Galactica Snap
 - Setup wallet holding zkCertificates
 - Manage zkCertificates stored in Metamask (import, export, clear)

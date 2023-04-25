@@ -166,13 +166,13 @@ describe('Test rpc handler function', function () {
       ethereumProvider.rpcStubs.personal_sign.resolves(testSigForEdDSA);
 
       const result = await processRpcRequest(
-        buildRPCRequest(RpcMethods.SetupHoldingKey),
+        buildRPCRequest(RpcMethods.SetupHoldingKey, {
+          holderAddr: testAddress,
+        }),
         snapProvider,
         ethereumProvider,
       );
 
-      expect(ethereumProvider.rpcStubs.eth_requestAccounts).to.have.been
-        .calledOnce;
       expect(ethereumProvider.rpcStubs.personal_sign).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
         operation: 'update',

@@ -50,6 +50,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       const permissions = await ethereum.request({
         method: 'wallet_requestPermissions',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         params: [{ eth_accounts: {} }],
       });
       console.log(`${JSON.stringify(permissions, null, 2)}`);
@@ -61,7 +62,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: [msgToSign, setupParams.holderAddr],
       })) as string;
 
-      if (state.holders.find((candidate) => candidate.address === setupParams.holderAddr)) {
+      if (
+        state.holders.find(
+          (candidate) => candidate.address === setupParams.holderAddr,
+        )
+      ) {
         response = true;
       } else {
         state.holders.push({
@@ -95,7 +100,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
       // TODO: generalize disclosure of inputs to any kind of inputs
       proofConfirmDialog.push(
         text(`It discloses the following information publicly:`),
-        text(`That you are at least ${genParams.input.ageThreshold} years old`),
+        text(
+          `That you are at least ${
+            genParams.input.ageThreshold as number
+          } years old`,
+        ),
         text(`The date of generating this proof`),
       );
 
@@ -124,7 +133,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
         genParams.requirements,
       );
 
-
       const searchedHolder = state.holders.find(
         (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
       );
@@ -135,11 +143,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
       } else {
         holder = searchedHolder;
       }
-      
+
       // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
       const searchedZkCert = state.zkCerts.find(
         (cert) => cert.leafHash === zkCert.leafHash,
-        );
+      );
 
       if (searchedZkCert === undefined) {
         throw new Error(

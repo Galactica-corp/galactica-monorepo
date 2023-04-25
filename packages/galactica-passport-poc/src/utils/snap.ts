@@ -1,9 +1,15 @@
+import { defaultSnapOrigin } from '../../../galactica-dapp/src/config';
 import { RpcMethods } from '../../../snap/src/rpcEnums';
 import { ExportRequestParams } from '../../../snap/src/types';
-import { defaultSnapOrigin } from '../../../galactica-dapp/src/config';
 
 // reuse the functions from the galactica-dapp
-export { getSnap, getSnaps, connectSnap, generateProof, isLocalSnap } from '../../../galactica-dapp/src/utils/snap';
+export {
+  getSnap,
+  getSnaps,
+  connectSnap,
+  generateProof,
+  isLocalSnap,
+} from '../../../galactica-dapp/src/utils/snap';
 
 /**
  * Invoke the methods from the example snap.

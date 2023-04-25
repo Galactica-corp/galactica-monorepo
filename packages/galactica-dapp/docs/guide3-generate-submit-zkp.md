@@ -60,27 +60,37 @@ export const generateProof = async (
 ```
 
 On the users request, this function can be called and filled with parameters like this:
+
 ```typescript
 // get prover data (separately loaded because the large json should not slow down initial site loading)
-const proverText = await fetch("/provers/ageProofZkKYC.json");
+const proverText = await fetch('/provers/ageProofZkKYC.json');
 const parsedFile = JSON.parse(await proverText.text());
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
 
 // fetch institution pubkey from chain because it is needed as proof input
-const institutionContract = new ethers.Contract(addresses.galacticaInstitution, galacticaInstitutionABI.abi, signer);
+const institutionContract = new ethers.Contract(
+  addresses.galacticaInstitution,
+  galacticaInstitutionABI.abi,
+  signer,
+);
 const institutionPubKey: [string, string] = [
   BigNumber.from(await institutionContract.institutionPubKey(0)).toString(),
   BigNumber.from(await institutionContract.institutionPubKey(1)).toString(),
 ];
 
-const res: any = await generateProof(parsedFile, addresses.mockDApp, institutionPubKey);
+const res: any = await generateProof(
+  parsedFile,
+  addresses.mockDApp,
+  institutionPubKey,
+);
 ```
 
 This sends the proof request to the Galactica Snap. The user can view what data is disclosed by the proof and accept or reject it. The generation is automatically rejected, if the user has not setup and imported a matching zkCert, in this example a `gip69` zkKYC.
 
 If the request fails, it throws an error. It might also happen that the prover is unable to find a proof for the given input. The error then contains a backtrace to the Circom component that fails to satisfy an assertion. This component can give a hint on what condition fails. This could be for example:
+
 - Incorrect inputs
 - The user is less than 18 years old, according to the zkKYC.
 - Input values having the wrong format. Be careful when converting between Circom field elements and EVM variables.
@@ -113,24 +123,30 @@ export function processProof(proof: any) {
 export function processPublicSignals(publicSignals: any) {
   return publicSignals.map((value: any) => fromDecToHex(value, true));
 }
-``` 
+```
 
 To simplify the user flow, we recommend to directly submit the proof after it has been generated:
+
 ```typescript
 // get contract to send proof to
-const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
+const exampleDAppSC = new ethers.Contract(
+  addresses.mockDApp,
+  mockDAppABI.abi,
+  signer,
+);
 
-// 
+//
 let [a, b, c] = processProof(res.proof);
 let publicInputs = processPublicSignals(res.publicSignals);
 
 // this is the on-chain function that requires a ZKP
 let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
 const receipt = await tx.wait();
-``` 
+```
 
 On success, most smart contracts mint a verification soul-bound token (SBT) for the user. These usually unlock using the smart contract until the SBT expires. So users do not have to spend time generating a ZKP for every transaction.
 
 The on-chain verification can also fail. The error often reveals which requirement failed. If the verification of the ZKP fails, make sure to check the following:
+
 - Is the prover (wasm and zkey) compatible with the verifier in the smart contract? Both are generated from the circom compilation and need to match.
 - Is the timing correct? ZKPs containing the current time have a validity limit.

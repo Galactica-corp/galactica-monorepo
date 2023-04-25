@@ -1,5 +1,11 @@
-import { GenZkKycRequestParams, HolderData, RpcArgs, ZkKYCAgeProofInput, ProverData } from '../src/types';
 import proverData from '../../galactica-dapp/public/provers/ageProofZkKYC.json';
+import {
+  GenZkKycRequestParams,
+  HolderData,
+  RpcArgs,
+  ZkKYCAgeProofInput,
+  ProverData,
+} from '../src/types';
 
 const prover = proverData as ProverData;
 

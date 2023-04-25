@@ -2,15 +2,17 @@
 
 This repository provides a Metamaks Snap for Galactica Network.
 It adds Galactica specific features, such as
+
 - Self custody wallet for zero knowledge certificates (zkCerts) providing self sovereign identity
 - Generating zero knowledge proofs for selective disclosures (combining compliance with privacy).
-You can find the snap package [here](packages/snap/). General documentation on Metamask Snaps can be found [here](https://docs.metamask.io/snaps/how-to/develop-a-snap/#table-of-contents).
+  You can find the snap package [here](packages/snap/). General documentation on Metamask Snaps can be found [here](https://docs.metamask.io/snaps/how-to/develop-a-snap/#table-of-contents).
 
 Furthermore the repository includes front-ends demonstrating how to interact with the Galactica Snap to build a DApp or management portal:
+
 - [galactica-dapp](packages/galactica-dapp/): simple front-end to connect, generate and submit zero knowledge proofs and check completed verifications
 - [galactica-passport-poc](packages/galactica-passport-poc/): full demo for zkCert setup, management and proof generation
 
-For more information, visit https://galactica.com/ 
+For more information, visit https://galactica.com/
 
 ## Snaps is pre-release software
 

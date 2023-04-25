@@ -8,6 +8,7 @@ Verification SBTs are minted by smart contracts after successful verification an
 Verification SBTs can also include the user's dApp specific human ID. It is a unique identifier hash derived from a DApp address and personal details in the zkKYC (name, birthday, passport ID). It can be used for human centric voting and reputation across multiple wallets of the user. Because it also depends on the DApp address the user can prevent cross referencing it with other verification SBTs by using carefully separated wallets.
 
 The verification SBT of a specific wallet and DApp combination can be obtained in this way:
+
 ```typescript
 const sbtContract = new ethers.Contract(
   sbtContractAddr,
@@ -21,6 +22,7 @@ const sbtInfo = await sbtContract.getVerificationSBTInfo(
 ```
 
 Alternatively, if you want to find all verification SBTs of a user or a DApp, you can search through the event log using the following filter:
+
 ```typescript
 // go through all logs adding a verification SBT for the user
 const filter = {
@@ -38,5 +40,6 @@ const createStakeLogs = await sbtContract.queryFilter(
   0,
   currentBlock,
 );
-``` 
+```
+
 Because most RPC endpoints limit the range of blocks to find logs, we provided a search function that loops through the history and caches results to make following queries faster. You can find it [here](https://github.com/Galactica-corp/galactica-snap/blob/ceda66ed60c6249a6239e1b789dc38a9344037d5/packages/site/src/utils/zkCertTools.ts#L59).
