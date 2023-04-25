@@ -11,6 +11,7 @@ import {
   GenZkKycRequestParams,
   HolderData,
   ImportRequestParams,
+  SetupHolderParams,
   SnapRpcProcessor,
 } from './types';
 import {
@@ -45,33 +46,26 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
   switch (request.method) {
     case RpcMethods.SetupHoldingKey: {
-      // inform user how setup works
-      await snap.request({
-        method: 'snap_notify',
-        params: {
-          type: 'native', // not using 'inApp' because it is hidden in the MM UI
-          message: `Connect to the Metamask address holding zkCerts.`,
-        },
+      const setupParams = request.params as SetupHolderParams;
+
+      const permissions = await ethereum.request({
+        method: 'wallet_requestPermissions',
+        params: [{ eth_accounts: {} }],
       });
+      console.log(`${JSON.stringify(permissions, null, 2)}`);
 
-      const newAccounts = (await ethereum.request({
-        method: 'eth_requestAccounts',
-      })) as string[];
-      const newHolder = newAccounts[0];
-
-      // TODO: Do we need the 0x prefix?
       const msgToSign = bytesToHex(stringToBytes(eddsaKeyGenerationMessage));
 
       const sign = (await ethereum.request({
         method: 'personal_sign',
-        params: [msgToSign, newHolder],
+        params: [msgToSign, setupParams.holderAddr],
       })) as string;
 
-      if (state.holders.find((candidate) => candidate.address === newHolder)) {
+      if (state.holders.find((candidate) => candidate.address === setupParams.holderAddr)) {
         response = true;
       } else {
         state.holders.push({
-          address: newHolder,
+          address: setupParams.holderAddr,
           holderCommitment: await calculateHolderCommitment(sign),
           eddsaKey: sign,
         });
@@ -130,6 +124,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         genParams.requirements,
       );
 
+
       const searchedHolder = state.holders.find(
         (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
       );
@@ -140,11 +135,12 @@ export const processRpcRequest: SnapRpcProcessor = async (
       } else {
         holder = searchedHolder;
       }
-
+      
       // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
       const searchedZkCert = state.zkCerts.find(
         (cert) => cert.leafHash === zkCert.leafHash,
-      );
+        );
+
       if (searchedZkCert === undefined) {
         throw new Error(
           `zkCert with leafHash ${zkCert.leafHash} could not be found.`,

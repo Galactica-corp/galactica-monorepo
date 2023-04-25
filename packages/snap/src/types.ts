@@ -39,6 +39,13 @@ export type GenZkKycRequestParams<ProofInputType> = {
 };
 
 /**
+ * Parameter for holder setup.
+ */
+export type SetupHolderParams = {
+  holderAddr: string;
+};
+
+/**
  * Parameter for zkCert import.
  */
 export type ImportRequestParams = {

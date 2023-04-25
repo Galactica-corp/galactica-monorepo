@@ -16,6 +16,7 @@ export const setupHoldingKey = async () => {
       snapId: defaultSnapOrigin,
       request: {
         method: RpcMethods.SetupHoldingKey,
+        params: { holderAddr: window.ethereum.selectedAddress },
       },
     },
   });
