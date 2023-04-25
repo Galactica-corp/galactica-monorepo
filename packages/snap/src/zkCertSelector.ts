@@ -73,7 +73,7 @@ export async function selectZkCert(
       const answer = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Prompt',
+          type: 'prompt',
           content: panel([
             heading(`zkCertificate Selection`),
             ...options,

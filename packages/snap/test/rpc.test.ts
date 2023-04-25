@@ -23,10 +23,10 @@ chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 /**
- * Hepler to build RPC requests for testing.
+ * Helper to build RPC requests for testing.
  *
  * @param method - The method to be called.
- * @param params - Paramerters to be passed, if any.
+ * @param params - Parameters to be passed, if any.
  * @returns The RPC request object.
  */
 function buildRPCRequest(
@@ -283,10 +283,10 @@ describe('Test rpc handler function', function () {
       /* eslint-enable jest/no-done-callback, no-invalid-this */
 
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Confirmation'))
+        .withArgs(match.has('type', 'confirmation'))
         .resolves(true);
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Prompt'))
+        .withArgs(match.has('type', 'prompt'))
         .resolves(1); // The text entered by the user
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -314,10 +314,10 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCert, zkCert2],
         });
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Confirmation'))
+        .withArgs(match.has('type', 'confirmation'))
         .resolves(true);
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Prompt'))
+        .withArgs(match.has('type', 'prompt'))
         .resolves(null); // user clicked reject or entered nothing before pressing accept
 
       const callPromise = processRpcRequest(
@@ -342,10 +342,10 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCert, zkCert2],
         });
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Confirmation'))
+        .withArgs(match.has('type', 'confirmation'))
         .resolves(true);
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Prompt'))
+        .withArgs(match.has('type', 'prompt'))
         .onFirstCall()
         .resolves('garbage') // no valid number
         .onSecondCall()
@@ -400,7 +400,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCert, zkCert2],
         });
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Confirmation'))
+        .withArgs(match.has('type', 'confirmation'))
         .resolves(true);
 
       const res: any = await processRpcRequest(
@@ -458,7 +458,7 @@ describe('Test rpc handler function', function () {
       expect(hashes0).to.deep.equal(hashes1);
     });
 
-    it('should change when the storage chanes', async function () {
+    it('should change when the storage changes', async function () {
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
         .onFirstCall()

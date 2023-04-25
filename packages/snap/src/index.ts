@@ -31,7 +31,7 @@ import { selectZkCert } from './zkCertSelector';
  * @param ethereum - The Ethereum provider for interacting with the ordinary Metamask.
  * @returns `null` if the request succeeded.
  * @throws If the request method is not valid for this snap.
- * @throws If the `snap_confirm` call failed.
+ * @throws If the `snap_dialog` call failed.
  */
 export const processRpcRequest: SnapRpcProcessor = async (
   { origin, request },
@@ -115,7 +115,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel(proofConfirmDialog),
         },
       });
@@ -164,7 +164,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Clear zkCert and holder storage?'),
             text(
@@ -189,7 +189,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Import zkCertificate?'),
             text(`Do you want to import the following zkCert? (provided through ${origin})
@@ -211,7 +211,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Export zkCert?'),
             text(
@@ -241,7 +241,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Provide holder commitment?'),
             text(
@@ -261,7 +261,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Provide zkCert Storage metadata?'),
             text(
@@ -297,7 +297,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
  * @param args.request - A validated JSON-RPC request object.
  * @returns The result of the request as string. TODO: Use more strict type.
  * @throws If the request method is not valid for this snap.
- * @throws If the `snap_confirm` call failed.
+ * @throws If the `snap_dialog` call failed.
  */
 export const onRpcRequest: OnRpcRequestHandler = async ({
   origin,
