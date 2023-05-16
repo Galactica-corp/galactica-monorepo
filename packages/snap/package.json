@@ -32,7 +32,7 @@
   "dependencies": {
     "circomlibjs": "^0.1.7",
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap",
-    "zkkyc": "git+ssh://git@github.com:Galactica-corp/zkKYC.git#verificationCheck"
+    "@galactica-corp/zkkyc": "^0.5.0"
   },
   "devDependencies": {
     "@iden3/binfileutils": "^0.0.11",
