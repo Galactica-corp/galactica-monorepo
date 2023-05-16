@@ -1,7 +1,11 @@
+import {
+  ProviderData,
+  MerkleProof,
+  ZkCertStandard,
+} from '@galactica-corp/zkkyc';
 import { MetaMaskInpageProvider } from '@metamask/providers';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { JsonRpcRequest } from '@metamask/types';
-import { ProviderData, MerkleProof, ZkCertStandard } from 'zkkyc';
 
 import { ZkKYCContent } from './zkCertTypes';
 

@@ -1,7 +1,7 @@
+import { MerkleProof, ZKCertificate } from '@galactica-corp/zkkyc';
 import { Buffer } from 'buffer';
 import { buildBn128, buildBls12381 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
-import { MerkleProof, ZKCertificate } from 'zkkyc';
 
 import { GenZkKycRequestParams, ZkCertProof, HolderData } from './types';
 

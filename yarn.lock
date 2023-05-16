@@ -3338,6 +3338,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@galactica-corp/snap@workspace:packages/snap"
   dependencies:
+    "@galactica-corp/zkkyc": ^0.5.0
     "@iden3/binfileutils": ^0.0.11
     "@lavamoat/allow-scripts": ^2.0.3
     "@metamask/auto-changelog": ^3.1.0
@@ -3381,9 +3382,28 @@ __metadata:
     ts-command-line-args: ^2.4.2
     ts-node: ^10.9.1
     typescript: ^5.0.4
-    zkkyc: "git+ssh://git@github.com:Galactica-corp/zkKYC.git#verificationCheck"
   languageName: unknown
   linkType: soft
+
+"@galactica-corp/zkkyc@npm:^0.5.0":
+  version: 0.5.1
+  resolution: "@galactica-corp/zkkyc@npm:0.5.1"
+  dependencies:
+    "@openzeppelin/contracts": ^4.0.0
+    "@openzeppelin/contracts-upgradeable": ^4.7.3
+    "@typechain/ethers-v5": ^10.1.1
+    "@typechain/truffle-v5": ^8.0.2
+    "@typechain/web3-v1": ^6.0.2
+    bignumber.js: ^9.0.1
+    circom2: ^0.2.13
+    circomlib: ^2.0.5
+    circomlibjs: ^0.1.7
+    ethers: ^5.7.2
+    hardhat-circom: ^3.3.2
+    keccak256: ^1.0.6
+  checksum: 5d93e8888e6c874558064931780de9da04a0e7e5f57dffe6178adcde0de4a4a0af2c4e3a022556141131da1b41919b7f839e05e29ffee0db54a9f2e81da640b8
+  languageName: node
+  linkType: hard
 
 "@gar/promisify@npm:^1.1.3":
   version: 1.1.3
@@ -3714,16 +3734,6 @@ __metadata:
     fastfile: 0.0.20
     ffjavascript: ^0.2.48
   checksum: ca61db1325c7e038c6bd723c856eff5f2c82c76394db09d3350ef4f5b7525e3c9ab1f7429900ff5d3e9d26c5970bf5900e6126ccb5c5caa597c16a47336a6be8
-  languageName: node
-  linkType: hard
-
-"@iden3/binfileutils@npm:0.0.8, @iden3/binfileutils@npm:^0.0.8":
-  version: 0.0.8
-  resolution: "@iden3/binfileutils@npm:0.0.8"
-  dependencies:
-    fastfile: 0.0.19
-    ffjavascript: ^0.2.30
-  checksum: b74fc5b99ab88aae041593fea18f605fa921c03f2e52ef3bccd0f5faa36ef396c4c7484cd1167d0412bc2a4b1b69ff29e1fe955761d48dd49edba95761c3aa2d
   languageName: node
   linkType: hard
 
@@ -5824,7 +5834,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/minimatch@npm:*, @types/minimatch@npm:^3.0.3":
+"@types/minimatch@npm:*":
   version: 3.0.5
   resolution: "@types/minimatch@npm:3.0.5"
   checksum: c41d136f67231c3131cf1d4ca0b06687f4a322918a3a5adddc87ce90ed9dbd175a3610adee36b106ae68c0b92c637c35e02b58c8a56c424f71d30993ea220b92
@@ -7637,15 +7647,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"blake2b-wasm@git+https://github.com/jbaylina/blake2b-wasm.git":
-  version: 2.1.0
-  resolution: "blake2b-wasm@https://github.com/jbaylina/blake2b-wasm.git#commit=0d5f024b212429c7f50a7f533aa3a2406b5b42b3"
-  dependencies:
-    nanoassert: ^1.0.0
-  checksum: 6e768fe5d7de20806f9fed6c155ef6289ceaea78988c12a6827c72331089c190ccb7f82ea34b2c1afb3894d39d5f2976b9d013d2fd31f93666c45ad34d75393e
-  languageName: node
-  linkType: hard
-
 "blake2b-wasm@npm:^2.4.0":
   version: 2.4.0
   resolution: "blake2b-wasm@npm:2.4.0"
@@ -8311,7 +8312,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^4.2.0, chai@npm:^4.3.4, chai@npm:^4.3.7":
+"chai@npm:^4.2.0, chai@npm:^4.3.7":
   version: 4.3.7
   resolution: "chai@npm:4.3.7"
   dependencies:
@@ -8480,7 +8481,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"circom2@npm:^0.2.10, circom2@npm:^0.2.5":
+"circom2@npm:^0.2.10":
   version: 0.2.10
   resolution: "circom2@npm:0.2.10"
   dependencies:
@@ -8490,6 +8491,19 @@ __metadata:
   bin:
     circom2: cli.js
   checksum: e1d878333824d9d18f08d518c55c35444cbe2723e9e9575b6b80374c3c87fe91e2afc278b8037ea33646a238e881bb1392a3ee9a7a02baa3f0d11819cab3002f
+  languageName: node
+  linkType: hard
+
+"circom2@npm:^0.2.13":
+  version: 0.2.13
+  resolution: "circom2@npm:0.2.13"
+  dependencies:
+    "@wasmer/wasi": ^0.12.0
+    is-typed-array: ^1.1.8
+    path-browserify: ^1.0.1
+  bin:
+    circom2: cli.js
+  checksum: 7ecf521cd6c308230db1c61c16305cb97d4d3acf620c5d33f5a4deed595b6e7aba07849ebb0db3fc3084ff481d9b4160db6ee93a646b50578cccf99d094354e4
   languageName: node
   linkType: hard
 
@@ -8522,18 +8536,6 @@ __metadata:
   bin:
     calcwit: calcwit.js
   checksum: e4b1fee983c9d7f09ea7e8b564f40c2a5e038967a1913b49fd7a1e9ac97ff6214f7950d22b02b35dc58e51ed56e6977aaf89bde842de2d50301b9e6e6a66adc2
-  languageName: node
-  linkType: hard
-
-"circom_runtime@npm:0.1.13":
-  version: 0.1.13
-  resolution: "circom_runtime@npm:0.1.13"
-  dependencies:
-    ffjavascript: 0.2.35
-    fnv-plus: ^1.3.1
-  bin:
-    calcwit: calcwit.js
-  checksum: 7bab6c3a0587a6c7e2c19d87e0ef412cf678babeeecb33f8ea843e8d961da0eb842271b3ebb449e76226698a991a9954c8bc28a361865b26d1dee10f16461416
   languageName: node
   linkType: hard
 
@@ -10169,13 +10171,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ensure-posix-path@npm:^1.1.0":
-  version: 1.1.1
-  resolution: "ensure-posix-path@npm:1.1.1"
-  checksum: 90ac69f48a08003abe6f194b75bad78c3320762bd193a063eb76cd8f696be6a34e1524f16435eeee09ccbe3a719a7fb76409dead3ccedd10e32d906ff050457b
-  languageName: node
-  linkType: hard
-
 "entities@npm:^2.0.0":
   version: 2.2.0
   resolution: "entities@npm:2.2.0"
@@ -11316,13 +11311,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fastfile@npm:0.0.19":
-  version: 0.0.19
-  resolution: "fastfile@npm:0.0.19"
-  checksum: 6179bdd7c21be9882294dae66103795c099594098b51958bcf08a4545c91387321b43511730d0542a5a9ed8c5ec9069c065e065fd67255453ac900a23895dac1
-  languageName: node
-  linkType: hard
-
 "fastfile@npm:0.0.20":
   version: 0.0.20
   resolution: "fastfile@npm:0.0.20"
@@ -11387,19 +11375,6 @@ __metadata:
   bin:
     buildzqfield: src/buildzqfield.js
   checksum: d1e5f11837a6270c389be5b695f88b0c6b2337631434d32859e32873c0bd34f401799fba0e640bd2c282a4706cf5a92f386da60650ad40515b7adbc5c774d644
-  languageName: node
-  linkType: hard
-
-"ffiasm@npm:^0.1.1":
-  version: 0.1.4
-  resolution: "ffiasm@npm:0.1.4"
-  dependencies:
-    big-integer: ^1.6.48
-    ejs: ^3.0.1
-    yargs: ^15.3.1
-  bin:
-    buildzqfield: src/buildzqfield.js
-  checksum: 59949612d993c80e63074afd9ae751911d607046d29473f4d8a83bc74fa028d00721d927cdb27cbe78da3e59a3fda075e77b644b3ed4342b65bc26ec6d2a6777
   languageName: node
   linkType: hard
 
@@ -12626,7 +12601,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^7.0.0, glob@npm:^7.1.2, glob@npm:^7.1.6, glob@npm:^7.2.3":
+"glob@npm:^7.1.2, glob@npm:^7.1.6, glob@npm:^7.2.3":
   version: 7.2.3
   resolution: "glob@npm:7.2.3"
   dependencies:
@@ -12882,7 +12857,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat-circom@npm:^3.3.1":
+"hardhat-circom@npm:^3.3.2":
   version: 3.3.2
   resolution: "hardhat-circom@npm:3.3.2"
   dependencies:
@@ -13417,13 +13392,6 @@ __metadata:
     has: ^1.0.3
     side-channel: ^1.0.4
   checksum: 1944f92e981e47aebc98a88ff0db579fd90543d937806104d0b96557b10c1f170c51fb777b97740a8b6ddeec585fca8c39ae99fd08a8e058dfc8ab70937238bf
-  languageName: node
-  linkType: hard
-
-"interpret@npm:^1.0.0":
-  version: 1.4.0
-  resolution: "interpret@npm:1.4.0"
-  checksum: 2e5f51268b5941e4a17e4ef0575bc91ed0ab5f8515e3cf77486f7c14d13f3010df9c0959f37063dcc96e78d12dc6b0bb1b9e111cdfe69771f4656d2993d36155
   languageName: node
   linkType: hard
 
@@ -14957,16 +14925,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"matcher-collection@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "matcher-collection@npm:2.0.1"
-  dependencies:
-    "@types/minimatch": ^3.0.3
-    minimatch: ^3.0.2
-  checksum: f6d4f94bdcf773f9cbd4b7b10199a7632c434833a4c01bfb29c373e118647bb3b748aa3f20c70d6c3a715915fcc44ad4a77a9f8d5f059f3a0d15c984c0acc83d
-  languageName: node
-  linkType: hard
-
 "md5-file@npm:^5.0.0":
   version: 5.0.0
   resolution: "md5-file@npm:5.0.0"
@@ -15241,7 +15199,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:3.1.2, minimatch@npm:^3.0.2, minimatch@npm:^3.0.4, minimatch@npm:^3.0.5, minimatch@npm:^3.1.1, minimatch@npm:^3.1.2":
+"minimatch@npm:3.1.2, minimatch@npm:^3.0.4, minimatch@npm:^3.0.5, minimatch@npm:^3.1.1, minimatch@npm:^3.1.2":
   version: 3.1.2
   resolution: "minimatch@npm:3.1.2"
   dependencies:
@@ -15558,13 +15516,6 @@ __metadata:
   version: 0.0.8
   resolution: "mute-stream@npm:0.0.8"
   checksum: ff48d251fc3f827e5b1206cda0ffdaec885e56057ee86a3155e1951bc940fd5f33531774b1cc8414d7668c10a8907f863f6561875ee6e8768931a62121a531a1
-  languageName: node
-  linkType: hard
-
-"nanoassert@npm:^1.0.0":
-  version: 1.1.0
-  resolution: "nanoassert@npm:1.1.0"
-  checksum: f360fe639db8edc422de9f5a8a7d384ba9c11e9c6fac149f7ad3b0a94e4ec9d5aa44ce55b3e4c7682658efad792604fc96c336b0e80a3590744104ba58af80c7
   languageName: node
   linkType: hard
 
@@ -17372,18 +17323,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"r1csfile@npm:0.0.32":
-  version: 0.0.32
-  resolution: "r1csfile@npm:0.0.32"
-  dependencies:
-    "@iden3/bigarray": 0.0.2
-    "@iden3/binfileutils": 0.0.8
-    fastfile: 0.0.19
-    ffjavascript: 0.2.35
-  checksum: 9ed82928daee3556c992d699875d0e05ac7a04ee9c42aa864d65e539f019a249f146441d264abb0ba0949df1be502cbe2678f336c21c4e4f13a12949fd0152eb
-  languageName: node
-  linkType: hard
-
 "r1csfile@npm:0.0.41":
   version: 0.0.41
   resolution: "r1csfile@npm:0.0.41"
@@ -17657,22 +17596,6 @@ __metadata:
   dependencies:
     picomatch: ^2.2.1
   checksum: 1ced032e6e45670b6d7352d71d21ce7edf7b9b928494dcaba6f11fba63180d9da6cd7061ebc34175ffda6ff529f481818c962952004d273178acd70f7059b320
-  languageName: node
-  linkType: hard
-
-"readline@npm:^1.3.0":
-  version: 1.3.0
-  resolution: "readline@npm:1.3.0"
-  checksum: dfaf8e6ac20408ea00d650e95f7bb47f77c4c62dd12ed7fb51731ee84532a2f3675fcdc4cab4923dc1eef227520a2e082a093215190907758bea9f585b19438e
-  languageName: node
-  linkType: hard
-
-"rechoir@npm:^0.6.2":
-  version: 0.6.2
-  resolution: "rechoir@npm:0.6.2"
-  dependencies:
-    resolve: ^1.1.6
-  checksum: fe76bf9c21875ac16e235defedd7cbd34f333c02a92546142b7911a0f7c7059d2e16f441fe6fb9ae203f459c05a31b2bcf26202896d89e390eda7514d5d2702b
   languageName: node
   linkType: hard
 
@@ -17998,7 +17921,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@npm:^1.1.6, resolve@npm:^1.19.0":
+"resolve@npm:^1.19.0":
   version: 1.22.1
   resolution: "resolve@npm:1.22.1"
   dependencies:
@@ -18037,7 +17960,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"resolve@patch:resolve@^1.1.6#~builtin<compat/resolve>, resolve@patch:resolve@^1.19.0#~builtin<compat/resolve>":
+"resolve@patch:resolve@^1.19.0#~builtin<compat/resolve>":
   version: 1.22.1
   resolution: "resolve@patch:resolve@npm%3A1.22.1#~builtin<compat/resolve>::version=1.22.1&hash=07638b"
   dependencies:
@@ -18555,19 +18478,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shelljs@npm:^0.8.4":
-  version: 0.8.5
-  resolution: "shelljs@npm:0.8.5"
-  dependencies:
-    glob: ^7.0.0
-    interpret: ^1.0.0
-    rechoir: ^0.6.2
-  bin:
-    shjs: bin/shjs
-  checksum: 7babc46f732a98f4c054ec1f048b55b9149b98aa2da32f6cf9844c434b43c6251efebd6eec120937bd0999e13811ebd45efe17410edb3ca938f82f9381302748
-  languageName: node
-  linkType: hard
-
 "shimmer@npm:^1.2.1":
   version: 1.2.1
   resolution: "shimmer@npm:1.2.1"
@@ -18700,27 +18610,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snarkit2@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "snarkit2@npm:0.2.0"
-  dependencies:
-    "@iden3/binfileutils": ^0.0.8
-    chai: ^4.3.4
-    commander: ^7.2.0
-    ffiasm: ^0.1.1
-    ffjavascript: ^0.2.35
-    r1csfile: 0.0.16
-    shelljs: ^0.8.4
-    snarkjs: ^0.3.60
-    systeminformation: ^5.6.10
-    tmp-promise: ^3.0.2
-    walk-sync: ^2.2.0
-  bin:
-    snarkit2: dist/cli.js
-  checksum: bad701f7208ca91cf10626fb0662746ecfdbe79f871b3f47014600c0a40d14bd8ace1e544b77c97bb323b2d369607d9dba472d25b7a3db0516786833b05cfb28
-  languageName: node
-  linkType: hard
-
 "snarkjs@https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap":
   version: 0.5.0
   resolution: "snarkjs@https://github.com/Galactica-corp/snarkjs-ses.git#commit=0b13bd83166e8508e86ea6fe8c1693c731f6f8bd"
@@ -18738,24 +18627,6 @@ __metadata:
   bin:
     snarkjs: build/cli.cjs
   checksum: 86f9f01aeba05f252c6f89fb3e8e5bc3fdaf85fc44b32897b92bbb056a8b174d600f8cc867b0c59d12a60060e37c48bfe40646724fc0e95f308a225aea18371c
-  languageName: node
-  linkType: hard
-
-"snarkjs@npm:^0.3.60":
-  version: 0.3.60
-  resolution: "snarkjs@npm:0.3.60"
-  dependencies:
-    "@iden3/binfileutils": 0.0.8
-    blake2b-wasm: "git+https://github.com/jbaylina/blake2b-wasm.git"
-    circom_runtime: 0.1.13
-    fastfile: 0.0.19
-    ffjavascript: 0.2.35
-    logplease: ^1.2.15
-    r1csfile: 0.0.32
-    readline: ^1.3.0
-  bin:
-    snarkjs: build/cli.cjs
-  checksum: 3067338ef7653070e640f5c70e61e30998cf2b999b369d3d1ecb0d6640640b1509c170a72ef8f2336a97ccc379874d191d9b840ee127f94e58372af1f0675adf
   languageName: node
   linkType: hard
 
@@ -19474,16 +19345,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"systeminformation@npm:^5.6.10":
-  version: 5.15.1
-  resolution: "systeminformation@npm:5.15.1"
-  bin:
-    systeminformation: lib/cli.js
-  checksum: fa0bb6b0475e45348b0b0f44f987be140152c9a726aa74ea590eb5df48e89b1809d68bc6780cc8e7b95c9a77fc3fc14187e1e83bbfe054c8060fc3291c789dab
-  conditions: (os=darwin | os=linux | os=win32 | os=freebsd | os=openbsd | os=netbsd | os=sunos | os=android)
-  languageName: node
-  linkType: hard
-
 "table-layout@npm:^1.0.2":
   version: 1.0.2
   resolution: "table-layout@npm:1.0.2"
@@ -19666,15 +19527,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tmp-promise@npm:^3.0.2":
-  version: 3.0.3
-  resolution: "tmp-promise@npm:3.0.3"
-  dependencies:
-    tmp: ^0.2.0
-  checksum: f854f5307dcee6455927ec3da9398f139897faf715c5c6dcee6d9471ae85136983ea06662eba2edf2533bdcb0fca66d16648e79e14381e30c7fb20be9c1aa62c
-  languageName: node
-  linkType: hard
-
 "tmp@npm:0.1.0":
   version: 0.1.0
   resolution: "tmp@npm:0.1.0"
@@ -19693,7 +19545,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tmp@npm:^0.2.0, tmp@npm:^0.2.1":
+"tmp@npm:^0.2.1":
   version: 0.2.1
   resolution: "tmp@npm:0.2.1"
   dependencies:
@@ -20404,18 +20256,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"walk-sync@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "walk-sync@npm:2.2.0"
-  dependencies:
-    "@types/minimatch": ^3.0.3
-    ensure-posix-path: ^1.1.0
-    matcher-collection: ^2.0.0
-    minimatch: ^3.0.4
-  checksum: e579b574f769977a739607d4feba40ded8931ff641f26964ea5a10a280d648d1c1aca260e9ab60288f16d69500ff33687d3ba5fa4dbd427090123189f0f0c9b6
-  languageName: node
-  linkType: hard
-
 "wasmbuilder@npm:0.0.10":
   version: 0.0.10
   resolution: "wasmbuilder@npm:0.0.10"
@@ -20995,26 +20835,5 @@ __metadata:
     read: ^1.0.7
     strip-ansi: ^5.2.0
   checksum: e1e60a859b21af5897501b3e12ff2c811b39f7b376e32ee8de0056bcfe7e64609c08dc265e33d7b6c20f81d07f987eb1be1dad8780473461a437828828995a79
-  languageName: node
-  linkType: hard
-
-"zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#verificationCheck":
-  version: 1.0.0
-  resolution: "zkkyc@git+ssh://git@github.com:Galactica-corp/zkKYC.git#commit=7fee8fc45c89777c7be6f36cc1864e667a843883"
-  dependencies:
-    "@openzeppelin/contracts": ^4.0.0
-    "@openzeppelin/contracts-upgradeable": ^4.7.3
-    "@typechain/ethers-v5": ^10.1.1
-    "@typechain/truffle-v5": ^8.0.2
-    "@typechain/web3-v1": ^6.0.2
-    bignumber.js: ^9.0.1
-    circom2: ^0.2.5
-    circomlib: ^2.0.5
-    circomlibjs: ^0.1.7
-    ethers: ^5.7.2
-    hardhat-circom: ^3.3.1
-    keccak256: ^1.0.6
-    snarkit2: ^0.2.0
-  checksum: fc652bd505d5f1efcd1448114377b790e628902d15119a2a7a90bf563abe332b3b2d8e6321098c886202db942d026346bbc008d19ad6f2cf9dba05f4d9544453
   languageName: node
   linkType: hard

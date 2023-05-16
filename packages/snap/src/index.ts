@@ -1,7 +1,7 @@
+import { eddsaKeyGenerationMessage } from '@galactica-corp/zkkyc';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { stringToBytes, bytesToHex } from '@metamask/utils';
-import { eddsaKeyGenerationMessage } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
 import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';

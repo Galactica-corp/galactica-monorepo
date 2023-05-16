@@ -1,6 +1,6 @@
+import { createHolderCommitment, ZkCertStandard } from '@galactica-corp/zkkyc';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
-import { createHolderCommitment, ZkCertStandard } from 'zkkyc';
 
 import { ZkCert } from './types';
 
