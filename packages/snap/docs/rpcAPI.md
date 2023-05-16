@@ -82,6 +82,7 @@ await window.ethereum.request({
     snapId: defaultSnapOrigin,
     request: {
       method: 'setupHoldingKey',
+      params: { holderAddr: window.ethereum.selectedAddress },
     },
   },
 });
