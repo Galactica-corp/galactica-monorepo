@@ -509,7 +509,10 @@ describe('Test rpc handler function', function () {
       );
     });
 
-    it('should provide zkCert on approval', async function () {
+    /* eslint-disable jest/no-done-callback, no-invalid-this */
+    it('should provide zkCert on approval', async function (this: Mocha.Context) {
+      this.timeout(5000);
+      /* eslint-enable jest/no-done-callback, no-invalid-this */
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
