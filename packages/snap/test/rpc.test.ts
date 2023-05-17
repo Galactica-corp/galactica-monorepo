@@ -9,7 +9,7 @@ import zkCert2 from '../../../test/zkCert2.json';
 import ageProofVKey from '../../galactica-dapp/public/provers/ageProofZkKYC.vkey.json';
 import { processRpcRequest } from '../src';
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from '../src/rpcEnums';
-import { RpcArgs, ZkCertProof } from '../src/types';
+import { ExportRequestParams, RpcArgs, ZkCertProof } from '../src/types';
 import {
   defaultRPCRequest,
   testAddress,
@@ -489,5 +489,47 @@ describe('Test rpc handler function', function () {
     });
   });
 
-  // TODO: describe.skip("Export zkCert", function () { });
+  describe('Export zkCert', function () {
+    it('should throw error if not confirmed', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+
+      const params: ExportRequestParams = {
+        zkCertStandard: 'gip69',
+      };
+
+      const clearPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.ClearStorage, params),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      await expect(clearPromise).to.be.rejectedWith(
+        Error,
+        RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    it('should provide zkCert on approval', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const params: ExportRequestParams = {
+        zkCertStandard: 'gip69',
+      };
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ExportZkCert, params),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(result).to.be.eq(zkCert);
+    });
+  });
 });

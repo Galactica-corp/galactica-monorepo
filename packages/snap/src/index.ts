@@ -231,7 +231,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const zkCertForExport = await selectZkCert(snap, state.zkCerts, {
         zkCertStandard: exportParams.zkCertStandard,
       });
-      return zkCertForExport;
+      const zkCertStorageData = state.zkCerts.find(
+        (cert) => cert.leafHash === zkCertForExport.leafHash,
+      );
+
+      return zkCertStorageData;
     }
 
     case RpcMethods.GetHolderCommitment: {
