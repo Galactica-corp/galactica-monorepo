@@ -11,8 +11,7 @@ const addresses = {
   ageProofZkKYC,
   mockDApp,
   verificationSBT,
-  galacticaInstitutions: galacticaInstitutions,
+  galacticaInstitutions,
 };
 
 export default addresses;
-
