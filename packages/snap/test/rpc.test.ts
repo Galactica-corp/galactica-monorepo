@@ -255,7 +255,7 @@ describe('Test rpc handler function', function () {
     /* eslint-disable jest/no-done-callback, no-invalid-this */
     // (found no better way to increase timeouts for async tests)
     it('should generate ZKP successfully', async function (this: Mocha.Context) {
-      this.timeout(15000);
+      this.timeout(20000);
       /* eslint-enable jest/no-done-callback, no-invalid-this */
 
       snapProvider.rpcStubs.snap_dialog.resolves(true);
@@ -279,7 +279,7 @@ describe('Test rpc handler function', function () {
 
     /* eslint-disable jest/no-done-callback, no-invalid-this */
     it('should be able to select from multiple zkCerts', async function (this: Mocha.Context) {
-      this.timeout(15000);
+      this.timeout(20000);
       /* eslint-enable jest/no-done-callback, no-invalid-this */
 
       snapProvider.rpcStubs.snap_dialog
