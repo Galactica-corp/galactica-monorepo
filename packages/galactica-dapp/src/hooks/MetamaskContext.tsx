@@ -7,7 +7,7 @@ import {
   useReducer,
 } from 'react';
 import { Snap } from '../types';
-import { isFlask, getSnap } from '../utils';
+import { isFlask, getSnap, SBT } from '../utils';
 
 export type MetamaskState = {
   isFlask: boolean;
@@ -16,7 +16,7 @@ export type MetamaskState = {
   info?: string;
   signer?: string;
   proofData?: any;
-  verificationSbtMap: Map<string, any[]>;
+  verificationSbts: SBT[];
 };
 
 const initialState: MetamaskState = {
@@ -25,7 +25,7 @@ const initialState: MetamaskState = {
   info: undefined,
   signer: "Connect",
   proofData: undefined,
-  verificationSbtMap: new Map<string, any[]>()
+  verificationSbts: [],
 };
 
 type MetamaskDispatch = { type: MetamaskActions; payload: any };
@@ -90,7 +90,7 @@ const reducer: Reducer<MetamaskState, MetamaskDispatch> = (state, action) => {
     case MetamaskActions.SetVerificationSBT:
       return {
         ...state,
-        verificationSbtMap: action.payload,
+        verificationSbts: action.payload,
       };
 
     default:
