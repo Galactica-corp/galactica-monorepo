@@ -331,7 +331,7 @@ const Index = () => {
         <Card
           content={{
             title: 'Show valid Verification SBTs',
-            description: formatVerificationSBTs(state.verificationSbtMap),
+            description: formatVerificationSBTs(state.verificationSbts),
             button: (
               <GeneralButton
                 onClick={showVerificationSBTs}
