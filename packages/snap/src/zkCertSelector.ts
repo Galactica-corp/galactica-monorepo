@@ -1,7 +1,7 @@
+import { ZKCertificate } from '@galactica-corp/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
-import { ZKCertificate } from 'zkkyc';
 
 import { RpcResponseErr } from './rpcEnums';
 import { ZkCert, ZkCertRequirements } from './types';
@@ -73,7 +73,7 @@ export async function selectZkCert(
       const answer = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Prompt',
+          type: 'prompt',
           content: panel([
             heading(`zkCertificate Selection`),
             ...options,

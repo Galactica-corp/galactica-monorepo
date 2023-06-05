@@ -1,16 +1,24 @@
-# @metamask/template-snap-monorepo
+# Galactica Snap
 
-This repository demonstrates how to develop a snap with TypeScript. For detailed instructions, see [the MetaMask documentation](https://docs.metamask.io/guide/snaps.html#serving-a-snap-to-your-local-environment).
+This repository provides a Metamaks Snap for Galactica Network.
+It adds Galactica specific features, such as
 
-MetaMask Snaps is a system that allows anyone to safely expand the capabilities of MetaMask. A _snap_ is a program that we run in an isolated environment that can customize the wallet experience.
+- Self custody wallet for zero knowledge certificates (zkCerts) providing self sovereign identity
+- Generating zero knowledge proofs for selective disclosures (combining compliance with privacy).
+  You can find the snap package [here](packages/snap/). General documentation on Metamask Snaps can be found [here](https://docs.metamask.io/snaps/how-to/develop-a-snap/#table-of-contents).
+
+Furthermore the repository includes front-ends demonstrating how to interact with the Galactica Snap to build a DApp or management portal:
+
+- [galactica-dapp](packages/galactica-dapp/): simple front-end to connect, generate and submit zero knowledge proofs and check completed verifications
+- [galactica-passport-poc](packages/galactica-passport-poc/): full demo for zkCert setup, management and proof generation
+
+For more information, visit https://galactica.com/
 
 ## Snaps is pre-release software
 
-To interact with (your) Snaps, you will need to install [MetaMask Flask](https://metamask.io/flask/), a canary distribution for developers that provides access to upcoming features.
+To interact with the Galactica Snap, you will need to install [MetaMask Flask](https://metamask.io/flask/), a canary distribution for developers that provides access to upcoming features.
 
 ## Getting Started
-
-Clone the template-snap repository [using this template](https://github.com/MetaMask/template-snap-monorepo/generate) and setup the development environment:
 
 ```shell
 yarn install
@@ -22,7 +30,7 @@ yarn start
 To generate zk proofs, the snap takes the generator wasm and keys as input. This data is preliminarily provided through uploading a json file to the Snap.
 It can be generated with the script `packages/snap/scripts/proofGenerationPrep.ts` that takes the circut name, test input and the circom build folder as input.
 
-```
+```shell
 cd packages/snap
 yarn run proofPrep --circuitName <name> --circuitsDir <path> --testInput <path>
 ```
@@ -31,7 +39,7 @@ You can modify the script to select another proof to prepare.
 
 ## Usage
 
-1. Open http://localhost:8000/
+1. Open http://localhost:8001/
 2. Connect to Metamask Flask. This also installs the Snap. (redo after compiling a new Snap version)
 3. Setup holder account and connect Snap to Metamask wallet
 4. Export holder commitment
@@ -39,14 +47,6 @@ You can modify the script to select another proof to prepare.
 6. Add Merkle tree proof form `npx hardhat run scripts/merkleTreeGenerator.ts` to zkKYC json
 7. Import zkKYC certificate in Snap
 8. Generate zkKYC + age proof
-
-## Cloning
-
-This repository contains GitHub Actions that you may find useful, see `.github/workflows` and [Releasing & Publishing](https://github.com/MetaMask/template-snap-monorepo/edit/main/README.md#releasing--publishing) below for more information.
-
-Note that the `action-publish-relase.yml` workflow contains a step that publishes the frontend of this snap (contained in the `public/` directory) to GitHub pages. If you do not want to publish the frontend to GitHub pages, simply remove the step named "Publish to GitHub Pages" in that workflow.
-
-If you don't wish to use any of the existing GitHub actions in this repository, simply delete the `.github/workflows` directory.
 
 ## Contributing
 
@@ -56,52 +56,3 @@ Run `yarn test` to run the tests once.
 Please note that the Snap test generates and verifies an ageProofZkKYC. Therefore it requires having the prover files in `packages/site/public/provers/`. If they are missing you can add them using the `proofGenerationPrep.ts` script as explained above.
 
 Run `yarn lint` to run the linter, or run `yarn lint:fix` to run the linter and fix any automatically fixable issues.
-
-### Releasing & Publishing
-
-The project follows the same release process as the other libraries in the MetaMask organization. The GitHub Actions [`action-create-release-pr`](https://github.com/MetaMask/action-create-release-pr) and [`action-publish-release`](https://github.com/MetaMask/action-publish-release) are used to automate the release process; see those repositories for more information about how they work.
-
-1. Choose a release version.
-
-- The release version should be chosen according to SemVer. Analyze the changes to see whether they include any breaking changes, new features, or deprecations, then choose the appropriate SemVer version. See [the SemVer specification](https://semver.org/) for more information.
-
-2. If this release is backporting changes onto a previous release, then ensure there is a major version branch for that version (e.g. `1.x` for a `v1` backport release).
-
-- The major version branch should be set to the most recent release with that major version. For example, when backporting a `v1.0.2` release, you'd want to ensure there was a `1.x` branch that was set to the `v1.0.1` tag.
-
-3. Trigger the [`workflow_dispatch`](https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch) event [manually](https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow) for the `Create Release Pull Request` action to create the release PR.
-
-- For a backport release, the base branch should be the major version branch that you ensured existed in step 2. For a normal release, the base branch should be the main branch for that repository (which should be the default value).
-- This should trigger the [`action-create-release-pr`](https://github.com/MetaMask/action-create-release-pr) workflow to create the release PR.
-
-4. Update the changelog to move each change entry into the appropriate change category ([See here](https://keepachangelog.com/en/1.0.0/#types) for the full list of change categories, and the correct ordering), and edit them to be more easily understood by users of the package.
-
-- Generally any changes that don't affect consumers of the package (e.g. lockfile changes or development environment changes) are omitted. Exceptions may be made for changes that might be of interest despite not having an effect upon the published package (e.g. major test improvements, security improvements, improved documentation, etc.).
-- Try to explain each change in terms that users of the package would understand (e.g. avoid referencing internal variables/concepts).
-- Consolidate related changes into one change entry if it makes it easier to explain.
-- Run `yarn auto-changelog validate --rc` to check that the changelog is correctly formatted.
-
-5. Review and QA the release.
-
-- If changes are made to the base branch, the release branch will need to be updated with these changes and review/QA will need to restart again. As such, it's probably best to avoid merging other PRs into the base branch while review is underway.
-
-6. Squash & Merge the release.
-
-- This should trigger the [`action-publish-release`](https://github.com/MetaMask/action-publish-release) workflow to tag the final release commit and publish the release on GitHub.
-
-7. Publish the release on npm.
-
-- Be very careful to use a clean local environment to publish the release, and follow exactly the same steps used during CI.
-- Use `npm publish --dry-run` to examine the release contents to ensure the correct files are included. Compare to previous releases if necessary (e.g. using `https://unpkg.com/browse/[package name]@[package version]/`).
-- Once you are confident the release contents are correct, publish the release using `npm publish`.
-
-## Notes
-
-- Babel is used for transpiling TypeScript to JavaScript, so when building with the CLI,
-  `transpilationMode` must be set to `localOnly` (default) or `localAndDeps`.
-- For the global `wallet` type to work, you have to add the following to your `tsconfig.json`:
-  ```json
-  {
-    "files": ["./node_modules/@metamask/snap-types/global.d.ts"]
-  }
-  ```

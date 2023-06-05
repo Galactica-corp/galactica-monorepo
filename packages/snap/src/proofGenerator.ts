@@ -1,7 +1,7 @@
+import { MerkleProof, ZKCertificate } from '@galactica-corp/zkkyc';
 import { Buffer } from 'buffer';
 import { buildBn128, buildBls12381 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
-import { MerkleProof, ZKCertificate } from 'zkkyc';
 
 import { GenZkKycRequestParams, ZkCertProof, HolderData } from './types';
 
@@ -14,7 +14,7 @@ import { GenZkKycRequestParams, ZkCertProof, HolderData } from './types';
  * @param merkleProof - Merkle proof of the zkCert in the zkCert registry.
  */
 export const generateZkKycProof = async (
-  params: GenZkKycRequestParams,
+  params: GenZkKycRequestParams<any>,
   zkCert: ZKCertificate,
   holder: HolderData,
   merkleProof: MerkleProof,
@@ -87,8 +87,8 @@ export const generateZkKycProof = async (
  * @returns Prepared GenZkKycRequestParams.
  */
 async function preprocessInput(
-  params: GenZkKycRequestParams,
-): Promise<GenZkKycRequestParams> {
+  params: GenZkKycRequestParams<any>,
+): Promise<GenZkKycRequestParams<any>> {
   // Somehow we need to convert them to Uint8Array to avoid an error inside snarkjs.
   params.wasm = Uint8Array.from(Buffer.from(params.wasm, 'base64'));
 

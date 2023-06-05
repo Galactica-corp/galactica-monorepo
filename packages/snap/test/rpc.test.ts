@@ -6,10 +6,10 @@ import { groth16 } from 'snarkjs';
 
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
-import ageProofVKey from '../../site/public/provers/ageProofZkKYC.vkey.json';
+import ageProofVKey from '../../galactica-dapp/public/provers/ageProofZkKYC.vkey.json';
 import { processRpcRequest } from '../src';
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from '../src/rpcEnums';
-import { RpcArgs, ZkCertProof } from '../src/types';
+import { ExportRequestParams, RpcArgs, ZkCertProof } from '../src/types';
 import {
   defaultRPCRequest,
   testAddress,
@@ -23,10 +23,10 @@ chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 /**
- * Hepler to build RPC requests for testing.
+ * Helper to build RPC requests for testing.
  *
  * @param method - The method to be called.
- * @param params - Paramerters to be passed, if any.
+ * @param params - Parameters to be passed, if any.
  * @returns The RPC request object.
  */
 function buildRPCRequest(
@@ -166,13 +166,13 @@ describe('Test rpc handler function', function () {
       ethereumProvider.rpcStubs.personal_sign.resolves(testSigForEdDSA);
 
       const result = await processRpcRequest(
-        buildRPCRequest(RpcMethods.SetupHoldingKey),
+        buildRPCRequest(RpcMethods.SetupHoldingKey, {
+          holderAddr: testAddress,
+        }),
         snapProvider,
         ethereumProvider,
       );
 
-      expect(ethereumProvider.rpcStubs.eth_requestAccounts).to.have.been
-        .calledOnce;
       expect(ethereumProvider.rpcStubs.personal_sign).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
         operation: 'update',
@@ -283,10 +283,10 @@ describe('Test rpc handler function', function () {
       /* eslint-enable jest/no-done-callback, no-invalid-this */
 
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Confirmation'))
+        .withArgs(match.has('type', 'confirmation'))
         .resolves(true);
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Prompt'))
+        .withArgs(match.has('type', 'prompt'))
         .resolves(1); // The text entered by the user
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -314,10 +314,10 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCert, zkCert2],
         });
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Confirmation'))
+        .withArgs(match.has('type', 'confirmation'))
         .resolves(true);
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Prompt'))
+        .withArgs(match.has('type', 'prompt'))
         .resolves(null); // user clicked reject or entered nothing before pressing accept
 
       const callPromise = processRpcRequest(
@@ -342,10 +342,10 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCert, zkCert2],
         });
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Confirmation'))
+        .withArgs(match.has('type', 'confirmation'))
         .resolves(true);
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Prompt'))
+        .withArgs(match.has('type', 'prompt'))
         .onFirstCall()
         .resolves('garbage') // no valid number
         .onSecondCall()
@@ -400,7 +400,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCert, zkCert2],
         });
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'Confirmation'))
+        .withArgs(match.has('type', 'confirmation'))
         .resolves(true);
 
       const res: any = await processRpcRequest(
@@ -458,7 +458,7 @@ describe('Test rpc handler function', function () {
       expect(hashes0).to.deep.equal(hashes1);
     });
 
-    it('should change when the storage chanes', async function () {
+    it('should change when the storage changes', async function () {
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
         .onFirstCall()
@@ -489,5 +489,50 @@ describe('Test rpc handler function', function () {
     });
   });
 
-  // TODO: describe.skip("Export zkCert", function () { });
+  describe('Export zkCert', function () {
+    it('should throw error if not confirmed', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+
+      const params: ExportRequestParams = {
+        zkCertStandard: 'gip69',
+      };
+
+      const clearPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.ClearStorage, params),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      await expect(clearPromise).to.be.rejectedWith(
+        Error,
+        RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    /* eslint-disable jest/no-done-callback, no-invalid-this */
+    it('should provide zkCert on approval', async function (this: Mocha.Context) {
+      this.timeout(5000);
+      /* eslint-enable jest/no-done-callback, no-invalid-this */
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const params: ExportRequestParams = {
+        zkCertStandard: 'gip69',
+      };
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ExportZkCert, params),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(result).to.be.eq(zkCert);
+    });
+  });
 });

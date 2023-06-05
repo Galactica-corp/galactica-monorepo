@@ -5,7 +5,7 @@ import { MetaMaskInpageProvider } from '@metamask/providers';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { stub } from 'sinon';
 
-class ProviderMock implements SnapsGlobalObject {
+class ProviderMock {
   public readonly registerRpcMessageHandler = stub();
 
   public readonly requestStub = stub();
@@ -20,7 +20,7 @@ class ProviderMock implements SnapsGlobalObject {
    */
   public async request(
     args: Parameters<SnapsGlobalObject['request']>[0],
-  ): ReturnType<SnapsGlobalObject['request']> {
+  ): Promise<unknown> {
     const { method, params = [] } = args;
     if (Object.hasOwnProperty.call(this.rpcStubs, method)) {
       // eslint-disable-next-line
@@ -38,7 +38,6 @@ class SnapMock extends ProviderMock {
 
   /* eslint-disable @typescript-eslint/naming-convention */
   public readonly rpcStubs = {
-    snap_confirm: stub(),
     snap_notify: stub(),
     snap_dialog: stub(),
     snap_getBip44Entropy: stub(),

@@ -1,7 +1,11 @@
+import {
+  ProviderData,
+  MerkleProof,
+  ZkCertStandard,
+} from '@galactica-corp/zkkyc';
 import { MetaMaskInpageProvider } from '@metamask/providers';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { JsonRpcRequest } from '@metamask/types';
-import { ProviderData, MerkleProof, ZkCertStandard } from 'zkkyc';
 
 import { ZkKYCContent } from './zkCertTypes';
 
@@ -16,35 +20,33 @@ export type SnapRpcProcessor = (
   ethereum: MetaMaskInpageProvider,
 ) => Promise<unknown>;
 
-// requirements on the zk proof
+// requirements on the type of zkCert that is used as proof input
 export type ZkCertRequirements = {
-  // identifier of the zkCert standard (e.g. zkKYC, zkDiploma, zkGymMembership, ...)
+  // identifier of the zkCert standard (e.g. gip69 for zkKYC)
   zkCertStandard: string;
 };
 
 /**
  * Parameter for requests to generate a zkKYC proof.
  */
-export type GenZkKycRequestParams = {
-  // public inputs that need to be proven
-  input: {
-    // time to check against the expiration date
-    currentTime: number;
-    // institution pubkey for eventual fraud investigations
-    investigationInstitutionPubKey: [string, string];
-    // dApp address to prove the ZKP to
-    dAppAddress: string;
-
-    // TODO: adjust depending on ZKP type
-    currentYear: string;
-    currentMonth: string;
-    currentDay: string;
-    ageThreshold: string;
-  };
+export type GenZkKycRequestParams<ProofInputType> = {
+  // proof inputs that are passed in addition to the zkCert data
+  // Which of these become public proof inputs is defined in the ZK circuit, which is compiled into the WASM.
+  input: ProofInputType;
   requirements: ZkCertRequirements;
+
+  // Prover code in web assembly that will be used to generate the proof in the Snap.
   wasm: any;
+  // Corresponding parameters from the zkey file (SNARK trusted setup ceremony).
   zkeyHeader: any;
   zkeySections: any[];
+};
+
+/**
+ * Parameter for holder setup.
+ */
+export type SetupHolderParams = {
+  holderAddr: string;
 };
 
 /**
@@ -55,6 +57,17 @@ export type ImportRequestParams = {
 };
 
 /**
+ * Data defining a zk circuit prover
+ */
+export type ProverData = {
+  // Prover code in web assembly that will be used to generate the proof in the Snap.
+  wasm: any;
+  // Corresponding parameters from the zkey file (SNARK trusted setup ceremony).
+  zkeyHeader: any;
+  zkeySections: any[];
+};
+
+/**
  * Parameter for zkCert export.
  */
 export type ExportRequestParams = {
@@ -62,7 +75,7 @@ export type ExportRequestParams = {
 };
 
 /**
- * zkCert proof to be reterned to the website.
+ * zkCert proof to be returned to the website.
  */
 export type ZkCertProof = {
   proof: any;
@@ -97,4 +110,19 @@ export type HolderData = {
 export type StorageState = {
   holders: HolderData[];
   zkCerts: ZkCert[];
+};
+
+export type ZkKYCAgeProofInput = {
+  // time to check against the expiration date
+  currentTime: number;
+  // institution public key for eventual fraud investigations
+  investigationInstitutionPubKey: [string, string];
+  // dApp address to prove the ZKP to
+  dAppAddress: string;
+
+  // age proof specific inputs
+  currentYear: string;
+  currentMonth: string;
+  currentDay: string;
+  ageThreshold: string;
 };

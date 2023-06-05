@@ -1,5 +1,13 @@
-import proverData from '../../site/public/provers/ageProofZkKYC.json';
-import { GenZkKycRequestParams, HolderData, RpcArgs } from '../src/types';
+import proverData from '../../galactica-dapp/public/provers/ageProofZkKYC.json';
+import {
+  GenZkKycRequestParams,
+  HolderData,
+  RpcArgs,
+  ZkKYCAgeProofInput,
+  ProverData,
+} from '../src/types';
+
+const prover = proverData as ProverData;
 
 export const defaultRPCRequest: RpcArgs = {
   origin: 'http://localhost:8000',
@@ -29,9 +37,9 @@ export const testHolder: HolderData = {
   eddsaKey: testEdDSAKey,
 };
 
-export const testZkpParams: GenZkKycRequestParams = {
+export const testZkpParams: GenZkKycRequestParams<ZkKYCAgeProofInput> = {
   input: {
-    // most values do not matter becase they are checked on-chain only
+    // most values do not matter because they are checked on-chain only
     currentTime: 1676033833,
     currentYear: '2023',
     currentMonth: '2',
@@ -43,7 +51,7 @@ export const testZkpParams: GenZkKycRequestParams = {
   requirements: {
     zkCertStandard: 'gip69',
   },
-  wasm: proverData.wasm,
-  zkeyHeader: proverData.zkeyHeader,
-  zkeySections: proverData.zkeySections,
+  wasm: prover.wasm,
+  zkeyHeader: prover.zkeyHeader,
+  zkeySections: prover.zkeySections,
 };

@@ -1,7 +1,7 @@
+import { eddsaKeyGenerationMessage } from '@galactica-corp/zkkyc';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { stringToBytes, bytesToHex } from '@metamask/utils';
-import { eddsaKeyGenerationMessage } from 'zkkyc';
 
 import { generateZkKycProof } from './proofGenerator';
 import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
@@ -11,6 +11,7 @@ import {
   GenZkKycRequestParams,
   HolderData,
   ImportRequestParams,
+  SetupHolderParams,
   SnapRpcProcessor,
 } from './types';
 import {
@@ -31,7 +32,7 @@ import { selectZkCert } from './zkCertSelector';
  * @param ethereum - The Ethereum provider for interacting with the ordinary Metamask.
  * @returns `null` if the request succeeded.
  * @throws If the request method is not valid for this snap.
- * @throws If the `snap_confirm` call failed.
+ * @throws If the `snap_dialog` call failed.
  */
 export const processRpcRequest: SnapRpcProcessor = async (
   { origin, request },
@@ -45,33 +46,31 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
   switch (request.method) {
     case RpcMethods.SetupHoldingKey: {
-      // inform user how setup works
-      await snap.request({
-        method: 'snap_notify',
-        params: {
-          type: 'native', // not using 'inApp' bacause it is hidden in the MM UI
-          message: `Connect to the Metamask address holding zkCerts.`,
-        },
+      const setupParams = request.params as SetupHolderParams;
+
+      const permissions = await ethereum.request({
+        method: 'wallet_requestPermissions',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        params: [{ eth_accounts: {} }],
       });
+      console.log(`${JSON.stringify(permissions, null, 2)}`);
 
-      const newAccounts = (await ethereum.request({
-        method: 'eth_requestAccounts',
-      })) as string[];
-      const newHolder = newAccounts[0];
-
-      // TODO: Do we need the 0x prefix?
       const msgToSign = bytesToHex(stringToBytes(eddsaKeyGenerationMessage));
 
       const sign = (await ethereum.request({
         method: 'personal_sign',
-        params: [msgToSign, newHolder],
+        params: [msgToSign, setupParams.holderAddr],
       })) as string;
 
-      if (state.holders.find((candidate) => candidate.address === newHolder)) {
+      if (
+        state.holders.find(
+          (candidate) => candidate.address === setupParams.holderAddr,
+        )
+      ) {
         response = true;
       } else {
         state.holders.push({
-          address: newHolder,
+          address: setupParams.holderAddr,
           holderCommitment: await calculateHolderCommitment(sign),
           eddsaKey: sign,
         });
@@ -86,10 +85,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
-      const genParams = request.params as GenZkKycRequestParams;
+      const genParams = request.params as GenZkKycRequestParams<any>;
       // TODO: check input validity
 
-      const proofConfirmDioalog = [
+      const proofConfirmDialog = [
         heading('Generate zkCert proof?'),
         text(`Do you want to prove your identity to ${origin}?`),
         text(
@@ -99,13 +98,17 @@ export const processRpcRequest: SnapRpcProcessor = async (
       ];
 
       // TODO: generalize disclosure of inputs to any kind of inputs
-      proofConfirmDioalog.push(
-        text(`It discloses the following information publically:`),
-        text(`That you are at least ${genParams.input.ageThreshold} years old`),
+      proofConfirmDialog.push(
+        text(`It discloses the following information publicly:`),
+        text(
+          `That you are at least ${
+            genParams.input.ageThreshold as number
+          } years old`,
+        ),
         text(`The date of generating this proof`),
       );
 
-      proofConfirmDioalog.push(
+      proofConfirmDialog.push(
         divider(),
         text(
           `The following private inputs are processed by the zkSNARK and stay hidden: zkKYC ID, personal details that are not listed above`,
@@ -115,8 +118,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
-          content: panel(proofConfirmDioalog),
+          type: 'confirmation',
+          content: panel(proofConfirmDialog),
         },
       });
 
@@ -145,6 +148,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const searchedZkCert = state.zkCerts.find(
         (cert) => cert.leafHash === zkCert.leafHash,
       );
+
       if (searchedZkCert === undefined) {
         throw new Error(
           `zkCert with leafHash ${zkCert.leafHash} could not be found.`,
@@ -164,7 +168,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Clear zkCert and holder storage?'),
             text(
@@ -189,7 +193,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Import zkCertificate?'),
             text(`Do you want to import the following zkCert? (provided through ${origin})
@@ -211,7 +215,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Export zkCert?'),
             text(
@@ -227,7 +231,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const zkCertForExport = await selectZkCert(snap, state.zkCerts, {
         zkCertStandard: exportParams.zkCertStandard,
       });
-      return zkCertForExport;
+      const zkCertStorageData = state.zkCerts.find(
+        (cert) => cert.leafHash === zkCertForExport.leafHash,
+      );
+
+      return zkCertStorageData;
     }
 
     case RpcMethods.GetHolderCommitment: {
@@ -241,7 +249,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Provide holder commitment?'),
             text(
@@ -261,7 +269,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
-          type: 'Confirmation',
+          type: 'confirmation',
           content: panel([
             heading('Provide zkCert Storage metadata?'),
             text(
@@ -297,7 +305,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
  * @param args.request - A validated JSON-RPC request object.
  * @returns The result of the request as string. TODO: Use more strict type.
  * @throws If the request method is not valid for this snap.
- * @throws If the `snap_confirm` call failed.
+ * @throws If the `snap_dialog` call failed.
  */
 export const onRpcRequest: OnRpcRequestHandler = async ({
   origin,

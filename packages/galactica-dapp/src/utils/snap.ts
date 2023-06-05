@@ -1,5 +1,5 @@
 import { RpcMethods } from '../../../snap/src/rpcEnums';
-import { ExportRequestParams } from '../../../snap/src/types';
+import { ZkKYCAgeProofInput } from '../../../snap/src/types';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 import { getCurrentBlockTime } from './metamask';
@@ -25,6 +25,7 @@ export const connectSnap = async (
   snapId: string = defaultSnapOrigin,
   params: Record<'version' | string, unknown> = {},
 ) => {
+  console.log('Connecting to snap', snapId, params);
   const res = await window.ethereum.request({
     method: 'wallet_requestSnaps',
     params: {
@@ -57,22 +58,6 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 };
 
 /**
- * Invoke the methods from the example snap.
- */
-
-export const setupHoldingKey = async () => {
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.SetupHoldingKey,
-      },
-    },
-  });
-};
-
-/**
  * GenerateProof prepares and executes the call to generate a ZKP in the Galactica snap.
  *
  * @param proverData - Prover data passed to the snap (including wasm and zkey).
@@ -90,23 +75,24 @@ export const generateProof = async (
   // expected time for between pressing the generation button and the verification happening on-chain
   const estimatedProofCreationDuration = 20;
 
-  const currentTimestamp =
+  const expectedValidationTimestamp =
     (await getCurrentBlockTime()) + estimatedProofCreationDuration;
-  const dateNow = new Date(currentTimestamp * 1000);
+  const dateNow = new Date(expectedValidationTimestamp * 1000);
 
-  const publicInput = {
+  const proofInput: ZkKYCAgeProofInput = {
     // general zkKYC inputs
-    currentTime: currentTimestamp,
+    currentTime: expectedValidationTimestamp,
     dAppAddress,
     investigationInstitutionPubKey,
+    // the zkKYC itself is not needed here. It is filled by the snap for user privacy.
 
-    // age proof specific inputs
+    // specific inputs to prove that the holder is at least 18 years old
     currentYear: dateNow.getUTCFullYear().toString(),
     currentMonth: (dateNow.getUTCMonth() + 1).toString(),
     currentDay: dateNow.getUTCDate().toString(),
     ageThreshold: '18',
   };
-  console.log('publicInput', publicInput);
+  console.log('publicInput', proofInput);
 
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
@@ -115,7 +101,7 @@ export const generateProof = async (
       request: {
         method: RpcMethods.GenZkKycProof,
         params: {
-          input: publicInput,
+          input: proofInput,
           requirements: {
             zkCertStandard: 'gip69',
           },
@@ -123,61 +109,6 @@ export const generateProof = async (
           zkeyHeader: proverData.zkeyHeader,
           zkeySections: proverData.zkeySections,
         },
-      },
-    },
-  });
-};
-
-export const clearStorage = async () => {
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.ClearStorage,
-      },
-    },
-  });
-};
-
-export const importZkCert = async (zkCertJson: any) => {
-  console.log({ zkCert: zkCertJson });
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.ImportZkCert,
-        params: { zkCert: zkCertJson },
-      },
-    },
-  });
-};
-
-export const exportZkCert = async () => {
-  const params: ExportRequestParams = {
-    zkCertStandard: 'gip69',
-  };
-
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.ExportZkCert,
-        params,
-      },
-    },
-  });
-};
-
-export const getHolderCommitment = async () => {
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.GetHolderCommitment,
       },
     },
   });

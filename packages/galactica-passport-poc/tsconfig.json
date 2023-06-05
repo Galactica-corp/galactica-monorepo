@@ -7,6 +7,6 @@
     "noEmit": true,
     "jsx": "preserve"
   },
-  "files": ["../../node_modules/@metamask/snap-types/global.d.ts"],
-  "include": ["src"]
+  "files": ["../../node_modules/@metamask/snaps-types/dist/global.d.ts"],
+  "include": ["src", "../galactica-dapp/src/types"]
 }
