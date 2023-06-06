@@ -44,7 +44,7 @@
     "@metamask/eslint-config-typescript": "^11.1.0",
     "@metamask/providers": "^10.2.1",
     "@metamask/rpc-methods": "^0.32.2",
-    "@metamask/snaps-cli": "^0.30.0",
+    "@metamask/snaps-cli": "^0.32.2",
     "@metamask/snaps-types": "^0.32.2",
     "@metamask/snaps-ui": "^0.32.2",
     "@metamask/utils": "^5.0.1",
