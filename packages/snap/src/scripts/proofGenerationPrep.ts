@@ -86,6 +86,7 @@ async function createCircuitData(
     requirements: {
       zkCertStandard: 'gip69',
     },
+    userAddress: '0x0',
   };
   return params;
 }

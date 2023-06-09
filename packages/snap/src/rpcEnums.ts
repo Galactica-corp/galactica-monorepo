@@ -2,7 +2,6 @@
  * Enum for RPC methods.
  */
 export enum RpcMethods {
-  SetupHoldingKey = 'setupHoldingKey',
   GetHolderCommitment = 'getHolderCommitment',
   GenZkKycProof = 'genZkKycProof',
   ClearStorage = 'clearStorage',

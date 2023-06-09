@@ -40,13 +40,9 @@ export type GenZkKycRequestParams<ProofInputType> = {
   // Corresponding parameters from the zkey file (SNARK trusted setup ceremony).
   zkeyHeader: any;
   zkeySections: any[];
-};
 
-/**
- * Parameter for holder setup.
- */
-export type SetupHolderParams = {
-  holderAddr: string;
+  // address of the user that is going to submit the proof
+  userAddress: string;
 };
 
 /**
@@ -102,7 +98,7 @@ export type ZkCert = {
 };
 
 export type HolderData = {
-  address: string;
+  // address: string; Not needed as long as we do not support HW wallets
   holderCommitment: string;
   eddsaKey: string;
 };

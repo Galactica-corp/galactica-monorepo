@@ -1,7 +1,5 @@
-import { eddsaKeyGenerationMessage } from '@galactica-corp/zkkyc';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
-import { stringToBytes, bytesToHex } from '@metamask/utils';
 
 import { generateZkKycProof } from './proofGenerator';
 import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
@@ -11,11 +9,9 @@ import {
   GenZkKycRequestParams,
   HolderData,
   ImportRequestParams,
-  SetupHolderParams,
   SnapRpcProcessor,
 } from './types';
 import {
-  calculateHolderCommitment,
   getZkCertStorageHashes,
   getZkCertStorageOverview,
 } from './zkCertHandler';
@@ -45,44 +41,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
   let holder: HolderData;
 
   switch (request.method) {
-    case RpcMethods.SetupHoldingKey: {
-      const setupParams = request.params as SetupHolderParams;
-
-      const permissions = await ethereum.request({
-        method: 'wallet_requestPermissions',
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        params: [{ eth_accounts: {} }],
-      });
-      console.log(`${JSON.stringify(permissions, null, 2)}`);
-
-      const msgToSign = bytesToHex(stringToBytes(eddsaKeyGenerationMessage));
-
-      const sign = (await ethereum.request({
-        method: 'personal_sign',
-        params: [msgToSign, setupParams.holderAddr],
-      })) as string;
-
-      if (
-        state.holders.find(
-          (candidate) => candidate.address === setupParams.holderAddr,
-        )
-      ) {
-        response = true;
-      } else {
-        state.holders.push({
-          address: setupParams.holderAddr,
-          holderCommitment: await calculateHolderCommitment(sign),
-          eddsaKey: sign,
-        });
-        await saveState(snap, {
-          holders: state.holders,
-          zkCerts: state.zkCerts,
-        });
-        response = true;
-      }
-      return response;
-    }
-
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
       const genParams = request.params as GenZkKycRequestParams<any>;
@@ -253,7 +211,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
           content: panel([
             heading('Provide holder commitment?'),
             text(
-              `Do you want to provide your holder commitment of ${holder.address} to ${origin}?`,
+              `Do you want to provide your holder commitment to ${origin}?`,
             ),
           ]),
         },

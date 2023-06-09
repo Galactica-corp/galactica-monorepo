@@ -12,12 +12,13 @@ import { RpcMethods, RpcResponseErr, RpcResponseMsg } from '../src/rpcEnums';
 import { ExportRequestParams, RpcArgs, ZkCertProof } from '../src/types';
 import {
   defaultRPCRequest,
-  testAddress,
+  testEntropy,
   testHolder,
-  testSigForEdDSA,
   testZkpParams,
+  testEdDSAKey,
 } from './constants.mock';
 import { mockSnapProvider, mockEthereumProvider } from './wallet.mock';
+import { calculateHolderCommitment } from '../src/zkCertHandler';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -63,6 +64,10 @@ async function verifyProof(result: ZkCertProof) {
 describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
   const ethereumProvider = mockEthereumProvider();
+
+  beforeEach(function () {
+    snapProvider.rpcStubs.snap_getEntropy.resolves(testEntropy);
+  });
 
   afterEach(function () {
     expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
@@ -160,28 +165,23 @@ describe('Test rpc handler function', function () {
     /* eslint-disable jest/no-done-callback, no-invalid-this */
     it('should add holder successfully', async function (this: Mocha.Context) {
       this.timeout(4000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
-
-      ethereumProvider.rpcStubs.eth_requestAccounts.resolves([testAddress]);
-      ethereumProvider.rpcStubs.personal_sign.resolves(testSigForEdDSA);
+      /* eslint-enable jest/no-done-callback, no-invalid-this */     
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const result = await processRpcRequest(
-        buildRPCRequest(RpcMethods.SetupHoldingKey, {
-          holderAddr: testAddress,
-        }),
+        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
         snapProvider,
         ethereumProvider,
       );
 
-      expect(ethereumProvider.rpcStubs.personal_sign).to.have.been.calledOnce;
+      // even with no holder configured before, the snap should add the holder from the getEntropy method
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
         operation: 'update',
         newState: {
-          holders: [testHolder],
-          zkCerts: [],
+          holders: [{eddsaKey: testEntropy, holderCommitment: await calculateHolderCommitment(testEntropy)}],
+          zkCerts: [zkCert],
         },
       });
-      expect(result).to.be.eq(true);
     });
   });
 

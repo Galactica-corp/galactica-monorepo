@@ -30,9 +30,9 @@ export const testEdDSAKey =
   '0xeb730da4d936b1a99b6c899699a808d5e5d59be05dc1e9d124d5533f1629a049371e4262c9c69590c65c7215598b1736a3be0711fb234502c5dd908c445f37831b';
 export const testHodlerCommitment =
   '2548540024400520720751029171633903682525672775622781811599241942877782733224';
+export const testEntropy = '0x1234567889abcdef';
 
 export const testHolder: HolderData = {
-  address: testAddress,
   holderCommitment: testHodlerCommitment,
   eddsaKey: testEdDSAKey,
 };
@@ -54,4 +54,5 @@ export const testZkpParams: GenZkKycRequestParams<ZkKYCAgeProofInput> = {
   wasm: prover.wasm,
   zkeyHeader: prover.zkeyHeader,
   zkeySections: prover.zkeySections,
+  userAddress: testAddress,
 };

@@ -23,8 +23,7 @@ export const generateZkKycProof = async (
 
   const authorizationProof = zkCert.getAuthorizationProofInput(
     holder.eddsaKey,
-    // TODO: add selection of the using wallet
-    holder.address,
+    params.userAddress,
   );
 
   const inputs: any = {
