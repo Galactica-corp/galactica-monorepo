@@ -69,7 +69,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       proofConfirmDialog.push(
         divider(),
         text(
-          `The following private inputs are processed by the zkSNARK and stay hidden: zkKYC ID, personal details that are not listed above`,
+          `The following private inputs stay hidden: zkKYC ID, personal details that are not listed above`,
         ),
       );
 
@@ -96,7 +96,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       );
       if (searchedHolder === undefined) {
         throw new Error(
-          `Holder for commitment ${zkCert.holderCommitment} could not be found. Please connect the snap to that address to import the corresponding holder.`,
+          `Holder for commitment ${zkCert.holderCommitment} could not be found. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
         );
       } else {
         holder = searchedHolder;
@@ -130,7 +130,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
           content: panel([
             heading('Clear zkCert and holder storage?'),
             text(
-              `Do you want to delete the zkCertificates and holder information stored in Metamask? (requested by ${origin})`,
+              `Do you want to delete the zkCertificates stored in Metamask? (requested by ${origin})`,
             ),
           ]),
         },
