@@ -221,7 +221,7 @@ const Index = () => {
       };
 
       // save to file as placeholder
-      // TODO: integrate some kind of provider API to submitt the prepared zkCert to for signing and issuance on chain
+      // TODO: integrate some kind of provider API to submit the prepared zkCert to for signing and issuance on chain
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
         JSON.stringify(jsonExport, null, 2)
       )}`;

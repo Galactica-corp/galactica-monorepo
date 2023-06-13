@@ -34,7 +34,6 @@ export const generateZkKycProof = async (
 
     ...zkCert.getOwnershipProofInput(holder.eddsaKey),
 
-    // TODO: accept authorization for different address than holder
     userAddress: authorizationProof.userAddress,
     S2: authorizationProof.S,
     R8x2: authorizationProof.R8x,

@@ -201,7 +201,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.MissingHolder);
       }
 
-      // TODO: holder selection if multiple holders are available
+      // Assuming that we have a single holder. Might change when this is implemented: https://github.com/MetaMask/snaps/discussions/1364#discussioncomment-6111359
       holder = state.holders[0];
 
       confirm = await snap.request({
