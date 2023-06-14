@@ -93,7 +93,8 @@ export type ZkCert = {
   // holding the data specific to the type of zkCert (e.g. zkKYCContent)
   content: ZkKYCContent | any;
 
-  // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
+  // Proof showing that the zkCert is part of the Merkle tree
+  // Updating it helps to prevent tracking through finding uses of the same merkle root
   merkleProof: MerkleProof;
 };
 

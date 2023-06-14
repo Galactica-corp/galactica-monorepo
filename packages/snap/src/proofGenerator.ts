@@ -46,7 +46,7 @@ export const generateZkKycProof = async (
     providerR8y: zkCert.providerData.R8y,
 
     root: merkleProof.root,
-    pathElements: merkleProof.path,
+    pathElements: merkleProof.pathElements,
     pathIndices: merkleProof.pathIndices,
 
     // TODO: add selection of the using wallet
