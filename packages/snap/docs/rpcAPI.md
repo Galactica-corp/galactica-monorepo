@@ -56,37 +56,6 @@ All folling methods are invoked through the `wallet_invokeSnap` method of the [M
 
 These methods are restricted, meaning that you first need to aquire permission using the connection method.
 
-### `setupHoldingKey`
-
-#### Description
-
-Initial setup of a Galactica wallet that adds a ZK Certificate holder to the Snap by deriving a private key from a signature of the user's wallet.
-
-Asks the user for approval.
-
-#### Parameters
-
-- `holderAddr` - `string`, the address of the wallet to use as holder.
-
-#### Returns
-
-`boolean` - `true` if the user accepted the confirmation and the holder was created or already existed; `false` otherwise.
-Throws an error if the user rejected a confirmation.
-
-#### Example
-
-```javascript
-await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: 'setupHoldingKey',
-      params: { holderAddr: window.ethereum.selectedAddress },
-    },
-  },
-});
-```
 
 ### `getHolderCommitment`
 
