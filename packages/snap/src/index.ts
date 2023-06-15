@@ -244,8 +244,29 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.GetZkCertStorageHashes: {
-      // does not need confirmation as it does not leak any personal or trackng data
+      // does not need confirmation as it does not leak any personal or tracking data
       return getZkCertStorageHashes(state.zkCerts, origin);
+    }
+
+    case RpcMethods.GetZkCertHash: {
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'confirmation',
+          content: panel([
+            heading('Provide zkCert hash?'),
+            text(
+              `Do you want to provide the leaf hashes of your zkCerts to ${origin}?`,
+              `We suggest doing this only to update Merkle proofs. Only Do this on sites you trust to handle the unique ID of your zkCert confidentially.`,
+            ),
+          ]),
+        },
+      });
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
+      }
+      
+      return state.zkCerts.map((zkCert) => zkCert.leafHash);
     }
 
     default: {

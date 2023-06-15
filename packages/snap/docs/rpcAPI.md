@@ -52,7 +52,7 @@ See the [Metamask documentation](https://docs.metamask.io/guide/snaps-rpc-api.ht
 
 ## Galactica Specific Methods
 
-All folling methods are invoked through the `wallet_invokeSnap` method of the [Metamask RPC-API](https://docs.metamask.io/guide/snaps-rpc-api.html#wallet-invokesnap).
+All following methods are invoked through the `wallet_invokeSnap` method of the [Metamask RPC-API](https://docs.metamask.io/guide/snaps-rpc-api.html#wallet-invokesnap).
 
 These methods are restricted, meaning that you first need to aquire permission using the connection method.
 
@@ -99,7 +99,7 @@ Shows the user what is going to be proven and asks for confirmation.
 
 - `Object`
   - `input` - An `object`, containing public ZKP input for the statements to be shown by the generated proof.
-  - `requriements` - `object`
+  - `requirements` - `object`
     - `zkCertStandard`: `string` for the standard of the zkCertificate that should be used for the proof.
   - `wasm` - `string` base64 encoded wasm binary of the prover. The wasm can be generated using circom and encoded with the script in `src/scripts/proofGenerationPrep.ts`.
   - `zkeyHeader` - `object` of zkey headers used by snarkjs. The binary fields are base64 encoded.
@@ -357,6 +357,37 @@ let currentStorageHash = await window.ethereum.request({
     snapId: defaultSnapOrigin,
     request: {
       method: 'getZkCertStorageHashes',
+    },
+  },
+});
+```
+
+### `getZkCertHashes`
+
+#### Description
+
+You can use `getZkCertHash` to query the leaf hashes of the zkCerts imported in the snap. This is needed for updating the Merkle proof. It is useful because it improves privacy by not using the same publicly trackable Merkle root.
+
+However this function exposes the unique hash of zkCerts and should therefore only be on sites the user trusts to handle this ID confidentially.
+
+#### Parameters
+
+None
+
+#### Returns
+
+- `Object`
+  - `[string]` list of zkCert hashes of all zkCerts held by the Snap.
+
+#### Example
+
+```javascript
+let currentHashes = await window.ethereum.request({
+  method: 'wallet_invokeSnap',
+  params: {
+    snapId: defaultSnapOrigin,
+    request: {
+      method: 'getZkCertHashes',
     },
   },
 });

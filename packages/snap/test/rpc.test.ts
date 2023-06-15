@@ -535,4 +535,38 @@ describe('Test rpc handler function', function () {
       expect(result).to.be.eq(zkCert);
     });
   });
+
+  describe('Export ZkCert Hash', function () {
+    it('should throw error if not confirmed', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+      const clearPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.GetZkCertHash),
+        snapProvider,
+        ethereumProvider,
+      );
+      await expect(clearPromise).to.be.rejectedWith(
+        Error,
+        RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    it('should provide zkCert hash on approval', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert, zkCert2],
+        });
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.GetZkCertHash),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(result).to.be.deep.eq([zkCert.leafHash, zkCert2.leafHash]);
+    });
+  });
 });
