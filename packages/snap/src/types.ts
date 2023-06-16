@@ -53,6 +53,13 @@ export type ImportRequestParams = {
 };
 
 /**
+ * Parameter for updating the Merkle proof of one or more zkCert.
+ */
+export type MerkleProofUpdateRequestParams = {
+  proofs: MerkleProof[];
+};
+
+/**
  * Data defining a zk circuit prover
  */
 export type ProverData = {

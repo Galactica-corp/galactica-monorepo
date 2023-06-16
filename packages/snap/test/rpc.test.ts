@@ -6,10 +6,11 @@ import { groth16 } from 'snarkjs';
 
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
+import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import ageProofVKey from '../../galactica-dapp/public/provers/ageProofZkKYC.vkey.json';
 import { processRpcRequest } from '../src';
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from '../src/rpcEnums';
-import { ExportRequestParams, RpcArgs, ZkCertProof } from '../src/types';
+import { ExportRequestParams, RpcArgs, ZkCertProof, MerkleProofUpdateRequestParams } from '../src/types';
 import {
   defaultRPCRequest,
   testEntropy,
@@ -567,6 +568,81 @@ describe('Test rpc handler function', function () {
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(result).to.be.deep.eq([zkCert.leafHash, zkCert2.leafHash]);
+    });
+  });
+
+  describe.only('Update Merkle Root', function () {
+    it('should throw error if not confirmed', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+
+      const updateParams: MerkleProofUpdateRequestParams = {
+        proofs: [{leaf: zkCert.leafHash, ...zkCert.merkleProof}],
+      };
+
+      const updatePromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.UpdateMerkleProof, updateParams),
+        snapProvider,
+        ethereumProvider,
+      );
+      await expect(updatePromise).to.be.rejectedWith(
+        Error,
+        RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    it('should complain about updating non existing zkCert', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const updateParams: MerkleProofUpdateRequestParams = {
+        proofs: [{leaf: zkCert2.leafHash, ...zkCert2.merkleProof}]
+      };
+
+      const updatePromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.UpdateMerkleProof, updateParams),
+        snapProvider,
+        ethereumProvider,
+      );
+      await expect(updatePromise).to.be.rejectedWith(
+        Error,
+        `The zkCert with leaf hash ${zkCert2.leafHash} was not found in the wallet. Please import it before updating the Merkle proof.`,
+      );
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+    });
+
+    it('should successfully update on approval', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert, zkCert2],
+        });
+
+      const updateParams: MerkleProofUpdateRequestParams = {
+        proofs: [updatedMerkleProof],
+      };
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.UpdateMerkleProof, updateParams),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      let expectedUpdatedZkCert = {...zkCert};
+      expectedUpdatedZkCert.merkleProof = updatedMerkleProof;
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: { holders: [testHolder], zkCerts: [expectedUpdatedZkCert, zkCert2] },
+      });
+      expect(result).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
     });
   });
 });

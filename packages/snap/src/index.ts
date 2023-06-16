@@ -9,6 +9,7 @@ import {
   GenZkKycRequestParams,
   HolderData,
   ImportRequestParams,
+  MerkleProofUpdateRequestParams,
   SnapRpcProcessor,
 } from './types';
 import {
@@ -255,10 +256,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
           type: 'confirmation',
           content: panel([
             heading('Provide zkCert hash?'),
-            text(
-              `Do you want to provide the leaf hashes of your zkCerts to ${origin}?`,
-              `We suggest doing this only to update Merkle proofs. Only Do this on sites you trust to handle the unique ID of your zkCert confidentially.`,
-            ),
+            text(`Do you want to provide the leaf hashes of your zkCerts to ${origin}?`),
+            text(`We suggest doing this only to update Merkle proofs. Only Do this on sites you trust to handle the unique ID of your zkCert confidentially.`),
           ]),
         },
       });
@@ -267,6 +266,43 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
       
       return state.zkCerts.map((zkCert) => zkCert.leafHash);
+    }
+
+    case RpcMethods.UpdateMerkleProof: {
+      const merkleUpdateParams = request.params as MerkleProofUpdateRequestParams;
+
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'confirmation',
+          content: panel([
+            heading('Update Merkle proofs?'),
+            text(`Do you want to update the merkle proofs of your zkCerts as suggested by ${origin}?`),
+          ]),
+        },
+      });
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
+      }
+
+      for(let merkleProof of merkleUpdateParams.proofs) {
+        // TODO: checking the proof for correctness could help the user to avoid confusion
+
+        let foundZkCert = false;
+        for(let i = 0; i < state.zkCerts.length; i++) {
+          if(state.zkCerts[i].leafHash === merkleProof.leaf){
+            state.zkCerts[i].merkleProof = merkleProof;
+            foundZkCert = true;
+            break;
+          }
+        }
+        if(!foundZkCert) {
+          throw new Error(`The zkCert with leaf hash ${merkleProof.leaf} was not found in the wallet. Please import it before updating the Merkle proof.`);
+        }
+      }
+
+      await saveState(snap, state);
+      return RpcResponseMsg.MerkleProofsUpdated;
     }
 
     default: {

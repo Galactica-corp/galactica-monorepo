@@ -10,6 +10,7 @@ export enum RpcMethods {
   ListZkCerts = 'listZkCerts',
   GetZkCertStorageHashes = 'getZkCertStorageHashes',
   GetZkCertHash = 'getZkCertHashes',
+  UpdateMerkleProof = 'updateMerkleProof',
   // TODO: would be nice to have more storage management methods like deleting a specific zkCert, modifying a zkCert, bulk import/export, ...
 }
 
@@ -19,6 +20,7 @@ export enum RpcMethods {
 export enum RpcResponseMsg {
   StorageCleared = 'zkCert storage cleared',
   ZkCertImported = 'zkCert added to storage',
+  MerkleProofsUpdated = 'Updated Merkle proofs',
 }
 
 /**
