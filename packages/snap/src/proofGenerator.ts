@@ -1,7 +1,9 @@
-import { MerkleProof, ZKCertificate } from '@galactica-corp/zkkyc';
+import { MerkleProof, ZKCertificate, formatPrivKeyForBabyJub } from '@galactica-corp/zkkyc';
 import { Buffer } from 'buffer';
 import { buildBn128, buildBls12381 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
+import { buildEddsa } from "circomlibjs";
+
 
 import { GenZkKycRequestParams, ZkCertProof, HolderData } from './types';
 
@@ -26,6 +28,21 @@ export const generateZkKycProof = async (
     params.userAddress,
   );
 
+  // Generate private key for sending encrypted messages to institutions
+  // It should be different if the ZKP is sent from another address
+  // Therefore generating it from the private holder eddsa key and the user address
+  const eddsa = await buildEddsa();
+  const encryptionHashBase = eddsa.poseidon.F.toObject(
+    eddsa.poseidon(
+      [
+        holder.eddsaKey,
+        params.userAddress,
+        zkCert.randomSalt,
+      ]
+    )
+  ).toString();
+  const encryptionPrivKey = formatPrivKeyForBabyJub(encryptionHashBase, eddsa).toString();
+
   const inputs: any = {
     ...processedParams.input,
 
@@ -49,8 +66,7 @@ export const generateZkKycProof = async (
     pathElements: merkleProof.pathElements,
     pathIndices: merkleProof.pathIndices,
 
-    // TODO: add selection of the using wallet
-    userPrivKey: holder.eddsaKey,
+    userPrivKey: encryptionPrivKey,
 
     humanID: zkCert.getHumanID(processedParams.input.dAppAddress),
   };
