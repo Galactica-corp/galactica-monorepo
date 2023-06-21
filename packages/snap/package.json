@@ -30,7 +30,7 @@
     "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\""
   },
   "dependencies": {
-    "@galactica-corp/zkkyc": "^0.5.2",
+    "@galactica-corp/zkkyc": "^0.5.3",
     "circomlibjs": "^0.1.7",
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
   },

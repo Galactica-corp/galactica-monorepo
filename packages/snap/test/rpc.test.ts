@@ -16,7 +16,6 @@ import {
   testEntropy,
   testHolder,
   testZkpParams,
-  testEdDSAKey,
 } from './constants.mock';
 import { mockSnapProvider, mockEthereumProvider } from './wallet.mock';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
@@ -412,19 +411,19 @@ describe('Test rpc handler function', function () {
 
       expect(res).to.have.key(zkCert.zkCertStandard);
       expect(res[zkCert.zkCertStandard].length).to.equal(2);
-      expect(res[zkCert.zkCertStandard][0].providerPubKey.Ax).to.equal(
+      expect(res[zkCert.zkCertStandard][0].providerPubKey.Ax, "testing providerPubKey.Ax").to.equal(
         zkCert.providerData.Ax,
       );
-      expect(res[zkCert.zkCertStandard][0].providerPubKey.Ay).to.equal(
+      expect(res[zkCert.zkCertStandard][0].providerPubKey.Ay, "testing providerPubKey.Ay").to.equal(
         zkCert.providerData.Ay,
       );
-      expect(res[zkCert.zkCertStandard][0].expirationDate).to.equal(
+      expect(res[zkCert.zkCertStandard][0].expirationDate, "testing expiration date of 0").to.equal(
         zkCert.content.expirationDate,
       );
-      expect(res[zkCert.zkCertStandard][1].expirationDate).to.equal(
+      expect(res[zkCert.zkCertStandard][1].expirationDate, "testing expiration date of 1").to.equal(
         zkCert2.content.expirationDate,
       );
-      expect(res[zkCert.zkCertStandard][0].verificationLevel).to.equal(
+      expect(res[zkCert.zkCertStandard][1].verificationLevel, "testing verification level").to.equal(
         zkCert2.content.verificationLevel,
       );
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;

@@ -46,6 +46,12 @@ export const processRpcRequest: SnapRpcProcessor = async (
       // parse ZKP inputs
       const genParams = request.params as GenZkKycRequestParams<any>;
       // TODO: check input validity
+      if (genParams.userAddress === undefined) {
+        throw new Error(`userAddress missing in request parameters.`);
+      }
+      if (genParams.requirements.zkCertStandard === undefined) {
+        throw new Error(`ZkCert standard missing in request parameters.`);
+      }
 
       const proofConfirmDialog = [
         heading('Generate zkCert proof?'),
@@ -66,7 +72,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
         text(`The following proof parameters will be publicly visible:`),
       );
 
-      console.log(`input keys: ${JSON.stringify(Object.keys(genParams.input))}`);
       for (let parameter of Object.keys(genParams.input)) {
         proofConfirmDialog.push(
           text(

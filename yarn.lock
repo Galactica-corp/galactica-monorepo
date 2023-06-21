@@ -3338,7 +3338,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@galactica-corp/snap@workspace:packages/snap"
   dependencies:
-    "@galactica-corp/zkkyc": ^0.5.2
+    "@galactica-corp/zkkyc": ^0.5.3
     "@iden3/binfileutils": ^0.0.11
     "@lavamoat/allow-scripts": ^2.0.3
     "@metamask/auto-changelog": ^3.1.0
@@ -3385,9 +3385,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galactica-corp/zkkyc@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@galactica-corp/zkkyc@npm:0.5.2"
+"@galactica-corp/zkkyc@npm:^0.5.3":
+  version: 0.5.3
+  resolution: "@galactica-corp/zkkyc@npm:0.5.3"
   dependencies:
     "@openzeppelin/contracts": ^4.0.0
     "@openzeppelin/contracts-upgradeable": ^4.7.3
@@ -3395,13 +3395,14 @@ __metadata:
     "@typechain/truffle-v5": ^8.0.2
     "@typechain/web3-v1": ^6.0.2
     bignumber.js: ^9.0.1
+    buffer: ^6.0.3
     circom2: ^0.2.13
     circomlib: ^2.0.5
     circomlibjs: ^0.1.7
     ethers: ^5.7.2
     hardhat-circom: ^3.3.2
     keccak256: ^1.0.6
-  checksum: ff3721390d485207a4f73033c19a2e31dc44a3e6ac49049a18932f95d198440f8331ecc9f40e80e134a4252ced3c7fd91eb368d781d3f4bc3220aa0a57380370
+  checksum: a5653ad6350eceeb22fa4309a4a96869a488b526f09906a48142be595c1d03f8edde2f4def0a3db167caa0894f05da33d38e5859b5b86940ab8ce91288aeb5f3
   languageName: node
   linkType: hard
 
