@@ -49,30 +49,31 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       const proofConfirmDialog = [
         heading('Generate zkCert proof?'),
-        text(`Do you want to prove your identity to ${origin}?`),
-        text(
-          `This will create a ${genParams.requirements.zkCertStandard} proof.`,
-        ),
+        text(`Do you want to create a ${genParams.requirements.zkCertStandard} proof for ${origin}?`),
+        text(`This will disclose whether your personal data fulfills the requirements of the proof.`),
         divider(),
       ];
-
-      // TODO: generalize disclosure of inputs to any kind of inputs
+      
+      // TODO: check if a description is provided
       proofConfirmDialog.push(
-        text(`It discloses the following information publicly:`),
-        text(
-          `That you are at least ${
-            genParams.input.ageThreshold as number
-          } years old`,
-        ),
-        text(`The date of generating this proof`),
+        text(`Description according to ${origin}:`),        
+        text(`TODO`),        
       );
 
+      // Generalize disclosure of inputs to any kind of inputs
       proofConfirmDialog.push(
         divider(),
-        text(
-          `The following private inputs stay hidden: zkKYC ID, personal details that are not listed above`,
-        ),
+        text(`The following proof parameters will be publicly visible:`),
       );
+
+      console.log(`input keys: ${JSON.stringify(Object.keys(genParams.input))}`);
+      for (let parameter of Object.keys(genParams.input)) {
+        proofConfirmDialog.push(
+          text(
+            `${parameter}: ${genParams.input[parameter].toString()}`,
+          ),
+        );
+      }
 
       confirm = await snap.request({
         method: 'snap_dialog',
