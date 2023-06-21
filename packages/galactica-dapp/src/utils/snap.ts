@@ -107,7 +107,7 @@ export const generateProof = async (
           requirements: {
             zkCertStandard: 'gip69',
           },
-          userAddress: userAddress,
+          userAddress,
           wasm: proverData.wasm,
           zkeyHeader: proverData.zkeyHeader,
           zkeySections: proverData.zkeySections,
