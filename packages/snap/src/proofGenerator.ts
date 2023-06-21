@@ -1,9 +1,12 @@
-import { MerkleProof, ZKCertificate, formatPrivKeyForBabyJub } from '@galactica-corp/zkkyc';
+import {
+  MerkleProof,
+  ZKCertificate,
+  formatPrivKeyForBabyJub,
+} from '@galactica-corp/zkkyc';
 import { Buffer } from 'buffer';
+import { buildEddsa } from 'circomlibjs';
 import { buildBn128, buildBls12381 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
-import { buildEddsa } from "circomlibjs";
-
 
 import { GenZkKycRequestParams, ZkCertProof, HolderData } from './types';
 
@@ -33,15 +36,12 @@ export const generateZkKycProof = async (
   // Therefore generating it from the private holder eddsa key and the user address
   const eddsa = await buildEddsa();
   const encryptionHashBase = eddsa.poseidon.F.toObject(
-    eddsa.poseidon(
-      [
-        holder.eddsaKey,
-        params.userAddress,
-        zkCert.randomSalt,
-      ]
-    )
+    eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
   ).toString();
-  const encryptionPrivKey = formatPrivKeyForBabyJub(encryptionHashBase, eddsa).toString();
+  const encryptionPrivKey = formatPrivKeyForBabyJub(
+    encryptionHashBase,
+    eddsa,
+  ).toString();
 
   const inputs: any = {
     ...processedParams.input,

@@ -26,7 +26,6 @@ import { selectZkCert } from './zkCertSelector';
  * @param args.origin - The origin of the request, e.g., the website that invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
  * @param snap - The SnapProvider (snap).
- * @param ethereum - The Ethereum provider for interacting with the ordinary Metamask.
  * @returns `null` if the request succeeded.
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_dialog` call failed.
@@ -34,11 +33,9 @@ import { selectZkCert } from './zkCertSelector';
 export const processRpcRequest: SnapRpcProcessor = async (
   { origin, request },
   snap,
-  ethereum,
 ) => {
   const state = await getState(snap);
   let confirm: any;
-  let response: any;
   let holder: HolderData;
 
   switch (request.method) {
@@ -55,15 +52,19 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       const proofConfirmDialog = [
         heading('Generate zkCert proof?'),
-        text(`Do you want to create a ${genParams.requirements.zkCertStandard} proof for ${origin}?`),
-        text(`This will disclose whether your personal data fulfills the requirements of the proof.`),
+        text(
+          `Do you want to create a ${genParams.requirements.zkCertStandard} proof for ${origin}?`,
+        ),
+        text(
+          `This will disclose whether your personal data fulfills the requirements of the proof.`,
+        ),
         divider(),
       ];
-      
+
       // TODO: check if a description is provided
       proofConfirmDialog.push(
-        text(`Description according to ${origin}:`),        
-        text(`TODO`),        
+        text(`Description according to ${origin}:`),
+        text(`TODO`),
       );
 
       // Generalize disclosure of inputs to any kind of inputs
@@ -72,10 +73,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
         text(`The following proof parameters will be publicly visible:`),
       );
 
-      for (let parameter of Object.keys(genParams.input)) {
+      for (const parameter of Object.keys(genParams.input)) {
         proofConfirmDialog.push(
           text(
-            `${parameter}: ${genParams.input[parameter].toString()}`,
+            `${parameter}: ${genParams.input[parameter].toString() as string}`,
           ),
         );
       }
@@ -217,9 +218,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
           type: 'confirmation',
           content: panel([
             heading('Provide holder commitment?'),
-            text(
-              `Do you want to provide your holder commitment to ${origin}?`,
-            ),
+            text(`Do you want to provide your holder commitment to ${origin}?`),
           ]),
         },
       });
@@ -262,20 +261,25 @@ export const processRpcRequest: SnapRpcProcessor = async (
           type: 'confirmation',
           content: panel([
             heading('Provide zkCert hash?'),
-            text(`Do you want to provide the leaf hashes of your zkCerts to ${origin}?`),
-            text(`We suggest doing this only to update Merkle proofs. Only Do this on sites you trust to handle the unique ID of your zkCert confidentially.`),
+            text(
+              `Do you want to provide the leaf hashes of your zkCerts to ${origin}?`,
+            ),
+            text(
+              `We suggest doing this only to update Merkle proofs. Only Do this on sites you trust to handle the unique ID of your zkCert confidentially.`,
+            ),
           ]),
         },
       });
       if (!confirm) {
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
-      
+
       return state.zkCerts.map((zkCert) => zkCert.leafHash);
     }
 
     case RpcMethods.UpdateMerkleProof: {
-      const merkleUpdateParams = request.params as MerkleProofUpdateRequestParams;
+      const merkleUpdateParams =
+        request.params as MerkleProofUpdateRequestParams;
 
       confirm = await snap.request({
         method: 'snap_dialog',
@@ -283,7 +287,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           type: 'confirmation',
           content: panel([
             heading('Update Merkle proofs?'),
-            text(`Do you want to update the merkle proofs of your zkCerts as suggested by ${origin}?`),
+            text(
+              `Do you want to update the merkle proofs of your zkCerts as suggested by ${origin}?`,
+            ),
           ]),
         },
       });
@@ -291,19 +297,21 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      for(let merkleProof of merkleUpdateParams.proofs) {
+      for (const merkleProof of merkleUpdateParams.proofs) {
         // TODO: checking the proof for correctness could help the user to avoid confusion
 
         let foundZkCert = false;
-        for(let i = 0; i < state.zkCerts.length; i++) {
-          if(state.zkCerts[i].leafHash === merkleProof.leaf){
-            state.zkCerts[i].merkleProof = merkleProof;
+        for (const zkCert of state.zkCerts) {
+          if (zkCert.leafHash === merkleProof.leaf) {
+            zkCert.merkleProof = merkleProof;
             foundZkCert = true;
             break;
           }
         }
-        if(!foundZkCert) {
-          throw new Error(`The zkCert with leaf hash ${merkleProof.leaf} was not found in the wallet. Please import it before updating the Merkle proof.`);
+        if (!foundZkCert) {
+          throw new Error(
+            `The zkCert with leaf hash ${merkleProof.leaf} was not found in the wallet. Please import it before updating the Merkle proof.`,
+          );
         }
       }
 
@@ -336,5 +344,5 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
   // forward to common function shared with unit tests
   // passing global objects object from snap environment
-  return await processRpcRequest({ origin, request }, snap, ethereum);
+  return await processRpcRequest({ origin, request }, snap);
 };

@@ -3,7 +3,6 @@ import {
   MerkleProof,
   ZkCertStandard,
 } from '@galactica-corp/zkkyc';
-import { MetaMaskInpageProvider } from '@metamask/providers';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { JsonRpcRequest } from '@metamask/types';
 
@@ -17,7 +16,6 @@ export type RpcArgs = {
 export type SnapRpcProcessor = (
   args: RpcArgs,
   snap: SnapsGlobalObject,
-  ethereum: MetaMaskInpageProvider,
 ) => Promise<unknown>;
 
 // requirements on the type of zkCert that is used as proof input

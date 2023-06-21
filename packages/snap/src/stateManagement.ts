@@ -1,4 +1,5 @@
 import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
+
 import { HolderData, StorageState, ZkCert } from './types';
 import { calculateHolderCommitment } from './zkCertHandler';
 

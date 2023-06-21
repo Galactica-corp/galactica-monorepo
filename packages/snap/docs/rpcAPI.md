@@ -56,7 +56,6 @@ All following methods are invoked through the `wallet_invokeSnap` method of the 
 
 These methods are restricted, meaning that you first need to aquire permission using the connection method.
 
-
 ### `getHolderCommitment`
 
 #### Description
@@ -402,7 +401,6 @@ This method updates the Merkle proof of a list of zkCerts. This is helpful to pr
 You can create the Merkle proof with the scripts in the zkKYC repository.
 
 #### Parameters
-
 
 - `Object`
   - `proofs: [MerkleProof]` list of MerkleProofs to update.
