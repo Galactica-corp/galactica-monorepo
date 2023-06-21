@@ -571,7 +571,7 @@ describe('Test rpc handler function', function () {
     });
   });
 
-  describe.only('Update Merkle Root', function () {
+  describe('Update Merkle Root', function () {
     it('should throw error if not confirmed', async function () {
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
