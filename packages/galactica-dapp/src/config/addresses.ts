@@ -1,8 +1,8 @@
-export const ageProofZkKYC = '0x0D11ddDcAcd7A998a2D47Ae93bFc7A1b3FA81256';
-export const mockDApp = '0xf1947AeD2d0a5Ff90D54b63C85904d258D3B5E63';
-export const verificationSBT = '0x4De49e2047eE726B833fa815bf7392958245832d';
+export const ageProofZkKYC = '0x6E5eeD7b04532C33E3689aEFd5596E98Cb694bF5';
+export const mockDApp = '0xc05e8FA7FB5Ff3c8F9fAe95a62c751498EFFF3E7';
+export const verificationSBT = '0xA4ad47FBb926fa605942d025DD5e232A533b5c30';
 export const galacticaInstitution =
-  '0x9991a75be92Af8b9E23B2984D9B67CB16EA87323';
+  '0x6f318e025977BEb146CBa6376cc642ffe142EB00';
 
 const addresses = {
   ageProofZkKYC,

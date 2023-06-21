@@ -63,12 +63,14 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
  * @param proverData - Prover data passed to the snap (including wasm and zkey).
  * @param dAppAddress - Contract address to send the ZKP to.
  * @param investigationInstitutionPubKey - Public key of the institution that can investigate the ZKP.
+ * @param userAddress - Address of the user that is going to submit the ZKP.
  * @returns Request result that should contain the ZKP.
  */
 export const generateProof = async (
   proverData: any,
   dAppAddress: string,
   investigationInstitutionPubKey: [string, string],
+  userAddress: string,
 ) => {
   // TODO: add type for proverData
 
@@ -105,6 +107,7 @@ export const generateProof = async (
           requirements: {
             zkCertStandard: 'gip69',
           },
+          userAddress: userAddress,
           wasm: proverData.wasm,
           zkeyHeader: proverData.zkeyHeader,
           zkeySections: proverData.zkeySections,

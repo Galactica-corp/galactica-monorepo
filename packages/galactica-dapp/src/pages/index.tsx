@@ -186,9 +186,14 @@ const Index = () => {
         BigNumber.from(await institutionContract.institutionPubKey(1)).toString(),
       ];
 
+      const userAddress = window.ethereum.selectedAddress;
+      if (userAddress === null) {
+        throw new Error('Please connect a metamask account first.');
+      }
+
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
       console.log('sending request to snap...');
-      const res: any = await generateProof(parsedFile, addresses.mockDApp, institutionPubKey);
+      const res: any = await generateProof(parsedFile, addresses.mockDApp, institutionPubKey, userAddress);
       console.log('Response from snap', res);
       
       if (res === undefined || res === null ){
