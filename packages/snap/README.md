@@ -1,6 +1,6 @@
 # Galactica ZK Vault
 
-The Galactica ZK Vault adds Galactica Network features to Metamaks. It holds zero-knowledge certificates (zkCerts) in self custody and allows generating zero-knowledge proofs for selective disclosures. This provides compliance with maximum privacy.
+The Galactica ZK Vault adds Galactica Network features to Metamask. It holds zero-knowledge certificates (zkCerts) in self custody and allows generating zero-knowledge proofs for selective disclosures. This provides compliance with maximum privacy.
 
 The implementation can be found on [GitHub](https://github.com/Galactica-corp/galactica-snap/tree/main/packages/snap).
 
