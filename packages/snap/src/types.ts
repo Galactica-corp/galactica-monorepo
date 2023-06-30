@@ -118,7 +118,7 @@ export type ZkKYCAgeProofInput = {
   // time to check against the expiration date
   currentTime: number;
   // institution public key for eventual fraud investigations
-  investigationInstitutionPubKey: [string, string];
+  investigationInstitutionPubKey: [string, string][];
   // dApp address to prove the ZKP to
   dAppAddress: string;
 

@@ -171,7 +171,7 @@ const Index = () => {
   const proofGenerationClick = async () => {
     try {
       // get prover data (separately loaded because the large json should not slow down initial site loading)
-      const proverText = await fetch("/provers/ageProofZkKYC.json");
+      const proverText = await fetch("/provers/exampleMockDApp.json");
       const parsedFile = JSON.parse(await proverText.text());
 
       //@ts-ignore https://github.com/metamask/providers/issues/200
@@ -180,11 +180,14 @@ const Index = () => {
       // get contracts
       const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
       // fetch institution pubkey from chain because it is needed as proof input
-      const institutionContract = new ethers.Contract(addresses.galacticaInstitution, galacticaInstitutionABI.abi, signer);
-      const institutionPubKey: [string, string] = [
-        BigNumber.from(await institutionContract.institutionPubKey(0)).toString(),
-        BigNumber.from(await institutionContract.institutionPubKey(1)).toString(),
-      ];
+      let institutionPubKeys: [string, string][] = [];
+      for (let addr of addresses.galacticaInstitutions) {
+        const institutionContract = new ethers.Contract(addr, galacticaInstitutionABI.abi, signer);
+        institutionPubKeys.push([
+          BigNumber.from(await institutionContract.institutionPubKey(0)).toString(),
+          BigNumber.from(await institutionContract.institutionPubKey(1)).toString(),
+        ]);
+      }
 
       const userAddress = window.ethereum.selectedAddress;
       if (userAddress === null) {
@@ -193,20 +196,20 @@ const Index = () => {
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
       console.log('sending request to snap...');
-      const res: any = await generateProof(parsedFile, addresses.mockDApp, institutionPubKey, userAddress);
+      const res: any = await generateProof(parsedFile, addresses.mockDApp, institutionPubKeys, userAddress);
       console.log('Response from snap', res);
-      
-      if (res === undefined || res === null ){
+
+      if (res === undefined || res === null) {
         throw new Error('Proof generation failed: empty response');
       }
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       console.log(JSON.stringify(res, null, 2));
       dispatch({ type: MetamaskActions.SetProofData, payload: res });
 
-      // send proof direcly on chain
+      // send proof directly on chain
       let [a, b, c] = processProof(res.proof);
       let publicInputs = processPublicSignals(res.publicSignals);
-      console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
+      console.log(`Formated proof: ${JSON.stringify({ a: a, b: b, c: c }, null, 2)}`);
       console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
 
       console.log(`Sending proof for on-chain verification...`);

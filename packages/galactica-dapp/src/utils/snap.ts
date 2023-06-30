@@ -62,14 +62,14 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
  *
  * @param proverData - Prover data passed to the snap (including wasm and zkey).
  * @param dAppAddress - Contract address to send the ZKP to.
- * @param investigationInstitutionPubKey - Public key of the institution that can investigate the ZKP.
+ * @param investigationInstitutionPubKeys - List of public keys of the institutions that can investigate the ZKP.
  * @param userAddress - Address of the user that is going to submit the ZKP.
  * @returns Request result that should contain the ZKP.
  */
 export const generateProof = async (
   proverData: any,
   dAppAddress: string,
-  investigationInstitutionPubKey: [string, string],
+  investigationInstitutionPubKeys: [string, string][],
   userAddress: string,
 ) => {
   // TODO: add type for proverData
@@ -85,7 +85,7 @@ export const generateProof = async (
     // general zkKYC inputs
     currentTime: expectedValidationTimestamp,
     dAppAddress,
-    investigationInstitutionPubKey,
+    investigationInstitutionPubKey: investigationInstitutionPubKeys,
     // the zkKYC itself is not needed here. It is filled by the snap for user privacy.
 
     // specific inputs to prove that the holder is at least 18 years old

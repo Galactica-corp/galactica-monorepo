@@ -7,7 +7,7 @@ import { groth16 } from 'snarkjs';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
-import ageProofVKey from '../../galactica-dapp/public/provers/ageProofZkKYC.vkey.json';
+import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from '../src/rpcEnums';
 import {
@@ -59,7 +59,7 @@ async function verifyProof(result: ZkCertProof) {
   expect(result.publicSignals.length).to.be.gt(5);
 
   const verification = await groth16.verify(
-    ageProofVKey,
+    exampleMockDAppVKey,
     result.publicSignals,
     result.proof,
   );
@@ -256,7 +256,7 @@ describe('Test rpc handler function', function () {
     /* eslint-disable jest/no-done-callback, no-invalid-this */
     // (found no better way to increase timeouts for async tests)
     it('should generate ZKP successfully', async function (this: Mocha.Context) {
-      this.timeout(15000);
+      this.timeout(20000);
       /* eslint-enable jest/no-done-callback, no-invalid-this */
 
       snapProvider.rpcStubs.snap_dialog.resolves(true);
@@ -279,7 +279,7 @@ describe('Test rpc handler function', function () {
 
     /* eslint-disable jest/no-done-callback, no-invalid-this */
     it('should be able to select from multiple zkCerts', async function (this: Mocha.Context) {
-      this.timeout(15000);
+      this.timeout(20000);
       /* eslint-enable jest/no-done-callback, no-invalid-this */
 
       snapProvider.rpcStubs.snap_dialog

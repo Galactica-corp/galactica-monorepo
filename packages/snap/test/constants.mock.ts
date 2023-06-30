@@ -1,4 +1,4 @@
-import proverData from '../../galactica-dapp/public/provers/ageProofZkKYC.json';
+import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
 import {
   GenZkKycRequestParams,
   HolderData,
@@ -42,7 +42,11 @@ export const testZkpParams: GenZkKycRequestParams<ZkKYCAgeProofInput> = {
     currentMonth: '2',
     currentDay: '10',
     ageThreshold: '18',
-    investigationInstitutionPubKey: ['1', '2'],
+    investigationInstitutionPubKey: [
+      ['1', '2'],
+      ['2', '3'],
+      ['4', '5'],
+    ],
     dAppAddress: '0x80c8C09868E97CF789e10666Ad10dD96639aCB6e',
   },
   requirements: {
