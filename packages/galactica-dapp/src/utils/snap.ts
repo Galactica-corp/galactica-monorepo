@@ -1,8 +1,6 @@
 import { RpcMethods } from '../../../snap/src/rpcEnums';
-import { ZkKYCAgeProofInput } from '../../../snap/src/types';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
-import { getCurrentBlockTime } from './metamask';
 
 /**
  * Get the installed snaps in MetaMask.
@@ -58,45 +56,26 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 };
 
 /**
- * GenerateProof prepares and executes the call to generate a ZKP in the Galactica snap.
+ * generateProof prepares and executes the call to generate a ZKP in the Galactica snap.
+ * You can use it to generate various kinds of proofs, depending on the input you pass.
  *
  * @param proverData - Prover data passed to the snap (including wasm and zkey).
- * @param dAppAddress - Contract address to send the ZKP to.
- * @param investigationInstitutionPubKeys - List of public keys of the institutions that can investigate the ZKP.
- * @param userAddress - Address of the user that is going to submit the ZKP.
+ * @param proofInput - Input for the proof.
  * @returns Request result that should contain the ZKP.
  */
 export const generateProof = async (
   proverData: any,
-  dAppAddress: string,
-  investigationInstitutionPubKeys: [string, string][],
-  userAddress: string,
+  proofInput: any,
 ) => {
-  // TODO: add type for proverData
+  console.log('sending generateProof request to snap with publicInput:',
+    JSON.stringify(proofInput, null, 2));
 
-  // expected time for between pressing the generation button and the verification happening on-chain
-  const estimatedProofCreationDuration = 20;
+  const userAddress = window.ethereum.selectedAddress;
+  if (userAddress === null) {
+    throw new Error('Please connect a metamask account first.');
+  }
 
-  const expectedValidationTimestamp =
-    (await getCurrentBlockTime()) + estimatedProofCreationDuration;
-  const dateNow = new Date(expectedValidationTimestamp * 1000);
-
-  const proofInput: ZkKYCAgeProofInput = {
-    // general zkKYC inputs
-    currentTime: expectedValidationTimestamp,
-    dAppAddress,
-    investigationInstitutionPubKey: investigationInstitutionPubKeys,
-    // the zkKYC itself is not needed here. It is filled by the snap for user privacy.
-
-    // specific inputs to prove that the holder is at least 18 years old
-    currentYear: dateNow.getUTCFullYear().toString(),
-    currentMonth: (dateNow.getUTCMonth() + 1).toString(),
-    currentDay: dateNow.getUTCDate().toString(),
-    ageThreshold: '18',
-  };
-  console.log('publicInput', proofInput);
-
-  return await window.ethereum.request({
+  const res = await window.ethereum.request({
     method: 'wallet_invokeSnap',
     params: {
       snapId: defaultSnapOrigin,
@@ -115,6 +94,14 @@ export const generateProof = async (
       },
     },
   });
+
+  console.log('Received ZKP response', JSON.stringify(res, null, 2));
+
+  if (res === undefined || res === null) {
+    throw new Error('Proof generation failed: empty response');
+  }
+
+  return res;
 };
 
 export const isLocalSnap = (snapId: string) => snapId.startsWith('local:');

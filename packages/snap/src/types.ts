@@ -128,3 +128,12 @@ export type ZkKYCAgeProofInput = {
   currentDay: string;
   ageThreshold: string;
 };
+
+export type ZkKYCProofInput = {
+  // time to check against the expiration date
+  currentTime: number;
+  // institution public key for eventual fraud investigations
+  investigationInstitutionPubKey: [string, string][];
+  // dApp address to prove the ZKP to
+  dAppAddress: string;
+};

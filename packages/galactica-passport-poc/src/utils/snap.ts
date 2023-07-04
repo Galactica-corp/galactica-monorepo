@@ -7,7 +7,7 @@ export {
   getSnap,
   getSnaps,
   connectSnap,
-  generateProof,
+  generateProof as generateProof,
   isLocalSnap,
 } from '../../../galactica-dapp/src/utils/snap';
 

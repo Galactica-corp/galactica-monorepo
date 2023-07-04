@@ -18,12 +18,12 @@ import {
   SelectAndImportButton,
   ConnectMMButton,
 } from '../components';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
 
 import addresses from '../config/addresses';
 import mockDAppABI from '../config/abi/MockDApp.json';
-import galacticaInstitutionABI from '../config/abi/IGalacticaInstitution.json';
+import { getProver, prepareProofInput } from '../utils/zkp';
 
 const Container = styled.div`
   display: flex;
@@ -170,50 +170,34 @@ const Index = () => {
 
   const proofGenerationClick = async () => {
     try {
-      // get prover data (separately loaded because the large json should not slow down initial site loading)
-      const proverText = await fetch("/provers/exampleMockDApp.json");
-      const parsedFile = JSON.parse(await proverText.text());
+      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
 
+      const dateNow = new Date();
+      const ageProofInputs = {
+        // specific inputs to prove that the holder is at least 18 years old
+        currentYear: dateNow.getUTCFullYear().toString(),
+        currentMonth: (dateNow.getUTCMonth() + 1).toString(),
+        currentDay: dateNow.getUTCDate().toString(),
+        ageThreshold: '18',
+      };
+
+      const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
+      const zkp: any = await generateProof(getProver("/provers/exampleMockDApp.json"), proofInput);
+
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+      dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
+
+      // send proof directly on chain
+      let [a, b, c] = processProof(zkp.proof);
+      let publicInputs = processPublicSignals(zkp.publicSignals);
+
+      console.log(`Sending proof for on-chain verification...`);
+      // this is the on-chain function that requires a ZKP
       //@ts-ignore https://github.com/metamask/providers/issues/200
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       // get contracts
       const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
-      // fetch institution pubkey from chain because it is needed as proof input
-      let institutionPubKeys: [string, string][] = [];
-      for (let addr of addresses.galacticaInstitutions) {
-        const institutionContract = new ethers.Contract(addr, galacticaInstitutionABI.abi, signer);
-        institutionPubKeys.push([
-          BigNumber.from(await institutionContract.institutionPubKey(0)).toString(),
-          BigNumber.from(await institutionContract.institutionPubKey(1)).toString(),
-        ]);
-      }
-
-      const userAddress = window.ethereum.selectedAddress;
-      if (userAddress === null) {
-        throw new Error('Please connect a metamask account first.');
-      }
-
-      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
-      console.log('sending request to snap...');
-      const res: any = await generateProof(parsedFile, addresses.mockDApp, institutionPubKeys, userAddress);
-      console.log('Response from snap', res);
-
-      if (res === undefined || res === null) {
-        throw new Error('Proof generation failed: empty response');
-      }
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
-      console.log(JSON.stringify(res, null, 2));
-      dispatch({ type: MetamaskActions.SetProofData, payload: res });
-
-      // send proof directly on chain
-      let [a, b, c] = processProof(res.proof);
-      let publicInputs = processPublicSignals(res.publicSignals);
-      console.log(`Formated proof: ${JSON.stringify({ a: a, b: b, c: c }, null, 2)}`);
-      console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
-
-      console.log(`Sending proof for on-chain verification...`);
-      // this is the on-chain function that requires a ZKP
       let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
       console.log("tx", tx);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
