@@ -264,7 +264,7 @@ const Index = () => {
       };
 
       const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
-      const zkp: any = await generateProof(getProver("/provers/exampleMockDApp.json"), proofInput);
+      const zkp: any = await generateProof(await getProver("/provers/exampleMockDApp.json"), proofInput);
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       dispatch({ type: MetamaskActions.SetProofData, payload: zkp });

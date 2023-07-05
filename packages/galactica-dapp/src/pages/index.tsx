@@ -15,7 +15,6 @@ import {
   ReconnectButton,
   Card,
   GeneralButton,
-  SelectAndImportButton,
   ConnectMMButton,
 } from '../components';
 import { ethers } from 'ethers';
@@ -23,6 +22,7 @@ import { processProof, processPublicSignals } from '../utils/proofProcessing';
 
 import addresses from '../config/addresses';
 import mockDAppABI from '../config/abi/MockDApp.json';
+import repeatableZKPTestABI from '../config/abi/RepeatableZKPTest.json';
 import { getProver, prepareProofInput } from '../utils/zkp';
 
 const Container = styled.div`
@@ -168,7 +168,7 @@ const Index = () => {
     }
   };
 
-  const proofGenerationClick = async () => {
+  const ageProofZKPClick = async () => {
     try {
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
 
@@ -182,7 +182,7 @@ const Index = () => {
       };
 
       const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
-      const zkp: any = await generateProof(getProver("/provers/exampleMockDApp.json"), proofInput);
+      const zkp: any = await generateProof(await getProver("/provers/exampleMockDApp.json"), proofInput);
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
@@ -199,6 +199,41 @@ const Index = () => {
       // get contracts
       const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
       let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
+      console.log("tx", tx);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
+      const receipt = await tx.wait();
+      console.log("receipt", receipt);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
+
+      console.log(`Updating verification SBTs...`);
+      await showVerificationSBTs();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const repeatableZKPClick = async () => {
+    try {
+      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
+      const proofInput = await prepareProofInput(addresses.repeatableZkKYCTest, [], {});
+      const zkp: any = await generateProof(await getProver("/provers/zkKYC.json"), proofInput);
+
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+      dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
+
+      // send proof directly on chain
+      let [a, b, c] = processProof(zkp.proof);
+      let publicInputs = processPublicSignals(zkp.publicSignals);
+
+      console.log(`Sending proof for on-chain verification...`);
+      // this is the on-chain function that requires a ZKP
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      // get contracts
+      const repeatableZKPTestSC = new ethers.Contract(addresses.repeatableZkKYCTest, repeatableZKPTestABI.abi, signer);
+      let tx = await repeatableZKPTestSC.submitZKP(a, b, c, publicInputs);
       console.log("tx", tx);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
       const receipt = await tx.wait();
@@ -311,7 +346,23 @@ const Index = () => {
               '1. Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old. 2. Send proof tx for on-chain verification.',
             button: (
               <GeneralButton
-                onClick={proofGenerationClick}
+                onClick={ageProofZKPClick}
+                disabled={false}
+                text="Generate & Submit"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'simple zkKYC test (repeatable)',
+            description:
+              '1. Call Metamask Snap to generate a proof that you hold a zkKYC. 2. Send proof tx for on-chain verification.',
+            button: (
+              <GeneralButton
+                onClick={repeatableZKPClick}
                 disabled={false}
                 text="Generate & Submit"
               />

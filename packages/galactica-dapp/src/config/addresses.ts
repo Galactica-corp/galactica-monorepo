@@ -6,12 +6,14 @@ export const galacticaInstitutions = [
   '0x45Da9c7a3B497757DCc07327507029535D9A3097',
   '0xa99fcD678D985fB2ac8aD3fE913aED88705A44fc',
 ];
+export const repeatableZkKYCTest = '0x036B470b19dEA234Bb240Fb8f54a0Cce7160022c';
 
 const addresses = {
   ageProofZkKYC,
   mockDApp,
   verificationSBT,
   galacticaInstitutions,
+  repeatableZkKYCTest
 };
 
 export default addresses;
