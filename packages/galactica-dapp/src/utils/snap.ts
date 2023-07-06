@@ -56,19 +56,18 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 };
 
 /**
- * generateProof prepares and executes the call to generate a ZKP in the Galactica snap.
+ * GenerateProof prepares and executes the call to generate a ZKP in the Galactica snap.
  * You can use it to generate various kinds of proofs, depending on the input you pass.
  *
  * @param proverData - Prover data passed to the snap (including wasm and zkey).
  * @param proofInput - Input for the proof.
  * @returns Request result that should contain the ZKP.
  */
-export const generateProof = async (
-  proverData: any,
-  proofInput: any,
-) => {
-  console.log('sending generateProof request to snap with publicInput:',
-    JSON.stringify(proofInput, null, 2));
+export const generateProof = async (proverData: any, proofInput: any) => {
+  console.log(
+    'sending generateProof request to snap with publicInput:',
+    JSON.stringify(proofInput, null, 2),
+  );
 
   const userAddress = window.ethereum.selectedAddress;
   if (userAddress === null) {

@@ -35,14 +35,20 @@ export function processProof(proof: any) {
     .slice(0, 2)
     .map((value: any) => fromDecToHex(value, true));
 
-  console.log(`Formated proof: ${JSON.stringify({ a: piA, b: piB, c: piC }, null, 2)}`);
+  console.log(
+    `Formated proof: ${JSON.stringify({ a: piA, b: piB, c: piC }, null, 2)}`,
+  );
 
   return [piA, piB, piC];
 }
 
 // this function processes the public inputs
 export function processPublicSignals(publicSignals: any) {
-  const formatedInputs = publicSignals.map((value: any) => fromDecToHex(value, true));
-  console.log(`Formated publicInputs: ${JSON.stringify(formatedInputs, null, 2)}`);
+  const formatedInputs = publicSignals.map((value: any) =>
+    fromDecToHex(value, true),
+  );
+  console.log(
+    `Formated publicInputs: ${JSON.stringify(formatedInputs, null, 2)}`,
+  );
   return formatedInputs;
 }

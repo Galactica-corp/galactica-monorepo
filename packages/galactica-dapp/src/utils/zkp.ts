@@ -5,7 +5,7 @@ import { getCurrentBlockTime } from './metamask';
 
 /**
  * Prepares the proof input for the ZKP.
- * 
+ *
  * @param dAppAddress - The address of the dApp the ZKP is for.
  * @param institutionAddresses - Addresses of involved institutions (if any) to get the pub key from.
  * @param additionalProofInput - Additional proof inputs that are not part of the core zkKYC.
@@ -23,14 +23,18 @@ export async function prepareProofInput(
   const expectedValidationTimestamp =
     (await getCurrentBlockTime()) + estimatedProofCreationDuration;
 
-
-  //@ts-ignore https://github.com/metamask/providers/issues/200
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore https://github.com/metamask/providers/issues/200
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
   // fetch institution pubkey from chain because it is needed as proof input
-  let institutionPubKeys: [string, string][] = [];
-  for (let addr of institutionAddresses) {
-    const institutionContract = new ethers.Contract(addr, galacticaInstitutionABI.abi, signer);
+  const institutionPubKeys: [string, string][] = [];
+  for (const addr of institutionAddresses) {
+    const institutionContract = new ethers.Contract(
+      addr,
+      galacticaInstitutionABI.abi,
+      signer,
+    );
     institutionPubKeys.push([
       BigNumber.from(await institutionContract.institutionPubKey(0)).toString(),
       BigNumber.from(await institutionContract.institutionPubKey(1)).toString(),
@@ -52,9 +56,9 @@ export async function prepareProofInput(
 
 /**
  * Get prover data (separately loaded because the large json should not slow down initial site loading).
- * 
- * @param path Path to the prover data json file (relative to the public folder).
- * @returns 
+ *
+ * @param path - Path to the prover data json file (relative to the public folder).
+ * @returns JSON object with the prover data.
  */
 export async function getProver(path: string) {
   const proverText = await fetch(path);

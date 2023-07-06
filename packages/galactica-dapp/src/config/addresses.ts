@@ -13,7 +13,7 @@ const addresses = {
   mockDApp,
   verificationSBT,
   galacticaInstitutions,
-  repeatableZkKYCTest
+  repeatableZkKYCTest,
 };
 
 export default addresses;
