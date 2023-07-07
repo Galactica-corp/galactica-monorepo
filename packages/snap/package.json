@@ -6,7 +6,7 @@
     "type": "git",
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
-  "license": "(MIT-0 OR Apache-2.0)",
+  "license": "(BUSL-1.1 OR MIT-0 OR Apache-2.0)",
   "main": "src/index.ts",
   "files": [
     "dist/",
@@ -30,7 +30,7 @@
     "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\""
   },
   "dependencies": {
-    "@galactica-corp/zkkyc": "^0.6.1",
+    "@galactica-corp/zkkyc": "^0.6.2",
     "circomlibjs": "^0.1.7",
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
   },

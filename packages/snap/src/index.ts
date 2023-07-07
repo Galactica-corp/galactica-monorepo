@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 

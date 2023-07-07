@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
 import * as fs from 'fs';

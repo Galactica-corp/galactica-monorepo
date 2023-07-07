@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
 
 import { HolderData, StorageState, ZkCert } from './types';

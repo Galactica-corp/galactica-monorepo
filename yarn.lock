@@ -3338,7 +3338,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@galactica-corp/snap@workspace:packages/snap"
   dependencies:
-    "@galactica-corp/zkkyc": ^0.5.3
+    "@galactica-corp/zkkyc": ^0.6.2
     "@iden3/binfileutils": ^0.0.11
     "@lavamoat/allow-scripts": ^2.0.3
     "@metamask/auto-changelog": ^3.1.0
@@ -3385,9 +3385,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galactica-corp/zkkyc@npm:^0.5.3":
-  version: 0.5.3
-  resolution: "@galactica-corp/zkkyc@npm:0.5.3"
+"@galactica-corp/zkkyc@npm:^0.6.2":
+  version: 0.6.2
+  resolution: "@galactica-corp/zkkyc@npm:0.6.2"
   dependencies:
     "@openzeppelin/contracts": ^4.0.0
     "@openzeppelin/contracts-upgradeable": ^4.7.3
@@ -3402,7 +3402,7 @@ __metadata:
     ethers: ^5.7.2
     hardhat-circom: ^3.3.2
     keccak256: ^1.0.6
-  checksum: a5653ad6350eceeb22fa4309a4a96869a488b526f09906a48142be595c1d03f8edde2f4def0a3db167caa0894f05da33d38e5859b5b86940ab8ce91288aeb5f3
+  checksum: a36f7b8bb9e70d5d04d1167a8f998ce00723a90f102cae506420dde81235b3986fbe9bb213abce16148afc61215c19fe65b165d12fa15203f7b51992444d81a8
   languageName: node
   linkType: hard
 
