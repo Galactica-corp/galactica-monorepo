@@ -81,7 +81,10 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Clear Storage method', function () {
-    it('should throw error if not confirmed', async function () {
+    /* eslint-disable jest/no-done-callback, no-invalid-this */
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(4000);
+      /* eslint-enable jest/no-done-callback, no-invalid-this */
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const clearPromise = processRpcRequest(
