@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import { createHolderCommitment, ZkCertStandard } from '@galactica-corp/zkkyc';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';

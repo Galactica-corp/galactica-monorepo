@@ -1,9 +1,9 @@
+// SPDX-License-Identifier: BUSL-1.1
 import {
   ProviderData,
   MerkleProof,
   ZkCertStandard,
 } from '@galactica-corp/zkkyc';
-import { MetaMaskInpageProvider } from '@metamask/providers';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { JsonRpcRequest } from '@metamask/types';
 
@@ -17,7 +17,6 @@ export type RpcArgs = {
 export type SnapRpcProcessor = (
   args: RpcArgs,
   snap: SnapsGlobalObject,
-  ethereum: MetaMaskInpageProvider,
 ) => Promise<unknown>;
 
 // requirements on the type of zkCert that is used as proof input
@@ -40,13 +39,9 @@ export type GenZkKycRequestParams<ProofInputType> = {
   // Corresponding parameters from the zkey file (SNARK trusted setup ceremony).
   zkeyHeader: any;
   zkeySections: any[];
-};
 
-/**
- * Parameter for holder setup.
- */
-export type SetupHolderParams = {
-  holderAddr: string;
+  // address of the user that is going to submit the proof
+  userAddress: string;
 };
 
 /**
@@ -54,6 +49,13 @@ export type SetupHolderParams = {
  */
 export type ImportRequestParams = {
   zkCert: ZkCert;
+};
+
+/**
+ * Parameter for updating the Merkle proof of one or more zkCert.
+ */
+export type MerkleProofUpdateRequestParams = {
+  proofs: MerkleProof[];
 };
 
 /**
@@ -97,12 +99,13 @@ export type ZkCert = {
   // holding the data specific to the type of zkCert (e.g. zkKYCContent)
   content: ZkKYCContent | any;
 
-  // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
+  // Proof showing that the zkCert is part of the Merkle tree
+  // Updating it helps to prevent tracking through finding uses of the same merkle root
   merkleProof: MerkleProof;
 };
 
 export type HolderData = {
-  address: string;
+  // address: string; Not needed as long as we do not support HW wallets
   holderCommitment: string;
   eddsaKey: string;
 };
@@ -116,7 +119,7 @@ export type ZkKYCAgeProofInput = {
   // time to check against the expiration date
   currentTime: number;
   // institution public key for eventual fraud investigations
-  investigationInstitutionPubKey: [string, string];
+  investigationInstitutionPubKey: [string, string][];
   // dApp address to prove the ZKP to
   dAppAddress: string;
 
@@ -125,4 +128,13 @@ export type ZkKYCAgeProofInput = {
   currentMonth: string;
   currentDay: string;
   ageThreshold: string;
+};
+
+export type ZkKYCProofInput = {
+  // time to check against the expiration date
+  currentTime: number;
+  // institution public key for eventual fraud investigations
+  investigationInstitutionPubKey: [string, string][];
+  // dApp address to prove the ZKP to
+  dAppAddress: string;
 };

@@ -1,7 +1,6 @@
-import { eddsaKeyGenerationMessage } from '@galactica-corp/zkkyc';
+// SPDX-License-Identifier: BUSL-1.1
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
-import { stringToBytes, bytesToHex } from '@metamask/utils';
 
 import { generateZkKycProof } from './proofGenerator';
 import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
@@ -11,11 +10,10 @@ import {
   GenZkKycRequestParams,
   HolderData,
   ImportRequestParams,
-  SetupHolderParams,
+  MerkleProofUpdateRequestParams,
   SnapRpcProcessor,
 } from './types';
 import {
-  calculateHolderCommitment,
   getZkCertStorageHashes,
   getZkCertStorageOverview,
 } from './zkCertHandler';
@@ -29,7 +27,6 @@ import { selectZkCert } from './zkCertSelector';
  * @param args.origin - The origin of the request, e.g., the website that invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
  * @param snap - The SnapProvider (snap).
- * @param ethereum - The Ethereum provider for interacting with the ordinary Metamask.
  * @returns `null` if the request succeeded.
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_dialog` call failed.
@@ -37,83 +34,53 @@ import { selectZkCert } from './zkCertSelector';
 export const processRpcRequest: SnapRpcProcessor = async (
   { origin, request },
   snap,
-  ethereum,
 ) => {
   const state = await getState(snap);
   let confirm: any;
-  let response: any;
   let holder: HolderData;
 
   switch (request.method) {
-    case RpcMethods.SetupHoldingKey: {
-      const setupParams = request.params as SetupHolderParams;
-
-      const permissions = await ethereum.request({
-        method: 'wallet_requestPermissions',
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        params: [{ eth_accounts: {} }],
-      });
-      console.log(`${JSON.stringify(permissions, null, 2)}`);
-
-      const msgToSign = bytesToHex(stringToBytes(eddsaKeyGenerationMessage));
-
-      const sign = (await ethereum.request({
-        method: 'personal_sign',
-        params: [msgToSign, setupParams.holderAddr],
-      })) as string;
-
-      if (
-        state.holders.find(
-          (candidate) => candidate.address === setupParams.holderAddr,
-        )
-      ) {
-        response = true;
-      } else {
-        state.holders.push({
-          address: setupParams.holderAddr,
-          holderCommitment: await calculateHolderCommitment(sign),
-          eddsaKey: sign,
-        });
-        await saveState(snap, {
-          holders: state.holders,
-          zkCerts: state.zkCerts,
-        });
-        response = true;
-      }
-      return response;
-    }
-
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
       const genParams = request.params as GenZkKycRequestParams<any>;
       // TODO: check input validity
+      if (genParams.userAddress === undefined) {
+        throw new Error(`userAddress missing in request parameters.`);
+      }
+      if (genParams.requirements.zkCertStandard === undefined) {
+        throw new Error(`ZkCert standard missing in request parameters.`);
+      }
 
       const proofConfirmDialog = [
         heading('Generate zkCert proof?'),
-        text(`Do you want to prove your identity to ${origin}?`),
         text(
-          `This will create a ${genParams.requirements.zkCertStandard} proof.`,
+          `Do you want to create a ${genParams.requirements.zkCertStandard} proof for ${origin}?`,
+        ),
+        text(
+          `This will disclose whether your personal data fulfills the requirements of the proof.`,
         ),
         divider(),
       ];
 
-      // TODO: generalize disclosure of inputs to any kind of inputs
+      // TODO: check if a description is provided
       proofConfirmDialog.push(
-        text(`It discloses the following information publicly:`),
-        text(
-          `That you are at least ${
-            genParams.input.ageThreshold as number
-          } years old`,
-        ),
-        text(`The date of generating this proof`),
+        text(`Description according to ${origin}:`),
+        text(`TODO`),
       );
 
+      // Generalize disclosure of inputs to any kind of inputs
       proofConfirmDialog.push(
         divider(),
-        text(
-          `The following private inputs are processed by the zkSNARK and stay hidden: zkKYC ID, personal details that are not listed above`,
-        ),
+        text(`The following proof parameters will be publicly visible:`),
       );
+
+      for (const parameter of Object.keys(genParams.input)) {
+        proofConfirmDialog.push(
+          text(
+            `${parameter}: ${genParams.input[parameter].toString() as string}`,
+          ),
+        );
+      }
 
       confirm = await snap.request({
         method: 'snap_dialog',
@@ -138,7 +105,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       );
       if (searchedHolder === undefined) {
         throw new Error(
-          `Holder for commitment ${zkCert.holderCommitment} could not be found. Please connect the snap to that address to import the corresponding holder.`,
+          `Holder for commitment ${zkCert.holderCommitment} could not be found. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
         );
       } else {
         holder = searchedHolder;
@@ -172,7 +139,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
           content: panel([
             heading('Clear zkCert and holder storage?'),
             text(
-              `Do you want to delete the zkCertificates and holder information stored in Metamask? (requested by ${origin})`,
+              `Do you want to delete the zkCertificates stored in Metamask? (requested by ${origin})`,
             ),
           ]),
         },
@@ -243,7 +210,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.MissingHolder);
       }
 
-      // TODO: holder selection if multiple holders are available
+      // Assuming that we have a single holder. Might change when this is implemented: https://github.com/MetaMask/snaps/discussions/1364#discussioncomment-6111359
       holder = state.holders[0];
 
       confirm = await snap.request({
@@ -252,9 +219,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
           type: 'confirmation',
           content: panel([
             heading('Provide holder commitment?'),
-            text(
-              `Do you want to provide your holder commitment of ${holder.address} to ${origin}?`,
-            ),
+            text(`Do you want to provide your holder commitment to ${origin}?`),
           ]),
         },
       });
@@ -286,8 +251,73 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.GetZkCertStorageHashes: {
-      // does not need confirmation as it does not leak any personal or trackng data
+      // does not need confirmation as it does not leak any personal or tracking data
       return getZkCertStorageHashes(state.zkCerts, origin);
+    }
+
+    case RpcMethods.GetZkCertHash: {
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'confirmation',
+          content: panel([
+            heading('Provide zkCert hash?'),
+            text(
+              `Do you want to provide the leaf hashes of your zkCerts to ${origin}?`,
+            ),
+            text(
+              `We suggest doing this only to update Merkle proofs. Only Do this on sites you trust to handle the unique ID of your zkCert confidentially.`,
+            ),
+          ]),
+        },
+      });
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
+      }
+
+      return state.zkCerts.map((zkCert) => zkCert.leafHash);
+    }
+
+    case RpcMethods.UpdateMerkleProof: {
+      const merkleUpdateParams =
+        request.params as MerkleProofUpdateRequestParams;
+
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'confirmation',
+          content: panel([
+            heading('Update Merkle proofs?'),
+            text(
+              `Do you want to update the merkle proofs of your zkCerts as suggested by ${origin}?`,
+            ),
+          ]),
+        },
+      });
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
+      }
+
+      for (const merkleProof of merkleUpdateParams.proofs) {
+        // TODO: checking the proof for correctness could help the user to avoid confusion
+
+        let foundZkCert = false;
+        for (const zkCert of state.zkCerts) {
+          if (zkCert.leafHash === merkleProof.leaf) {
+            zkCert.merkleProof = merkleProof;
+            foundZkCert = true;
+            break;
+          }
+        }
+        if (!foundZkCert) {
+          throw new Error(
+            `The zkCert with leaf hash ${merkleProof.leaf} was not found in the wallet. Please import it before updating the Merkle proof.`,
+          );
+        }
+      }
+
+      await saveState(snap, state);
+      return RpcResponseMsg.MerkleProofsUpdated;
     }
 
     default: {
@@ -315,5 +345,5 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
   // forward to common function shared with unit tests
   // passing global objects object from snap environment
-  return await processRpcRequest({ origin, request }, snap, ethereum);
+  return await processRpcRequest({ origin, request }, snap);
 };

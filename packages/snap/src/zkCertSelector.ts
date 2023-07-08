@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: BUSL-1.1
 import { ZKCertificate } from '@galactica-corp/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';

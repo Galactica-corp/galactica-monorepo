@@ -15,19 +15,6 @@ export {
  * Invoke the methods from the example snap.
  */
 
-export const setupHoldingKey = async () => {
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.SetupHoldingKey,
-        params: { holderAddr: window.ethereum.selectedAddress },
-      },
-    },
-  });
-};
-
 export const clearStorage = async () => {
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',

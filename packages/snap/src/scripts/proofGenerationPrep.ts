@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
 import * as fs from 'fs';
@@ -49,7 +50,7 @@ async function testModified(
  *
  * @param circuitName - Name of the circuit to find the files.
  * @param circuitDir - Directory holding the .wasm and .zkey files.
- * @param input - Input data TODO: remove this as the input data should be filled from the snap.
+ * @param input - Input data for testing if the generation works.
  * @returns The parameters to generate the proof with.
  */
 async function createCircuitData(
@@ -86,13 +87,14 @@ async function createCircuitData(
     requirements: {
       zkCertStandard: 'gip69',
     },
+    userAddress: '0x0',
   };
   return params;
 }
 
 /**
  * To simplify reading the data in the frontend, we write it to a json file here.
- * TODO: solve this properly by providing the file in the frontend and let the frontend parse it.
+ * Then it can be imported on demand to be uploaded to the snap.
  *
  * @param filePath - Path to write to.
  * @param data - Data to write.

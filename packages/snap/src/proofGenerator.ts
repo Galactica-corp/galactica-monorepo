@@ -1,5 +1,11 @@
-import { MerkleProof, ZKCertificate } from '@galactica-corp/zkkyc';
+// SPDX-License-Identifier: BUSL-1.1
+import {
+  MerkleProof,
+  ZKCertificate,
+  formatPrivKeyForBabyJub,
+} from '@galactica-corp/zkkyc';
 import { Buffer } from 'buffer';
+import { buildEddsa } from 'circomlibjs';
 import { buildBn128, buildBls12381 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
 
@@ -23,9 +29,20 @@ export const generateZkKycProof = async (
 
   const authorizationProof = zkCert.getAuthorizationProofInput(
     holder.eddsaKey,
-    // TODO: add selection of the using wallet
-    holder.address,
+    params.userAddress,
   );
+
+  // Generate private key for sending encrypted messages to institutions
+  // It should be different if the ZKP is sent from another address
+  // Therefore generating it from the private holder eddsa key and the user address
+  const eddsa = await buildEddsa();
+  const encryptionHashBase = eddsa.poseidon.F.toObject(
+    eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
+  ).toString();
+  const encryptionPrivKey = formatPrivKeyForBabyJub(
+    encryptionHashBase,
+    eddsa,
+  ).toString();
 
   const inputs: any = {
     ...processedParams.input,
@@ -35,7 +52,6 @@ export const generateZkKycProof = async (
 
     ...zkCert.getOwnershipProofInput(holder.eddsaKey),
 
-    // TODO: accept authorization for different address than holder
     userAddress: authorizationProof.userAddress,
     S2: authorizationProof.S,
     R8x2: authorizationProof.R8x,
@@ -48,11 +64,10 @@ export const generateZkKycProof = async (
     providerR8y: zkCert.providerData.R8y,
 
     root: merkleProof.root,
-    pathElements: merkleProof.path,
+    pathElements: merkleProof.pathElements,
     pathIndices: merkleProof.pathIndices,
 
-    // TODO: add selection of the using wallet
-    userPrivKey: holder.eddsaKey,
+    userPrivKey: encryptionPrivKey,
 
     humanID: zkCert.getHumanID(processedParams.input.dAppAddress),
   };

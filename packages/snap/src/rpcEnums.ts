@@ -1,8 +1,8 @@
+// SPDX-License-Identifier: BUSL-1.1
 /**
  * Enum for RPC methods.
  */
 export enum RpcMethods {
-  SetupHoldingKey = 'setupHoldingKey',
   GetHolderCommitment = 'getHolderCommitment',
   GenZkKycProof = 'genZkKycProof',
   ClearStorage = 'clearStorage',
@@ -10,6 +10,8 @@ export enum RpcMethods {
   ExportZkCert = 'exportZkCert',
   ListZkCerts = 'listZkCerts',
   GetZkCertStorageHashes = 'getZkCertStorageHashes',
+  GetZkCertHash = 'getZkCertHashes',
+  UpdateMerkleProof = 'updateMerkleProof',
   // TODO: would be nice to have more storage management methods like deleting a specific zkCert, modifying a zkCert, bulk import/export, ...
 }
 
@@ -19,6 +21,7 @@ export enum RpcMethods {
 export enum RpcResponseMsg {
   StorageCleared = 'zkCert storage cleared',
   ZkCertImported = 'zkCert added to storage',
+  MerkleProofsUpdated = 'Updated Merkle proofs',
 }
 
 /**

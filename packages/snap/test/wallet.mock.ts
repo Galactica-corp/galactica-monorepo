@@ -43,6 +43,7 @@ class SnapMock extends ProviderMock {
     snap_getBip44Entropy: stub(),
     snap_getBip44Entropy_461: stub(),
     snap_manageState: stub(),
+    snap_getEntropy: stub(),
   };
   /* eslint-enable @typescript-eslint/naming-convention */
 

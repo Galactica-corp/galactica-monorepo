@@ -1,12 +1,12 @@
 {
   "name": "@galactica-corp/snap",
-  "version": "0.3.1",
+  "version": "0.4.2",
   "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
   "repository": {
     "type": "git",
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
-  "license": "(MIT-0 OR Apache-2.0)",
+  "license": "(BUSL-1.1 OR MIT-0 OR Apache-2.0)",
   "main": "src/index.ts",
   "files": [
     "dist/",
@@ -30,7 +30,7 @@
     "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\""
   },
   "dependencies": {
-    "@galactica-corp/zkkyc": "^0.5.0",
+    "@galactica-corp/zkkyc": "^0.6.2",
     "circomlibjs": "^0.1.7",
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
   },
@@ -44,7 +44,7 @@
     "@metamask/eslint-config-typescript": "^11.1.0",
     "@metamask/providers": "^10.2.1",
     "@metamask/rpc-methods": "^0.32.2",
-    "@metamask/snaps-cli": "^0.30.0",
+    "@metamask/snaps-cli": "^0.32.2",
     "@metamask/snaps-types": "^0.32.2",
     "@metamask/snaps-ui": "^0.32.2",
     "@metamask/utils": "^5.0.1",

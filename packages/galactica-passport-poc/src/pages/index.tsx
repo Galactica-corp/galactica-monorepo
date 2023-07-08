@@ -9,7 +9,6 @@ import {
   clearStorage,
   importZkCert,
   exportZkCert,
-  setupHoldingKey,
   getHolderCommitment,
   queryVerificationSBTs,
   formatVerificationSBTs,
@@ -23,12 +22,12 @@ import {
   SelectAndImportButton,
   ConnectMMButton,
 } from '../../../galactica-dapp/src/components';
-import { BigNumber, ethers } from 'ethers';
+import { ethers } from 'ethers';
 import { processProof, processPublicSignals } from '../../../galactica-dapp/src/utils/proofProcessing';
 
 import addresses from '../../../galactica-dapp/src/config/addresses';
 import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
-import galacticaInstitutionABI from '../../../galactica-dapp/src/config/abi/IGalacticaInstitution.json';
+import { getProver, prepareProofInput } from '../../../galactica-dapp/src/utils/zkp';
 
 const Container = styled.div`
   display: flex;
@@ -173,7 +172,7 @@ const Index = () => {
     }
   };
 
-  const handleSnapCallClick = async (method : () => Promise<any>) => {
+  const handleSnapCallClick = async (method: () => Promise<any>) => {
     try {
       console.log('sending request to snap...');
       const res = await method();
@@ -209,8 +208,8 @@ const Index = () => {
 
   const getHolderCommitmentClick = async () => {
     try {
-      const  zkKYCContent = {
-        
+      const zkKYCContent = {
+
       };
       console.log('sending request to snap...');
       const res = await getHolderCommitment();
@@ -222,7 +221,7 @@ const Index = () => {
       };
 
       // save to file as placeholder
-      // TODO: integrate some kind of provider API to submitt the prepared zkCert to for signing and issuance on chain
+      // TODO: integrate some kind of provider API to submit the prepared zkCert to for signing and issuance on chain
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
         JSON.stringify(jsonExport, null, 2)
       )}`;
@@ -253,41 +252,34 @@ const Index = () => {
 
   const bigProofGenerationClick = async () => {
     try {
-      // get prover data (separately loaded because the large json should not slow down initial site loading)
-      const proverText = await fetch("/provers/ageProofZkKYC.json");
-      const parsedFile = JSON.parse(await proverText.text());
+      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
 
+      const dateNow = new Date();
+      const ageProofInputs = {
+        // specific inputs to prove that the holder is at least 18 years old
+        currentYear: dateNow.getUTCFullYear().toString(),
+        currentMonth: (dateNow.getUTCMonth() + 1).toString(),
+        currentDay: dateNow.getUTCDate().toString(),
+        ageThreshold: '18',
+      };
+
+      const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
+      const zkp: any = await generateProof(await getProver("/provers/exampleMockDApp.json"), proofInput);
+
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+      dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
+
+      // send proof directly on chain
+      let [a, b, c] = processProof(zkp.proof);
+      let publicInputs = processPublicSignals(zkp.publicSignals);
+
+      console.log(`Sending proof for on-chain verification...`);
+      // this is the on-chain function that requires a ZKP
       //@ts-ignore https://github.com/metamask/providers/issues/200
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       // get contracts
       const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
-      // fetch institution pubkey from chain
-      const institutionContract = new ethers.Contract(addresses.galacticaInstitution, galacticaInstitutionABI.abi, signer);
-      const institutionPubKey: [string, string] = [
-        BigNumber.from(await institutionContract.institutionPubKey(0)).toString(),
-        BigNumber.from(await institutionContract.institutionPubKey(1)).toString(),
-      ];
-
-      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
-      console.log('sending request to snap...');
-      const res: any = await generateProof(parsedFile, addresses.mockDApp, institutionPubKey);
-      console.log('Response from snap', res);
-      
-      if (res === undefined || res === null ){
-        throw new Error('Proof generation failed: empty response');
-      }
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
-      console.log(JSON.stringify(res, null, 2));
-      dispatch({ type: MetamaskActions.SetProofData, payload: res });
-
-      // send proof direcly on chain
-      let [a, b, c] = processProof(res.proof);
-      let publicInputs = processPublicSignals(res.publicSignals);
-      console.log(`Formated proof: ${JSON.stringify({a:a, b:b, c:c}, null, 2)}`);
-      console.log(`Formated publicInputs: ${JSON.stringify(publicInputs, null, 2)}`);
-
-      console.log(`Sending proof for on-chain verification...`);
       let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
       console.log("tx", tx);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
@@ -437,27 +429,11 @@ const Index = () => {
           </p>
         </Notice> */}
       </CardContainer>
-      <br/>
+      <br />
       <Subtitle>
         Manage zkCertificate storage (part of Galactica passport website)
       </Subtitle>
       <CardContainer>
-        <Card
-          content={{
-            title: 'Setup zkCert wallet',
-            description:
-              'Setup Metamask snap with the wallet that holds zkCerts.',
-            button: (
-              <GeneralButton
-                onClick={() => handleSnapCallClick(setupHoldingKey)}
-                disabled={false}
-                text="Setup"
-              />
-            ),
-          }}
-          disabled={false}
-          fullWidth={false}
-        />
         <Card
           content={{
             title: 'Show valid Verification SBTs',
@@ -522,7 +498,7 @@ const Index = () => {
           fullWidth={false}
         />
       </CardContainer>
-      <br/>
+      <br />
       <Subtitle>
         Creating zkKYC (part of zkKYC provider website)
       </Subtitle>
