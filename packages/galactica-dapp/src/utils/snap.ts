@@ -61,9 +61,10 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
  *
  * @param proverData - Prover data passed to the snap (including wasm and zkey).
  * @param proofInput - Input for the proof.
+ * @param disclosureDescription - Description of the disclosures made by the proof. It should include all output signals of the ZK circuit and what checks are verified by the proof. It informs the user about what he is disclosing on-chain.
  * @returns Request result that should contain the ZKP.
  */
-export const generateProof = async (proverData: any, proofInput: any) => {
+export const generateProof = async (proverData: any, proofInput: any, disclosureDescription?: string) => {
   console.log(
     'sending generateProof request to snap with publicInput:',
     JSON.stringify(proofInput, null, 2),
@@ -89,6 +90,7 @@ export const generateProof = async (proverData: any, proofInput: any) => {
           wasm: proverData.wasm,
           zkeyHeader: proverData.zkeyHeader,
           zkeySections: proverData.zkeySections,
+          disclosureDescription,
         },
       },
     },

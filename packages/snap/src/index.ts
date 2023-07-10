@@ -62,11 +62,18 @@ export const processRpcRequest: SnapRpcProcessor = async (
         divider(),
       ];
 
-      // TODO: check if a description is provided
-      proofConfirmDialog.push(
-        text(`Description according to ${origin}:`),
-        text(`TODO`),
-      );
+      // Description of disclosures made by the proof have to be provided by the front-end because the snap can not analyze what the prover will do.
+      if (genParams.disclosureDescription !== undefined) {
+        proofConfirmDialog.push(
+          text(`Further description of disclosures:`),
+          text(genParams.disclosureDescription),
+          text(`(Description provided by ${origin}. The snap can not verify if the prover actually meets those disclosures.)`),
+        );
+      } else {
+        proofConfirmDialog.push(
+          text(`No further description of disclosures provided by ${origin}.`),
+        );
+      }
 
       // Generalize disclosure of inputs to any kind of inputs
       proofConfirmDialog.push(
@@ -77,7 +84,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       for (const parameter of Object.keys(genParams.input)) {
         proofConfirmDialog.push(
           text(
-            `${parameter}: ${genParams.input[parameter].toString() as string}`,
+            `${parameter}: ${JSON.stringify(genParams.input[parameter], null, 2)}`,
           ),
         );
       }
