@@ -82,9 +82,9 @@ describe('Test rpc handler function', function () {
 
   describe('Clear Storage method', function () {
     /* eslint-disable jest/no-done-callback, no-invalid-this */
+    // (found no better way to increase timeouts for async tests)
     it('should throw error if not confirmed', async function (this: Mocha.Context) {
       this.timeout(4000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const clearPromise = processRpcRequest(
@@ -165,10 +165,8 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Add Holder method', function () {
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
     it('should add holder successfully', async function (this: Mocha.Context) {
       this.timeout(4000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       await processRpcRequest(
@@ -256,11 +254,8 @@ describe('Test rpc handler function', function () {
       );
     });
 
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
-    // (found no better way to increase timeouts for async tests)
     it('should generate ZKP successfully', async function (this: Mocha.Context) {
       this.timeout(20000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
 
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
@@ -280,10 +275,8 @@ describe('Test rpc handler function', function () {
       await verifyProof(result);
     });
 
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
     it('should be able to select from multiple zkCerts', async function (this: Mocha.Context) {
       this.timeout(20000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
 
       snapProvider.rpcStubs.snap_dialog
         .withArgs(match.has('type', 'confirmation'))
@@ -489,7 +482,8 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Export zkCert', function () {
-    it('should throw error if not confirmed', async function () {
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const params: ExportRequestParams = {
@@ -507,10 +501,8 @@ describe('Test rpc handler function', function () {
       );
     });
 
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
     it('should provide zkCert on approval', async function (this: Mocha.Context) {
       this.timeout(5000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
