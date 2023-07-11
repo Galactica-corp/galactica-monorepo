@@ -88,7 +88,6 @@ export type ZkCertProof = {
   publicSignals: string[];
 };
 
-// TODO: remove this type and use the one from the zkKYC package
 export type ZkCert = {
   holderCommitment: string;
   providerSignature: string;

@@ -54,8 +54,7 @@ export async function selectZkCert(
         ),
       ];
 
-      // custom information to display depnding on the type of zkCert
-      // TODO: use more dynamic approach (e.g. let the request define what information to display)
+      // custom information to display depending on the type of zkCert
       if (req.zkCertStandard === 'gip69') {
         const expirationDate = new Date(
           filteredCerts[i].content.expirationDate * 1000,
@@ -79,8 +78,7 @@ export async function selectZkCert(
             heading(`zkCertificate Selection`),
             ...options,
             text(
-              `Please enter the number of the zkCertificate you want to use (${1} to ${
-                filteredCerts.length
+              `Please enter the number of the zkCertificate you want to use (${1} to ${filteredCerts.length
               }):`,
             ),
           ]),
@@ -98,9 +96,8 @@ export async function selectZkCert(
           method: 'snap_notify',
           params: {
             type: 'native',
-            message: `Selection failed. Answer not between ${1} and ${
-              filteredCerts.length
-            }.`,
+            message: `Selection failed. Answer not between ${1} and ${filteredCerts.length
+              }.`,
           },
         });
       }

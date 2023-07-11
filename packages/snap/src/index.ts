@@ -118,7 +118,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
         holder = searchedHolder;
       }
 
-      // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
       const searchedZkCert = state.zkCerts.find(
         (cert) => cert.leafHash === zkCert.leafHash,
       );
@@ -162,7 +161,15 @@ export const processRpcRequest: SnapRpcProcessor = async (
     case RpcMethods.ImportZkCert: {
       const importParams = request.params as ImportRequestParams;
 
-      // TODO: check that there is a holder setup for this zkCert
+      // check that there is a holder setup for this zkCert
+      const searchedHolder = state.holders.find(
+        (candidate) => candidate.holderCommitment === importParams.zkCert.holderCommitment,
+      );
+      if (searchedHolder === undefined) {
+        throw new Error(
+          `Could not find Holder for commitment ${importParams.zkCert.holderCommitment}. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
+        );
+      }
 
       confirm = await snap.request({
         method: 'snap_dialog',
@@ -285,6 +292,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       return state.zkCerts.map((zkCert) => zkCert.leafHash);
     }
 
+    // To preserve privacy by not using the same merkle proof every time, the merkle proof can be updated.
     case RpcMethods.UpdateMerkleProof: {
       const merkleUpdateParams =
         request.params as MerkleProofUpdateRequestParams;
@@ -306,8 +314,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       for (const merkleProof of merkleUpdateParams.proofs) {
-        // TODO: checking the proof for correctness could help the user to avoid confusion
-
         let foundZkCert = false;
         for (const zkCert of state.zkCerts) {
           if (zkCert.leafHash === merkleProof.leaf) {

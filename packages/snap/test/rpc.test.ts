@@ -7,6 +7,7 @@ import { groth16 } from 'snarkjs';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
+import zkKYCToImportInUnitTest from '../../../test/zkKYCToImportInUnitTest.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from '../src/rpcEnums';
@@ -170,7 +171,7 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert: zkKYCToImportInUnitTest }),
         snapProvider,
       );
 
@@ -184,7 +185,7 @@ describe('Test rpc handler function', function () {
               holderCommitment: await calculateHolderCommitment(testEntropy),
             },
           ],
-          zkCerts: [zkCert],
+          zkCerts: [zkKYCToImportInUnitTest],
         },
       });
     });
