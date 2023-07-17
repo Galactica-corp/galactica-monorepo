@@ -18,7 +18,7 @@ export async function calculateHolderCommitment(
 }
 
 /**
- * Provides an overview of the zkCert storage. This data can be querried by front-ends.
+ * Provides an overview of the zkCert storage. This data can be queried by front-ends.
  * The data shared here must not reveal any private information or possibility to track users).
  *
  * @param zkCertStorage - The list of zkCerts stored.

@@ -22,6 +22,7 @@ export enum RpcResponseMsg {
   StorageCleared = 'zkCert storage cleared',
   ZkCertImported = 'zkCert added to storage',
   MerkleProofsUpdated = 'Updated Merkle proofs',
+  ZkCertAlreadyImported = 'This zkCert has already been imported. Skipping it.',
 }
 
 /**

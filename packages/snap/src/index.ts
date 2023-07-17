@@ -171,6 +171,14 @@ export const processRpcRequest: SnapRpcProcessor = async (
         );
       }
 
+      // prevent uploading the same zkCert again
+      const searchedZkCert = state.zkCerts.find(
+        (candidate) => candidate.leafHash === importParams.zkCert.leafHash,
+      );
+      if (searchedZkCert) {
+        return RpcResponseMsg.ZkCertAlreadyImported;
+      }
+
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {

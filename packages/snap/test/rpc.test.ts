@@ -232,6 +232,30 @@ describe('Test rpc handler function', function () {
       });
       expect(result).to.be.eq(RpcResponseMsg.ZkCertImported);
     });
+
+    it('should not import same zkCert again', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        snapProvider,
+      );
+
+      expect(result).to.be.eq(RpcResponseMsg.ZkCertAlreadyImported);
+      expect(snapProvider.rpcStubs.snap_manageState).to.not.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert, zkCert],
+        },
+      });
+    });
   });
 
   describe('Generate ZKP method', function () {
