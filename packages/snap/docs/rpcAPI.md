@@ -243,11 +243,13 @@ Asks user for confirmation
 
 - `Object`
   - `zkCert` - JSON `object`, containing the zkCertificate data according to the standart it is using.
+  - `listZkCerts` - `boolean`, (optional) flag if the Snap should return an overview after the import, same as in the `listZkCerts` method.
 
 #### Returns
 
 `string` "zkCert added to storage" on successful import.
-Throws error otherwise.
+If `listZkCerts` is set to `true`, it returns the zkCert overview instead (same as in the `listZkCerts` method).
+Throws error if the import fails.
 
 #### Example
 
@@ -293,6 +295,45 @@ await window.ethereum.request({
     request: {
       method: 'exportZkCert',
       params,
+    },
+  },
+});
+```
+
+### `deleteZkCert`
+
+#### Description
+
+Delete a zkCertificate stored in the snap.
+
+You can provide some filter criteria which zkCert should be deleted based on the response from the `listZkCerts` method.
+It asks the user for confirmation and selection of the zkCertificate to be deleted if the filter is ambiguous.
+
+#### Parameters
+
+- `Object`
+  - `zkCertStandard` - `string` identifying the standard of the zkCertificate to be deleted (optional).
+  - `expirationDate` - `number` identifying the expiration date of the zkCertificate to be deleted (optional).
+  - `providerAx` - `string` identifying the provider pubkey (Ax part only) of the zkCertificate to be deleted (optional).
+
+#### Returns
+
+`string` - "Deleted zkCert." on success.
+Throws error otherwise.
+
+#### Example
+
+```javascript
+const params: DeleteRequestParams = {
+    zkCertStandard: 'gip69',
+  };
+await window.ethereum.request({
+  method: 'wallet_invokeSnap',
+  params: {
+    snapId: defaultSnapOrigin,
+    request: {
+      method: 'deleteZkCert',
+      ,
     },
   },
 });
