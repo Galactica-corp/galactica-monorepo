@@ -52,12 +52,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       const proofConfirmDialog = [
-        heading('Generate zkCert proof?'),
+        heading('Generating zkCertificate Proof'),
         text(
-          `Do you want to create a ${genParams.requirements.zkCertStandard} proof for ${origin}?`,
-        ),
-        text(
-          `This will disclose whether your personal data fulfills the requirements of the proof.`,
+          `With this action you will create a ${genParams.requirements.zkCertStandard.toUpperCase()} proof for Galactica.com.
+           This action tests whether your personal data fulfills the requirements of the proof.`,
         ),
         divider(),
       ];
