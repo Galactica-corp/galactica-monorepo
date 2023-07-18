@@ -12,12 +12,16 @@ import { ZkCert, ZkCertRequirements } from './types';
  *
  * @param snap - The snap for interaction with Metamask.
  * @param availableCerts - The available ZkCerts to select from.
- * @param req - The requirements for the ZkCert to select.
+ * @param zkCertStandard - The zkCertStandard of the ZkCert to select (optional).
+ * @param expirationDate - The expiration date to filter for (optional).
+ * @param providerAx - The provider pubkey to filter for (optional).
  */
 export async function selectZkCert(
   snap: SnapsGlobalObject,
   availableCerts: ZkCert[],
-  req: ZkCertRequirements,
+  zkCertStandard?: string,
+  expirationDate?: number,
+  providerAx?: string,
 ): Promise<ZKCertificate> {
   if (availableCerts.length === 0) {
     throw new Error('No zkCerts available. Please import it first.');
@@ -25,16 +29,24 @@ export async function selectZkCert(
 
   const filteredCerts = availableCerts.filter((value) => {
     return (
-      value.zkCertStandard === req.zkCertStandard && // same zkCert Standard
-      // not expired (if expirationDate is set)
+      // same zkCert Standard, if defined as filter
+      (value.zkCertStandard === zkCertStandard ||
+        zkCertStandard === undefined)
+      &&
+      // not expired (if zkCert has expiration date) or same as filtered
       (value.content.expirationDate === undefined ||
-        value.content.expirationDate >= Date.now() / 1000)
+        (value.content.expirationDate >= Date.now() / 1000 && expirationDate === undefined) ||
+        value.content.expirationDate == expirationDate)
+      &&
+      // same provider, if defined as filter
+      (providerAx === undefined ||
+        value.providerData.Ax == providerAx)
     );
   });
 
   if (filteredCerts.length === 0) {
     throw new Error(
-      `No zkCerts of standard ${req.zkCertStandard} available. Please import it first.`,
+      `No zkCerts of standard ${zkCertStandard} available. Please import it first.`,
     );
   }
 
@@ -55,7 +67,7 @@ export async function selectZkCert(
       ];
 
       // custom information to display depending on the type of zkCert
-      if (req.zkCertStandard === 'gip69') {
+      if (zkCertStandard === 'gip69') {
         const expirationDate = new Date(
           filteredCerts[i].content.expirationDate * 1000,
         );
@@ -78,7 +90,7 @@ export async function selectZkCert(
             heading(`zkCertificate Selection`),
             ...options,
             text(
-              `Please enter the number of the zkCertificate you want to use (${1} to ${filteredCerts.length
+              `Please enter the number of the zkCertificate you want to select (${1} to ${filteredCerts.length
               }):`,
             ),
           ]),

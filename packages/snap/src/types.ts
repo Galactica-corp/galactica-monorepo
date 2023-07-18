@@ -59,6 +59,16 @@ export type ImportRequestParams = {
 };
 
 /**
+ * Parameters for zkCert deletion.
+ * Because the website does not know IDs for zkCerts, it can provide an optional list of filters to simplify selecting the zkCert to be deleted.
+ */
+export type DeleteRequestParams = {
+  zkCertStandard?: string;
+  expirationDate?: number;
+  ProviderAx?: string;
+};
+
+/**
  * Parameter for updating the Merkle proof of one or more zkCert.
  */
 export type MerkleProofUpdateRequestParams = {

@@ -12,6 +12,7 @@ import {
   getHolderCommitment,
   queryVerificationSBTs,
   formatVerificationSBTs,
+  deleteZkCert,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -493,6 +494,22 @@ const Index = () => {
             button: (
               <GeneralButton
                 onClick={handleExportClick}
+                disabled={false}
+                text="Export"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Delete zkCert',
+            description:
+              'Delete a zkCert from the Metamask snap storage.',
+            button: (
+              <GeneralButton
+                onClick={() => handleSnapCallClick(deleteZkCert)}
                 disabled={false}
                 text="Export"
               />

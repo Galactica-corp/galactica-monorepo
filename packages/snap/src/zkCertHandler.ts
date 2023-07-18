@@ -31,17 +31,17 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
       sharedZkCerts[zkCert.zkCertStandard] = [];
     }
 
-    const disclosableData: any = {
+    const disclosureData: any = {
       providerPubKey: {
         Ax: zkCert.providerData.Ax,
         Ay: zkCert.providerData.Ay,
       },
     };
     if (zkCert.zkCertStandard === ZkCertStandard.zkKYC) {
-      disclosableData.expirationDate = zkCert.content.expirationDate;
-      disclosableData.verificationLevel = zkCert.content.verificationLevel;
+      disclosureData.expirationDate = zkCert.content.expirationDate;
+      disclosureData.verificationLevel = zkCert.content.verificationLevel;
     }
-    sharedZkCerts[zkCert.zkCertStandard].push(disclosableData);
+    sharedZkCerts[zkCert.zkCertStandard].push(disclosureData);
   }
   return sharedZkCerts;
 }

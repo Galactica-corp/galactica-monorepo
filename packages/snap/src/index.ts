@@ -13,6 +13,7 @@ import {
   MerkleProofUpdateRequestParams,
   SnapRpcProcessor,
   PanelContent,
+  DeleteRequestParams,
 } from './types';
 import {
   getZkCertStorageHashes,
@@ -103,7 +104,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const zkCert = await selectZkCert(
         snap,
         state.zkCerts,
-        genParams.requirements,
+        genParams.requirements.zkCertStandard,
       );
 
       const searchedHolder = state.holders.find(
@@ -230,9 +231,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      const zkCertForExport = await selectZkCert(snap, state.zkCerts, {
-        zkCertStandard: exportParams.zkCertStandard,
-      });
+      const zkCertForExport = await selectZkCert(snap, state.zkCerts, exportParams.zkCertStandard);
       const zkCertStorageData = state.zkCerts.find(
         (cert) => cert.leafHash === zkCertForExport.leafHash,
       );
@@ -352,6 +351,38 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       await saveState(snap, state);
       return RpcResponseMsg.MerkleProofsUpdated;
+    }
+
+    case RpcMethods.DeleteZkCert: {
+      const deleteParams = request.params as DeleteRequestParams;
+
+      // get existing zkCerts that the fit to the delete filter
+      const zkCertToDelete = await selectZkCert(
+        snap,
+        state.zkCerts,
+        deleteParams.zkCertStandard,
+        deleteParams.expirationDate,
+        deleteParams.ProviderAx,
+      );
+
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'confirmation',
+          content: panel([
+            heading('Delete zkCert?'),
+            text(`Do you want to delete the following zkCert from MetaMask?`),
+            text(`${zkCertToDelete.did}`),
+          ]),
+        },
+      });
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
+      }
+
+      state.zkCerts = state.zkCerts.filter(zkCert => zkCert.leafHash != zkCertToDelete.leafHash);
+      await saveState(snap, state);
+      return RpcResponseMsg.ZkCertDeleted;
     }
 
     default: {

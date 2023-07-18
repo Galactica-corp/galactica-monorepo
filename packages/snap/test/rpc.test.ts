@@ -686,4 +686,74 @@ describe('Test rpc handler function', function () {
       expect(result).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
     });
   });
+
+  describe('Delete zkCert method', function () {
+    beforeEach(function () {
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert, zkCert2],
+        });
+    });
+
+    it('should throw error if not confirmed', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(null);
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.DeleteZkCert, {}),
+        snapProvider,
+      );
+
+      await expect(callPromise).to.be.rejectedWith(
+        Error,
+        RpcResponseErr.RejectedSelect,
+      );
+    });
+
+    it('should delete zkCert successfully (unambiguous filter)', async function (this: Mocha.Context) {
+      this.timeout(4000);
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.DeleteZkCert, {
+          zkCertStandard: zkCert.zkCertStandard,
+          expirationDate: zkCert.content.expirationDate,
+        }),
+        snapProvider,
+      );
+
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert2],
+        },
+      });
+      expect(result).to.be.eq(RpcResponseMsg.ZkCertDeleted);
+    });
+
+    it('should delete zkCert successfully (selection because of too broad filter)', async function (this: Mocha.Context) {
+      this.timeout(4000);
+      snapProvider.rpcStubs.snap_dialog.
+        onFirstCall().resolves(2).
+        onSecondCall().resolves(true);
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.DeleteZkCert, {
+          zkCertStandard: zkCert.zkCertStandard,
+        }),
+        snapProvider,
+      );
+
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        },
+      });
+      expect(result).to.be.eq(RpcResponseMsg.ZkCertDeleted);
+    });
+  });
 });

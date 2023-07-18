@@ -1,6 +1,6 @@
 import { defaultSnapOrigin } from '../../../galactica-dapp/src/config';
 import { RpcMethods } from '../../../snap/src/rpcEnums';
-import { ExportRequestParams } from '../../../snap/src/types';
+import { ExportRequestParams, DeleteRequestParams } from '../../../snap/src/types';
 
 // reuse the functions from the galactica-dapp
 export {
@@ -65,6 +65,23 @@ export const getHolderCommitment = async () => {
       snapId: defaultSnapOrigin,
       request: {
         method: RpcMethods.GetHolderCommitment,
+      },
+    },
+  });
+};
+
+export const deleteZkCert = async () => {
+  const params: DeleteRequestParams = {
+    zkCertStandard: 'gip69',
+  };
+
+  return await window.ethereum.request({
+    method: 'wallet_invokeSnap',
+    params: {
+      snapId: defaultSnapOrigin,
+      request: {
+        method: RpcMethods.DeleteZkCert,
+        params,
       },
     },
   });
