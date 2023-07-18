@@ -6,6 +6,7 @@ import {
 } from '@galactica-corp/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { JsonRpcRequest } from '@metamask/types';
+import { NodeType } from '@metamask/snaps-ui';
 
 import { ZkKYCContent } from './zkCertTypes';
 
@@ -53,6 +54,8 @@ export type GenZkKycRequestParams<ProofInputType> = {
  */
 export type ImportRequestParams = {
   zkCert: ZkCert;
+  // Should the snap return the list of zkCerts after import (to have 1 less confirmation)
+  listZkCerts?: boolean;
 };
 
 /**
@@ -141,3 +144,13 @@ export type ZkKYCProofInput = {
   // dApp address to prove the ZKP to
   dAppAddress: string;
 };
+
+export type PanelContent = ({
+  value: string;
+  type: NodeType.Heading;
+} | {
+  value: string;
+  type: NodeType.Text;
+} | {
+  type: NodeType.Divider;
+})[]

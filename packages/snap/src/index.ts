@@ -12,6 +12,7 @@ import {
   ImportRequestParams,
   MerkleProofUpdateRequestParams,
   SnapRpcProcessor,
+  PanelContent,
 } from './types';
 import {
   getZkCertStorageHashes,
@@ -169,6 +170,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
         );
       }
 
+      const listZkCertsFlag = importParams.listZkCerts == true;
+
       // prevent uploading the same zkCert again
       const searchedZkCert = state.zkCerts.find(
         (candidate) => candidate.leafHash === importParams.zkCert.leafHash,
@@ -177,15 +180,22 @@ export const processRpcRequest: SnapRpcProcessor = async (
         return RpcResponseMsg.ZkCertAlreadyImported;
       }
 
+      const prompt: PanelContent = [
+        heading('Import your zkCertificate into your MetaMask'),
+        text(`With this action you are importing your zkKYC in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`),
+      ]
+      if (listZkCertsFlag) {
+        prompt.push(
+          divider(),
+          text(`The application also requests to get an overview of zkCertificates stored in your MetaMask. This overview does not contain personal information, only metadata (expiration date of the document, issue, and verification level).`),
+        )
+      }
+
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
           type: 'confirmation',
-          content: panel([
-            heading('Import zkCertificate?'),
-            text(`Do you want to import the following zkCert? (provided through ${origin})
-              ${importParams.zkCert.did}`),
-          ]),
+          content: panel(prompt),
         },
       });
       if (!confirm) {
@@ -193,7 +203,12 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
       state.zkCerts.push(importParams.zkCert);
       await saveState(snap, state);
-      return RpcResponseMsg.ZkCertImported;
+
+      if (listZkCertsFlag) {
+        return getZkCertStorageOverview(state.zkCerts);
+      } else {
+        return RpcResponseMsg.ZkCertImported;
+      }
     }
 
     case RpcMethods.ExportZkCert: {
@@ -256,9 +271,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: panel([
-            heading('Provide zkCert Storage metadata?'),
+            heading('Provide the list of your zkCertificates to the application'),
             text(
-              `The website ${origin} asks to get an overview of zkCerts stored in Metamask. The overview only contains metadata, no personal and no tracking data.`,
+              `The application "${origin}" requests to get an overview of zkCertificates stored in your MetaMask. This overview does not contain personal information, only metadata (expiration date of the document, issue, and verification level).`,
             ),
           ]),
         },

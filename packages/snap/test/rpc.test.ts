@@ -256,6 +256,36 @@ describe('Test rpc handler function', function () {
         },
       });
     });
+
+    it('should provide zkCert list after import according to flag', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [],
+        });
+
+      const res: any = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert, listZkCerts: true }),
+        snapProvider,
+      );
+
+      expect(res).to.have.key(zkCert.zkCertStandard);
+      expect(res[zkCert.zkCertStandard].length).to.equal(1);
+      expect(
+        res[zkCert.zkCertStandard][0].providerPubKey.Ax,
+        'testing providerPubKey.Ax',
+      ).to.equal(zkCert.providerData.Ax);
+      expect(
+        res[zkCert.zkCertStandard][0].providerPubKey.Ay,
+        'testing providerPubKey.Ay',
+      ).to.equal(zkCert.providerData.Ay);
+      expect(
+        res[zkCert.zkCertStandard][0].expirationDate,
+        'testing expiration date of 0',
+      ).to.equal(zkCert.content.expirationDate);
+    });
   });
 
   describe('Generate ZKP method', function () {
