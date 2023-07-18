@@ -1,6 +1,6 @@
 {
-  "name": "@galactica-corp/snap",
-  "version": "0.4.3",
+  "name": "@galactica-net/snap",
+  "version": "0.4.4",
   "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
   "repository": {
     "type": "git",
@@ -30,7 +30,7 @@
     "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\""
   },
   "dependencies": {
-    "@galactica-corp/zkkyc": "^0.6.2",
+    "@galactica-net/zkkyc": "^0.6.2",
     "circomlibjs": "^0.1.7",
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
   },

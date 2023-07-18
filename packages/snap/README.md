@@ -20,7 +20,7 @@ More context on Galactica can be found here: https://galactica.com/
 1. Install the Metamask Flask browser extension (Development version of Metamask): https://metamask.io/flask/
 2. Import the wallets you are going to use in Metamask.
 3. Go to any website that provides Galactica services, such as [passport.galactica.com](https://passport.galactica.com). TODO: confirm URL
-4. Connect to Metamask. This will check that you have the current Galactica Snap installed. It is identified with the name of this package on NPM [npm:@galactica-corp/snap](https://www.npmjs.com/package/@galactica-corp/snap).
+4. Connect to Metamask. This will check that you have the current Galactica Snap installed. It is identified with the name of this package on NPM [npm:@galactica-net/snap](https://www.npmjs.com/package/@galactica-net/snap).
 5. If the Galactica Snap needs to be (re-)installed, Metamask will ask you to accept the permissions used by the Snap, similar to how app permissions work on Android and iOS.
 6. If it was not done by the website automatically, add the Galactica Network in Metamask with the following parameters: TODO
 
@@ -41,7 +41,7 @@ In general, the following steps are performed by a user:
 
 ### As a developer
 
-To integrate the Galactica snap on a web front-end by using the snapId `npm:@galactica-corp/snap` in the [requestSnaps call](https://docs.metamask.io/guide/snaps-rpc-api.html#unrestricted-methods).
+To integrate the Galactica snap on a web front-end by using the snapId `npm:@galactica-net/snap` in the [requestSnaps call](https://docs.metamask.io/guide/snaps-rpc-api.html#unrestricted-methods).
 
 RPC functions specific to the Galactica Snap can be found in the [JSON RPC API](docs/rpcAPI.md).
 

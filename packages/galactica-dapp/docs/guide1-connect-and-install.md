@@ -47,7 +47,7 @@ export const InstallFlaskButton = () => (
 With Metamask present, the user can connect to the Galactica Snap and install it if necessary (missing or outdated) with the following function:
 
 ```typescript
-const defaultSnapOrigin = 'npm:@galactica-corp/snap';
+const defaultSnapOrigin = 'npm:@galactica-net/snap';
 
 await window.ethereum.request({
   method: 'wallet_requestSnaps',

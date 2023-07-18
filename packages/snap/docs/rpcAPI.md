@@ -14,17 +14,17 @@ Visit the [Metamask Documentation](https://docs.metamask.io/guide/snaps-rpc-api.
 const result = await ethereum.request({
   method: 'wallet_requestSnaps',
   params: {
-    'npm:@galactica-corp/snap': {},
+    'npm:@galactica-net/snap': {},
   },
 });
 
 console.log(result);
 // Will print something of the form:
 // {
-//   "npm:@galactica-corp/snap": {
+//   "npm:@galactica-net/snap": {
 //     "blocked": false,
 //     "enabled": true,
-//     "id": "npm:@galactica-corp/snap",
+//     "id": "npm:@galactica-net/snap",
 //     "initialPermissions": {
 //       "endowment:rpc": {
 //         "dapps": true,
@@ -36,7 +36,7 @@ console.log(result);
 //       "snap_dialog": {},
 //       "snap_manageState": {}
 //     },
-//     "permissionName": "wallet_snap_npm:@galactica-corp/snap",
+//     "permissionName": "wallet_snap_npm:@galactica-net/snap",
 //     "version": "0.2.1"
 //   }
 // }

@@ -3,7 +3,7 @@ import {
   ProviderData,
   MerkleProof,
   ZkCertStandard,
-} from '@galactica-corp/zkkyc';
+} from '@galactica-net/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { NodeType } from '@metamask/snaps-ui';
 import { JsonRpcRequest } from '@metamask/types';
@@ -157,14 +157,14 @@ export type ZkKYCProofInput = {
 
 export type PanelContent = (
   | {
-      value: string;
-      type: NodeType.Heading;
-    }
+    value: string;
+    type: NodeType.Heading;
+  }
   | {
-      value: string;
-      type: NodeType.Text;
-    }
+    value: string;
+    type: NodeType.Text;
+  }
   | {
-      type: NodeType.Divider;
-    }
+    type: NodeType.Divider;
+  }
 )[];
