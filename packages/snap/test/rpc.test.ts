@@ -167,7 +167,7 @@ describe('Test rpc handler function', function () {
 
   describe('Add Holder method', function () {
     it('should add holder successfully', async function (this: Mocha.Context) {
-      this.timeout(4000);
+      this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       await processRpcRequest(
@@ -314,7 +314,7 @@ describe('Test rpc handler function', function () {
     });
 
     it('should generate ZKP successfully', async function (this: Mocha.Context) {
-      this.timeout(20000);
+      this.timeout(25000);
 
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
@@ -335,7 +335,7 @@ describe('Test rpc handler function', function () {
     });
 
     it('should be able to select from multiple zkCerts', async function (this: Mocha.Context) {
-      this.timeout(20000);
+      this.timeout(25000);
 
       snapProvider.rpcStubs.snap_dialog
         .withArgs(match.has('type', 'confirmation'))

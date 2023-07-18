@@ -103,6 +103,8 @@ Shows the user what is going to be proven and asks for confirmation.
   - `wasm` - `string` base64 encoded wasm binary of the prover. The wasm can be generated using circom and encoded with the script in `src/scripts/proofGenerationPrep.ts`.
   - `zkeyHeader` - `object` of zkey headers used by snarkjs. The binary fields are base64 encoded.
   - `zkeySections` - `array` of base64 encoded zkey sections used by snarkjs.
+  - `userAddress` - `string` with the account address the user is going to use to submit the proof.
+  - `disclosureDescription` - `string` (optional) Description of disclosures made by the proof.
 
 #### Returns
 
