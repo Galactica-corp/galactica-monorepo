@@ -5,8 +5,8 @@ import {
   ZkCertStandard,
 } from '@galactica-corp/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
-import { JsonRpcRequest } from '@metamask/types';
 import { NodeType } from '@metamask/snaps-ui';
+import { JsonRpcRequest } from '@metamask/types';
 
 import { ZkKYCContent } from './zkCertTypes';
 
@@ -65,7 +65,7 @@ export type ImportRequestParams = {
 export type DeleteRequestParams = {
   zkCertStandard?: string;
   expirationDate?: number;
-  ProviderAx?: string;
+  providerAx?: string;
 };
 
 /**
@@ -155,12 +155,16 @@ export type ZkKYCProofInput = {
   dAppAddress: string;
 };
 
-export type PanelContent = ({
-  value: string;
-  type: NodeType.Heading;
-} | {
-  value: string;
-  type: NodeType.Text;
-} | {
-  type: NodeType.Divider;
-})[]
+export type PanelContent = (
+  | {
+      value: string;
+      type: NodeType.Heading;
+    }
+  | {
+      value: string;
+      type: NodeType.Text;
+    }
+  | {
+      type: NodeType.Divider;
+    }
+)[];

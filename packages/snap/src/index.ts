@@ -63,11 +63,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
       ];
 
       // Description of disclosures made by the proof have to be provided by the front-end because the snap can not analyze what the prover will do.
-      if (genParams.disclosureDescription !== undefined) {
+      if (genParams.disclosureDescription) {
         proofConfirmDialog.push(
           text(`Further description of disclosures:`),
           text(genParams.disclosureDescription),
-          text(`(Description provided by ${origin}. The snap can not verify if the prover actually meets those disclosures.)`),
+          text(
+            `(Description provided by ${origin}. The snap can not verify if the prover actually meets those disclosures.)`,
+          ),
         );
       } else {
         proofConfirmDialog.push(
@@ -84,7 +86,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
       for (const parameter of Object.keys(genParams.input)) {
         proofConfirmDialog.push(
           text(
-            `${parameter}: ${JSON.stringify(genParams.input[parameter], null, 2)}`,
+            `${parameter}: ${JSON.stringify(
+              genParams.input[parameter],
+              null,
+              2,
+            )}`,
           ),
         );
       }
@@ -163,7 +169,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       // check that there is a holder setup for this zkCert
       const searchedHolder = state.holders.find(
-        (candidate) => candidate.holderCommitment === importParams.zkCert.holderCommitment,
+        (candidate) =>
+          candidate.holderCommitment === importParams.zkCert.holderCommitment,
       );
       if (searchedHolder === undefined) {
         throw new Error(
@@ -171,7 +178,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         );
       }
 
-      const listZkCertsFlag = importParams.listZkCerts == true;
+      const listZkCertsFlag = importParams.listZkCerts === true;
 
       // prevent uploading the same zkCert again
       const searchedZkCert = state.zkCerts.find(
@@ -183,13 +190,17 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       const prompt: PanelContent = [
         heading('Import your zkCertificate into your MetaMask'),
-        text(`With this action you are importing your zkKYC in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`),
-      ]
+        text(
+          `With this action you are importing your zkKYC in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
+        ),
+      ];
       if (listZkCertsFlag) {
         prompt.push(
           divider(),
-          text(`The application also requests to get an overview of zkCertificates stored in your MetaMask. This overview does not contain personal information, only metadata (expiration date of the document, issue, and verification level).`),
-        )
+          text(
+            `The application also requests to get an overview of zkCertificates stored in your MetaMask. This overview does not contain personal information, only metadata (expiration date of the document, issue, and verification level).`,
+          ),
+        );
       }
 
       confirm = await snap.request({
@@ -207,9 +218,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       if (listZkCertsFlag) {
         return getZkCertStorageOverview(state.zkCerts);
-      } else {
-        return RpcResponseMsg.ZkCertImported;
       }
+      return RpcResponseMsg.ZkCertImported;
     }
 
     case RpcMethods.ExportZkCert: {
@@ -231,7 +241,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      const zkCertForExport = await selectZkCert(snap, state.zkCerts, exportParams.zkCertStandard);
+      const zkCertForExport = await selectZkCert(
+        snap,
+        state.zkCerts,
+        exportParams.zkCertStandard,
+      );
       const zkCertStorageData = state.zkCerts.find(
         (cert) => cert.leafHash === zkCertForExport.leafHash,
       );
@@ -270,7 +284,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: panel([
-            heading('Provide the list of your zkCertificates to the application'),
+            heading(
+              'Provide the list of your zkCertificates to the application',
+            ),
             text(
               `The application "${origin}" requests to get an overview of zkCertificates stored in your MetaMask. This overview does not contain personal information, only metadata (expiration date of the document, issue, and verification level).`,
             ),
@@ -362,7 +378,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         state.zkCerts,
         deleteParams.zkCertStandard,
         deleteParams.expirationDate,
-        deleteParams.ProviderAx,
+        deleteParams.providerAx,
       );
 
       confirm = await snap.request({
@@ -380,7 +396,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      state.zkCerts = state.zkCerts.filter(zkCert => zkCert.leafHash != zkCertToDelete.leafHash);
+      state.zkCerts = state.zkCerts.filter(
+        (zkCert) => zkCert.leafHash !== zkCertToDelete.leafHash,
+      );
       await saveState(snap, state);
       return RpcResponseMsg.ZkCertDeleted;
     }

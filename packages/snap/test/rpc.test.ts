@@ -171,7 +171,9 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert: zkKYCToImportInUnitTest }),
+        buildRPCRequest(RpcMethods.ImportZkCert, {
+          zkCert: zkKYCToImportInUnitTest,
+        }),
         snapProvider,
       );
 
@@ -248,7 +250,9 @@ describe('Test rpc handler function', function () {
       );
 
       expect(result).to.be.eq(RpcResponseMsg.ZkCertAlreadyImported);
-      expect(snapProvider.rpcStubs.snap_manageState).to.not.have.been.calledWith({
+      expect(
+        snapProvider.rpcStubs.snap_manageState,
+      ).to.not.have.been.calledWith({
         operation: 'update',
         newState: {
           holders: [testHolder],
@@ -735,9 +739,11 @@ describe('Test rpc handler function', function () {
 
     it('should delete zkCert successfully (selection because of too broad filter)', async function (this: Mocha.Context) {
       this.timeout(4000);
-      snapProvider.rpcStubs.snap_dialog.
-        onFirstCall().resolves(2).
-        onSecondCall().resolves(true);
+      snapProvider.rpcStubs.snap_dialog
+        .onFirstCall()
+        .resolves(2)
+        .onSecondCall()
+        .resolves(true);
 
       const result = await processRpcRequest(
         buildRPCRequest(RpcMethods.DeleteZkCert, {

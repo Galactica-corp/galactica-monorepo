@@ -5,7 +5,7 @@ import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
 
 import { RpcResponseErr } from './rpcEnums';
-import { ZkCert, ZkCertRequirements } from './types';
+import { ZkCert } from './types';
 
 /**
  * Selects a ZkCert from the available ones.
@@ -31,22 +31,24 @@ export async function selectZkCert(
     return (
       // same zkCert Standard, if defined as filter
       (value.zkCertStandard === zkCertStandard ||
-        zkCertStandard === undefined)
-      &&
+        zkCertStandard === undefined) &&
       // not expired (if zkCert has expiration date) or same as filtered
       (value.content.expirationDate === undefined ||
-        (value.content.expirationDate >= Date.now() / 1000 && expirationDate === undefined) ||
-        value.content.expirationDate == expirationDate)
-      &&
+        (value.content.expirationDate >= Date.now() / 1000 &&
+          expirationDate === undefined) ||
+        value.content.expirationDate === expirationDate) &&
       // same provider, if defined as filter
-      (providerAx === undefined ||
-        value.providerData.Ax == providerAx)
+      (providerAx === undefined || value.providerData.Ax === providerAx)
     );
   });
 
   if (filteredCerts.length === 0) {
     throw new Error(
-      `No zkCerts of standard ${zkCertStandard} available. Please import it first.`,
+      `No such zkCerts available. Filter used ${JSON.stringify({
+        zkCertStandard,
+        expirationDate,
+        providerAx,
+      })}. Please import it first.`,
     );
   }
 
@@ -68,11 +70,11 @@ export async function selectZkCert(
 
       // custom information to display depending on the type of zkCert
       if (zkCertStandard === 'gip69') {
-        const expirationDate = new Date(
+        const certExpirationDate = new Date(
           filteredCerts[i].content.expirationDate * 1000,
         );
         zkCertDisplay.push(
-          text(`Valid until: ${expirationDate.toDateString()}`),
+          text(`Valid until: ${certExpirationDate.toDateString()}`),
         );
       }
 
@@ -90,7 +92,8 @@ export async function selectZkCert(
             heading(`zkCertificate Selection`),
             ...options,
             text(
-              `Please enter the number of the zkCertificate you want to select (${1} to ${filteredCerts.length
+              `Please enter the number of the zkCertificate you want to select (${1} to ${
+                filteredCerts.length
               }):`,
             ),
           ]),
@@ -108,8 +111,9 @@ export async function selectZkCert(
           method: 'snap_notify',
           params: {
             type: 'native',
-            message: `Selection failed. Answer not between ${1} and ${filteredCerts.length
-              }.`,
+            message: `Selection failed. Answer not between ${1} and ${
+              filteredCerts.length
+            }.`,
           },
         });
       }

@@ -1,6 +1,9 @@
 import { defaultSnapOrigin } from '../../../galactica-dapp/src/config';
 import { RpcMethods } from '../../../snap/src/rpcEnums';
-import { ExportRequestParams, DeleteRequestParams } from '../../../snap/src/types';
+import {
+  ExportRequestParams,
+  DeleteRequestParams,
+} from '../../../snap/src/types';
 
 // reuse the functions from the galactica-dapp
 export {
