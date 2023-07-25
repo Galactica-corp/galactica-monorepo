@@ -12,6 +12,8 @@ import {
   ImportRequestParams,
   MerkleProofUpdateRequestParams,
   SnapRpcProcessor,
+  PanelContent,
+  DeleteRequestParams,
 } from './types';
 import {
   getZkCertStorageHashes,
@@ -52,21 +54,28 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       const proofConfirmDialog = [
-        heading('Generate zkCert proof?'),
+        heading('Generating zkCertificate Proof'),
         text(
-          `Do you want to create a ${genParams.requirements.zkCertStandard} proof for ${origin}?`,
-        ),
-        text(
-          `This will disclose whether your personal data fulfills the requirements of the proof.`,
+          `With this action you will create a ${genParams.requirements.zkCertStandard.toUpperCase()} proof for Galactica.com.
+           This action tests whether your personal data fulfills the requirements of the proof.`,
         ),
         divider(),
       ];
 
-      // TODO: check if a description is provided
-      proofConfirmDialog.push(
-        text(`Description according to ${origin}:`),
-        text(`TODO`),
-      );
+      // Description of disclosures made by the proof have to be provided by the front-end because the snap can not analyze what the prover will do.
+      if (genParams.disclosureDescription) {
+        proofConfirmDialog.push(
+          text(`Further description of disclosures:`),
+          text(genParams.disclosureDescription),
+          text(
+            `(Description provided by ${origin}. The snap can not verify if the prover actually meets those disclosures.)`,
+          ),
+        );
+      } else {
+        proofConfirmDialog.push(
+          text(`No further description of disclosures provided by ${origin}.`),
+        );
+      }
 
       // Generalize disclosure of inputs to any kind of inputs
       proofConfirmDialog.push(
@@ -77,7 +86,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
       for (const parameter of Object.keys(genParams.input)) {
         proofConfirmDialog.push(
           text(
-            `${parameter}: ${genParams.input[parameter].toString() as string}`,
+            `${parameter}: ${JSON.stringify(
+              genParams.input[parameter],
+              null,
+              2,
+            )}`,
           ),
         );
       }
@@ -97,7 +110,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const zkCert = await selectZkCert(
         snap,
         state.zkCerts,
-        genParams.requirements,
+        genParams.requirements.zkCertStandard,
       );
 
       const searchedHolder = state.holders.find(
@@ -111,7 +124,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
         holder = searchedHolder;
       }
 
-      // TODO: think of mechanism to preserve privacy by not using the same merkle proof every time
       const searchedZkCert = state.zkCerts.find(
         (cert) => cert.leafHash === zkCert.leafHash,
       );
@@ -155,17 +167,47 @@ export const processRpcRequest: SnapRpcProcessor = async (
     case RpcMethods.ImportZkCert: {
       const importParams = request.params as ImportRequestParams;
 
-      // TODO: check that there is a holder setup for this zkCert
+      // check that there is a holder setup for this zkCert
+      const searchedHolder = state.holders.find(
+        (candidate) =>
+          candidate.holderCommitment === importParams.zkCert.holderCommitment,
+      );
+      if (searchedHolder === undefined) {
+        throw new Error(
+          `Could not find Holder for commitment ${importParams.zkCert.holderCommitment}. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
+        );
+      }
+
+      const listZkCertsFlag = importParams.listZkCerts === true;
+
+      // prevent uploading the same zkCert again
+      const searchedZkCert = state.zkCerts.find(
+        (candidate) => candidate.leafHash === importParams.zkCert.leafHash,
+      );
+      if (searchedZkCert) {
+        return RpcResponseMsg.ZkCertAlreadyImported;
+      }
+
+      const prompt: PanelContent = [
+        heading('Import your zkCertificate into your MetaMask'),
+        text(
+          `With this action you are importing your zkKYC in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
+        ),
+      ];
+      if (listZkCertsFlag) {
+        prompt.push(
+          divider(),
+          text(
+            `The application also requests to get an overview of zkCertificates stored in your MetaMask. This overview does not contain personal information, only metadata (expiration date of the document, issue, and verification level).`,
+          ),
+        );
+      }
 
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
           type: 'confirmation',
-          content: panel([
-            heading('Import zkCertificate?'),
-            text(`Do you want to import the following zkCert? (provided through ${origin})
-              ${importParams.zkCert.did}`),
-          ]),
+          content: panel(prompt),
         },
       });
       if (!confirm) {
@@ -173,6 +215,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
       state.zkCerts.push(importParams.zkCert);
       await saveState(snap, state);
+
+      if (listZkCertsFlag) {
+        return getZkCertStorageOverview(state.zkCerts);
+      }
       return RpcResponseMsg.ZkCertImported;
     }
 
@@ -195,9 +241,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
-      const zkCertForExport = await selectZkCert(snap, state.zkCerts, {
-        zkCertStandard: exportParams.zkCertStandard,
-      });
+      const zkCertForExport = await selectZkCert(
+        snap,
+        state.zkCerts,
+        exportParams.zkCertStandard,
+      );
       const zkCertStorageData = state.zkCerts.find(
         (cert) => cert.leafHash === zkCertForExport.leafHash,
       );
@@ -236,9 +284,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: panel([
-            heading('Provide zkCert Storage metadata?'),
+            heading(
+              'Provide the list of your zkCertificates to the application',
+            ),
             text(
-              `The website ${origin} asks to get an overview of zkCerts stored in Metamask. The overview only contains metadata, no personal and no tracking data.`,
+              `The application "${origin}" requests to get an overview of zkCertificates stored in your MetaMask. This overview does not contain personal information, only metadata (expiration date of the document, issue, and verification level).`,
             ),
           ]),
         },
@@ -278,6 +328,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       return state.zkCerts.map((zkCert) => zkCert.leafHash);
     }
 
+    // To preserve privacy by not using the same merkle proof every time, the merkle proof can be updated.
     case RpcMethods.UpdateMerkleProof: {
       const merkleUpdateParams =
         request.params as MerkleProofUpdateRequestParams;
@@ -299,8 +350,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       for (const merkleProof of merkleUpdateParams.proofs) {
-        // TODO: checking the proof for correctness could help the user to avoid confusion
-
         let foundZkCert = false;
         for (const zkCert of state.zkCerts) {
           if (zkCert.leafHash === merkleProof.leaf) {
@@ -318,6 +367,40 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       await saveState(snap, state);
       return RpcResponseMsg.MerkleProofsUpdated;
+    }
+
+    case RpcMethods.DeleteZkCert: {
+      const deleteParams = request.params as DeleteRequestParams;
+
+      // get existing zkCerts that the fit to the delete filter
+      const zkCertToDelete = await selectZkCert(
+        snap,
+        state.zkCerts,
+        deleteParams.zkCertStandard,
+        deleteParams.expirationDate,
+        deleteParams.providerAx,
+      );
+
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'confirmation',
+          content: panel([
+            heading('Delete zkCert?'),
+            text(`Do you want to delete the following zkCert from MetaMask?`),
+            text(`${zkCertToDelete.did}`),
+          ]),
+        },
+      });
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
+      }
+
+      state.zkCerts = state.zkCerts.filter(
+        (zkCert) => zkCert.leafHash !== zkCertToDelete.leafHash,
+      );
+      await saveState(snap, state);
+      return RpcResponseMsg.ZkCertDeleted;
     }
 
     default: {

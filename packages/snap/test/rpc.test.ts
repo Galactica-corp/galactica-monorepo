@@ -7,6 +7,7 @@ import { groth16 } from 'snarkjs';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
+import zkKYCToImportInUnitTest from '../../../test/zkKYCToImportInUnitTest.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
 import { RpcMethods, RpcResponseErr, RpcResponseMsg } from '../src/rpcEnums';
@@ -82,9 +83,9 @@ describe('Test rpc handler function', function () {
 
   describe('Clear Storage method', function () {
     /* eslint-disable jest/no-done-callback, no-invalid-this */
+    // (found no better way to increase timeouts for async tests)
     it('should throw error if not confirmed', async function (this: Mocha.Context) {
       this.timeout(4000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const clearPromise = processRpcRequest(
@@ -165,14 +166,14 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Add Holder method', function () {
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
     it('should add holder successfully', async function (this: Mocha.Context) {
-      this.timeout(4000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
+      this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, {
+          zkCert: zkKYCToImportInUnitTest,
+        }),
         snapProvider,
       );
 
@@ -186,7 +187,7 @@ describe('Test rpc handler function', function () {
               holderCommitment: await calculateHolderCommitment(testEntropy),
             },
           ],
-          zkCerts: [zkCert],
+          zkCerts: [zkKYCToImportInUnitTest],
         },
       });
     });
@@ -233,6 +234,62 @@ describe('Test rpc handler function', function () {
       });
       expect(result).to.be.eq(RpcResponseMsg.ZkCertImported);
     });
+
+    it('should not import same zkCert again', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        snapProvider,
+      );
+
+      expect(result).to.be.eq(RpcResponseMsg.ZkCertAlreadyImported);
+      expect(
+        snapProvider.rpcStubs.snap_manageState,
+      ).to.not.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert, zkCert],
+        },
+      });
+    });
+
+    it('should provide zkCert list after import according to flag', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [],
+        });
+
+      const res: any = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert, listZkCerts: true }),
+        snapProvider,
+      );
+
+      expect(res).to.have.key(zkCert.zkCertStandard);
+      expect(res[zkCert.zkCertStandard].length).to.equal(1);
+      expect(
+        res[zkCert.zkCertStandard][0].providerPubKey.Ax,
+        'testing providerPubKey.Ax',
+      ).to.equal(zkCert.providerData.Ax);
+      expect(
+        res[zkCert.zkCertStandard][0].providerPubKey.Ay,
+        'testing providerPubKey.Ay',
+      ).to.equal(zkCert.providerData.Ay);
+      expect(
+        res[zkCert.zkCertStandard][0].expirationDate,
+        'testing expiration date of 0',
+      ).to.equal(zkCert.content.expirationDate);
+    });
   });
 
   describe('Generate ZKP method', function () {
@@ -256,11 +313,8 @@ describe('Test rpc handler function', function () {
       );
     });
 
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
-    // (found no better way to increase timeouts for async tests)
     it('should generate ZKP successfully', async function (this: Mocha.Context) {
-      this.timeout(20000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
+      this.timeout(25000);
 
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
@@ -280,10 +334,8 @@ describe('Test rpc handler function', function () {
       await verifyProof(result);
     });
 
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
     it('should be able to select from multiple zkCerts', async function (this: Mocha.Context) {
-      this.timeout(20000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
+      this.timeout(25000);
 
       snapProvider.rpcStubs.snap_dialog
         .withArgs(match.has('type', 'confirmation'))
@@ -489,7 +541,8 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Export zkCert', function () {
-    it('should throw error if not confirmed', async function () {
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const params: ExportRequestParams = {
@@ -507,10 +560,8 @@ describe('Test rpc handler function', function () {
       );
     });
 
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
     it('should provide zkCert on approval', async function (this: Mocha.Context) {
       this.timeout(5000);
-      /* eslint-enable jest/no-done-callback, no-invalid-this */
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -637,6 +688,78 @@ describe('Test rpc handler function', function () {
         },
       });
       expect(result).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
+    });
+  });
+
+  describe('Delete zkCert method', function () {
+    beforeEach(function () {
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert, zkCert2],
+        });
+    });
+
+    it('should throw error if not confirmed', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(null);
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.DeleteZkCert, {}),
+        snapProvider,
+      );
+
+      await expect(callPromise).to.be.rejectedWith(
+        Error,
+        RpcResponseErr.RejectedSelect,
+      );
+    });
+
+    it('should delete zkCert successfully (unambiguous filter)', async function (this: Mocha.Context) {
+      this.timeout(4000);
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.DeleteZkCert, {
+          zkCertStandard: zkCert.zkCertStandard,
+          expirationDate: zkCert.content.expirationDate,
+        }),
+        snapProvider,
+      );
+
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert2],
+        },
+      });
+      expect(result).to.be.eq(RpcResponseMsg.ZkCertDeleted);
+    });
+
+    it('should delete zkCert successfully (selection because of too broad filter)', async function (this: Mocha.Context) {
+      this.timeout(4000);
+      snapProvider.rpcStubs.snap_dialog
+        .onFirstCall()
+        .resolves(2)
+        .onSecondCall()
+        .resolves(true);
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.DeleteZkCert, {
+          zkCertStandard: zkCert.zkCertStandard,
+        }),
+        snapProvider,
+      );
+
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        },
+      });
+      expect(result).to.be.eq(RpcResponseMsg.ZkCertDeleted);
     });
   });
 });

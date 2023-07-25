@@ -1,23 +1,27 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { ZKCertificate } from '@galactica-corp/zkkyc';
+import { ZKCertificate } from '@galactica-net/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
 
 import { RpcResponseErr } from './rpcEnums';
-import { ZkCert, ZkCertRequirements } from './types';
+import { ZkCert } from './types';
 
 /**
  * Selects a ZkCert from the available ones.
  *
  * @param snap - The snap for interaction with Metamask.
  * @param availableCerts - The available ZkCerts to select from.
- * @param req - The requirements for the ZkCert to select.
+ * @param zkCertStandard - The zkCertStandard of the ZkCert to select (optional).
+ * @param expirationDate - The expiration date to filter for (optional).
+ * @param providerAx - The provider pubkey to filter for (optional).
  */
 export async function selectZkCert(
   snap: SnapsGlobalObject,
   availableCerts: ZkCert[],
-  req: ZkCertRequirements,
+  zkCertStandard?: string,
+  expirationDate?: number,
+  providerAx?: string,
 ): Promise<ZKCertificate> {
   if (availableCerts.length === 0) {
     throw new Error('No zkCerts available. Please import it first.');
@@ -25,16 +29,26 @@ export async function selectZkCert(
 
   const filteredCerts = availableCerts.filter((value) => {
     return (
-      value.zkCertStandard === req.zkCertStandard && // same zkCert Standard
-      // not expired (if expirationDate is set)
+      // same zkCert Standard, if defined as filter
+      (value.zkCertStandard === zkCertStandard ||
+        zkCertStandard === undefined) &&
+      // not expired (if zkCert has expiration date) or same as filtered
       (value.content.expirationDate === undefined ||
-        value.content.expirationDate >= Date.now() / 1000)
+        (value.content.expirationDate >= Date.now() / 1000 &&
+          expirationDate === undefined) ||
+        value.content.expirationDate === expirationDate) &&
+      // same provider, if defined as filter
+      (providerAx === undefined || value.providerData.Ax === providerAx)
     );
   });
 
   if (filteredCerts.length === 0) {
     throw new Error(
-      `No zkCerts of standard ${req.zkCertStandard} available. Please import it first.`,
+      `No such zkCerts available. Filter used ${JSON.stringify({
+        zkCertStandard,
+        expirationDate,
+        providerAx,
+      })}. Please import it first.`,
     );
   }
 
@@ -54,14 +68,13 @@ export async function selectZkCert(
         ),
       ];
 
-      // custom information to display depnding on the type of zkCert
-      // TODO: use more dynamic approach (e.g. let the request define what information to display)
-      if (req.zkCertStandard === 'gip69') {
-        const expirationDate = new Date(
+      // custom information to display depending on the type of zkCert
+      if (zkCertStandard === 'gip69') {
+        const certExpirationDate = new Date(
           filteredCerts[i].content.expirationDate * 1000,
         );
         zkCertDisplay.push(
-          text(`Valid until: ${expirationDate.toDateString()}`),
+          text(`Valid until: ${certExpirationDate.toDateString()}`),
         );
       }
 
@@ -79,7 +92,7 @@ export async function selectZkCert(
             heading(`zkCertificate Selection`),
             ...options,
             text(
-              `Please enter the number of the zkCertificate you want to use (${1} to ${
+              `Please enter the number of the zkCertificate you want to select (${1} to ${
                 filteredCerts.length
               }):`,
             ),

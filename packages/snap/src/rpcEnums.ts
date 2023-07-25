@@ -12,7 +12,7 @@ export enum RpcMethods {
   GetZkCertStorageHashes = 'getZkCertStorageHashes',
   GetZkCertHash = 'getZkCertHashes',
   UpdateMerkleProof = 'updateMerkleProof',
-  // TODO: would be nice to have more storage management methods like deleting a specific zkCert, modifying a zkCert, bulk import/export, ...
+  DeleteZkCert = 'deleteZkCert',
 }
 
 /**
@@ -22,6 +22,8 @@ export enum RpcResponseMsg {
   StorageCleared = 'zkCert storage cleared',
   ZkCertImported = 'zkCert added to storage',
   MerkleProofsUpdated = 'Updated Merkle proofs',
+  ZkCertAlreadyImported = 'This zkCert has already been imported. Skipping it.',
+  ZkCertDeleted = 'Deleted zkCert.',
 }
 
 /**

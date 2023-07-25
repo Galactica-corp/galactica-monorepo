@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { createHolderCommitment, ZkCertStandard } from '@galactica-corp/zkkyc';
+import { createHolderCommitment, ZkCertStandard } from '@galactica-net/zkkyc';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
 
@@ -18,7 +18,7 @@ export async function calculateHolderCommitment(
 }
 
 /**
- * Provides an overview of the zkCert storage. This data can be querried by front-ends.
+ * Provides an overview of the zkCert storage. This data can be queried by front-ends.
  * The data shared here must not reveal any private information or possibility to track users).
  *
  * @param zkCertStorage - The list of zkCerts stored.
@@ -31,17 +31,17 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
       sharedZkCerts[zkCert.zkCertStandard] = [];
     }
 
-    const disclosableData: any = {
+    const disclosureData: any = {
       providerPubKey: {
         Ax: zkCert.providerData.Ax,
         Ay: zkCert.providerData.Ay,
       },
     };
     if (zkCert.zkCertStandard === ZkCertStandard.zkKYC) {
-      disclosableData.expirationDate = zkCert.content.expirationDate;
-      disclosableData.verificationLevel = zkCert.content.verificationLevel;
+      disclosureData.expirationDate = zkCert.content.expirationDate;
+      disclosureData.verificationLevel = zkCert.content.verificationLevel;
     }
-    sharedZkCerts[zkCert.zkCertStandard].push(disclosableData);
+    sharedZkCerts[zkCert.zkCertStandard].push(disclosureData);
   }
   return sharedZkCerts;
 }

@@ -3,7 +3,7 @@ import {
   MerkleProof,
   ZKCertificate,
   formatPrivKeyForBabyJub,
-} from '@galactica-corp/zkkyc';
+} from '@galactica-net/zkkyc';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { buildBn128, buildBls12381 } from 'ffjavascript';

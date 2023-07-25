@@ -3,8 +3,9 @@ import {
   ProviderData,
   MerkleProof,
   ZkCertStandard,
-} from '@galactica-corp/zkkyc';
+} from '@galactica-net/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
+import { NodeType } from '@metamask/snaps-ui';
 import { JsonRpcRequest } from '@metamask/types';
 
 import { ZkKYCContent } from './zkCertTypes';
@@ -42,6 +43,10 @@ export type GenZkKycRequestParams<ProofInputType> = {
 
   // address of the user that is going to submit the proof
   userAddress: string;
+
+  // (optional) Description of disclosures made by the proof
+  // This is provided by the front-end. The snap can not verify if the prover actually meets those disclosures.
+  disclosureDescription?: string;
 };
 
 /**
@@ -49,6 +54,18 @@ export type GenZkKycRequestParams<ProofInputType> = {
  */
 export type ImportRequestParams = {
   zkCert: ZkCert;
+  // Should the snap return the list of zkCerts after import (to have 1 less confirmation)
+  listZkCerts?: boolean;
+};
+
+/**
+ * Parameters for zkCert deletion.
+ * Because the website does not know IDs for zkCerts, it can provide an optional list of filters to simplify selecting the zkCert to be deleted.
+ */
+export type DeleteRequestParams = {
+  zkCertStandard?: string;
+  expirationDate?: number;
+  providerAx?: string;
 };
 
 /**
@@ -84,7 +101,6 @@ export type ZkCertProof = {
   publicSignals: string[];
 };
 
-// TODO: remove this type and use the one from the zkKYC package
 export type ZkCert = {
   holderCommitment: string;
   providerSignature: string;
@@ -138,3 +154,17 @@ export type ZkKYCProofInput = {
   // dApp address to prove the ZKP to
   dAppAddress: string;
 };
+
+export type PanelContent = (
+  | {
+      value: string;
+      type: NodeType.Heading;
+    }
+  | {
+      value: string;
+      type: NodeType.Text;
+    }
+  | {
+      type: NodeType.Divider;
+    }
+)[];

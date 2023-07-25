@@ -14,17 +14,17 @@ Visit the [Metamask Documentation](https://docs.metamask.io/guide/snaps-rpc-api.
 const result = await ethereum.request({
   method: 'wallet_requestSnaps',
   params: {
-    'npm:@galactica-corp/snap': {},
+    'npm:@galactica-net/snap': {},
   },
 });
 
 console.log(result);
 // Will print something of the form:
 // {
-//   "npm:@galactica-corp/snap": {
+//   "npm:@galactica-net/snap": {
 //     "blocked": false,
 //     "enabled": true,
-//     "id": "npm:@galactica-corp/snap",
+//     "id": "npm:@galactica-net/snap",
 //     "initialPermissions": {
 //       "endowment:rpc": {
 //         "dapps": true,
@@ -36,7 +36,7 @@ console.log(result);
 //       "snap_dialog": {},
 //       "snap_manageState": {}
 //     },
-//     "permissionName": "wallet_snap_npm:@galactica-corp/snap",
+//     "permissionName": "wallet_snap_npm:@galactica-net/snap",
 //     "version": "0.2.1"
 //   }
 // }
@@ -103,6 +103,8 @@ Shows the user what is going to be proven and asks for confirmation.
   - `wasm` - `string` base64 encoded wasm binary of the prover. The wasm can be generated using circom and encoded with the script in `src/scripts/proofGenerationPrep.ts`.
   - `zkeyHeader` - `object` of zkey headers used by snarkjs. The binary fields are base64 encoded.
   - `zkeySections` - `array` of base64 encoded zkey sections used by snarkjs.
+  - `userAddress` - `string` with the account address the user is going to use to submit the proof.
+  - `disclosureDescription` - `string` (optional) Description of disclosures made by the proof.
 
 #### Returns
 
@@ -243,11 +245,13 @@ Asks user for confirmation
 
 - `Object`
   - `zkCert` - JSON `object`, containing the zkCertificate data according to the standart it is using.
+  - `listZkCerts` - `boolean`, (optional) flag if the Snap should return an overview after the import, same as in the `listZkCerts` method.
 
 #### Returns
 
 `string` "zkCert added to storage" on successful import.
-Throws error otherwise.
+If `listZkCerts` is set to `true`, it returns the zkCert overview instead (same as in the `listZkCerts` method).
+Throws error if the import fails.
 
 #### Example
 
@@ -293,6 +297,45 @@ await window.ethereum.request({
     request: {
       method: 'exportZkCert',
       params,
+    },
+  },
+});
+```
+
+### `deleteZkCert`
+
+#### Description
+
+Delete a zkCertificate stored in the snap.
+
+You can provide some filter criteria which zkCert should be deleted based on the response from the `listZkCerts` method.
+It asks the user for confirmation and selection of the zkCertificate to be deleted if the filter is ambiguous.
+
+#### Parameters
+
+- `Object`
+  - `zkCertStandard` - `string` identifying the standard of the zkCertificate to be deleted (optional).
+  - `expirationDate` - `number` identifying the expiration date of the zkCertificate to be deleted (optional).
+  - `providerAx` - `string` identifying the provider pubkey (Ax part only) of the zkCertificate to be deleted (optional).
+
+#### Returns
+
+`string` - "Deleted zkCert." on success.
+Throws error otherwise.
+
+#### Example
+
+```javascript
+const params: DeleteRequestParams = {
+    zkCertStandard: 'gip69',
+  };
+await window.ethereum.request({
+  method: 'wallet_invokeSnap',
+  params: {
+    snapId: defaultSnapOrigin,
+    request: {
+      method: 'deleteZkCert',
+      ,
     },
   },
 });

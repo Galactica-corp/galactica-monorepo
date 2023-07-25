@@ -182,7 +182,11 @@ const Index = () => {
       };
 
       const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
-      const zkp: any = await generateProof(await getProver("/provers/exampleMockDApp.json"), proofInput);
+      const zkp: any = await generateProof(
+        await getProver("/provers/exampleMockDApp.json"),
+        proofInput,
+        "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
+      );
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
@@ -217,7 +221,11 @@ const Index = () => {
     try {
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
       const proofInput = await prepareProofInput(addresses.repeatableZkKYCTest, [], {});
-      const zkp: any = await generateProof(await getProver("/provers/zkKYC.json"), proofInput);
+      const zkp: any = await generateProof(
+        await getProver("/provers/zkKYC.json"),
+        proofInput,
+        "This ZKP discloses that you hold a valid zkKYC. It has no other disclosures."
+      );
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
