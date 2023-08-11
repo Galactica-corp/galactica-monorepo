@@ -213,6 +213,32 @@ export const processRpcRequest: SnapRpcProcessor = async (
       if (!confirm) {
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
+
+      // check if the imported zkCert is a renewal of an existing one
+      const oldVersion = state.zkCerts.find(
+        (candidate) =>
+          candidate.holderCommitment === importParams.zkCert.holderCommitment &&
+          candidate.merkleProof.pathIndices === importParams.zkCert.merkleProof.pathIndices &&
+          candidate.registryAddr === importParams.zkCert.registryAddr
+      );
+      if (oldVersion) {
+        const confirmRenewal = await snap.request({
+          method: 'snap_dialog',
+          params: {
+            type: 'confirmation',
+            content: panel([
+              text(`This zkCert looks like a renewed version of an existing one (${oldVersion.did}).`),
+              text(`Do you want to replace the existing one?`)
+            ]),
+          },
+        });
+        if (confirmRenewal) {
+          state.zkCerts = state.zkCerts.filter(
+            (candidate) => candidate.leafHash !== oldVersion.leafHash,
+          );
+        }
+      }
+
       state.zkCerts.push(importParams.zkCert);
       await saveState(snap, state);
 
