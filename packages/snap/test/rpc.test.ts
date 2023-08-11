@@ -300,7 +300,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCert],
         });
 
-      let renewedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
+      const renewedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
       // some made up content analog to a renewed zkCert
       renewedZkCert.content.expirationDate += 20;
       renewedZkCert.leafHash = zkCert2.leafHash;
@@ -321,7 +321,6 @@ describe('Test rpc handler function', function () {
       });
       expect(result).to.be.eq(RpcResponseMsg.ZkCertImported);
     });
-
   });
 
   describe('Generate ZKP method', function () {

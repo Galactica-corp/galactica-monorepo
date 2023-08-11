@@ -159,14 +159,14 @@ export type ZkKYCProofInput = {
 
 export type PanelContent = (
   | {
-    value: string;
-    type: NodeType.Heading;
-  }
+      value: string;
+      type: NodeType.Heading;
+    }
   | {
-    value: string;
-    type: NodeType.Text;
-  }
+      value: string;
+      type: NodeType.Text;
+    }
   | {
-    type: NodeType.Divider;
-  }
+      type: NodeType.Divider;
+    }
 )[];
