@@ -118,6 +118,8 @@ export type ZkCert = {
   // Proof showing that the zkCert is part of the Merkle tree
   // Updating it helps to prevent tracking through finding uses of the same merkle root
   merkleProof: MerkleProof;
+  // Address of the smart contract where the zkCert has been issued
+  registryAddr: string;
 };
 
 export type HolderData = {
@@ -157,14 +159,14 @@ export type ZkKYCProofInput = {
 
 export type PanelContent = (
   | {
-      value: string;
-      type: NodeType.Heading;
-    }
+    value: string;
+    type: NodeType.Heading;
+  }
   | {
-      value: string;
-      type: NodeType.Text;
-    }
+    value: string;
+    type: NodeType.Text;
+  }
   | {
-      type: NodeType.Divider;
-    }
+    type: NodeType.Divider;
+  }
 )[];
