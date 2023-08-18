@@ -5,7 +5,7 @@ import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
 
 import { RpcResponseErr } from '@galactica-net/snap-api';
-import { ZkCert } from './types';
+import { ZkCert } from '@galactica-net/snap-api';
 
 /**
  * Selects a ZkCert from the available ones.

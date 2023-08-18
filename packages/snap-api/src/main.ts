@@ -25,3 +25,5 @@ export type { ZkCert, ZkCertStandard } from "./api/types";
 export { sdkConfig, type SdkConfig } from "./config/index";
 
 export { RpcMethods, RpcResponseMsg, RpcResponseErr } from "./api/rpcEnums";
+
+export { ZkKYCContent } from "./api/zkCertTypes";

@@ -1,4 +1,11 @@
-export type ZkCertStandard = "gip69";
+import { ZkKYCContent } from "./zkCertTypes";
+
+/**
+ * Enum for zkCert standards
+ */
+export enum ZkCertStandard {
+  zkKYC = 'gip69',
+}
 
 export type ProviderData = {
   // public eddsa key of provider
@@ -32,7 +39,7 @@ export type ZkCert = {
   zkCertStandard: ZkCertStandard;
   // holding the data specific to the type of zkCert (e.g. zkKYCContent)
   // TODO: should be type
-  content: any;
+  content: ZkKYCContent | any;
 
   // Proof showing that the zkCert is part of the Merkle tree
   // Updating it helps to prevent tracking through finding uses of the same merkle root

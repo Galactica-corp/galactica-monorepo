@@ -8,5 +8,6 @@
     "src",
     "types",
     "test",
+    "../snap-api/src/api/zkCertTypes.ts",
   ]
 }

@@ -3,13 +3,12 @@ import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
 import { generateZkKycProof } from './proofGenerator';
-import { RpcResponseErr, RpcMethods, RpcResponseMsg } from '@galactica-net/snap-api';
+import { RpcResponseErr, RpcMethods, RpcResponseMsg, ImportZkCertParams } from '@galactica-net/snap-api';
 import { getState, saveState } from './stateManagement';
 import {
   ExportRequestParams,
   GenZkKycRequestParams,
   HolderData,
-  ImportRequestParams,
   MerkleProofUpdateRequestParams,
   SnapRpcProcessor,
   PanelContent,
@@ -165,7 +164,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.ImportZkCert: {
-      const importParams = request.params as ImportRequestParams;
+      const importParams = request.params as ImportZkCertParams;
 
       // check that there is a holder setup for this zkCert
       const searchedHolder = state.holders.find(

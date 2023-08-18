@@ -2,8 +2,7 @@
 import { createHolderCommitment, ZkCertStandard } from '@galactica-net/zkkyc';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
-
-import { ZkCert } from './types';
+import { ZkCert } from '@galactica-net/snap-api';
 
 /**
  * Calculates the holder commitment from the eddsa key. It is used to link a ZkCert to a holder without revealing the holder's identity to the provider.

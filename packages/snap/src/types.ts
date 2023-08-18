@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
+import { ZkCert } from '@galactica-net/snap-api';
 import {
-  ProviderData,
   MerkleProof,
-  ZkCertStandard,
 } from '@galactica-net/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { NodeType } from '@metamask/snaps-ui';
 import { JsonRpcRequest } from '@metamask/types';
-
-import { ZkKYCContent } from './zkCertTypes';
 
 export type RpcArgs = {
   origin: string;
@@ -47,15 +44,6 @@ export type GenZkKycRequestParams<ProofInputType> = {
   // (optional) Description of disclosures made by the proof
   // This is provided by the front-end. The snap can not verify if the prover actually meets those disclosures.
   disclosureDescription?: string;
-};
-
-/**
- * Parameter for zkCert import.
- */
-export type ImportRequestParams = {
-  zkCert: ZkCert;
-  // Should the snap return the list of zkCerts after import (to have 1 less confirmation)
-  listZkCerts?: boolean;
 };
 
 /**
@@ -101,25 +89,6 @@ export type ZkCertProof = {
   publicSignals: string[];
 };
 
-export type ZkCert = {
-  holderCommitment: string;
-  providerSignature: string;
-  leafHash: string;
-  did: string;
-  contentHash: string;
-  randomSalt: number;
-  providerData: ProviderData;
-
-  // identifier of the zkCert standard (e.g. zkKYC, zkDiploma, zkGymMembership, ...)
-  zkCertStandard: ZkCertStandard;
-  // holding the data specific to the type of zkCert (e.g. zkKYCContent)
-  content: ZkKYCContent | any;
-
-  // Proof showing that the zkCert is part of the Merkle tree
-  // Updating it helps to prevent tracking through finding uses of the same merkle root
-  merkleProof: MerkleProof;
-};
-
 export type HolderData = {
   // address: string; Not needed as long as we do not support HW wallets
   holderCommitment: string;
@@ -157,14 +126,14 @@ export type ZkKYCProofInput = {
 
 export type PanelContent = (
   | {
-      value: string;
-      type: NodeType.Heading;
-    }
+    value: string;
+    type: NodeType.Heading;
+  }
   | {
-      value: string;
-      type: NodeType.Text;
-    }
+    value: string;
+    type: NodeType.Text;
+  }
   | {
-      type: NodeType.Divider;
-    }
+    type: NodeType.Divider;
+  }
 )[];

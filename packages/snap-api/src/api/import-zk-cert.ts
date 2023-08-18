@@ -8,7 +8,10 @@ type ErrorName = "SomethingWentWrongWithImport" | "SomethingWentWrong2";
 export class ImportZkCertError extends GalacticaErrorBase<ErrorName> { }
 
 export type ImportZkCertParams = {
+  // The zkCert to be imported
   zkCert: ZkCert;
+  // Should the snap return the list of zkCerts after import (to have 1 less confirmation)
+  listZkCerts?: boolean;
 };
 
 /**
