@@ -25,6 +25,8 @@ import mockDAppABI from '../config/abi/MockDApp.json';
 import repeatableZKPTestABI from '../config/abi/RepeatableZKPTest.json';
 import { getProver, prepareProofInput } from '../utils/zkp';
 
+import { } from '@galactica-net/snap-api';
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;

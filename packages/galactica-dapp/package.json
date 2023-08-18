@@ -26,6 +26,7 @@
     ]
   },
   "dependencies": {
+    "@galactica-net/snap-api": "workspace:^",
     "@metamask/providers": "^10.2.1",
     "bignumber.js": "^9.0.1",
     "ethers": "^5.7.2",

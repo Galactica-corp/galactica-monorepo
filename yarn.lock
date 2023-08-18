@@ -3488,10 +3488,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@galactica-net/snap-api@workspace:^, @galactica-net/snap-api@workspace:packages/snap-api":
+  version: 0.0.0-use.local
+  resolution: "@galactica-net/snap-api@workspace:packages/snap-api"
+  dependencies:
+    "@types/node": ^20.4.6
+    tsup: ^7.2.0
+    typescript: ^5.1.6
+  languageName: unknown
+  linkType: soft
+
 "@galactica-net/snap@workspace:packages/snap":
   version: 0.0.0-use.local
   resolution: "@galactica-net/snap@workspace:packages/snap"
   dependencies:
+    "@galactica-net/snap-api": "workspace:^"
     "@galactica-net/zkkyc": ^0.6.2
     "@iden3/binfileutils": ^0.0.11
     "@lavamoat/allow-scripts": ^2.0.3
@@ -12035,6 +12046,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "galactica-dapp@workspace:packages/galactica-dapp"
   dependencies:
+    "@galactica-net/snap-api": "workspace:^"
     "@metamask/eslint-config": ^11.1.0
     "@metamask/eslint-config-jest": ^11.1.0
     "@metamask/eslint-config-nodejs": ^11.1.0
@@ -12080,6 +12092,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "galactica-passport-poc@workspace:packages/galactica-passport-poc"
   dependencies:
+    "@galactica-net/snap-api": "workspace:^"
     "@metamask/eslint-config": ^11.1.0
     "@metamask/eslint-config-jest": ^11.1.0
     "@metamask/eslint-config-nodejs": ^11.1.0
@@ -12118,16 +12131,6 @@ __metadata:
     rimraf: ^5.0.0
     styled-components: 5.3.3
     typescript: ^5.0.4
-  languageName: unknown
-  linkType: soft
-
-"galactica-snap-api@workspace:packages/galactica-snap-api":
-  version: 0.0.0-use.local
-  resolution: "galactica-snap-api@workspace:packages/galactica-snap-api"
-  dependencies:
-    "@types/node": ^20.4.6
-    tsup: ^7.2.0
-    typescript: ^5.1.6
   languageName: unknown
   linkType: soft
 

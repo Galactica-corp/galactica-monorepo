@@ -2,7 +2,13 @@
   "name": "@galactica-net/snap-api",
   "version": "0.1.0",
   "description": "API methods, types and errors for working with the Galactica Snap",
-  "main": "main.ts",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "files": [
+    "dist/cjs/**",
+    "dist/esm/**",
+    "dist/types/**"
+  ],
   "scripts": {
     "build": "tsup --dts",
     "dev": "tsup --watch",
