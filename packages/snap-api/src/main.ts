@@ -16,6 +16,10 @@ export {
   type GenZkKycProofResponse,
 } from "./api/gen-zk-kyc-proof";
 
+export {
+  clearStorage,
+} from "./api/clear-storage";
+
 export { getZkCertHash as getZkCertHashes } from "./api/get-zk-cert-hashes";
 
 export { getZkStorageHashes } from "./api/get-zk-storage-hashes";

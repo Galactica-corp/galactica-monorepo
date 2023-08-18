@@ -20,10 +20,10 @@ export type ImportZkCertParams = {
  * @example
  * const response = await importZkCert({ zkCert: JSON.parse(fileContent) })
  */
-export const importZkCert = async (params: ImportZkCertParams) => {
+export const importZkCert = async (zkCert: ImportZkCertParams) => {
   const response = await invokeSnap({
     method: RpcMethods.ImportZkCert,
-    params: { ...params, listZkCerts: true },
+    params: { zkCert: zkCert, listZkCerts: true },
   });
   return response as Record<ZkCertStandard, ZkCert[]>;
 };

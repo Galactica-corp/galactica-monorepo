@@ -1,5 +1,5 @@
 import { defaultSnapOrigin } from '../../../galactica-dapp/src/config';
-import { RpcMethods } from '../../../snap/src/rpcEnums';
+import { RpcMethods } from '@galactica-net/snap-api';
 import {
   ExportRequestParams,
   DeleteRequestParams,
@@ -13,36 +13,6 @@ export {
   generateProof,
   isLocalSnap,
 } from '../../../galactica-dapp/src/utils/snap';
-
-/**
- * Invoke the methods from the example snap.
- */
-
-export const clearStorage = async () => {
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.ClearStorage,
-      },
-    },
-  });
-};
-
-export const importZkCert = async (zkCertJson: any) => {
-  console.log({ zkCert: zkCertJson });
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.ImportZkCert,
-        params: { zkCert: zkCertJson },
-      },
-    },
-  });
-};
 
 export const exportZkCert = async () => {
   const params: ExportRequestParams = {

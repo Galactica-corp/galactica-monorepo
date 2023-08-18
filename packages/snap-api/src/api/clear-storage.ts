@@ -1,8 +1,6 @@
 import { invokeSnap } from "../utils/invoke-snap";
 import { RpcMethods } from "../api/rpcEnums";
 
-type Response = "zkCert storage cleared";
-
 /**
  * Request for removing data stored in the Snap (holders and zkCertificates).
  *

@@ -6,8 +6,6 @@ import {
   getSnap,
   generateProof,
   shouldDisplayReconnectButton,
-  clearStorage,
-  importZkCert,
   exportZkCert,
   getHolderCommitment,
   queryVerificationSBTs,
@@ -29,6 +27,7 @@ import { processProof, processPublicSignals } from '../../../galactica-dapp/src/
 import addresses from '../../../galactica-dapp/src/config/addresses';
 import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
 import { getProver, prepareProofInput } from '../../../galactica-dapp/src/utils/zkp';
+import { clearStorage, importZkCert } from '@galactica-net/snap-api';
 
 const Container = styled.div`
   display: flex;
@@ -209,9 +208,6 @@ const Index = () => {
 
   const getHolderCommitmentClick = async () => {
     try {
-      const zkKYCContent = {
-
-      };
       console.log('sending request to snap...');
       const res = await getHolderCommitment();
       console.log('Response from snap', res);
