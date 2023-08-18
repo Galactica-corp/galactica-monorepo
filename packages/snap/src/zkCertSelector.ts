@@ -4,7 +4,7 @@ import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
 
-import { RpcResponseErr } from './rpcEnums';
+import { RpcResponseErr } from '@galactica-net/snap-api';
 import { ZkCert } from './types';
 
 /**
@@ -92,8 +92,7 @@ export async function selectZkCert(
             heading(`zkCertificate Selection`),
             ...options,
             text(
-              `Please enter the number of the zkCertificate you want to select (${1} to ${
-                filteredCerts.length
+              `Please enter the number of the zkCertificate you want to select (${1} to ${filteredCerts.length
               }):`,
             ),
           ]),
@@ -111,9 +110,8 @@ export async function selectZkCert(
           method: 'snap_notify',
           params: {
             type: 'native',
-            message: `Selection failed. Answer not between ${1} and ${
-              filteredCerts.length
-            }.`,
+            message: `Selection failed. Answer not between ${1} and ${filteredCerts.length
+              }.`,
           },
         });
       }

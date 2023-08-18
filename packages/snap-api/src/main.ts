@@ -16,10 +16,12 @@ export {
   type GenZkKycProofResponse,
 } from "./api/gen-zk-kyc-proof";
 
-export { getZkCertHashes } from "./api/get-zk-cert-hashes";
+export { getZkCertHash as getZkCertHashes } from "./api/get-zk-cert-hashes";
 
 export { getZkStorageHashes } from "./api/get-zk-storage-hashes";
 
 export type { ZkCert, ZkCertStandard } from "./api/types";
 
 export { sdkConfig, type SdkConfig } from "./config/index";
+
+export { RpcMethods, RpcResponseMsg, RpcResponseErr } from "./api/rpcEnums";

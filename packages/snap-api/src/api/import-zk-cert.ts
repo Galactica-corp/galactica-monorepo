@@ -1,10 +1,11 @@
 import { GalacticaErrorBase } from "./error";
 import { invokeSnap } from "../utils/invoke-snap";
 import { ZkCert, ZkCertStandard } from "./types";
+import { RpcMethods } from "../api/rpcEnums";
 
 type ErrorName = "SomethingWentWrongWithImport" | "SomethingWentWrong2";
 
-export class ImportZkCertError extends GalacticaErrorBase<ErrorName> {}
+export class ImportZkCertError extends GalacticaErrorBase<ErrorName> { }
 
 export type ImportZkCertParams = {
   zkCert: ZkCert;
@@ -18,7 +19,7 @@ export type ImportZkCertParams = {
  */
 export const importZkCert = async (params: ImportZkCertParams) => {
   const response = await invokeSnap({
-    method: "importZkCert",
+    method: RpcMethods.ImportZkCert,
     params: { ...params, listZkCerts: true },
   });
   return response as Record<ZkCertStandard, ZkCert[]>;

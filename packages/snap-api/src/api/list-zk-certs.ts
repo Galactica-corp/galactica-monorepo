@@ -1,5 +1,6 @@
 import { invokeSnap } from "../utils/invoke-snap";
 import { ZkCertStandard } from "./types";
+import { RpcMethods } from "../api/rpcEnums";
 
 export type ListZkCertsError = unknown;
 
@@ -19,7 +20,7 @@ export type ListZkCertsResponse = Record<ZkCertStandard, ListZkCertsItem[]>;
  */
 export const listZkCerts = async () => {
   const response: ListZkCertsResponse = await invokeSnap({
-    method: "listZkCerts",
+    method: RpcMethods.ListZkCerts,
   });
   return response;
 };

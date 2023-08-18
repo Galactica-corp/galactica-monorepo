@@ -1,5 +1,6 @@
 import { invokeSnap } from "../utils/invoke-snap";
 import { ZkCertStandard } from "./types";
+import { RpcMethods } from "../api/rpcEnums";
 
 export type GenZkKycProofParams = {
   // An object, containing public ZKP input for the statements to be shown by the generated proof.
@@ -34,7 +35,7 @@ export type GenZkKycProofResponse = any;
  */
 export const genZkKycProof = async (params: GenZkKycProofParams) => {
   const response: GenZkKycProofResponse = await invokeSnap({
-    method: "genZkKycProof",
+    method: RpcMethods.GenZkKycProof,
     params,
   });
 

@@ -1,4 +1,5 @@
 import { invokeSnap } from "../utils/invoke-snap";
+import { RpcMethods } from "../api/rpcEnums";
 
 type Response = "zkCert storage cleared";
 
@@ -10,6 +11,6 @@ type Response = "zkCert storage cleared";
  * const response = await clearStorage()
  */
 export const clearStorage = async () => {
-  const response: Response = await invokeSnap({ method: "clearStorage" });
+  const response: Response = await invokeSnap({ method: RpcMethods.ClearStorage });
   return response;
 };

@@ -10,7 +10,7 @@ import zkCert2 from '../../../test/zkCert2.json';
 import zkKYCToImportInUnitTest from '../../../test/zkKYCToImportInUnitTest.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
-import { RpcMethods, RpcResponseErr, RpcResponseMsg } from '../src/rpcEnums';
+import { RpcResponseErr, RpcMethods, RpcResponseMsg } from '@galactica-net/snap-api';
 import {
   ExportRequestParams,
   RpcArgs,

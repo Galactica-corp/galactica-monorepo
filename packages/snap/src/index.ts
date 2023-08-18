@@ -3,7 +3,7 @@ import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
 import { generateZkKycProof } from './proofGenerator';
-import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
+import { RpcResponseErr, RpcMethods, RpcResponseMsg } from '@galactica-net/snap-api';
 import { getState, saveState } from './stateManagement';
 import {
   ExportRequestParams,
