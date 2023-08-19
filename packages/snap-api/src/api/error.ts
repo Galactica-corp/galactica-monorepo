@@ -18,3 +18,7 @@ export class GalacticaErrorBase<T extends string> extends Error {
     this.cause = cause;
   }
 }
+
+type GenericErrorName = "RejectedConfirm" | "UnknownMethod" | "MissingHolder" | "RejectedConnect" | "RejectedSignature" | "RejectedSelect";
+
+export class GenericError extends GalacticaErrorBase<GenericErrorName> { }

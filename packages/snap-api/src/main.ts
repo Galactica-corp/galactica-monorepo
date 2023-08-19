@@ -31,3 +31,5 @@ export { sdkConfig, type SdkConfig } from "./config/index";
 export { RpcMethods, RpcResponseMsg, RpcResponseErr } from "./api/rpcEnums";
 
 export { ZkKYCContent } from "./api/zkCertTypes";
+
+export { GenericError } from "./api/error";

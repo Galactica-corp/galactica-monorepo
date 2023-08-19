@@ -3,7 +3,7 @@ import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
 import { generateZkKycProof } from './proofGenerator';
-import { RpcResponseErr, RpcMethods, RpcResponseMsg, ImportZkCertParams } from '@galactica-net/snap-api';
+import { RpcResponseErr, RpcMethods, RpcResponseMsg, ImportZkCertParams, GenericError } from '@galactica-net/snap-api';
 import { getState, saveState } from './stateManagement';
 import {
   ExportRequestParams,
@@ -103,7 +103,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       });
 
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        return new GenericError({ name: "RejectedConfirm", message: RpcResponseErr.RejectedConfirm, cause: request });
       }
 
       const zkCert = await selectZkCert(
@@ -156,7 +156,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        return new GenericError({ name: "RejectedConfirm", message: RpcResponseErr.RejectedConfirm, cause: request });
       }
 
       await saveState(snap, { holders: [], zkCerts: [] });
@@ -210,7 +210,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        return new GenericError({ name: "RejectedConfirm", message: RpcResponseErr.RejectedConfirm, cause: request });
       }
       state.zkCerts.push(importParams.zkCert);
       await saveState(snap, state);
@@ -237,7 +237,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        return new GenericError({ name: "RejectedConfirm", message: RpcResponseErr.RejectedConfirm, cause: request });
       }
 
       const zkCertForExport = await selectZkCert(
@@ -271,7 +271,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        return new GenericError({ name: "RejectedConfirm", message: RpcResponseErr.RejectedConfirm, cause: request });
       }
 
       return holder.holderCommitment;
@@ -293,7 +293,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        return new GenericError({ name: "RejectedConfirm", message: RpcResponseErr.RejectedConfirm, cause: request });
       }
 
       return getZkCertStorageOverview(state.zkCerts);
@@ -321,7 +321,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        return new GenericError({ name: "RejectedConfirm", message: RpcResponseErr.RejectedConfirm, cause: request });
       }
 
       return state.zkCerts.map((zkCert) => zkCert.leafHash);
@@ -345,7 +345,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        return new GenericError({ name: "RejectedConfirm", message: RpcResponseErr.RejectedConfirm, cause: request });
       }
 
       for (const merkleProof of merkleUpdateParams.proofs) {
@@ -392,7 +392,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        return new GenericError({ name: "RejectedConfirm", message: RpcResponseErr.RejectedConfirm, cause: request });
       }
 
       state.zkCerts = state.zkCerts.filter(
