@@ -177,7 +177,11 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await method();
       console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Reponse from Snap: ${res} ` });
+      if (res.name && res.message) {
+        dispatch({ type: MetamaskActions.SetError, payload: res });
+      } else {
+        dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
+      }
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
