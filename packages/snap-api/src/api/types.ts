@@ -1,20 +1,20 @@
-import { ZkKYCContent } from "./zkCertTypes";
+import { ZkKYCContent } from './zkCertTypes';
 
 /**
  * Enum for zkCert standards
  */
 export enum ZkCertStandard {
-  zkKYC = 'gip69',
+  ZkKYC = 'gip69',
 }
 
 export type ProviderData = {
   // public eddsa key of provider
-  Ax: string;
-  Ay: string;
+  ax: string;
+  ay: string;
   // signature of the zkCert content hash by the provider
-  S: string;
-  R8x: string;
-  R8y: string;
+  s: string;
+  r8x: string;
+  r8y: string;
 };
 
 export type MerkleProof = {

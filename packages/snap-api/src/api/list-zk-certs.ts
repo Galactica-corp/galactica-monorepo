@@ -1,13 +1,13 @@
-import { invokeSnap } from "../utils/invoke-snap";
-import { ZkCertStandard } from "./types";
-import { RpcMethods } from "../api/rpcEnums";
+import { invokeSnap } from '../utils/invoke-snap';
+import { RpcMethods } from './rpcEnums';
+import { ZkCertStandard } from './types';
 
 export type ListZkCertsError = unknown;
 
 export type ListZkCertsItem = {
   providerPubKey: {
-    Ax: string;
-    Ay: string;
+    ax: string;
+    ay: string;
   };
   expirationDate: number;
   verificationLevel: string;
@@ -16,7 +16,7 @@ export type ListZkCertsItem = {
 export type ListZkCertsResponse = Record<ZkCertStandard, ListZkCertsItem[]>;
 
 /**
- * Requests overview of zkCertificates held in the Snap for management
+ * Requests overview of zkCertificates held in the Snap for management.
  */
 export const listZkCerts = async () => {
   const response: ListZkCertsResponse = await invokeSnap({

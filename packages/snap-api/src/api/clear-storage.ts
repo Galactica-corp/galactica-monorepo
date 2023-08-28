@@ -1,5 +1,5 @@
-import { invokeSnap } from "../utils/invoke-snap";
-import { RpcMethods } from "../api/rpcEnums";
+import { invokeSnap } from '../utils/invoke-snap';
+import { RpcMethods } from './rpcEnums';
 
 /**
  * Request for removing data stored in the Snap (holders and zkCertificates).
@@ -9,6 +9,8 @@ import { RpcMethods } from "../api/rpcEnums";
  * const response = await clearStorage()
  */
 export const clearStorage = async () => {
-  const response: Response = await invokeSnap({ method: RpcMethods.ClearStorage });
+  const response = await invokeSnap({
+    method: RpcMethods.ClearStorage,
+  });
   return response;
 };

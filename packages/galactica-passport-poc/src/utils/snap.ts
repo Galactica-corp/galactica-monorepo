@@ -1,5 +1,6 @@
-import { defaultSnapOrigin } from '../../../galactica-dapp/src/config';
 import { RpcMethods } from '@galactica-net/snap-api';
+
+import { defaultSnapOrigin } from '../../../galactica-dapp/src/config';
 import {
   ExportRequestParams,
   DeleteRequestParams,

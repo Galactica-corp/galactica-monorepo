@@ -1,5 +1,5 @@
-import { invokeSnap } from "../utils/invoke-snap";
-import { RpcMethods } from "../api/rpcEnums";
+import { invokeSnap } from '../utils/invoke-snap';
+import { RpcMethods } from './rpcEnums';
 
 export const getZkCertHash = async () => {
   const response = await invokeSnap({ method: RpcMethods.GetZkCertHash });
