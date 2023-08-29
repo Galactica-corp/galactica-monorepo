@@ -2,7 +2,10 @@
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
-import { generateZkKycProof } from './proofGenerator';
+import {
+  createProofConfirmationPrompt,
+  generateZkKycProof,
+} from './proofGenerator';
 import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
 import { getState, saveState } from './stateManagement';
 import {
@@ -53,60 +56,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(`ZkCert standard missing in request parameters.`);
       }
 
-      const proofConfirmDialog = [
-        heading('Generating zkCertificate Proof'),
-        text(
-          `With this action you will create a ${genParams.requirements.zkCertStandard.toUpperCase()} proof for Galactica.com.
-           This action tests whether your personal data fulfills the requirements of the proof.`,
-        ),
-        divider(),
-      ];
-
-      // Description of disclosures made by the proof have to be provided by the front-end because the snap can not analyze what the prover will do.
-      if (genParams.disclosureDescription) {
-        proofConfirmDialog.push(
-          text(`Further description of disclosures:`),
-          text(genParams.disclosureDescription),
-          text(
-            `(Description provided by ${origin}. The snap can not verify if the prover actually meets those disclosures.)`,
-          ),
-        );
-      } else {
-        proofConfirmDialog.push(
-          text(`No further description of disclosures provided by ${origin}.`),
-        );
-      }
-
-      // Generalize disclosure of inputs to any kind of inputs
-      proofConfirmDialog.push(
-        divider(),
-        text(`The following proof parameters will be publicly visible:`),
-      );
-
-      for (const parameter of Object.keys(genParams.input)) {
-        proofConfirmDialog.push(
-          text(
-            `${parameter}: ${JSON.stringify(
-              genParams.input[parameter],
-              null,
-              2,
-            )}`,
-          ),
-        );
-      }
-
-      confirm = await snap.request({
-        method: 'snap_dialog',
-        params: {
-          type: 'confirmation',
-          content: panel(proofConfirmDialog),
-        },
-      });
-
-      if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
-      }
-
       const zkCert = await selectZkCert(
         snap,
         state.zkCerts,
@@ -134,12 +83,38 @@ export const processRpcRequest: SnapRpcProcessor = async (
         );
       }
 
-      const proof = generateZkKycProof(
+      await snap.request({
+        method: 'snap_notify',
+        params: {
+          type: 'native',
+          message: `ZK proof generation running...`,
+        },
+      });
+
+      const proof = await generateZkKycProof(
         genParams,
         zkCert,
         holder,
         searchedZkCert.merkleProof,
       );
+
+      const proofConfirmDialog = createProofConfirmationPrompt(
+        genParams,
+        proof,
+        origin,
+      );
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'confirmation',
+          content: panel(proofConfirmDialog),
+        },
+      });
+
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
+      }
+
       return proof;
     }
 

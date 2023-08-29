@@ -44,9 +44,12 @@ export type GenZkKycRequestParams<ProofInputType> = {
   // address of the user that is going to submit the proof
   userAddress: string;
 
-  // (optional) Description of disclosures made by the proof
-  // This is provided by the front-end. The snap can not verify if the prover actually meets those disclosures.
-  disclosureDescription?: string;
+  // Description of disclosures made by the proof
+  // This is provided by the front-end. The snap can not verify if the prover matches this description.
+  // General description of the ZKP
+  description: string;
+  // Short description of each public input the proof is disclosing
+  publicInputDescriptions: string[];
 };
 
 /**

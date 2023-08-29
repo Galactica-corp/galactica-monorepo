@@ -17,7 +17,6 @@ export {
 /**
  * Invoke the methods from the example snap.
  */
-
 export const clearStorage = async () => {
   return await window.ethereum.request({
     method: 'wallet_invokeSnap',
