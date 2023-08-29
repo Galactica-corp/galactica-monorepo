@@ -217,7 +217,7 @@ None
 #### Returns
 
 `string` - "zkCert storage cleared" on success.
-Throws error otherwise.
+Returns [an error](https://github.com/Galactica-corp/galactica-snap/blob/main/packages/snap-api/src/api/error.ts) otherwise.
 
 #### Example
 
@@ -251,7 +251,7 @@ Asks user for confirmation
 
 `string` "zkCert added to storage" on successful import.
 If `listZkCerts` is set to `true`, it returns the zkCert overview instead (same as in the `listZkCerts` method).
-Throws error if the import fails.
+Returns [an error](https://github.com/Galactica-corp/galactica-snap/blob/main/packages/snap-api/src/api/error.ts) if the import fails.
 
 #### Example
 
