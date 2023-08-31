@@ -1,15 +1,15 @@
 import { invokeSnap } from '../utils/invoke-snap';
 import { GalacticaErrorBase } from './error';
 import { RpcMethods } from './rpcEnums';
-import { ZkCert, ZkCertStandard } from './types';
+import { ZkCertRegistered, ZkCertStandard } from './types';
 
 type ErrorName = 'SomethingWentWrongWithImport' | 'SomethingWentWrong2';
 
-export class ImportZkCertError extends GalacticaErrorBase<ErrorName> {}
+export class ImportZkCertError extends GalacticaErrorBase<ErrorName> { }
 
 export type ImportZkCertParams = {
   // The zkCert to be imported
-  zkCert: ZkCert;
+  zkCert: ZkCertRegistered;
   // Should the snap return the list of zkCerts after import (to have 1 less confirmation)
   listZkCerts?: boolean;
 };
@@ -26,5 +26,5 @@ export const importZkCert = async (zkCert: ImportZkCertParams) => {
     method: RpcMethods.ImportZkCert,
     params: { zkCert, listZkCerts: true },
   });
-  return response as Record<ZkCertStandard, ZkCert[]>;
+  return response as Record<ZkCertStandard, ZkCertRegistered[]>;
 };

@@ -17,17 +17,14 @@ export {
 } from './api/gen-zk-kyc-proof';
 
 export { clearStorage } from './api/clear-storage';
-
 export { getZkCertHash as getZkCertHashes } from './api/get-zk-cert-hashes';
-
 export { getZkStorageHashes } from './api/get-zk-storage-hashes';
 
-export type { ZkCert, ZkCertStandard } from './api/types';
+export * from './api/types';
+export * from './api/zkpInputTypes';
 
 export { sdkConfig, type SdkConfig } from './config';
 
 export { RpcMethods, RpcResponseMsg, RpcResponseErr } from './api/rpcEnums';
-
-export type { ZkKYCContent } from './api/zkCertTypes';
 
 export { GenericError } from './api/error';

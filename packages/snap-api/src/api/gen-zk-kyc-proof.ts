@@ -1,25 +1,23 @@
 import { invokeSnap } from '../utils/invoke-snap';
 import { RpcMethods } from './rpcEnums';
-import { ZkCertStandard } from './types';
+import { ZkCertStandard, ProverData } from './types';
+import { ZkCertInputType } from './zkpInputTypes';
 
-export type GenZkKycProofParams = {
+
+/**
+ * Parameter for requests to generate a zkKYC proof.
+ */
+export interface GenZkKycProofParams<ProofInputType> {
   // An object, containing public ZKP input for the statements to be shown by the generated proof.
-  // TODO: type it
-  input: object;
+  input: ProofInputType;
 
   requirements: {
     // For the standard of the zkCertificate that should be used for the proof.
     zkCertStandard: ZkCertStandard;
   };
-  // string base64 encoded wasm binary of the prover.
-  wasm: string;
 
-  // Object of zkey headers used by snarkjs. The binary fields are base64 encoded.
-  // TODO: type it
-  zkeyHeader: object;
-
-  // Array of base64 encoded zkey sections used by snarkjs.
-  zkeySections: string[];
+  // Prover to generate the ZKP.
+  prover: ProverData;
 
   // String with the account address the user is going to use to submit the proof.
   userAddress: string;
@@ -35,7 +33,7 @@ export type GenZkKycProofResponse = any;
  *
  * @param params - The parameters required to generate a ZKP in the Snap.
  */
-export const genZkKycProof = async (params: GenZkKycProofParams) => {
+export const genZkKycProof = async (params: GenZkKycProofParams<ZkCertInputType>) => {
   const response: GenZkKycProofResponse = await invokeSnap({
     method: RpcMethods.GenZkKycProof,
     params,
