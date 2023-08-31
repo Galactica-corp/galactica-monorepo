@@ -1,10 +1,9 @@
+import { GenZkKycRequestParams, ProverData } from '@galactica-net/snap-api';
 import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
 import {
-  GenZkKycRequestParams,
   HolderData,
   RpcArgs,
   ZkKYCAgeProofInput,
-  ProverData,
 } from '../src/types';
 
 const prover = proverData as ProverData;
@@ -52,8 +51,6 @@ export const testZkpParams: GenZkKycRequestParams<ZkKYCAgeProofInput> = {
   requirements: {
     zkCertStandard: 'gip69',
   },
-  wasm: prover.wasm,
-  zkeyHeader: prover.zkeyHeader,
-  zkeySections: prover.zkeySections,
+  prover: prover,
   userAddress: testAddress,
 };

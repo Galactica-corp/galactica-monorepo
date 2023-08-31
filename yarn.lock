@@ -3488,10 +3488,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@galactica-net/galactica-types@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "@galactica-net/galactica-types@npm:0.1.0"
+  checksum: 41f8a2961f4b596a22847ead6b70f06461fc790a031986be93e1b5b4c1bf845118334b01064337215baf01523ccbdac2b31f7f5c2f5ee347d2aec8d57acb07b9
+  languageName: node
+  linkType: hard
+
 "@galactica-net/snap-api@workspace:^, @galactica-net/snap-api@workspace:packages/snap-api":
   version: 0.0.0-use.local
   resolution: "@galactica-net/snap-api@workspace:packages/snap-api"
   dependencies:
+    "@galactica-net/galactica-types": ^0.1.0
     "@types/node": ^20.4.6
     tsup: ^7.2.0
     typescript: ^5.1.6
@@ -3502,6 +3510,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@galactica-net/snap@workspace:packages/snap"
   dependencies:
+    "@galactica-net/galactica-types": ^0.1.0
     "@galactica-net/snap-api": "workspace:^"
     "@galactica-net/zkkyc": ^0.6.2
     "@iden3/binfileutils": ^0.0.11

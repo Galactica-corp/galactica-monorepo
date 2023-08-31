@@ -5,6 +5,8 @@ import {
   RpcResponseMsg,
   ImportZkCertParams,
   GenericError,
+  GenZkKycProofParams,
+  ZkCertInputType,
 } from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
@@ -13,7 +15,6 @@ import { generateZkKycProof } from './proofGenerator';
 import { getState, saveState } from './stateManagement';
 import {
   ExportRequestParams,
-  GenZkKycRequestParams,
   HolderData,
   MerkleProofUpdateRequestParams,
   SnapRpcProcessor,
@@ -49,8 +50,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
   switch (request.method) {
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
-      const genParams = request.params as GenZkKycRequestParams<any>;
-      // TODO: check input validity
+      const genParams = request.params as unknown as GenZkKycProofParams<any>;
+      // check some input validity
       if (genParams.userAddress === undefined) {
         throw new Error(`userAddress missing in request parameters.`);
       }

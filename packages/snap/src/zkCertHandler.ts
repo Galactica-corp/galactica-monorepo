@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { ZkCert } from '@galactica-net/snap-api';
+import { ZkCertRegistered } from '@galactica-net/snap-api';
 import { createHolderCommitment, ZkCertStandard } from '@galactica-net/zkkyc';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
@@ -23,7 +23,7 @@ export async function calculateHolderCommitment(
  * @param zkCertStorage - The list of zkCerts stored.
  * @returns ZkCerts metadata listed for each zkCertStandard.
  */
-export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
+export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]): any {
   const sharedZkCerts: any = {};
   for (const zkCert of zkCertStorage) {
     if (sharedZkCerts[zkCert.zkCertStandard] === undefined) {
@@ -32,8 +32,8 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
 
     const disclosureData: any = {
       providerPubKey: {
-        Ax: zkCert.providerData.Ax,
-        Ay: zkCert.providerData.Ay,
+        ax: zkCert.providerData.ax,
+        ay: zkCert.providerData.ay,
       },
     };
     if (zkCert.zkCertStandard === ZkCertStandard.zkKYC) {
@@ -53,7 +53,7 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
  * @returns Storage hash for each zkCertStandard.
  */
 export function getZkCertStorageHashes(
-  zkCertStorage: ZkCert[],
+  zkCertStorage: ZkCertRegistered[],
   origin: string,
 ): any {
   const storageHashes: any = {};

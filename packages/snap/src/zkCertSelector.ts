@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { RpcResponseErr, ZkCert } from '@galactica-net/snap-api';
+import { RpcResponseErr, ZkCertRegistered } from '@galactica-net/snap-api';
 import { ZKCertificate } from '@galactica-net/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
@@ -16,7 +16,7 @@ import { buildEddsa } from 'circomlibjs';
  */
 export async function selectZkCert(
   snap: SnapsGlobalObject,
-  availableCerts: ZkCert[],
+  availableCerts: ZkCertRegistered[],
   zkCertStandard?: string,
   expirationDate?: number,
   providerAx?: string,
@@ -36,7 +36,7 @@ export async function selectZkCert(
           expirationDate === undefined) ||
         value.content.expirationDate === expirationDate) &&
       // same provider, if defined as filter
-      (providerAx === undefined || value.providerData.Ax === providerAx)
+      (providerAx === undefined || value.providerData.ax === providerAx)
     );
   });
 
@@ -50,7 +50,7 @@ export async function selectZkCert(
     );
   }
 
-  let selected: ZkCert;
+  let selected: ZkCertRegistered;
 
   if (filteredCerts.length === 1) {
     selected = filteredCerts[0];
@@ -90,8 +90,7 @@ export async function selectZkCert(
             heading(`zkCertificate Selection`),
             ...options,
             text(
-              `Please enter the number of the zkCertificate you want to select (${1} to ${
-                filteredCerts.length
+              `Please enter the number of the zkCertificate you want to select (${1} to ${filteredCerts.length
               }):`,
             ),
           ]),
@@ -109,9 +108,8 @@ export async function selectZkCert(
           method: 'snap_notify',
           params: {
             type: 'native',
-            message: `Selection failed. Answer not between ${1} and ${
-              filteredCerts.length
-            }.`,
+            message: `Selection failed. Answer not between ${1} and ${filteredCerts.length
+              }.`,
           },
         });
       }
