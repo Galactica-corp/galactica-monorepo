@@ -1,10 +1,10 @@
 {
   "name": "@galactica-net/snap-api",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "API methods, types and errors for working with the Galactica Snap",
   "keywords": [],
-  "license": "ISC",
-  "author": "",
+  "license": "GPL-3.0-or-later",
+  "author": "Galactica Network",
   "main": "./dist/main.js",
   "types": "./dist/main.d.ts",
   "files": [
@@ -24,5 +24,9 @@
   },
   "devDependencies": {
     "tsup": "^7.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Galactica-corp/galactica-snap.git"
   }
 }
