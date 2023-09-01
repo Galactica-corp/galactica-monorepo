@@ -54,9 +54,9 @@ export const generateZkKycProof = async (
     ...zkCert.getOwnershipProofInput(holder.eddsaKey),
 
     userAddress: authorizationProof.userAddress,
-    S2: authorizationProof.s,
-    R8x2: authorizationProof.r8x,
-    R8y2: authorizationProof.r8y,
+    s2: authorizationProof.s,
+    r8x2: authorizationProof.r8x,
+    r8y2: authorizationProof.r8y,
 
     providerAx: zkCert.providerData.ax,
     providerAy: zkCert.providerData.ay,
