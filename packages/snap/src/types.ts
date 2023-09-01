@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
+import { MerkleProof } from '@galactica-net/galactica-types';
 import { ZkCertRegistered } from '@galactica-net/snap-api';
-import { MerkleProof } from '@galactica-net/zkkyc';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { NodeType } from '@metamask/snaps-ui';
 import { JsonRpcRequest } from '@metamask/types';

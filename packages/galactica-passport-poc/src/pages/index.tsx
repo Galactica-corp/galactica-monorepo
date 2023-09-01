@@ -243,7 +243,11 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await importZkCert(parsedFile);
       console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${res}` });
+      if (res.name && res.message) {
+        dispatch({ type: MetamaskActions.SetError, payload: res });
+      } else {
+        dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
+      }
 
     } catch (e) {
       console.error(e);

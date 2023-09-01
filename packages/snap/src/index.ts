@@ -4,9 +4,9 @@ import {
   RpcMethods,
   RpcResponseMsg,
   ImportZkCertParams,
+  ImportZkCertError,
   GenericError,
   GenZkKycProofParams,
-  ZkCertInputType,
 } from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
@@ -187,9 +187,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
           candidate.holderCommitment === importParams.zkCert.holderCommitment,
       );
       if (searchedHolder === undefined) {
-        throw new Error(
-          `Could not find Holder for commitment ${importParams.zkCert.holderCommitment}. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
-        );
+        return new ImportZkCertError({
+          name: 'HolderMissing',
+          message: `Could not find Holder for commitment ${importParams.zkCert.holderCommitment}. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
+          cause: request,
+        });
       }
 
       const listZkCertsFlag = importParams.listZkCerts === true;
