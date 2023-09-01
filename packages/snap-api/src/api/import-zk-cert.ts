@@ -3,9 +3,9 @@ import { GalacticaErrorBase, GenericError } from './error';
 import { RpcMethods } from './rpcEnums';
 import { ZkCertRegistered, ZkCertStandard } from './types';
 
-type ErrorName = 'HolderMissing';
+type ImportErrorName = 'HolderMissing';
 
-export class ImportZkCertError extends GalacticaErrorBase<ErrorName> { }
+export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> { }
 
 export type ImportZkCertParams = {
   // The zkCert to be imported

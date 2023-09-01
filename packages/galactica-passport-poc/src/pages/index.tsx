@@ -4,13 +4,13 @@ import { MetamaskActions, MetaMaskContext } from '../../../galactica-dapp/src/ho
 import {
   connectSnap,
   getSnap,
-  generateProof,
   shouldDisplayReconnectButton,
   exportZkCert,
   getHolderCommitment,
   queryVerificationSBTs,
   formatVerificationSBTs,
   deleteZkCert,
+  getUserAddress,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -27,7 +27,13 @@ import { processProof, processPublicSignals } from '../../../galactica-dapp/src/
 import addresses from '../../../galactica-dapp/src/config/addresses';
 import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
 import { getProver, prepareProofInput } from '../../../galactica-dapp/src/utils/zkp';
-import { clearStorage, importZkCert } from '@galactica-net/snap-api';
+import {
+  clearStorage,
+  importZkCert,
+  generateZKProof,
+  ZkCertStandard,
+  ZkCertProof,
+} from '@galactica-net/snap-api';
 
 const Container = styled.div`
   display: flex;
@@ -269,11 +275,21 @@ const Index = () => {
       };
 
       const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
-      const zkp: any = await generateProof(
-        await getProver("/provers/exampleMockDApp.json"),
-        proofInput,
-        "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
-      );
+      const res: any = await generateZKProof({
+        input: proofInput,
+        prover: await getProver("/provers/exampleMockDApp.json"),
+        requirements: {
+          zkCertStandard: ZkCertStandard.zkKYC,
+        },
+        userAddress: getUserAddress(),
+        disclosureDescription: "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
+      });
+      console.log('Response from snap', res);
+      if (res.name && res.message) {
+        dispatch({ type: MetamaskActions.SetError, payload: res });
+        return;
+      }
+      const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       dispatch({ type: MetamaskActions.SetProofData, payload: zkp });

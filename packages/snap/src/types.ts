@@ -45,14 +45,6 @@ export type ExportRequestParams = {
   zkCertStandard: string;
 };
 
-/**
- * zkCert proof to be returned to the website.
- */
-export type ZkCertProof = {
-  proof: any;
-  publicSignals: string[];
-};
-
 export type HolderData = {
   // address: string; Not needed as long as we do not support HW wallets
   holderCommitment: string;

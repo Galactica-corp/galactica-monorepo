@@ -27,3 +27,11 @@ export async function getCurrentBlockTime(): Promise<number> {
 
   return (await provider.getBlock('latest')).timestamp;
 }
+
+export function getUserAddress(): string {
+  const userAddress = window.ethereum.selectedAddress;
+  if (userAddress === null) {
+    throw new Error('Please connect a metamask account first.');
+  }
+  return userAddress;
+}

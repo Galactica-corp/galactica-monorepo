@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { GenZkKycProofParams, ZkCertInputType } from '@galactica-net/snap-api';
+import { GenZkProofParams, ZkCertInputType, ZkCertProof } from '@galactica-net/snap-api';
 import { MerkleProof } from '@galactica-net/galactica-types';
 import {
   ZKCertificate,
@@ -10,7 +10,7 @@ import { buildEddsa } from 'circomlibjs';
 import { buildBn128, buildBls12381 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
 
-import { ZkCertProof, HolderData } from './types';
+import { HolderData } from './types';
 
 /**
  * GenerateZkKycProof constructs and checks the zkKYC proof.
@@ -21,7 +21,7 @@ import { ZkCertProof, HolderData } from './types';
  * @param merkleProof - Merkle proof of the zkCert in the zkCert registry.
  */
 export const generateZkKycProof = async (
-  params: GenZkKycProofParams<ZkCertInputType>,
+  params: GenZkProofParams<ZkCertInputType>,
   zkCert: ZKCertificate,
   holder: HolderData,
   merkleProof: MerkleProof,
@@ -103,8 +103,8 @@ export const generateZkKycProof = async (
  * @returns Prepared GenZkKycRequestParams.
  */
 async function preprocessInput(
-  params: GenZkKycProofParams<ZkCertInputType>,
-): Promise<GenZkKycProofParams<ZkCertInputType>> {
+  params: GenZkProofParams<ZkCertInputType>,
+): Promise<GenZkProofParams<ZkCertInputType>> {
   // Somehow we need to convert them to Uint8Array to avoid an error inside snarkjs.
   params.prover.wasm = Uint8Array.from(Buffer.from(params.prover.wasm, 'base64'));
 

@@ -1,13 +1,14 @@
 import { invokeSnap } from '../utils/invoke-snap';
+import { GalacticaErrorBase, GenericError } from './error';
 import { RpcMethods } from './rpcEnums';
-import { ZkCertStandard, ProverData } from './types';
+import { ZkCertStandard, ProverData, ZkCertProof } from './types';
 import { ZkCertInputType } from './zkpInputTypes';
 
 
 /**
- * Parameter for requests to generate a zkKYC proof.
+ * Parameter for requests to generate a ZK proof with the Galactica Snap.
  */
-export interface GenZkKycProofParams<ProofInputType> {
+export interface GenZkProofParams<ProofInputType> {
   // An object, containing public ZKP input for the statements to be shown by the generated proof.
   input: ProofInputType;
 
@@ -26,18 +27,24 @@ export interface GenZkKycProofParams<ProofInputType> {
   disclosureDescription?: string;
 };
 
-export type GenZkKycProofResponse = any;
+type GenZKPErrorName = 'MissingInputParams';
+
+export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> { }
+
+export type GenZKProofResponse = ZkCertProof | GenZKPError | GenericError;
 
 /**
- * Sends a request for generating a ZK proof in the Snap.
+ * GenerateZKProof prepares and executes the call to generate a ZKP in the Galactica snap.
+ * You can use it to generate various kinds of proofs, depending on the input you pass.
  *
  * @param params - The parameters required to generate a ZKP in the Snap.
+ * @returns Request result with the ZK proof or error.
  */
-export const genZkKycProof = async (params: GenZkKycProofParams<ZkCertInputType>) => {
-  const response: GenZkKycProofResponse = await invokeSnap({
+export const generateZKProof = async (params: GenZkProofParams<ZkCertInputType>) => {
+  const response: GenZKProofResponse = await invokeSnap({
     method: RpcMethods.GenZkKycProof,
     params,
   });
 
-  return response;
+  return response as GenZKProofResponse;
 };

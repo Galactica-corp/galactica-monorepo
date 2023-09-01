@@ -6,7 +6,8 @@ import {
   ImportZkCertParams,
   ImportZkCertError,
   GenericError,
-  GenZkKycProofParams,
+  GenZkProofParams,
+  GenZKPError,
 } from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
@@ -50,13 +51,21 @@ export const processRpcRequest: SnapRpcProcessor = async (
   switch (request.method) {
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
-      const genParams = request.params as unknown as GenZkKycProofParams<any>;
+      const genParams = request.params as unknown as GenZkProofParams<any>;
       // check some input validity
       if (genParams.userAddress === undefined) {
-        throw new Error(`userAddress missing in request parameters.`);
+        return new GenZKPError({
+          name: 'MissingInputParams',
+          message: `userAddress missing in request parameters.`,
+          cause: request,
+        });
       }
       if (genParams.requirements.zkCertStandard === undefined) {
-        throw new Error(`ZkCert standard missing in request parameters.`);
+        return new GenZKPError({
+          name: 'MissingInputParams',
+          message: `ZkCert standard missing in request parameters.`,
+          cause: request,
+        });
       }
 
       const proofConfirmDialog = [
@@ -127,9 +136,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
       );
       if (searchedHolder === undefined) {
-        throw new Error(
-          `Holder for commitment ${zkCert.holderCommitment} could not be found. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
-        );
+        return new GenericError({
+          name: 'MissingHolder',
+          message: `Holder for commitment ${zkCert.holderCommitment} could not be found. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
+          cause: request,
+        });
       } else {
         holder = searchedHolder;
       }
@@ -460,7 +471,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
  * @param args.origin - The origin of the request, e.g., the website that
  * invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
- * @returns The result of the request as string. TODO: Use more strict type.
+ * @returns The result of the request. 
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_dialog` call failed.
  */

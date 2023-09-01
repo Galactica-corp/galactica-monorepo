@@ -6,7 +6,7 @@ import path from 'path';
 import { groth16, zKey } from 'snarkjs';
 import { parse } from 'ts-command-line-args';
 
-import { GenZkKycProofParams, ZkCertStandard } from '@galactica-net/snap-api';
+import { GenZkProofParams, ZkCertStandard } from '@galactica-net/snap-api';
 
 
 // Tell JSON how to serialize BigInts
@@ -24,7 +24,7 @@ import { GenZkKycProofParams, ZkCertStandard } from '@galactica-net/snap-api';
 async function testModified(
   circuitName: string,
   circuitDir: string,
-  params: GenZkKycProofParams<any>,
+  params: GenZkProofParams<any>,
 ) {
   const { proof, publicSignals } = await groth16.fullProveMemory(
     params.input,
@@ -58,7 +58,7 @@ async function createCircuitData(
   circuitName: string,
   circuitDir: string,
   input: any,
-): Promise<GenZkKycProofParams<any>> {
+): Promise<GenZkProofParams<any>> {
   // read the wasm file asa array.
   // It becomes a Uint8Array later, but is passed as ordinary number array through the RPC
   const wasm = Uint8Array.from(
@@ -79,7 +79,7 @@ async function createCircuitData(
     zkeySections.push(await readSection(fdZKey, sectionsZKey, i));
   }
 
-  const params: GenZkKycProofParams<any> = {
+  const params: GenZkProofParams<any> = {
     input,
     // dummy values
     prover: {
@@ -104,7 +104,7 @@ async function createCircuitData(
  */
 async function writeCircuitDataToJSON(
   filePath: string,
-  data: GenZkKycProofParams<any>,
+  data: GenZkProofParams<any>,
 ) {
   // format data for writing to file (othewise arrays look like objects)
   // using base64 encoding for Uint8Arrays to minimize file size while still being able to send it though the RPC in JSON format

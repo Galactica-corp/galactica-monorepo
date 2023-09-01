@@ -10,11 +10,7 @@ export {
   ImportZkCertError,
 } from './api/import-zk-cert';
 
-export {
-  genZkKycProof,
-  type GenZkKycProofParams,
-  type GenZkKycProofResponse,
-} from './api/gen-zk-kyc-proof';
+export * from './api/gen-zk-kyc-proof';
 
 export { clearStorage } from './api/clear-storage';
 export { getZkCertHash as getZkCertHashes } from './api/get-zk-cert-hashes';

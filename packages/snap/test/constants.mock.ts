@@ -1,4 +1,4 @@
-import { GenZkKycProofParams, ProverData, ZkKYCAgeProofInput } from '@galactica-net/snap-api';
+import { GenZkProofParams, ProverData, ZkKYCAgeProofInput } from '@galactica-net/snap-api';
 import { ZkCertStandard } from '@galactica-net/galactica-types';
 import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
 import { HolderData, RpcArgs } from '../src/types';
@@ -30,7 +30,7 @@ export const testHolder: HolderData = {
   eddsaKey: testEdDSAKey,
 };
 
-export const testZkpParams: GenZkKycProofParams<ZkKYCAgeProofInput> = {
+export const testZkpParams: GenZkProofParams<ZkKYCAgeProofInput> = {
   input: {
     // most values do not matter because they are checked on-chain only
     currentTime: 1676033833,

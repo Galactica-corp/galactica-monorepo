@@ -3,6 +3,7 @@ import {
   RpcMethods,
   RpcResponseMsg,
   GenericError,
+  ZkCertProof,
 } from '@galactica-net/snap-api';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -19,7 +20,6 @@ import { processRpcRequest } from '../src';
 import {
   ExportRequestParams,
   RpcArgs,
-  ZkCertProof,
   MerkleProofUpdateRequestParams,
 } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
