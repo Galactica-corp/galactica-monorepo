@@ -3488,7 +3488,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@galactica-net/galactica-types@npm:^0.1.0":
+"@galactica-net/galactica-types@npm:0.1.0, @galactica-net/galactica-types@npm:^0.1.0":
   version: 0.1.0
   resolution: "@galactica-net/galactica-types@npm:0.1.0"
   checksum: 41f8a2961f4b596a22847ead6b70f06461fc790a031986be93e1b5b4c1bf845118334b01064337215baf01523ccbdac2b31f7f5c2f5ee347d2aec8d57acb07b9
@@ -3512,7 +3512,7 @@ __metadata:
   dependencies:
     "@galactica-net/galactica-types": ^0.1.0
     "@galactica-net/snap-api": "workspace:^"
-    "@galactica-net/zkkyc": ^0.6.2
+    "@galactica-net/zkkyc": ^0.7.0-beta.0
     "@iden3/binfileutils": ^0.0.11
     "@lavamoat/allow-scripts": ^2.0.3
     "@metamask/auto-changelog": ^3.1.0
@@ -3559,10 +3559,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galactica-net/zkkyc@npm:^0.6.2":
-  version: 0.6.2
-  resolution: "@galactica-net/zkkyc@npm:0.6.2"
+"@galactica-net/zkkyc@npm:^0.7.0-beta.0":
+  version: 0.7.0-beta.0
+  resolution: "@galactica-net/zkkyc@npm:0.7.0-beta.0"
   dependencies:
+    "@galactica-net/galactica-types": 0.1.0
     "@openzeppelin/contracts": ^4.0.0
     "@openzeppelin/contracts-upgradeable": ^4.7.3
     "@typechain/ethers-v5": ^10.1.1
@@ -3576,7 +3577,7 @@ __metadata:
     ethers: ^5.7.2
     hardhat-circom: ^3.3.2
     keccak256: ^1.0.6
-  checksum: 1ce9dd0e701f26ebf7edad54295f5cc6c9e924a4cffffab0cd1fcbc8742db6b138e87a9eb7df374fc434bcb4401dfc719e64ad3f4fbae79aa0d12ee3fbef7437
+  checksum: 333c239a007a32cb348cc9f8967bfd2ce1cfc72007915b121b0e48c930b87186fb4feb20485d289760dac94c20fa7a6bb6c47e553161656293c6519a93e43bf7
   languageName: node
   linkType: hard
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 import { GenZkKycProofParams, ZkCertInputType } from '@galactica-net/snap-api';
+import { MerkleProof } from '@galactica-net/galactica-types';
 import {
-  MerkleProof,
   ZKCertificate,
   formatPrivKeyForBabyJub,
 } from '@galactica-net/zkkyc';
@@ -48,21 +48,21 @@ export const generateZkKycProof = async (
   const inputs: any = {
     ...processedParams.input,
 
-    ...zkCert.fields,
+    ...zkCert.content,
     randomSalt: zkCert.randomSalt,
 
     ...zkCert.getOwnershipProofInput(holder.eddsaKey),
 
     userAddress: authorizationProof.userAddress,
-    S2: authorizationProof.S,
-    R8x2: authorizationProof.R8x,
-    R8y2: authorizationProof.R8y,
+    S2: authorizationProof.s,
+    R8x2: authorizationProof.r8x,
+    R8y2: authorizationProof.r8y,
 
-    providerAx: zkCert.providerData.Ax,
-    providerAy: zkCert.providerData.Ay,
-    providerS: zkCert.providerData.S,
-    providerR8x: zkCert.providerData.R8x,
-    providerR8y: zkCert.providerData.R8y,
+    providerAx: zkCert.providerData.ax,
+    providerAy: zkCert.providerData.ay,
+    providerS: zkCert.providerData.s,
+    providerR8x: zkCert.providerData.r8x,
+    providerR8y: zkCert.providerData.r8y,
 
     root: merkleProof.root,
     pathElements: merkleProof.pathElements,

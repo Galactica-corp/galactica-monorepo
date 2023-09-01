@@ -284,13 +284,13 @@ describe('Test rpc handler function', function () {
       expect(res).to.have.key(zkCert.zkCertStandard);
       expect(res[zkCert.zkCertStandard].length).to.equal(1);
       expect(
-        res[zkCert.zkCertStandard][0].providerPubKey.Ax,
-        'testing providerPubKey.Ax',
-      ).to.equal(zkCert.providerData.Ax);
+        res[zkCert.zkCertStandard][0].providerPubKey.ax,
+        'testing providerPubKey.ax',
+      ).to.equal(zkCert.providerData.ax);
       expect(
-        res[zkCert.zkCertStandard][0].providerPubKey.Ay,
-        'testing providerPubKey.Ay',
-      ).to.equal(zkCert.providerData.Ay);
+        res[zkCert.zkCertStandard][0].providerPubKey.ay,
+        'testing providerPubKey.ay',
+      ).to.equal(zkCert.providerData.ay);
       expect(
         res[zkCert.zkCertStandard][0].expirationDate,
         'testing expiration date of 0',
@@ -460,13 +460,13 @@ describe('Test rpc handler function', function () {
       expect(res).to.have.key(zkCert.zkCertStandard);
       expect(res[zkCert.zkCertStandard].length).to.equal(2);
       expect(
-        res[zkCert.zkCertStandard][0].providerPubKey.Ax,
-        'testing providerPubKey.Ax',
-      ).to.equal(zkCert.providerData.Ax);
+        res[zkCert.zkCertStandard][0].providerPubKey.ax,
+        'testing providerPubKey.ax',
+      ).to.equal(zkCert.providerData.ax);
       expect(
-        res[zkCert.zkCertStandard][0].providerPubKey.Ay,
-        'testing providerPubKey.Ay',
-      ).to.equal(zkCert.providerData.Ay);
+        res[zkCert.zkCertStandard][0].providerPubKey.ay,
+        'testing providerPubKey.ay',
+      ).to.equal(zkCert.providerData.ay);
       expect(
         res[zkCert.zkCertStandard][0].expirationDate,
         'testing expiration date of 0',
