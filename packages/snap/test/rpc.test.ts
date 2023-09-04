@@ -5,7 +5,7 @@ import {
   GenericError,
   ZkCertProof,
   HolderCommitmentData,
-  ExportZkCertParams,
+  ZkCertSelectionParams,
   ZkCertStandard,
 } from '@galactica-net/snap-api';
 import chai, { expect } from 'chai';
@@ -545,7 +545,7 @@ describe('Test rpc handler function', function () {
       this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
-      const params: ExportZkCertParams = {
+      const params: ZkCertSelectionParams = {
         zkCertStandard: ZkCertStandard.ZkKYC,
       };
 
@@ -566,7 +566,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCert],
         });
 
-      const params: ExportZkCertParams = {
+      const params: ZkCertSelectionParams = {
         zkCertStandard: ZkCertStandard.ZkKYC,
       };
 

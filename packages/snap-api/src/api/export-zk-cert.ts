@@ -1,15 +1,7 @@
 import { invokeSnap } from '../utils/invoke-snap';
 import { GenericError } from './error';
 import { RpcMethods } from './rpcEnums';
-import { ZkCertStandard, ZkCertData } from './types';
-
-/**
- * Parameter for requests to export a ZK certificate from the snap.
- */
-export interface ExportZkCertParams {
-  // For the standard of the zkCertificate that should be used for the proof.
-  zkCertStandard: ZkCertStandard;
-};
+import { ZkCertSelectionParams, ZkCertData } from './types';
 
 export type ExportZkCertResponse = ZkCertData | GenericError;
 
@@ -20,7 +12,7 @@ export type ExportZkCertResponse = ZkCertData | GenericError;
  * @returns ZkCert data or error.
  */
 export const exportZkCert = async (
-  params: ExportZkCertParams,
+  params: ZkCertSelectionParams,
 ) => {
   const response: ExportZkCertResponse = await invokeSnap({
     method: RpcMethods.ExportZkCert,
