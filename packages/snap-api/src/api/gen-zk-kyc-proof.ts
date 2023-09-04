@@ -7,7 +7,7 @@ import { ZkCertInputType } from './zkpInputTypes';
 /**
  * Parameter for requests to generate a ZK proof with the Galactica Snap.
  */
-export type GenZkProofParams<ProofInputType> = {
+export interface GenZkProofParams<ProofInputType> {
   // An object, containing public ZKP input for the statements to be shown by the generated proof.
   input: ProofInputType;
 
@@ -28,7 +28,7 @@ export type GenZkProofParams<ProofInputType> = {
 
 type GenZKPErrorName = 'MissingInputParams';
 
-export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> {}
+export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> { }
 
 export type GenZKProofResponse = ZkCertProof | GenZKPError | GenericError;
 

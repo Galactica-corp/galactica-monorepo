@@ -31,18 +31,6 @@ export const exportZkCert = async () => {
   });
 };
 
-export const getHolderCommitment = async () => {
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.GetHolderCommitment,
-      },
-    },
-  });
-};
-
 export const deleteZkCert = async () => {
   const params: DeleteRequestParams = {
     zkCertStandard: 'gip69',

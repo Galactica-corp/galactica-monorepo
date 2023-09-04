@@ -6,7 +6,6 @@ import {
   getSnap,
   shouldDisplayReconnectButton,
   exportZkCert,
-  getHolderCommitment,
   queryVerificationSBTs,
   formatVerificationSBTs,
   deleteZkCert,
@@ -31,8 +30,10 @@ import {
   clearStorage,
   importZkCert,
   generateZKProof,
+  getHolderCommitment,
   ZkCertStandard,
   ZkCertProof,
+  HolderCommitmentData,
 } from '@galactica-net/snap-api';
 
 const Container = styled.div`
@@ -221,16 +222,18 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await getHolderCommitment();
       console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${res}` });
+      if (res.name && res.message) {
+        dispatch({ type: MetamaskActions.SetError, payload: res });
+        return;
+      }
+      const holderCommitmentData = res as HolderCommitmentData;
 
-      const jsonExport = {
-        holderCommitment: res
-      };
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
 
       // save to file as placeholder
       // TODO: integrate some kind of provider API to submit the prepared zkCert to for signing and issuance on chain
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(jsonExport, null, 2)
+        JSON.stringify(holderCommitmentData, null, 2)
       )}`;
       const link = document.createElement("a");
       link.href = jsonString;

@@ -4,6 +4,7 @@ import {
   RpcResponseMsg,
   GenericError,
   ZkCertProof,
+  HolderCommitmentData,
 } from '@galactica-net/snap-api';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -168,10 +169,10 @@ describe('Test rpc handler function', function () {
       const result = await processRpcRequest(
         buildRPCRequest(RpcMethods.GetHolderCommitment),
         snapProvider,
-      );
+      ) as HolderCommitmentData;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
-      expect(result).to.be.eq('0x2345');
+      expect(result.holderCommitment).to.be.eq('0x2345');
     });
   });
 

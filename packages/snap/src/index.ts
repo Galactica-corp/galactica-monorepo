@@ -8,6 +8,7 @@ import {
   GenericError,
   GenZkProofParams,
   GenZKPError,
+  HolderCommitmentData,
 } from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
@@ -313,7 +314,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
       }
 
-      return holder.holderCommitment;
+      const holderCommitmentData: HolderCommitmentData = {
+        holderCommitment: holder.holderCommitment,
+      };
+      return holderCommitmentData;
     }
 
     case RpcMethods.ListZkCerts: {
