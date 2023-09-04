@@ -14,23 +14,6 @@ export {
   isLocalSnap,
 } from '../../../galactica-dapp/src/utils/snap';
 
-export const exportZkCert = async () => {
-  const params: ExportRequestParams = {
-    zkCertStandard: 'gip69',
-  };
-
-  return await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.ExportZkCert,
-        params,
-      },
-    },
-  });
-};
-
 export const deleteZkCert = async () => {
   const params: DeleteRequestParams = {
     zkCertStandard: 'gip69',

@@ -5,7 +5,6 @@ import {
   connectSnap,
   getSnap,
   shouldDisplayReconnectButton,
-  exportZkCert,
   queryVerificationSBTs,
   formatVerificationSBTs,
   deleteZkCert,
@@ -29,6 +28,7 @@ import { getProver, prepareProofInput } from '../../../galactica-dapp/src/utils/
 import {
   clearStorage,
   importZkCert,
+  exportZkCert,
   generateZKProof,
   getHolderCommitment,
   ZkCertStandard,
@@ -198,9 +198,14 @@ const Index = () => {
   const handleExportClick = async () => {
     try {
       console.log('sending request to snap...');
-      const res = await exportZkCert();
+      const res = await exportZkCert({ requirements: { zkCertStandard: ZkCertStandard.ZkKYC } });
       console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${res}` });
+      if (res.name && res.message) {
+        dispatch({ type: MetamaskActions.SetError, payload: res });
+        return;
+      }
+
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Downloading zkCert...` });
 
       // save to file
       // TODO: add a saveAs dialog to let the user choose file name and location
