@@ -7,10 +7,8 @@ import { ZkCertStandard, ZkCertData } from './types';
  * Parameter for requests to export a ZK certificate from the snap.
  */
 export interface ExportZkCertParams {
-  requirements: {
-    // For the standard of the zkCertificate that should be used for the proof.
-    zkCertStandard: ZkCertStandard;
-  };
+  // For the standard of the zkCertificate that should be used for the proof.
+  zkCertStandard: ZkCertStandard;
 };
 
 export type ExportZkCertResponse = ZkCertData | GenericError;

@@ -22,27 +22,10 @@ export type ZkCertRequirements = {
 };
 
 /**
- * Parameters for zkCert deletion.
- * Because the website does not know IDs for zkCerts, it can provide an optional list of filters to simplify selecting the zkCert to be deleted.
- */
-export type DeleteRequestParams = {
-  zkCertStandard?: string;
-  expirationDate?: number;
-  providerAx?: string;
-};
-
-/**
  * Parameter for updating the Merkle proof of one or more zkCert.
  */
 export type MerkleProofUpdateRequestParams = {
   proofs: MerkleProof[];
-};
-
-/**
- * Parameter for zkCert export.
- */
-export type ExportRequestParams = {
-  zkCertStandard: string;
 };
 
 export type HolderData = {
@@ -58,14 +41,14 @@ export type StorageState = {
 
 export type PanelContent = (
   | {
-      value: string;
-      type: NodeType.Heading;
-    }
+    value: string;
+    type: NodeType.Heading;
+  }
   | {
-      value: string;
-      type: NodeType.Text;
-    }
+    value: string;
+    type: NodeType.Text;
+  }
   | {
-      type: NodeType.Divider;
-    }
+    type: NodeType.Divider;
+  }
 )[];

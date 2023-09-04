@@ -7,7 +7,6 @@ import {
   shouldDisplayReconnectButton,
   queryVerificationSBTs,
   formatVerificationSBTs,
-  deleteZkCert,
   getUserAddress,
 } from '../utils';
 import {
@@ -27,6 +26,7 @@ import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
 import { getProver, prepareProofInput } from '../../../galactica-dapp/src/utils/zkp';
 import {
   clearStorage,
+  deleteZkCert,
   importZkCert,
   exportZkCert,
   generateZKProof,
@@ -198,7 +198,7 @@ const Index = () => {
   const handleExportClick = async () => {
     try {
       console.log('sending request to snap...');
-      const res = await exportZkCert({ requirements: { zkCertStandard: ZkCertStandard.ZkKYC } });
+      const res = await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC });
       console.log('Response from snap', res);
       if (res.name && res.message) {
         dispatch({ type: MetamaskActions.SetError, payload: res });
@@ -537,7 +537,7 @@ const Index = () => {
               'Delete a zkCert from the Metamask snap storage.',
             button: (
               <GeneralButton
-                onClick={() => handleSnapCallClick(deleteZkCert)}
+                onClick={() => handleSnapCallClick(() => deleteZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }))}
                 disabled={false}
                 text="Export"
               />

@@ -12,7 +12,8 @@ export {
 
 export * from './api/gen-zk-kyc-proof';
 export * from './api/getHolderCommitment';
-export * from './api/exportZKCert';
+export * from './api/export-zk-cert';
+export * from './api/delete-zk-cert';
 
 export { clearStorage } from './api/clear-storage';
 export { getZkCertHash as getZkCertHashes } from './api/get-zk-cert-hashes';

@@ -9,6 +9,8 @@ import {
   GenZkProofParams,
   GenZKPError,
   HolderCommitmentData,
+  ExportZkCertParams,
+  ZkCertSelectionParams,
 } from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
@@ -16,12 +18,10 @@ import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { generateZkKycProof } from './proofGenerator';
 import { getState, saveState } from './stateManagement';
 import {
-  ExportRequestParams,
   HolderData,
   MerkleProofUpdateRequestParams,
   SnapRpcProcessor,
   PanelContent,
-  DeleteRequestParams,
 } from './types';
 import {
   getZkCertStorageHashes,
@@ -254,7 +254,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.ExportZkCert: {
-      const exportParams = request.params as ExportRequestParams;
+      const exportParams = request.params as unknown as ExportZkCertParams;
 
       confirm = await snap.request({
         method: 'snap_dialog',
@@ -424,7 +424,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.DeleteZkCert: {
-      const deleteParams = request.params as DeleteRequestParams;
+      const deleteParams = request.params as ZkCertSelectionParams;
 
       // get existing zkCerts that the fit to the delete filter
       const zkCertToDelete = await selectZkCert(
