@@ -45,6 +45,7 @@
     "eslint-plugin-jsdoc": "^39.2.9",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "hardhat": "^2.10.1",
     "prettier": "^2.2.1",
     "prettier-plugin-packagejson": "^2.2.18",
     "typescript": "^5.0.4"

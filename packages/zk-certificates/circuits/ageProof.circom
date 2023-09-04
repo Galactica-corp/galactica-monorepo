@@ -2,7 +2,7 @@
 
 pragma circom 2.1.4;
 
-include "../node_modules/circomlib/circuits/comparators.circom";
+include "../../../node_modules/circomlib/circuits/comparators.circom";
 
 /*
 Circuit checks that user corresponding to certain zkKYC record has reached age threshold

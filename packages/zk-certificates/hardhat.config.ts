@@ -1,9 +1,9 @@
-import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 import "@nomicfoundation/hardhat-chai-matchers";
 import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
+import { HardhatUserConfig } from 'hardhat/config';
 
 import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
@@ -26,7 +26,7 @@ const config: HardhatUserConfig = {
   networks: {
     galaTestnet: {
       url: "https://evm-rpc-http-devnet-41233.galactica.com/",  // requires gala dev wireguard connection
-      accounts: [ 
+      accounts: [
         process.env.GalaTestnetDeployerPrivateKey!, // deployer
         process.env.GalaTestnetInstitution1PrivateKey!, // test institution for fraud investigation
         process.env.GalaTestnetInstitution2PrivateKey!, // test institution for fraud investigation

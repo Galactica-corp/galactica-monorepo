@@ -5,9 +5,9 @@ Main difference to merkle trees on Ethereum is that they use the poseidon hash, 
 
 pragma circom 2.1.4;
 
-include "../node_modules/circomlib/circuits/bitify.circom";
-include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../node_modules/circomlib/circuits/switcher.circom";
+include "../../../node_modules/circomlib/circuits/bitify.circom";
+include "../../../node_modules/circomlib/circuits/poseidon.circom";
+include "../../../node_modules/circomlib/circuits/switcher.circom";
 
 // Verifies that merkle proof is correct for given merkle root and a leaf
 // pathIndices bits is an array of 0/1 selectors telling whether given pathElement is on the left or right side of merkle path
