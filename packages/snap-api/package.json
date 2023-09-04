@@ -28,5 +28,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
