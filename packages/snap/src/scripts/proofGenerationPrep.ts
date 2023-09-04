@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
+import { GenZkProofParams, ZkCertStandard } from '@galactica-net/snap-api';
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
 import * as fs from 'fs';
 import path from 'path';
 import { groth16, zKey } from 'snarkjs';
 import { parse } from 'ts-command-line-args';
-
-import { GenZkProofParams, ZkCertStandard } from '@galactica-net/snap-api';
-
 
 // Tell JSON how to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -88,7 +86,7 @@ async function createCircuitData(
       zkeySections,
     },
     requirements: {
-      zkCertStandard: ZkCertStandard.zkKYC,
+      zkCertStandard: ZkCertStandard.ZkKYC,
     },
     userAddress: '0x0',
   };
@@ -112,28 +110,32 @@ async function writeCircuitDataToJSON(
   data.prover.zkeyHeader.r = data.prover.zkeyHeader.r.toString();
 
   for (let i = 0; i < data.prover.zkeySections.length; i++) {
-    data.prover.zkeySections[i] = Buffer.from(data.prover.zkeySections[i]).toString('base64');
+    data.prover.zkeySections[i] = Buffer.from(
+      data.prover.zkeySections[i],
+    ).toString('base64');
   }
-  data.prover.zkeyHeader.vk_alpha_1 = Buffer.from(data.prover.zkeyHeader.vk_alpha_1).toString(
-    'base64',
-  );
-  data.prover.zkeyHeader.vk_beta_1 = Buffer.from(data.prover.zkeyHeader.vk_beta_1).toString(
-    'base64',
-  );
-  data.prover.zkeyHeader.vk_beta_2 = Buffer.from(data.prover.zkeyHeader.vk_beta_2).toString(
-    'base64',
-  );
-  data.prover.zkeyHeader.vk_gamma_2 = Buffer.from(data.prover.zkeyHeader.vk_gamma_2).toString(
-    'base64',
-  );
-  data.prover.zkeyHeader.vk_delta_1 = Buffer.from(data.prover.zkeyHeader.vk_delta_1).toString(
-    'base64',
-  );
-  data.prover.zkeyHeader.vk_delta_2 = Buffer.from(data.prover.zkeyHeader.vk_delta_2).toString(
-    'base64',
-  );
+  data.prover.zkeyHeader.vk_alpha_1 = Buffer.from(
+    data.prover.zkeyHeader.vk_alpha_1,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_beta_1 = Buffer.from(
+    data.prover.zkeyHeader.vk_beta_1,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_beta_2 = Buffer.from(
+    data.prover.zkeyHeader.vk_beta_2,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_gamma_2 = Buffer.from(
+    data.prover.zkeyHeader.vk_gamma_2,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_delta_1 = Buffer.from(
+    data.prover.zkeyHeader.vk_delta_1,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_delta_2 = Buffer.from(
+    data.prover.zkeyHeader.vk_delta_2,
+  ).toString('base64');
 
-  console.log(`curve name: ${JSON.stringify(data.prover.zkeyHeader.curve.name)}`);
+  console.log(
+    `curve name: ${JSON.stringify(data.prover.zkeyHeader.curve.name)}`,
+  );
   // removing curve data because it would increase the transmission size dramatically and it can be reconstructed from the curve name
   data.prover.zkeyHeader.curveName = data.prover.zkeyHeader.curve.name;
   delete data.prover.zkeyHeader.curve;
@@ -231,7 +233,9 @@ async function main() {
     throw new Error(`Test input file ${args.testInput} does not exist.`);
   }
   if (fs.lstatSync(args.testInput).isDirectory()) {
-    throw new Error(`Test input ${args.testInput} must be a file, not a directory.`);
+    throw new Error(
+      `Test input ${args.testInput} must be a file, not a directory.`,
+    );
   }
   if (!fs.existsSync(args.circuitsDir)) {
     throw new Error(`Circuit dir ${args.circuitsDir} does not exist.`);
@@ -240,7 +244,7 @@ async function main() {
     throw new Error(`Target dir for ${args.output} does not exist.`);
   }
 
-  console.warn(`Test ${args.testInput}`)
+  console.warn(`Test ${args.testInput}`);
   const input = JSON.parse(fs.readFileSync(args.testInput).toString());
 
   // extract needed circuit data

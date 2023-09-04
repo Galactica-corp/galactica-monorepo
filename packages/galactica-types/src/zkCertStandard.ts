@@ -4,48 +4,48 @@
  * Enum for zkCert standards
  */
 export enum ZkCertStandard {
-    zkKYC = 'gip69',
+  ZkKYC = 'gip69',
 }
 
 /**
  * Data specifically contained in zkKYC
  */
-export interface ZkKYCContent {
-    surname: string;
-    forename: string;
-    middleNames: [string];
+export type ZkKYCContent = {
+  surname: string;
+  forename: string;
+  middleNames: [string];
 
-    birthYear: string;
-    birthMonth: string;
-    birthDay: string;
+  birthYear: string;
+  birthMonth: string;
+  birthDay: string;
 
-    citizenship: string;
-    passportID: string;
+  citizenship: string;
+  passportID: string;
 
-    verificationLevel: string;
+  verificationLevel: string;
 
-    expirationDate: string;
+  expirationDate: string;
 
-    streetAndNumber: string;
-    addressSupplement: string;
-    postcode: string;
-    town: string;
-    region: string;
-    country: string;
+  streetAndNumber: string;
+  addressSupplement: string;
+  postcode: string;
+  town: string;
+  region: string;
+  country: string;
 };
 
 /**
  * Ordered list of fields common to all zkCerts.
  */
 export const zkCertCommonFields = [
-    'contentHash',
-    'providerAx',
-    'providerAy',
-    'providerS',
-    'providerR8x',
-    'providerR8y',
-    'holderCommitment',
-    'randomSalt',
+  'contentHash',
+  'providerAx',
+  'providerAy',
+  'providerS',
+  'providerR8x',
+  'providerR8y',
+  'holderCommitment',
+  'randomSalt',
 ];
 
 /**
@@ -53,33 +53,33 @@ export const zkCertCommonFields = [
  * It does not include fields that are common to all zkCerts.
  */
 export const zkKYCContentFields = [
-    'surname',
-    'forename',
-    'middlename',
-    'yearOfBirth',
-    'monthOfBirth',
-    'dayOfBirth',
-    'verificationLevel',
-    'expirationDate',
-    'streetAndNumber',
-    'postcode',
-    'town',
-    'region',
-    'country',
-    'citizenship',
-    'passportID',
+  'surname',
+  'forename',
+  'middlename',
+  'yearOfBirth',
+  'monthOfBirth',
+  'dayOfBirth',
+  'verificationLevel',
+  'expirationDate',
+  'streetAndNumber',
+  'postcode',
+  'town',
+  'region',
+  'country',
+  'citizenship',
+  'passportID',
 ];
 
 /**
  * Ordered list of fields determining the DApp specific Human ID.
  */
 export const humanIDFieldOrder = [
-    'surname',
-    'forename',
-    'middlename',
-    'yearOfBirth',
-    'monthOfBirth',
-    'dayOfBirth',
-    'passportID',
-    'dAppAddress',
+  'surname',
+  'forename',
+  'middlename',
+  'yearOfBirth',
+  'monthOfBirth',
+  'dayOfBirth',
+  'passportID',
+  'dAppAddress',
 ];

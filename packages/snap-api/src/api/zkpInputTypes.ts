@@ -1,7 +1,7 @@
 /**
  * Public input needed to generate a zkKYC proof with age limit.
  */
-export interface ZkKYCAgeProofInput {
+export type ZkKYCAgeProofInput = {
   // time to check against the expiration date
   currentTime: number;
   // institution public key for eventual fraud investigations
@@ -19,7 +19,7 @@ export interface ZkKYCAgeProofInput {
 /**
  * Public input needed to generate a zkKYC proof.
  */
-export interface ZkKYCProofInput {
+export type ZkKYCProofInput = {
   // time to check against the expiration date
   currentTime: number;
   // institution public key for eventual fraud investigations
@@ -32,6 +32,6 @@ export interface ZkKYCProofInput {
  * Union of any ZkCertInputType.
  */
 export type ZkCertInputType =
-  ZkKYCProofInput
+  | ZkKYCProofInput
   | ZkKYCAgeProofInput
   | Record<string, any>;

@@ -4,11 +4,10 @@ import { RpcMethods } from './rpcEnums';
 import { ZkCertStandard, ProverData, ZkCertProof } from './types';
 import { ZkCertInputType } from './zkpInputTypes';
 
-
 /**
  * Parameter for requests to generate a ZK proof with the Galactica Snap.
  */
-export interface GenZkProofParams<ProofInputType> {
+export type GenZkProofParams<ProofInputType> = {
   // An object, containing public ZKP input for the statements to be shown by the generated proof.
   input: ProofInputType;
 
@@ -29,7 +28,7 @@ export interface GenZkProofParams<ProofInputType> {
 
 type GenZKPErrorName = 'MissingInputParams';
 
-export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> { }
+export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> {}
 
 export type GenZKProofResponse = ZkCertProof | GenZKPError | GenericError;
 
@@ -40,11 +39,13 @@ export type GenZKProofResponse = ZkCertProof | GenZKPError | GenericError;
  * @param params - The parameters required to generate a ZKP in the Snap.
  * @returns Request result with the ZK proof or error.
  */
-export const generateZKProof = async (params: GenZkProofParams<ZkCertInputType>) => {
+export const generateZKProof = async (
+  params: GenZkProofParams<ZkCertInputType>,
+) => {
   const response: GenZKProofResponse = await invokeSnap({
     method: RpcMethods.GenZkKycProof,
     params,
   });
 
-  return response as GenZKProofResponse;
+  return response;
 };

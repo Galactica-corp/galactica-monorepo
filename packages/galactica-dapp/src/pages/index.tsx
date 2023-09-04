@@ -192,7 +192,7 @@ const Index = () => {
         input: proofInput,
         prover: await getProver("/provers/exampleMockDApp.json"),
         requirements: {
-          zkCertStandard: ZkCertStandard.zkKYC,
+          zkCertStandard: ZkCertStandard.ZkKYC,
         },
         userAddress: getUserAddress(),
         disclosureDescription: "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
@@ -242,7 +242,7 @@ const Index = () => {
         input: proofInput,
         prover: await getProver("/provers/zkKYC.json"),
         requirements: {
-          zkCertStandard: ZkCertStandard.zkKYC,
+          zkCertStandard: ZkCertStandard.ZkKYC,
         },
         userAddress: getUserAddress(),
         disclosureDescription: "This ZKP discloses that you hold a valid zkKYC. It has no other disclosures.",

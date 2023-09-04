@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { GenZkProofParams, ZkCertInputType, ZkCertProof } from '@galactica-net/snap-api';
 import { MerkleProof } from '@galactica-net/galactica-types';
 import {
-  ZKCertificate,
-  formatPrivKeyForBabyJub,
-} from '@galactica-net/zkkyc';
+  GenZkProofParams,
+  ZkCertInputType,
+  ZkCertProof,
+} from '@galactica-net/snap-api';
+import { ZKCertificate, formatPrivKeyForBabyJub } from '@galactica-net/zkkyc';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { buildBn128, buildBls12381 } from 'ffjavascript';
@@ -106,7 +107,9 @@ async function preprocessInput(
   params: GenZkProofParams<ZkCertInputType>,
 ): Promise<GenZkProofParams<ZkCertInputType>> {
   // Somehow we need to convert them to Uint8Array to avoid an error inside snarkjs.
-  params.prover.wasm = Uint8Array.from(Buffer.from(params.prover.wasm, 'base64'));
+  params.prover.wasm = Uint8Array.from(
+    Buffer.from(params.prover.wasm, 'base64'),
+  );
 
   params.prover.zkeyHeader.q = BigInt(params.prover.zkeyHeader.q);
   params.prover.zkeyHeader.r = BigInt(params.prover.zkeyHeader.r);

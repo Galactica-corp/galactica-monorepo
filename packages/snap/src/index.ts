@@ -141,9 +141,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
           message: `Holder for commitment ${zkCert.holderCommitment} could not be found. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
           cause: request,
         });
-      } else {
-        holder = searchedHolder;
       }
+      holder = searchedHolder;
 
       const searchedZkCert = state.zkCerts.find(
         (cert) => cert.leafHash === zkCert.leafHash,
@@ -471,7 +470,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
  * @param args.origin - The origin of the request, e.g., the website that
  * invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
- * @returns The result of the request. 
+ * @returns The result of the request.
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_dialog` call failed.
  */

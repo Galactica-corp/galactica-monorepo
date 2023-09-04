@@ -5,6 +5,7 @@ This API package provides easy to use methods, types and errors for interacting 
 Basically this API is a TypeScript wrapper for the JSON RPC API of the snap as defined in the [docs](https://docs.galactica.com/galactica-developer-documentation/building-a-galactica-dapp/front-end/galactica-snap-json-rpc-api).
 
 ## Usage
+
 To use this package, you can add `"@galactica-net/snap-api"` with the latest version number on [NPM](https://www.npmjs.com/package/@galactica-net/snap-api) to the dependencies in `package.json`.
 
 Then you can import and use the types and methods to interact with the Galactica Snap. You can find examples [here](https://docs.galactica.com/galactica-developer-documentation/building-a-galactica-dapp/front-end/guided-example) in the documentation.
@@ -12,10 +13,13 @@ Then you can import and use the types and methods to interact with the Galactica
 ## How to build (for developers of this package)
 
 This package needs to be built before changes in it are available to other packages depending on it.
+
 ```
 yarn build
 ```
+
 Afterwards it can be published to NPM.
+
 ```
 npm publish
 ```

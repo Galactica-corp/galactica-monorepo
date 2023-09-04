@@ -5,7 +5,7 @@ import { ZkCertRegistered, ZkCertStandard } from './types';
 
 type ImportErrorName = 'HolderMissing';
 
-export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> { }
+export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> {}
 
 export type ImportZkCertParams = {
   // The zkCert to be imported
@@ -26,5 +26,8 @@ export const importZkCert = async (zkCert: ImportZkCertParams) => {
     method: RpcMethods.ImportZkCert,
     params: { zkCert, listZkCerts: true },
   });
-  return response as Record<ZkCertStandard, ZkCertRegistered[]> | ImportZkCertError | GenericError;
+  return response as
+    | Record<ZkCertStandard, ZkCertRegistered[]>
+    | ImportZkCertError
+    | GenericError;
 };

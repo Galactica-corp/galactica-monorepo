@@ -23,7 +23,9 @@ export async function calculateHolderCommitment(
  * @param zkCertStorage - The list of zkCerts stored.
  * @returns ZkCerts metadata listed for each zkCertStandard.
  */
-export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]): any {
+export function getZkCertStorageOverview(
+  zkCertStorage: ZkCertRegistered[],
+): any {
   const sharedZkCerts: any = {};
   for (const zkCert of zkCertStorage) {
     if (sharedZkCerts[zkCert.zkCertStandard] === undefined) {
@@ -36,7 +38,7 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]): any
         ay: zkCert.providerData.ay,
       },
     };
-    if (zkCert.zkCertStandard === ZkCertStandard.zkKYC) {
+    if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
       disclosureData.expirationDate = zkCert.content.expirationDate;
       disclosureData.verificationLevel = zkCert.content.verificationLevel;
     }
