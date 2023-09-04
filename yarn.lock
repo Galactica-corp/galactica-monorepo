@@ -3631,9 +3631,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galactica-net/zk-certificates@workspace:^, @galactica-net/zk-certificates@workspace:packages/zkCertificates":
+"@galactica-net/zk-certificates@workspace:^, @galactica-net/zk-certificates@workspace:packages/zk-certificates":
   version: 0.0.0-use.local
-  resolution: "@galactica-net/zk-certificates@workspace:packages/zkCertificates"
+  resolution: "@galactica-net/zk-certificates@workspace:packages/zk-certificates"
   dependencies:
     "@galactica-net/galactica-types": "workspace:^"
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.4
