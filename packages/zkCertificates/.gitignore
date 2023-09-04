@@ -22,6 +22,7 @@ typechain-types
 #Hardhat files
 cache
 artifacts
+flat
 
 # circom and snarkjs
 circuits/build

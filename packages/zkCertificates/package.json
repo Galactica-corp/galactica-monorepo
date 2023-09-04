@@ -1,7 +1,7 @@
 {
-  "name": "@galactica-net/zkkyc",
-  "version": "0.7.0-beta.0",
-  "description": "Galactica Network's zero-knowledge Know Your Customer (zkKYC) library containing ZK circuit and blockchain library",
+  "name": "@galactica-net/zk-certificates",
+  "version": "0.8.0",
+  "description": "Galactica Network's Zero-Knowledge Certificates library containing ZK circuits and blockchain library, including zkKYC",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -20,12 +20,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Galactica-corp/zkKYC.git"
+    "url": "git+https://github.com/Galactica-corp/galactica-snap.git"
   },
   "author": "Galactica Network",
   "license": "GPLv3",
   "bugs": {
-    "url": "https://github.com/Galactica-corp/zkKYC/issues"
+    "url": "https://github.com/Galactica-corp/galactica-snap/issues"
   },
   "homepage": "https://galactica.com",
   "publishConfig": {
@@ -49,7 +49,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
-    "@galactica-net/galactica-types": "0.1.0",
+    "@galactica-net/galactica-types": "workspace:^",
     "@openzeppelin/contracts": "^4.0.0",
     "@openzeppelin/contracts-upgradeable": "^4.7.3",
     "@typechain/ethers-v5": "^10.1.1",

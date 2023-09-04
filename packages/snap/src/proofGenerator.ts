@@ -5,7 +5,7 @@ import {
   ZkCertInputType,
   ZkCertProof,
 } from '@galactica-net/snap-api';
-import { ZKCertificate, formatPrivKeyForBabyJub } from '@galactica-net/zkkyc';
+import { ZKCertificate, formatPrivKeyForBabyJub } from '@galactica-net/zk-certificates';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { buildBn128, buildBls12381 } from 'ffjavascript';

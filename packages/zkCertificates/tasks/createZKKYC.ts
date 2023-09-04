@@ -71,7 +71,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   console.log("Creating zkKYC...");
   // TODO: create ZkKYC subclass requiring all the other fields
-  let zkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.zkKYC, eddsa, args.randomSalt, zkKYCFields);
+  let zkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.ZkKYC, eddsa, args.randomSalt, zkKYCFields);
 
   // let provider sign the zkKYC
   const providerEdDSAKey = await getEddsaKeyFromEthSigner(provider);

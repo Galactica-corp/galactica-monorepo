@@ -41,7 +41,7 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
   // TODO: create ZkKYC subclass requiring all the other fields
   let zkKYC = new ZKCertificate(
     holderCommitment,
-    ZkCertStandard.zkKYC,
+    ZkCertStandard.ZkKYC,
     eddsa,
     1773
   );

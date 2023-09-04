@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 import { ZkCertRegistered } from '@galactica-net/snap-api';
-import { createHolderCommitment, ZkCertStandard } from '@galactica-net/zkkyc';
+import { createHolderCommitment, ZkCertStandard } from '@galactica-net/zk-certificates';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
 
