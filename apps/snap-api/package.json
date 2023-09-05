@@ -1,0 +1,28 @@
+{
+  "name": "@galactica-net/snap-api",
+  "version": "0.1.0",
+  "description": "API methods, types and errors for working with the Galactica Snap",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "files": [
+    "dist/cjs/**",
+    "dist/esm/**",
+    "dist/types/**"
+  ],
+  "scripts": {
+    "build": "tsup --dts",
+    "dev": "tsup --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@galactica-net/galactica-types": "^0.1.0",
+    "@types/node": "^20.4.6",
+    "typescript": "^5.1.6"
+  },
+  "devDependencies": {
+    "tsup": "^7.2.0"
+  }
+}

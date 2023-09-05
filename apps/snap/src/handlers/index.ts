@@ -1,0 +1,10 @@
+export { clearStorage } from './clearStorage';
+export { genZkKycProof } from './genZkKycProof';
+export { importZkCert } from './importZkCert';
+export { exportZkCert } from './exportZkCert';
+export { getHolderCommitment } from './getHolderCommitment';
+export { listZkCerts } from './listZkCerts';
+export { updateMerkleProof } from './updateMerkleProof';
+export { getZkCertStorageHashes } from './getZkCertStorageHashes';
+export { deleteZkCert } from './deleteZkCert';
+export { getZkCertHashes } from './getZkCertHashes';

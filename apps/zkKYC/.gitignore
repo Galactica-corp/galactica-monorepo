@@ -1,0 +1,35 @@
+node_modules
+.env
+coverage
+coverage.json
+typechain
+typechain-types
+
+#Hardhat files
+cache
+artifacts
+
+#yarn related
+.yarn
+
+node_modules
+.env
+coverage
+coverage.json
+typechain
+typechain-types
+
+#Hardhat files
+cache
+artifacts
+
+# circom and snarkjs
+circuits/build
+contracts/*Verifier.sol
+circuits/pot*.ptau
+
+# ignore build files that do not need to be pushed as library
+dist
+
+# ignore created zkKYC files
+issuedZkKYCs/*.json

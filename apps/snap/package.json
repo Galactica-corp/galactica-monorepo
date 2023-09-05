@@ -1,0 +1,90 @@
+{
+  "name": "@galactica-net/snap",
+  "version": "0.4.4",
+  "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Galactica-corp/galactica-snap.git"
+  },
+  "license": "(BUSL-1.1 OR MIT-0 OR Apache-2.0)",
+  "main": "src/index.ts",
+  "files": [
+    "dist/",
+    "images/",
+    "snap.manifest.json"
+  ],
+  "scripts": {
+    "build": "mm-snap build",
+    "build:clean": "yarn clean && yarn build",
+    "build:website": "node ./scripts/build-website.js",
+    "clean": "rimraf dist",
+    "dev": "mm-snap watch",
+    "eval:snap": "mm-snap eval -b dist/bundle.js --verboseErrors",
+    "lint": "yarn lint:eslint && yarn lint:misc --check",
+    "lint:eslint": "eslint . --cache --ext js,ts",
+    "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
+    "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' --ignore-path .gitignore",
+    "proofPrep": "ts-node src/scripts/proofGenerationPrep.ts \"$@\"",
+    "serve": "mm-snap serve",
+    "test": "yarn run test:unit",
+    "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\""
+  },
+  "dependencies": {
+    "@galactica-net/core": "workspace:^",
+    "@galactica-net/zkkyc": "workspace:^",
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
+  },
+  "devDependencies": {
+    "@iden3/binfileutils": "^0.0.11",
+    "@lavamoat/allow-scripts": "^2.0.3",
+    "@metamask/auto-changelog": "^3.1.0",
+    "@metamask/eslint-config": "^11.1.0",
+    "@metamask/eslint-config-jest": "^11.1.0",
+    "@metamask/eslint-config-nodejs": "^11.1.0",
+    "@metamask/eslint-config-typescript": "^11.1.0",
+    "@metamask/providers": "^10.2.1",
+    "@metamask/rpc-methods": "^0.32.2",
+    "@metamask/snaps-cli": "^0.32.2",
+    "@metamask/snaps-types": "^0.32.2",
+    "@metamask/snaps-ui": "^0.32.2",
+    "@metamask/utils": "^5.0.1",
+    "@total-typescript/ts-reset": "^0.5.1",
+    "@types/chai": "^4.3.4",
+    "@types/chai-as-promised": "^7.1.5",
+    "@types/mocha": "^10.0.1",
+    "@types/sinon": "^10.0.13",
+    "@types/sinon-chai": "^3.2.9",
+    "@typescript-eslint/eslint-plugin": "^5.58.0",
+    "@typescript-eslint/parser": "^5.58.0",
+    "buffer": "^6.0.3",
+    "chai": "^4.3.7",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^8.38.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jest": "^26.8.2",
+    "eslint-plugin-jsdoc": "^39.2.9",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "ffjavascript": "^0.2.56",
+    "js-sha3": "^0.8.0",
+    "mocha": "^10.2.0",
+    "prettier": "^2.2.1",
+    "prettier-plugin-packagejson": "^2.2.11",
+    "rimraf": "^5.0.0",
+    "sinon": "^15.0.1",
+    "sinon-chai": "^3.7.0",
+    "ts-command-line-args": "^2.4.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "packageManager": "yarn@3.2.1",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

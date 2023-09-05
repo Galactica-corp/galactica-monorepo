@@ -1,0 +1,28 @@
+{
+  "name": "@galactica-net/core",
+  "version": "0.1.0",
+  "description": "TypeScript types for Galactica Network development and interfaces",
+  "keywords": [],
+  "license": "GPL-3.0-or-later",
+  "author": "",
+  "main": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "files": [
+    "dist/cjs/**",
+    "dist/esm/**",
+    "dist/types/**"
+  ],
+  "scripts": {
+    "build": "tsup --dts",
+    "dev": "tsup --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@types/node": "^20.4.6",
+    "typescript": "^5.1.6",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {
+    "tsup": "^7.2.0"
+  }
+}
