@@ -2,11 +2,11 @@ import {
   RpcResponseErr,
   RpcMethods,
   RpcResponseMsg,
-  GenericError,
   ZkCertProof,
   HolderCommitmentData,
   ZkCertSelectionParams,
   ZkCertStandard,
+  MerkleProofUpdateRequestParams,
 } from '@galactica-net/snap-api';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -22,7 +22,6 @@ import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMock
 import { processRpcRequest } from '../src';
 import {
   RpcArgs,
-  MerkleProofUpdateRequestParams,
 } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
 import {

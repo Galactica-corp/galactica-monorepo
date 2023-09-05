@@ -1,5 +1,5 @@
 import { invokeSnap } from '../utils/invoke-snap';
-import { GalacticaErrorBase, GenericError } from './error';
+import { GalacticaErrorBase } from './error';
 import { RpcMethods } from './rpcEnums';
 import { ZkCertStandard, ProverData, ZkCertProof } from './types';
 import { ZkCertInputType } from './zkpInputTypes';

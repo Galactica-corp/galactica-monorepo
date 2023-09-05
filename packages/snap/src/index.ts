@@ -9,6 +9,7 @@ import {
   GenZkProofParams,
   GenZKPError,
   HolderCommitmentData,
+  MerkleProofUpdateRequestParams,
   ZkCertSelectionParams,
 } from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
@@ -18,7 +19,6 @@ import { generateZkKycProof } from './proofGenerator';
 import { getState, saveState } from './stateManagement';
 import {
   HolderData,
-  MerkleProofUpdateRequestParams,
   SnapRpcProcessor,
   PanelContent,
 } from './types';

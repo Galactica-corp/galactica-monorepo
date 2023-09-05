@@ -7,6 +7,7 @@ export * from './api/get-zk-cert-hashes';
 export * from './api/get-zk-storage-hashes';
 export * from './api/import-zk-cert';
 export * from './api/list-zk-certs';
+export * from './api/update-merkle-proof';
 
 
 export * from './api/types';
