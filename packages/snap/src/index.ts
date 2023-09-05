@@ -54,17 +54,15 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const genParams = request.params as unknown as GenZkProofParams<any>;
       // check some input validity
       if (genParams.userAddress === undefined) {
-        return new GenZKPError({
+        throw new GenZKPError({
           name: 'MissingInputParams',
           message: `userAddress missing in request parameters.`,
-          cause: request,
         });
       }
       if (genParams.requirements.zkCertStandard === undefined) {
-        return new GenZKPError({
+        throw new GenZKPError({
           name: 'MissingInputParams',
           message: `ZkCert standard missing in request parameters.`,
-          cause: request,
         });
       }
 
@@ -119,10 +117,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
       });
 
       if (!confirm) {
-        return new GenericError({
+        throw new GenericError({
           name: 'RejectedConfirm',
           message: RpcResponseErr.RejectedConfirm,
-          cause: request,
         });
       }
 
@@ -136,10 +133,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
       );
       if (searchedHolder === undefined) {
-        return new GenericError({
+        throw new GenericError({
           name: 'MissingHolder',
           message: `Holder for commitment ${zkCert.holderCommitment} could not be found. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
-          cause: request,
         });
       }
       holder = searchedHolder;
@@ -177,10 +173,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        return new GenericError({
+        throw new GenericError({
           name: 'RejectedConfirm',
           message: RpcResponseErr.RejectedConfirm,
-          cause: request,
         });
       }
 
@@ -197,10 +192,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           candidate.holderCommitment === importParams.zkCert.holderCommitment,
       );
       if (searchedHolder === undefined) {
-        return new ImportZkCertError({
+        throw new ImportZkCertError({
           name: 'HolderMissing',
           message: `Could not find Holder for commitment ${importParams.zkCert.holderCommitment}. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
-          cause: request,
         });
       }
 
@@ -237,10 +231,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        return new GenericError({
+        throw new GenericError({
           name: 'RejectedConfirm',
           message: RpcResponseErr.RejectedConfirm,
-          cause: request,
         });
       }
       state.zkCerts.push(importParams.zkCert);
@@ -268,10 +261,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        return new GenericError({
+        throw new GenericError({
           name: 'RejectedConfirm',
           message: RpcResponseErr.RejectedConfirm,
-          cause: request,
         });
       }
 
@@ -309,10 +301,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        return new GenericError({
+        throw new GenericError({
           name: 'RejectedConfirm',
           message: RpcResponseErr.RejectedConfirm,
-          cause: request,
         });
       }
 
@@ -338,10 +329,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        return new GenericError({
+        throw new GenericError({
           name: 'RejectedConfirm',
           message: RpcResponseErr.RejectedConfirm,
-          cause: request,
         });
       }
 
@@ -370,10 +360,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        return new GenericError({
+        throw new GenericError({
           name: 'RejectedConfirm',
           message: RpcResponseErr.RejectedConfirm,
-          cause: request,
         });
       }
 
@@ -398,10 +387,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        return new GenericError({
+        throw new GenericError({
           name: 'RejectedConfirm',
           message: RpcResponseErr.RejectedConfirm,
-          cause: request,
         });
       }
 
@@ -449,10 +437,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        return new GenericError({
+        throw new GenericError({
           name: 'RejectedConfirm',
           message: RpcResponseErr.RejectedConfirm,
-          cause: request,
         });
       }
 

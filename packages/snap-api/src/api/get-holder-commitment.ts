@@ -7,16 +7,15 @@ export interface HolderCommitmentData {
   // TODO: add pubkey for encryption
 }
 
-export type GetHolderCommitmentResponse = HolderCommitmentData | GenericError;
-
 /**
  * GetHolderCommitment queries the commitment identifying the holder from the snap.
  * The returned data is required by guardians to create ZK certificates.
  *
  * @returns HolderCommitmentData or Error.
+ * @throws RPCError on failure.
  */
 export const getHolderCommitment = async () => {
-  const response: GetHolderCommitmentResponse = await invokeSnap({
+  const response: HolderCommitmentData = await invokeSnap({
     method: RpcMethods.GetHolderCommitment,
   });
 

@@ -1,11 +1,12 @@
 import { invokeSnap } from '../utils/invoke-snap';
-import { GalacticaErrorBase, GenericError } from './error';
+import { GalacticaErrorBase } from './error';
+import { ZkCertMetadataList } from './list-zk-certs';
 import { RpcMethods } from './rpcEnums';
-import { ZkCertRegistered, ZkCertStandard } from './types';
+import { ZkCertRegistered } from './types';
 
 type ImportErrorName = 'HolderMissing';
 
-export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> {}
+export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> { }
 
 export type ImportZkCertParams = {
   // The zkCert to be imported
@@ -18,6 +19,8 @@ export type ImportZkCertParams = {
  * Imports a zkCertificate from a file into the Snap.
  *
  * @param zkCert - The zkCert to be imported.
+ * @returns List of zkCert metadata or success message.
+ * @throws RPCError on failure.
  * @example
  * const response = await importZkCert({ zkCert: JSON.parse(fileContent) })
  */
@@ -26,8 +29,5 @@ export const importZkCert = async (zkCert: ImportZkCertParams) => {
     method: RpcMethods.ImportZkCert,
     params: { zkCert, listZkCerts: true },
   });
-  return response as
-    | Record<ZkCertStandard, ZkCertRegistered[]>
-    | ImportZkCertError
-    | GenericError;
+  return response as ZkCertMetadataList
 };

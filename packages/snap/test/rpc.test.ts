@@ -74,19 +74,6 @@ async function verifyProof(result: ZkCertProof) {
   expect(verification).to.be.true;
 }
 
-/**
- * Check that the RPC result is a correct confirmation error.
- *
- * @param rpcResult - The result to be checked.
- * @returns True if the result is a valid confirmation error.
- */
-function checkConfirmationError(rpcResult: any): boolean {
-  const error = rpcResult as GenericError;
-  expect(error.name).to.be.equal('RejectedConfirm');
-  expect(error.message).to.be.equal(RpcResponseErr.RejectedConfirm);
-  return true;
-}
-
 describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
 
@@ -108,11 +95,11 @@ describe('Test rpc handler function', function () {
       this.timeout(4000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
-      const result = await processRpcRequest(
+      const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.ClearStorage),
         snapProvider,
       );
-      expect(checkConfirmationError(result)).to.be.true;
+      await expect(callPromise).to.be.rejectedWith(RpcResponseErr.RejectedConfirm);
     });
 
     it('should clear storage', async function () {
@@ -161,7 +148,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GetHolderCommitment),
         snapProvider,
       );
-      expect(checkConfirmationError(await callPromise)).to.be.true;
+      await expect(callPromise).to.be.rejectedWith(RpcResponseErr.RejectedConfirm);
     });
 
     it('should return holder commitment', async function () {
@@ -222,7 +209,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
         snapProvider,
       );
-      expect(checkConfirmationError(await callPromise)).to.be.true;
+      await expect(callPromise).to.be.rejectedWith(RpcResponseErr.RejectedConfirm);
     });
 
     it('should import zkCert successfully', async function () {
@@ -314,7 +301,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
         snapProvider,
       );
-      expect(checkConfirmationError(await callPromise)).to.be.true;
+      await expect(callPromise).to.be.rejectedWith(RpcResponseErr.RejectedConfirm);
     });
 
     it('should generate ZKP successfully', async function (this: Mocha.Context) {
@@ -439,7 +426,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.ListZkCerts, testZkpParams),
         snapProvider,
       );
-      expect(checkConfirmationError(await callPromise)).to.be.true;
+      await expect(callPromise).to.be.rejectedWith(RpcResponseErr.RejectedConfirm);
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
     });
 
@@ -553,7 +540,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.ClearStorage, params),
         snapProvider,
       );
-      expect(checkConfirmationError(await callPromise)).to.be.true;
+      await expect(callPromise).to.be.rejectedWith(RpcResponseErr.RejectedConfirm);
     });
 
     it('should provide zkCert on approval', async function (this: Mocha.Context) {
@@ -587,7 +574,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GetZkCertHash),
         snapProvider,
       );
-      expect(checkConfirmationError(await callPromise)).to.be.true;
+      await expect(callPromise).to.be.rejectedWith(RpcResponseErr.RejectedConfirm);
     });
 
     it('should provide zkCert hash on approval', async function () {
@@ -621,7 +608,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.UpdateMerkleProof, updateParams),
         snapProvider,
       );
-      expect(checkConfirmationError(await updatePromise)).to.be.true;
+      await expect(updatePromise).to.be.rejectedWith(RpcResponseErr.RejectedConfirm);
     });
 
     it('should complain about updating non existing zkCert', async function () {

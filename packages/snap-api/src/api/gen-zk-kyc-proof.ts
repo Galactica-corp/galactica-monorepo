@@ -30,19 +30,18 @@ type GenZKPErrorName = 'MissingInputParams';
 
 export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> { }
 
-export type GenZKProofResponse = ZkCertProof | GenZKPError | GenericError;
-
 /**
  * GenerateZKProof prepares and executes the call to generate a ZKP in the Galactica snap.
  * You can use it to generate various kinds of proofs, depending on the input you pass.
  *
  * @param params - The parameters required to generate a ZKP in the Snap.
  * @returns Request result with the ZK proof or error.
+ * @throws RPCError on failure.
  */
 export const generateZKProof = async (
   params: GenZkProofParams<ZkCertInputType>,
 ) => {
-  const response: GenZKProofResponse = await invokeSnap({
+  const response: ZkCertProof = await invokeSnap({
     method: RpcMethods.GenZkKycProof,
     params,
   });

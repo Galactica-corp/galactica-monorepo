@@ -184,11 +184,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await method();
       console.log('Response from snap', res);
-      if (res.name && res.message) {
-        dispatch({ type: MetamaskActions.SetError, payload: res });
-      } else {
-        dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
-      }
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -200,11 +196,6 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC });
       console.log('Response from snap', res);
-      if (res.name && res.message) {
-        dispatch({ type: MetamaskActions.SetError, payload: res });
-        return;
-      }
-
       dispatch({ type: MetamaskActions.SetInfo, payload: `Downloading zkCert...` });
 
       // save to file
@@ -227,10 +218,6 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await getHolderCommitment();
       console.log('Response from snap', res);
-      if (res.name && res.message) {
-        dispatch({ type: MetamaskActions.SetError, payload: res });
-        return;
-      }
       const holderCommitmentData = res as HolderCommitmentData;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
@@ -257,12 +244,7 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await importZkCert(parsedFile);
       console.log('Response from snap', res);
-      if (res.name && res.message) {
-        dispatch({ type: MetamaskActions.SetError, payload: res });
-      } else {
-        dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
-      }
-
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -293,10 +275,6 @@ const Index = () => {
         disclosureDescription: "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
       });
       console.log('Response from snap', res);
-      if (res.name && res.message) {
-        dispatch({ type: MetamaskActions.SetError, payload: res });
-        return;
-      }
       const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });

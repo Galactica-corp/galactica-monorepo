@@ -198,10 +198,6 @@ const Index = () => {
         disclosureDescription: "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
       });
       console.log('Response from snap', res);
-      if (res.name && res.message) {
-        dispatch({ type: MetamaskActions.SetError, payload: res });
-        return;
-      }
       const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
@@ -249,10 +245,6 @@ const Index = () => {
       });
 
       console.log('Response from snap', res);
-      if (res.name && res.message) {
-        dispatch({ type: MetamaskActions.SetError, payload: res });
-        return;
-      }
       const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });

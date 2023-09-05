@@ -4,7 +4,7 @@ import { RpcMethods } from './rpcEnums';
 /**
  * Request for removing data stored in the Snap (holders and zkCertificates).
  *
- *
+ * @throws RPCError on failure.
  * @example
  * const response = await clearStorage()
  */

@@ -8,16 +8,13 @@ export class GalacticaErrorBase<T extends string> extends Error {
   constructor({
     name,
     message,
-    cause,
   }: {
     name: T;
     message: string;
-    cause: any;
   }) {
     super();
     this.name = name;
     this.message = message;
-    this.cause = cause;
   }
 }
 
@@ -29,4 +26,4 @@ type GenericErrorName =
   | 'RejectedSignature'
   | 'RejectedSelect';
 
-export class GenericError extends GalacticaErrorBase<GenericErrorName> {}
+export class GenericError extends GalacticaErrorBase<GenericErrorName> { }
