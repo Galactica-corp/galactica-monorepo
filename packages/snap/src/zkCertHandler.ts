@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { ZkCertRegistered } from '@galactica-net/snap-api';
+import { ZkCertRegistered, ZkCertStorageHashes } from '@galactica-net/snap-api';
 import { createHolderCommitment, ZkCertStandard } from '@galactica-net/zk-certificates';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
@@ -58,7 +58,7 @@ export function getZkCertStorageHashes(
   zkCertStorage: ZkCertRegistered[],
   origin: string,
 ): any {
-  const storageHashes: any = {};
+  let storageHashes: ZkCertStorageHashes = {};
   for (const zkCert of zkCertStorage) {
     if (storageHashes[zkCert.zkCertStandard] === undefined) {
       storageHashes[zkCert.zkCertStandard] = keccak256(origin);
