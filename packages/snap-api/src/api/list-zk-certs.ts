@@ -1,10 +1,9 @@
 import { invokeSnap } from '../utils/invoke-snap';
+import { GenericError } from './error';
 import { RpcMethods } from './rpcEnums';
 import { ZkCertStandard } from './types';
 
-export type ListZkCertsError = unknown;
-
-export type ListZkCertsItem = {
+export interface ZkCertListItem {
   providerPubKey: {
     ax: string;
     ay: string;
@@ -13,7 +12,9 @@ export type ListZkCertsItem = {
   verificationLevel: string;
 };
 
-export type ListZkCertsResponse = Record<ZkCertStandard, ListZkCertsItem[]>;
+export type ZkCertMetadataList = Record<ZkCertStandard, ZkCertListItem[]>;
+
+export type ListZkCertsResponse = ZkCertMetadataList | GenericError;
 
 /**
  * Requests overview of zkCertificates held in the Snap for management.
