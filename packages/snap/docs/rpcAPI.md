@@ -1,5 +1,9 @@
 # Galactica Snap JSON-RPC API
 
+This page documents the JSON-RPC API of the Galactica Snap. It follows the structure for snap methods provided by Metamask ([https://docs.metamask.io/snaps/reference/rpc-api/#wallet_invokesnap](see here)).
+
+To simplify the integration in front-end projects, we provide the NPM package [https://www.npmjs.com/package/@galactica-net/snap-api](@galactica-net/snap-api). It includes TypeScript methods, parameters and return types for the interaction.
+
 ## Connection Methods
 
 ### `wallet_requestSnaps`
@@ -68,22 +72,16 @@ None
 
 #### Returns
 
-`string` - The holder commitment in decimal representation.
+- `object`
+  - `holderCommitment` - The holder commitment as decimal `string`.
 
 Throws error if the user rejects the confirmation.
 
 #### Example
 
 ```javascript
-const holderCommitment = await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: RpcMethods.GetHolderCommitment,
-    },
-  },
-});
+import { getHolderCommitment } from "@galactica-net/snap-api";
+const holderCommitmentData = getHolderCommitment();
 ```
 
 ### `genZkKycProof`
@@ -96,13 +94,14 @@ Shows the user what is going to be proven and asks for confirmation.
 
 #### Parameters
 
-- `Object`
+- `object`
   - `input` - An `object`, containing public ZKP input for the statements to be shown by the generated proof.
   - `requirements` - `object`
     - `zkCertStandard`: `string` for the standard of the zkCertificate that should be used for the proof.
-  - `wasm` - `string` base64 encoded wasm binary of the prover. The wasm can be generated using circom and encoded with the script in `src/scripts/proofGenerationPrep.ts`.
-  - `zkeyHeader` - `object` of zkey headers used by snarkjs. The binary fields are base64 encoded.
-  - `zkeySections` - `array` of base64 encoded zkey sections used by snarkjs.
+  - `prover` - `object` containing
+    - `wasm` - `string` base64 encoded wasm binary of the prover. The wasm can be generated using circom and encoded with the script in `src/scripts/proofGenerationPrep.ts`.
+    - `zkeyHeader` - `object` of zkey headers used by snarkjs. The binary fields are base64 encoded.
+    - `zkeySections` - `array` of base64 encoded zkey sections used by snarkjs.
   - `userAddress` - `string` with the account address the user is going to use to submit the proof.
   - `disclosureDescription` - `string` (optional) Description of disclosures made by the proof.
 
@@ -111,7 +110,7 @@ Shows the user what is going to be proven and asks for confirmation.
 Generated proof on accepted confirmation and successful computation.
 Throws error otherwise.
 
-- `Object`
+- `object`
   - `proof` - `object`
     - `pi_a` - `object` holding proof verification data.
     - `pi_b` - `object` holding proof verification data.
@@ -123,6 +122,7 @@ Throws error otherwise.
 #### Example
 
 ```javascript
+import { getHolderCommitment } from "@galactica-net/snap-api";
 // Requesting proof for zkKYC and age >= 18
 
 // expected time for between pressing the generation button and the verification happening on-chain
@@ -132,31 +132,24 @@ const currentTimestamp =
   (await getCurrentBlockTime()) + stimatedProofCreationDuration;
 const dateNow = new Date(currentTimestamp * 1000);
 
-const publicInput = {
+const proofInput = {
   currentTime: currentTimestamp,
+  dAppAddress: '0xf1947AeD2d0a5Ff90D54b63C85904d258D3B5E63',
+  investigationInstitutionPubKey: [], // fill with pubkeys if fraud investigation is needed
   currentYear: dateNow.getUTCFullYear().toString(),
   currentMonth: (dateNow.getUTCMonth() + 1).toString(),
   currentDay: dateNow.getUTCDate().toString(),
   ageThreshold: '18',
 };
 
-return await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: RpcMethods.GenZkKycProof,
-      params: {
-        input: publicInput,
-        requirements: {
-          zkCertStandard: 'gip69',
-        },
-        wasm: proverData.wasm,
-        zkeyHeader: proverData.zkeyHeader,
-        zkeySections: proverData.zkeySections,
-      },
-    },
+return await generateZKProof({
+  input: proofInput,
+  prover: await getProver("/provers/exampleMockDApp.json"),
+  requirements: {
+    zkCertStandard: ZkCertStandard.ZkKYC,
   },
+  userAddress: getUserAddress(),
+  disclosureDescription: "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
 });
 
 // Should return something like:
@@ -222,15 +215,8 @@ Returns [an error](https://github.com/Galactica-corp/galactica-snap/blob/main/pa
 #### Example
 
 ```javascript
-await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: 'clearStorage',
-    },
-  },
-});
+import { getHolderCommitment } from "@galactica-net/snap-api";
+await clearStorage();
 ```
 
 ### `importZkCert`
@@ -243,7 +229,7 @@ Asks user for confirmation
 
 #### Parameters
 
-- `Object`
+- `object`
   - `zkCert` - JSON `object`, containing the zkCertificate data according to the standart it is using.
   - `listZkCerts` - `boolean`, (optional) flag if the Snap should return an overview after the import, same as in the `listZkCerts` method.
 
@@ -256,18 +242,8 @@ Returns [an error](https://github.com/Galactica-corp/galactica-snap/blob/main/pa
 #### Example
 
 ```javascript
-await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: 'importZkCert',
-      params: {
-        zkCert: JSON.parse(fileContent),
-      },
-    },
-  },
-});
+import { importZkCert } from "@galactica-net/snap-api";
+await importZkCert({ zkCert: JSON.parse(fileContent) });
 ```
 
 ### `exportZkCert`
@@ -280,26 +256,20 @@ Asks the user for confirmation and selection of the zkCertificate to be exported
 
 #### Parameters
 
-- `Object`
-  - `zkCertStandard` - `string` identifying the standard of the zkCertificate to be exported.
+- `object`
+  - `zkCertStandard` - `string` identifying the standard of the zkCertificate to be deleted (optional).
+  - `expirationDate` - `number` identifying the expiration date of the zkCertificate to be deleted (optional).
+  - `providerAx` - `string` identifying the provider pubkey (Ax part only) of the zkCertificate to be deleted (optional).
 
 #### Returns
 
-- JSON `Object` of the zkCertificate according to the standard.
+- JSON `object` of the zkCertificate according to the standard.
 
 #### Example
 
 ```javascript
-await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: 'exportZkCert',
-      params,
-    },
-  },
-});
+import { exportZkCert } from "@galactica-net/snap-api";
+return await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC });
 ```
 
 ### `deleteZkCert`
@@ -313,7 +283,7 @@ It asks the user for confirmation and selection of the zkCertificate to be delet
 
 #### Parameters
 
-- `Object`
+- `object`
   - `zkCertStandard` - `string` identifying the standard of the zkCertificate to be deleted (optional).
   - `expirationDate` - `number` identifying the expiration date of the zkCertificate to be deleted (optional).
   - `providerAx` - `string` identifying the provider pubkey (Ax part only) of the zkCertificate to be deleted (optional).
@@ -326,19 +296,8 @@ Throws error otherwise.
 #### Example
 
 ```javascript
-const params: DeleteRequestParams = {
-    zkCertStandard: 'gip69',
-  };
-await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: 'deleteZkCert',
-      ,
-    },
-  },
-});
+import { deleteZkCert } from "@galactica-net/snap-api";
+return await deleteZkCert({ zkCertStandard: ZkCertStandard.ZkKYC });
 ```
 
 ### `listZkCerts`
@@ -357,22 +316,18 @@ None
 
 #### Returns
 
-- `Object`
-  - `[zkCertStandard: string]`: JSON `object` holding zkCertificate metadata. - `provider` - JSON `object` including publickey of provider. - `expirationDate` - `number` Unix timestamp of expiration date.
-    Throws an error if the user rejected the confirmation.
+- `object`
+  - `[zkCertStandard: string]`: JSON `object` holding zkCertificate metadata.
+    - `provider` - JSON `object` including publickey of provider.
+    - `expirationDate` - `number` Unix timestamp of expiration date.
+
+Throws an error if the user rejected the confirmation.
 
 #### Example
 
 ```javascript
-return await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: 'listZkCerts',
-    },
-  },
-});
+import { listZkCerts } from "@galactica-net/snap-api";
+return await listZkCerts();
 ```
 
 ### `getZkCertStorageHashes`
@@ -387,21 +342,14 @@ None
 
 #### Returns
 
-- `Object`
+- `object`
   - `[zkCertStandard: string]`: `string` for the storage hash of all zkCerts of this type held by the Snap.
 
 #### Example
 
 ```javascript
-let currentStorageHash = await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: 'getZkCertStorageHashes',
-    },
-  },
-});
+import { getZkStorageHashes } from "@galactica-net/snap-api";
+return await getZkStorageHashes();
 ```
 
 ### `getZkCertHashes`
@@ -418,21 +366,14 @@ None
 
 #### Returns
 
-- `Object`
+- `object`
   - `[string]` list of zkCert hashes of all zkCerts held by the Snap.
 
 #### Example
 
 ```javascript
-let currentHashes = await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    request: {
-      method: 'getZkCertHashes',
-    },
-  },
-});
+import { getZkCertHashes } from "@galactica-net/snap-api";
+return await getZkCertHashes();
 ```
 
 ### `updateMerkleProof`
@@ -445,67 +386,62 @@ You can create the Merkle proof with the scripts in the zkKYC repository.
 
 #### Parameters
 
-- `Object`
+- `object`
   - `proofs: [MerkleProof]` list of MerkleProofs to update.
 
 Each Merkle proof has the following [form defined in the zkKYC repository](https://github.com/Galactica-corp/zkKYC/blob/f3b92a5e18c2ef8e09143156ec8b54b677cc828c/lib/merkleTree.ts#L161).
 
 #### Returns
 
-- `Object`
-  - `[string]` list of zkCert hashes of all zkCerts held by the Snap.
+- `string` - Success message.
+
+Throws error on failure.
 
 #### Example
 
 ```javascript
-let currentHashes = await window.ethereum.request({
-  method: 'wallet_invokeSnap',
-  params: {
-    snapId: defaultSnapOrigin,
-    params: {
-      snapId: defaultSnapOrigin,
-      proofs: []
-        {
-          "leaf": "19630604862894493237865119507631642105595355222686969752403793856928034143008",
-          "root": "17763126929763058632596384403463503447502390993612973244727217445899815879260",
-          "pathIndices": 0,
-          "pathElements": [
-            "913338630289763938167212770624253461411251029088142596559861590717003723041",
-            "8950197483297962010688249615565850791722784770941154749153756652440041255541",
-            "9917272083296999008482951374949279205405409343140430270441153151503507424016",
-            "17619695615639375563172755451063681091123583187367666354590446695851847455206",
-            "13318301576191812234266801152872599855532005448246358193934877587650370582600",
-            "14788131755920683191475597296843560484793002846324723605628318076973413387512",
-            "15889843854411046052299062847446330225099449301489575711833732034292400193334",
-            "4591007468089219776529077618683677913362369124318235794006853887662826724179",
-            "974323504448759598753817959892943900419910101515018723175898332400800338902",
-            "10904304838309847003348248867595510063038089908778911273415397184640076197695",
-            "6882370933298714404012187108159138675240847601805332407879606734117764964844",
-            "5139203521709906739945343849817745409005203282448907255220261470507345543242",
-            "13660695785273441286119313134036776607743178109514008645018277634263858765331",
-            "10348593108579908024969691262542999418313940238885641489955258549772405516797",
-            "8081407491543416388951354446505389320018136283676956639992756527902136320118",
-            "9958479516685283258442625520693909575742244739421083147206991947039775937697",
-            "7970914938810054068245748769054430181949287449180056729094980613243958329268",
-            "9181633618293215208937072826349181607144232385752050143517655282584371194792",
-            "4290316886726748791387171617200449726541205208559598579274245616939964852707",
-            "6485208140905921389448627555662227594654261284121222408680793672083214472411",
-            "9758704411889015808755428886859795217744955029900206776077230470192243862856",
-            "2597152473563104183458372080692537737210460471555518794564105235328153976766",
-            "3463902188850558154963157993736984386286482462591640080583231993828223756729",
-            "4803991292849258082632334882589144741536815660863591403881043248209683263881",
-            "8436762241999885378816022437653918688617421907409515804233361706830437806851",
-            "1050020814711080606631372470935794540279414038427561141553730851484495104713",
-            "12563171857359400454610578260497195051079576349004486989747715063846486865999",
-            "15261846589675849940851399933657833195422666255877532937593219476893366898506",
-            "3948769100977277285624942212173034288901374055746067204399375431934078652233",
-            "5165855438174057791629208268983865460579098662614463291265268210129645045606",
-            "19766134122896885292208434174127396131016457922757580293859872286777805319620",
-            "21875366546070094216708763840902654314815506651483888537622737430893403929600"
-          ]
-        }
-      ],
-    },
-  },
+import { updateMerkleProof } from "@galactica-net/snap-api";
+await updateMerkleProof({
+  proofs: [
+    {
+      "leaf": "19630604862894493237865119507631642105595355222686969752403793856928034143008",
+      "root": "17763126929763058632596384403463503447502390993612973244727217445899815879260",
+      "pathIndices": 0,
+      "pathElements": [
+        "913338630289763938167212770624253461411251029088142596559861590717003723041",
+        "8950197483297962010688249615565850791722784770941154749153756652440041255541",
+        "9917272083296999008482951374949279205405409343140430270441153151503507424016",
+        "17619695615639375563172755451063681091123583187367666354590446695851847455206",
+        "13318301576191812234266801152872599855532005448246358193934877587650370582600",
+        "14788131755920683191475597296843560484793002846324723605628318076973413387512",
+        "15889843854411046052299062847446330225099449301489575711833732034292400193334",
+        "4591007468089219776529077618683677913362369124318235794006853887662826724179",
+        "974323504448759598753817959892943900419910101515018723175898332400800338902",
+        "10904304838309847003348248867595510063038089908778911273415397184640076197695",
+        "6882370933298714404012187108159138675240847601805332407879606734117764964844",
+        "5139203521709906739945343849817745409005203282448907255220261470507345543242",
+        "13660695785273441286119313134036776607743178109514008645018277634263858765331",
+        "10348593108579908024969691262542999418313940238885641489955258549772405516797",
+        "8081407491543416388951354446505389320018136283676956639992756527902136320118",
+        "9958479516685283258442625520693909575742244739421083147206991947039775937697",
+        "7970914938810054068245748769054430181949287449180056729094980613243958329268",
+        "9181633618293215208937072826349181607144232385752050143517655282584371194792",
+        "4290316886726748791387171617200449726541205208559598579274245616939964852707",
+        "6485208140905921389448627555662227594654261284121222408680793672083214472411",
+        "9758704411889015808755428886859795217744955029900206776077230470192243862856",
+        "2597152473563104183458372080692537737210460471555518794564105235328153976766",
+        "3463902188850558154963157993736984386286482462591640080583231993828223756729",
+        "4803991292849258082632334882589144741536815660863591403881043248209683263881",
+        "8436762241999885378816022437653918688617421907409515804233361706830437806851",
+        "1050020814711080606631372470935794540279414038427561141553730851484495104713",
+        "12563171857359400454610578260497195051079576349004486989747715063846486865999",
+        "15261846589675849940851399933657833195422666255877532937593219476893366898506",
+        "3948769100977277285624942212173034288901374055746067204399375431934078652233",
+        "5165855438174057791629208268983865460579098662614463291265268210129645045606",
+        "19766134122896885292208434174127396131016457922757580293859872286777805319620",
+        "21875366546070094216708763840902654314815506651483888537622737430893403929600"
+      ]
+    }
+  ],
 });
 ```

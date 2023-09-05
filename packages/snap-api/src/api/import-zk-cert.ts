@@ -18,16 +18,16 @@ export type ImportZkCertParams = {
 /**
  * Imports a zkCertificate from a file into the Snap.
  *
- * @param zkCert - The zkCert to be imported.
+ * @param importParams - The zkCert to be imported.
  * @returns List of zkCert metadata or success message.
  * @throws RPCError on failure.
  * @example
  * const response = await importZkCert({ zkCert: JSON.parse(fileContent) })
  */
-export const importZkCert = async (zkCert: ImportZkCertParams) => {
+export const importZkCert = async (importParams: ImportZkCertParams) => {
   const response = await invokeSnap({
     method: RpcMethods.ImportZkCert,
-    params: { zkCert, listZkCerts: true },
+    params: importParams,
   });
   return response as ZkCertMetadataList
 };

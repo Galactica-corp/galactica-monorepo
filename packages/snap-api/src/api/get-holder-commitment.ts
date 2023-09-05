@@ -1,5 +1,4 @@
 import { invokeSnap } from '../utils/invoke-snap';
-import { GenericError } from './error';
 import { RpcMethods } from './rpcEnums';
 
 export interface HolderCommitmentData {
