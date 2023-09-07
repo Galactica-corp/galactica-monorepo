@@ -2412,6 +2412,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@galactica-net/galactica-monorepo@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@galactica-net/galactica-monorepo@workspace:."
+  dependencies:
+    "@metamask/eslint-config": ^11.1.0
+    "@metamask/eslint-config-jest": ^11.1.0
+    "@metamask/eslint-config-nodejs": ^11.1.0
+    "@metamask/eslint-config-typescript": ^11.1.0
+    "@typescript-eslint/eslint-plugin": ^5.58.0
+    "@typescript-eslint/parser": ^5.58.0
+    eslint: ^8.38.0
+    eslint-config-prettier: ^8.1.0
+    eslint-plugin-import: ^2.26.0
+    eslint-plugin-jest: ^26.8.2
+    eslint-plugin-jsdoc: ^39.2.9
+    eslint-plugin-node: ^11.1.0
+    eslint-plugin-prettier: ^4.2.1
+    hardhat: ^2.10.1
+    prettier: ^2.2.1
+    prettier-plugin-packagejson: ^2.2.18
+    typescript: ^5.0.4
+  languageName: unknown
+  linkType: soft
+
 "@galactica-net/galactica-types@workspace:^, @galactica-net/galactica-types@workspace:packages/galactica-types":
   version: 0.0.0-use.local
   resolution: "@galactica-net/galactica-types@workspace:packages/galactica-types"
@@ -3449,30 +3473,6 @@ __metadata:
   checksum: 3568fb79cff8283eacb6e1bd498e20191f2c7c6774675be372f5305a4b5275512d1ded2a9fb36c106a8b10c5cbf480f6a87cdacfc70baf642b9bf3094ee3aefa
   languageName: node
   linkType: hard
-
-"@metamask/template-snap-monorepo@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@metamask/template-snap-monorepo@workspace:."
-  dependencies:
-    "@metamask/eslint-config": ^11.1.0
-    "@metamask/eslint-config-jest": ^11.1.0
-    "@metamask/eslint-config-nodejs": ^11.1.0
-    "@metamask/eslint-config-typescript": ^11.1.0
-    "@typescript-eslint/eslint-plugin": ^5.58.0
-    "@typescript-eslint/parser": ^5.58.0
-    eslint: ^8.38.0
-    eslint-config-prettier: ^8.1.0
-    eslint-plugin-import: ^2.26.0
-    eslint-plugin-jest: ^26.8.2
-    eslint-plugin-jsdoc: ^39.2.9
-    eslint-plugin-node: ^11.1.0
-    eslint-plugin-prettier: ^4.2.1
-    hardhat: ^2.10.1
-    prettier: ^2.2.1
-    prettier-plugin-packagejson: ^2.2.18
-    typescript: ^5.0.4
-  languageName: unknown
-  linkType: soft
 
 "@metamask/types@npm:^1.1.0":
   version: 1.1.0
@@ -7507,9 +7507,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"blake-hash@patch:blake-hash@npm:2.0.0#.yarn/patches/blake-hash-npm-2.0.0-c63b9a2c2d.patch::locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A.":
+"blake-hash@patch:blake-hash@npm:2.0.0#.yarn/patches/blake-hash-npm-2.0.0-c63b9a2c2d.patch::locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A.":
   version: 2.0.0
-  resolution: "blake-hash@patch:blake-hash@npm%3A2.0.0#.yarn/patches/blake-hash-npm-2.0.0-c63b9a2c2d.patch::version=2.0.0&hash=7a83fd&locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A."
+  resolution: "blake-hash@patch:blake-hash@npm%3A2.0.0#.yarn/patches/blake-hash-npm-2.0.0-c63b9a2c2d.patch::version=2.0.0&hash=7a83fd&locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A."
   dependencies:
     node-addon-api: ^3.0.0
     node-gyp: latest
@@ -8558,9 +8558,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"circomlibjs@patch:circomlibjs@npm:0.1.7#.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch::locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A.":
+"circomlibjs@patch:circomlibjs@npm:0.1.7#.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch::locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A.":
   version: 0.1.7
-  resolution: "circomlibjs@patch:circomlibjs@npm%3A0.1.7#.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch::version=0.1.7&hash=a9fcbd&locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A."
+  resolution: "circomlibjs@patch:circomlibjs@npm%3A0.1.7#.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch::version=0.1.7&hash=a9fcbd&locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A."
   dependencies:
     blake-hash: ^2.0.0
     blake2b: ^2.1.3
@@ -11867,9 +11867,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ffjavascript@patch:ffjavascript@npm:0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A.":
+"ffjavascript@patch:ffjavascript@npm:0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A.":
   version: 0.2.57
-  resolution: "ffjavascript@patch:ffjavascript@npm%3A0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::version=0.2.57&hash=06c6c6&locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A."
+  resolution: "ffjavascript@patch:ffjavascript@npm%3A0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch::version=0.2.57&hash=06c6c6&locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A."
   dependencies:
     wasmbuilder: 0.0.16
     wasmcurves: 0.2.0
@@ -22538,9 +22538,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-worker@patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch::locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A.":
+"web-worker@patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch::locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A.":
   version: 1.2.0
-  resolution: "web-worker@patch:web-worker@npm%3A1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch::version=1.2.0&hash=603182&locator=%40metamask%2Ftemplate-snap-monorepo%40workspace%3A."
+  resolution: "web-worker@patch:web-worker@npm%3A1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch::version=1.2.0&hash=603182&locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A."
   checksum: 7ef3ae20cddcb991ed767962d156d2889d34b354c62775bd091294fbc8905703ee1e342d1e7cb5b81ee16b52ee53e845c697f67a266f559b22f546054a7089a1
   languageName: node
   linkType: hard

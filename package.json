@@ -1,15 +1,15 @@
 {
-  "name": "@metamask/template-snap-monorepo",
-  "version": "0.1.0",
+  "name": "@galactica-net/galactica-monorepo",
+  "version": "0.2.0",
   "private": true,
-  "description": "",
-  "homepage": "https://github.com/MetaMask/template-snap-monorepo#readme",
+  "description": "Galactica Network monorepo including zero-knowledge certificates, the Galactica ZK Vault Snap for Metamask and front-end examples.",
+  "homepage": "https://galactica.com",
   "bugs": {
-    "url": "https://github.com/MetaMask/template-snap-monorepo/issues"
+    "url": "https://github.com/Galactica-corp/galactica-monorepo/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Galactica-corp/galactica-snap.git"
+    "url": "git+https://github.com/Galactica-corp/galactica-monorepo.git"
   },
   "license": "(MIT-0 OR Apache-2.0 OR BUSL-1.1)",
   "author": "",
