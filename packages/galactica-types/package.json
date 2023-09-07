@@ -1,6 +1,6 @@
 {
   "name": "@galactica-net/galactica-types",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript types for Galactica Network development and interfaces",
   "homepage": "https://galactica.com",
   "repository": {

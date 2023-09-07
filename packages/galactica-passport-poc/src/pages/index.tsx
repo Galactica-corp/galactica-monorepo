@@ -242,7 +242,7 @@ const Index = () => {
       const parsedFile = JSON.parse(fileContent);
 
       console.log('sending request to snap...');
-      const res = await importZkCert(parsedFile);
+      const res = await importZkCert({ zkCert: parsedFile });
       console.log('Response from snap', res);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
     } catch (e) {
