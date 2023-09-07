@@ -18,17 +18,6 @@ export enum RpcMethods {
 /**
  * Enum for string responses by the snap.
  */
-export enum RpcResponseMsg {
-  StorageCleared = 'zkCert storage cleared',
-  ZkCertImported = 'zkCert added to storage',
-  MerkleProofsUpdated = 'Updated Merkle proofs',
-  ZkCertAlreadyImported = 'This zkCert has already been imported. Skipping it.',
-  ZkCertDeleted = 'Deleted zkCert.',
-}
-
-/**
- * Enum for string responses by the snap.
- */
 export enum RpcResponseErr {
   RejectedConfirm = 'User rejected confirmation.',
   UnknownMethod = 'Method not found.',

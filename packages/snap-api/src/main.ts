@@ -15,6 +15,7 @@ export * from './api/zkpInputTypes';
 
 export { sdkConfig, type SdkConfig } from './config';
 
-export { RpcMethods, RpcResponseMsg, RpcResponseErr } from './api/rpcEnums';
+export { RpcMethods, RpcResponseErr } from './api/rpcEnums';
 
 export { GenericError } from './api/error';
+export { ConfirmationResponse, RpcResponseMsg } from './api/confirmation';

@@ -209,7 +209,8 @@ None
 
 #### Returns
 
-`string` - "zkCert storage cleared" on success.
+- `object`
+  - `string` - "zkCert storage cleared" on success.
 Returns [an error](https://github.com/Galactica-corp/galactica-snap/blob/main/packages/snap-api/src/api/error.ts) otherwise.
 
 #### Example
@@ -235,7 +236,8 @@ Asks user for confirmation
 
 #### Returns
 
-`string` "zkCert added to storage" on successful import.
+- `object`
+  - `string` "zkCert added to storage" on successful import.
 If `listZkCerts` is set to `true`, it returns the zkCert overview instead (same as in the `listZkCerts` method).
 Returns [an error](https://github.com/Galactica-corp/galactica-snap/blob/main/packages/snap-api/src/api/error.ts) if the import fails.
 
@@ -290,7 +292,8 @@ It asks the user for confirmation and selection of the zkCertificate to be delet
 
 #### Returns
 
-`string` - "Deleted zkCert." on success.
+- `object`
+  - `string` - "Deleted zkCert." on success.
 Throws error otherwise.
 
 #### Example
@@ -393,7 +396,8 @@ Each Merkle proof has the following [form defined in the zkKYC repository](https
 
 #### Returns
 
-- `string` - Success message.
+- `object`
+  - `string` - Success message.
 
 Throws error on failure.
 

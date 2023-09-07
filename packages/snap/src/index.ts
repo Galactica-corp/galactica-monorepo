@@ -2,6 +2,7 @@
 import {
   RpcResponseErr,
   RpcMethods,
+  ConfirmationResponse,
   RpcResponseMsg,
   ImportZkCertParams,
   ImportZkCertError,
@@ -47,6 +48,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
   const state = await getState(snap);
   let confirm: any;
   let holder: HolderData;
+  let response: ConfirmationResponse;
 
   switch (request.method) {
     case RpcMethods.GenZkKycProof: {
@@ -180,7 +182,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       await saveState(snap, { holders: [], zkCerts: [] });
-      return RpcResponseMsg.StorageCleared;
+      response = { message: RpcResponseMsg.StorageCleared };
+      return response;
     }
 
     case RpcMethods.ImportZkCert: {
@@ -205,7 +208,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) => candidate.leafHash === importParams.zkCert.leafHash,
       );
       if (searchedZkCert) {
-        return RpcResponseMsg.ZkCertAlreadyImported;
+        response = { message: RpcResponseMsg.ZkCertAlreadyImported };
+        return response;
       }
 
       const prompt: PanelContent = [
@@ -242,7 +246,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
       if (listZkCertsFlag) {
         return getZkCertStorageOverview(state.zkCerts);
       }
-      return RpcResponseMsg.ZkCertImported;
+      response = { message: RpcResponseMsg.ZkCertImported };
+      return response;
     }
 
     case RpcMethods.ExportZkCert: {
@@ -410,7 +415,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       await saveState(snap, state);
-      return RpcResponseMsg.MerkleProofsUpdated;
+
+      response = { message: RpcResponseMsg.MerkleProofsUpdated };
+      return response;
     }
 
     case RpcMethods.DeleteZkCert: {
@@ -447,7 +454,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (zkCert) => zkCert.leafHash !== zkCertToDelete.leafHash,
       );
       await saveState(snap, state);
-      return RpcResponseMsg.ZkCertDeleted;
+
+      response = { message: RpcResponseMsg.ZkCertDeleted };
+      return response;
     }
 
     default: {
