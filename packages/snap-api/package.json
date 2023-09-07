@@ -5,7 +5,7 @@
   "keywords": [],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Galactica-corp/galactica-snap.git"
+    "url": "https://github.com/Galactica-corp/galactica-monorepo.git"
   },
   "license": "GPL-3.0-or-later",
   "author": "Galactica Network",
