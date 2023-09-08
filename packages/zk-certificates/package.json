@@ -1,6 +1,6 @@
 {
   "name": "@galactica-net/zk-certificates",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Galactica Network's Zero-Knowledge Certificates library containing ZK circuits and blockchain library, including zkKYC",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

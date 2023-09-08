@@ -11,7 +11,7 @@ import { buildEddsa, buildPoseidon } from "circomlibjs";
 
 import { ZKCertificate } from "../lib/zkCertificate";
 import { getEddsaKeyFromEthSigner } from "../lib/keyManagement";
-import { fromDecToHex, fromHexToBytes32, hashStringToFieldNumber } from "../lib/helpers";
+import { fromDecToHex, fromHexToBytes32, hashStringToFieldNumber, fromHexToDec } from "../lib/helpers";
 import { SparseMerkleTree } from "../lib/sparseMerkleTree";
 import { queryOnChainLeaves } from "../lib/queryMerkleTree";
 
@@ -21,8 +21,8 @@ import { ZkCertStandard, zkKYCContentFields } from '@galactica-net/galactica-typ
 
 
 /**
- * @description Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
- * @param args See task definition below or 'npx hardhat createZkKYC --help'
+ * @description Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.
+ * @param args See task definition below or 'npx hardhat reissueZkKYC --help'
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log("Creating zkKYC certificate");
@@ -69,33 +69,37 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     }
   }
 
-  console.log("Creating zkKYC...");
+  console.log("Reissuing zkKYC...");
+  const oldZkKYCFields = { ...zkKYCFields };
+  oldZkKYCFields['expirationDate'] = args.oldExpirationDate;
+  const newZkKYCFields = { ...zkKYCFields };
+  newZkKYCFields['expirationDate'] = args.newExpirationDate;
   // TODO: create ZkKYC subclass requiring all the other fields
-  let zkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.ZkKYC, eddsa, args.randomSalt, zkKYCFields);
+  let oldZkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.zkKYC, eddsa, args.randomSalt, oldZkKYCFields);
+  let newZkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.zkKYC, eddsa, args.randomSalt, newZkKYCFields);
 
   // let provider sign the zkKYC
   const providerEdDSAKey = await getEddsaKeyFromEthSigner(provider);
-  zkKYC.signWithProvider(providerEdDSAKey);
-  console.log(chalk.green(`created the zkKYC certificate ${zkKYC.did}`));
-  console.log(chalk.green(`Leaf Hash: ${zkKYC.leafHash}`));
+  oldZkKYC.signWithProvider(providerEdDSAKey);
+  newZkKYC.signWithProvider(providerEdDSAKey);
 
   if (args.registryAddress === undefined) {
-    console.log("zkKYC", zkKYC.exportJson());
     console.log(chalk.yellow("Parameter 'registry-address' is missing. The zkKYC has not been issued on chain"));
     return;
   }
 
-  console.log("Issuing zkKYC...");
+  console.log("reissuing zkKYC...");
   const recordRegistry = await hre.ethers.getContractAt('KYCRecordRegistry', args.registryAddress) as KYCRecordRegistry;
   const guardianRegistry = await hre.ethers.getContractAt('KYCCenterRegistry', await recordRegistry._KYCCenterRegistry()) as KYCCenterRegistry;
 
   if (!(await guardianRegistry.KYCCenters(provider.address))) {
     throw new Error(`Provider ${provider.address} is not a guardian yet. Please register it first using the script .`);
   }
-  const leafBytes = fromHexToBytes32(fromDecToHex(zkKYC.leafHash));
+  const oldLeafBytes = fromHexToBytes32(fromDecToHex(oldZkKYC.leafHash));
+  const newLeafBytes = fromHexToBytes32(fromDecToHex(newZkKYC.leafHash));
 
   if (!args.merkleProof) {
-    console.log("zkKYC", zkKYC.exportJson());
+    console.log("zkKYC", newZkKYC.exportJson());
     console.log(chalk.yellow("Merkle proof generation is disabled. Before using the zkKYC, you need to generate the merkle proof."));
     return;
   }
@@ -107,59 +111,47 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const leafLogResults = await queryOnChainLeaves(hre.ethers, recordRegistry.address); // TODO: provide first block to start querying from to speed this up
   const leafHashes = leafLogResults.map(x => x.leafHash);
   const leafIndices = leafLogResults.map(x => Number(x.index));
-  // console.log(`leafHashes ${JSON.stringify(leafHashes)}`);
-  // console.log(`leafIndices ${JSON.stringify(leafIndices)}`);
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
   const batchSize = 10_000;
+  console.log(`Adding leaves to the merkle tree`);
   for (let i = 0; i < leafLogResults.length; i += batchSize) {
     merkleTree.insertLeaves(leafHashes.slice(i, i + batchSize), leafIndices.slice(i, i + batchSize));
   }
-  // console.log(`merkle root is ${merkleTree.root}`);
 
-  // find the smallest index of an empty list
-  let index = 0;
-  // firstly we sort the list of indices
-  leafIndices.sort();
-  // if the list is not empty and the first index is 0 then we proceed to find the gap
-  // otherwise the index remains 0
-  if (leafIndices.length >= 1 && leafIndices[0] == 0) {
-    for (let i = 0; i < (leafIndices.length - 1); i++) {
-      if (leafIndices[i + 1] - leafIndices[i] >= 2) {
-        index = leafIndices[i] + 1;
-        break;
-      }
-    }
-    // if the index is not assigned in the for loop yet, i.e. there is no gap in the indices array
-    if (index == 0) {
-      index = leafIndices[leafIndices.length - 1] + 1;
-    }
+  if (merkleTree.retrieveLeaf(0, args.index) !== fromHexToDec(oldLeafBytes)) {
+    console.log(`the current leaf hash at index ${args.index} does not correspond with the outdated zkKYC Cert we want to update`);
+    console.log(`current leaf hash at index ${args.index}: ${merkleTree.retrieveLeaf(0, args.index)}`);
+    console.log(`outdated zkKYC Cert leaf hash: ${oldLeafBytes}`);
+    return;
   }
 
-  // create Merkle proof
-  let merkleProof = merkleTree.createProof(index);
-  // console.log(`Merkle proof for index ${index} is ${JSON.stringify(merkleProof)}`);
-
-  // now we have the merkle proof to add a new leaf
-  let tx = await recordRegistry.addZkKYCRecord(index, leafBytes, merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
+  // now we update the tree by revoking the previous entry and adding a new one
+  const oldMerkleProof = merkleTree.createProof(args.index);
+  let tx = await recordRegistry.revokeZkKYCRecord(args.index, oldLeafBytes, oldMerkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
   await tx.wait();
-  console.log(chalk.green(`Issued the zkKYC certificate ${zkKYC.did} on chain at index ${index}`));
+  console.log(chalk.green(`revoked old zkKYC certificate ${oldZkKYC.did}`));
 
-  // update the merkle tree according to the new leaf
-  merkleTree.insertLeaves([zkKYC.leafHash], [index]);
-  merkleProof = merkleTree.createProof(index);
+  merkleTree.insertLeaves([merkleTree.emptyLeaf], [args.index]);
+  const emptiedMerkleProof = merkleTree.createProof(args.index);
 
-  console.log(chalk.green("ZkKYC (created, issued, including merkle proof)"));
-  console.log(zkKYC.exportJson());
+  tx = await recordRegistry.addZkKYCRecord(args.index, newLeafBytes, emptiedMerkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x))));
+  await tx.wait();
+  console.log(chalk.green(`reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${args.index} with new expiration date ${args.newExpirationDate}`));
+  console.log(chalk.green("ZkKYC (reissued, including merkle proof)"));
+
+  console.log(newZkKYC.exportJson());
   console.log(chalk.green("This ZkKYC can be imported in a wallet"));
 
   // write output to file
-  let output = zkKYC.export();
+  let output = newZkKYC.export();
+  merkleTree.insertLeaves([newZkKYC.leafHash], [args.index]);
+  const newMerkleProof = merkleTree.createProof(args.index);
   output.merkleProof = {
     root: merkleTree.root,
-    pathIndices: merkleProof.pathIndices,
-    pathElements: merkleProof.path,
+    pathIndices: newMerkleProof.pathIndices,
+    pathElements: newMerkleProof.path,
   }
-  const outputFileName = args.outputFile || `issuedZkKYCs/${zkKYC.leafHash}.json`;
+  const outputFileName = args.outputFile || `issuedZkKYCs/${newZkKYC.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
   fs.writeFileSync(outputFileName, JSON.stringify(output, null, 2));
   console.log(chalk.green(`Written ZkKYC to output file ${outputFileName}`));
@@ -167,7 +159,10 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(chalk.green("done"));
 }
 
-task("createZkKYC", "Task to create a zkKYC certificate with input parameters")
+task("reissueZkKYC", "Task to reissue a zkKYC certificate with later expiration date")
+  .addParam("index", "index of the zkKYC certificate to be updated", 0, types.int, true)
+  .addParam("oldExpirationDate", "old expiration date", 0, types.int, true)
+  .addParam("newExpirationDate", "new expiration date", 0, types.int, true)
   .addParam("holderCommitment", "The holder commitment fixing the address of the holder without disclosing it to the provider", undefined, string, false)
   .addParam("randomSalt", "Random salt to input into zkCert hashing", 0, types.int, true)
   .addParam("kycDataFile", "The file containing the KYC data", undefined, types.string, false)

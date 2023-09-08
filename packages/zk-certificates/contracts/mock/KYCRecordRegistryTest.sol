@@ -18,11 +18,4 @@ contract KYCRecordRegistryTest is KYCRecordRegistry {
     KYCRecordRegistry.initializeKYCRecordRegistry(KYCCenterRegistry);
   }
 
-  function insertLeavesTest(bytes32[] memory _leafHashes) external {
-    KYCRecordRegistry.insertLeaves(_leafHashes);
-  }
-
-  function setNextLeafIndex(uint256 _index) external {
-    KYCRecordRegistry.nextLeafIndex = _index;
-  }
 }

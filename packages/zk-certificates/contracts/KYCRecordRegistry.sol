@@ -1,72 +1,72 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
-// Based on code from MACI (https://github.com/appliedzkp/maci/blob/7f36a915244a6e8f98bacfe255f8bd44193e7919/contracts/sol/IncrementalMerkleTree.sol)
+// SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.7;
 pragma abicoder v2;
 
 // OpenZeppelin v4
-import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-import { SNARK_SCALAR_FIELD } from "./helpers/Globals.sol";
+import {SNARK_SCALAR_FIELD} from "./helpers/Globals.sol";
 
-import { PoseidonT3 } from "./helpers/Poseidon.sol";
+import {PoseidonT3} from "./helpers/Poseidon.sol";
 
-import { KYCCenterRegistry } from "./KYCCenterRegistry.sol";
+import {KYCCenterRegistry} from "./KYCCenterRegistry.sol";
+
+import {IKYCRegistry} from "./interfaces/IKYCRegistry.sol";
 
 /**
  * @title KYCRecordRegistry
  * @author Galactica dev team
- * @notice Batch Incremental Merkle Tree for zkKYC records
+ * @notice Sparse Merkle Tree for revokable ZK certificates records
  * Relevant external contract calls should be in those functions, not here
  */
-contract KYCRecordRegistry is Initializable {
-  // NOTE: The order of instantiation MUST stay the same across upgrades
-  // add new variables to the bottom of the list and decrement the __gap
-  // variable at the end of this file
-  // See https://docs.openzeppelin.com/learn/upgrading-smart-contracts#upgrading
+contract KYCRecordRegistry is Initializable, IKYCRegistry {
+    // NOTE: The order of instantiation MUST stay the same across upgrades
+    // add new variables to the bottom of the list and decrement the __gap
+    // variable at the end of this file
+    // See https://docs.openzeppelin.com/learn/upgrading-smart-contracts#upgrading
 
-  // Commitment nullifiers (tree number -> nullifier -> seen)
-  mapping(uint256 => mapping(bytes32 => bool)) public nullifiers;
+    // The tree depth and size
+    uint256 internal constant TREE_DEPTH = 32;
+    uint256 internal constant TREE_SIZE = 2 ** 32;
 
-  // The tree depth
-  uint256 internal constant TREE_DEPTH = 32;
+    // Tree zero value
+    bytes32 public constant ZERO_VALUE =
+        bytes32(uint256(keccak256("Galactica")) % SNARK_SCALAR_FIELD);
 
-  // Tree zero value
-  bytes32 public constant ZERO_VALUE = bytes32(uint256(keccak256("Galactica")) % SNARK_SCALAR_FIELD);
+    // Next leaf index (number of inserted leaves in the current tree)
+    uint256 public nextLeafIndex;
 
-  // Next leaf index (number of inserted leaves in the current tree)
-  uint256 public nextLeafIndex;
+    // The Merkle root
+    bytes32 public merkleRoot;
 
-  // The Merkle root
-  bytes32 public merkleRoot;
+    // The Merkle path to the leftmost leaf upon initialization. It *should
+    // not* be modified after it has been set by the initialize function.
+    // Caching these values is essential to efficient appends.
+    bytes32[TREE_DEPTH] public zeros;
 
-  // Store new tree root to quickly migrate to a new tree
-  bytes32 private newTreeRoot;
+    // a mapping to store which KYC center manages which ZKKYCRecords
+    mapping(bytes32 => address) public ZKKYCRecordToCenter;
 
-  // Tree number
-  uint256 public treeNumber;
+    KYCCenterRegistry public _KYCCenterRegistry;
+    event zkKYCRecordAddition(
+        bytes32 indexed zkKYCRecordLeafHash,
+        address indexed KYCCenter,
+        uint index
+    );
+    event zkKYCRecordRevocation(
+        bytes32 indexed zkKYCRecordLeafHash,
+        address indexed KYCCenter,
+        uint index
+    );
 
-  // The Merkle path to the leftmost leaf upon initialization. It *should
-  // not* be modified after it has been set by the initialize function.
-  // Caching these values is essential to efficient appends.
-  bytes32[TREE_DEPTH] public zeros;
-
-  // Right-most elements at each level
-  // Used for efficient updates of the merkle tree
-  bytes32[TREE_DEPTH] public filledSubTrees;
-
-  // Whether the contract has already seen a particular Merkle tree root
-  // root -> seen
-  mapping(bytes32 => bool) public rootHistory;
-
-  KYCCenterRegistry public _KYCCenterRegistry;
-  event zkKYCRecordAddition(bytes32 indexed zkKYCRecordLeafHash, address indexed KYCCenter);
-
-  /**
-   * @notice Calculates initial values for Merkle Tree
-   * @dev OpenZeppelin initializer ensures this can only be called once
-   */
-  function initializeKYCRecordRegistry(address KYCCenterRegistry_) internal onlyInitializing {
-    /*
+    /**
+     * @notice Calculates initial values for Merkle Tree
+     * @dev OpenZeppelin initializer ensures this can only be called once
+     */
+    function initializeKYCRecordRegistry(
+        address KYCCenterRegistry_
+    ) internal onlyInitializing {
+        /*
     To initialize the Merkle tree, we need to calculate the Merkle root
     assuming that each leaf is the zero value.
     H(H(a,b), H(c,d))
@@ -80,194 +80,136 @@ contract KYCRecordRegistry is Initializable {
     root.
     */
 
-    // Calculate zero values
-    zeros[0] = ZERO_VALUE;
+        // Calculate zero values
+        zeros[0] = ZERO_VALUE;
 
-    // Store the current zero value for the level we just calculated it for
-    bytes32 currentZero = ZERO_VALUE;
+        // Store the current zero value for the level we just calculated it for
+        bytes32 currentZero = ZERO_VALUE;
 
-    // Loop through each level
-    for (uint256 i = 0; i < TREE_DEPTH; i += 1) {
-      // Push it to zeros array
-      zeros[i] = currentZero;
+        // Loop through each level
+        for (uint256 i = 0; i < TREE_DEPTH; i += 1) {
+            // Push it to zeros array
+            zeros[i] = currentZero;
 
-      // Set filled subtrees to a value so users don't pay storage allocation costs
-      filledSubTrees[i] = currentZero;
+            // Calculate the zero value for this level
+            currentZero = hashLeftRight(currentZero, currentZero);
+        }
 
-      // Calculate the zero value for this level
-      currentZero = hashLeftRight(currentZero, currentZero);
+        // Set merkle root
+        merkleRoot = currentZero;
+        _KYCCenterRegistry = KYCCenterRegistry(KYCCenterRegistry_);
     }
 
-    // Set merkle root and store root to quickly retrieve later
-    newTreeRoot = merkleRoot = currentZero;
-    rootHistory[currentZero] = true;
-    _KYCCenterRegistry = KYCCenterRegistry(KYCCenterRegistry_);
-  }
-
-  function addZkKYCRecord(bytes32 zkKYCRecordLeafHash) public {
-      require(_KYCCenterRegistry.KYCCenters(msg.sender), "KYCRecordRegistry: not a KYC Center");
-      bytes32[] memory _leafHashes = new bytes32[](1);
-      _leafHashes[0] = zkKYCRecordLeafHash;
-      insertLeaves(_leafHashes);
-      emit zkKYCRecordAddition(zkKYCRecordLeafHash, msg.sender);
-  }
-
-  /**
-   * @notice Hash 2 uint256 values
-   * @param _left - Left side of hash
-   * @param _right - Right side of hash
-   * @return hash result
-   */
-  function hashLeftRight(bytes32 _left, bytes32 _right) public pure returns (bytes32) {
-    return PoseidonT3.poseidon([_left, _right]);
-  }
-
-  /**
-   * @notice Calculates initial values for Merkle Tree
-   * @dev Insert leaves into the current merkle tree
-   * Note: this function INTENTIONALLY causes side effects to save on gas.
-   * _leafHashes and _count should never be reused.
-   * @param _leafHashes - array of leaf hashes to be added to the merkle tree
-   */
-  function insertLeaves(bytes32[] memory _leafHashes) internal {
-    /*
-    Loop through leafHashes at each level, if the leaf is on the left (index is even)
-    then hash with zeros value and update subtree on this level, if the leaf is on the
-    right (index is odd) then hash with subtree value. After calculating each hash
-    push to relevant spot on leafHashes array. For gas efficiency we reuse the same
-    array and use the count variable to loop to the right index each time.
-    Example of updating a tree of depth 4 with elements 13, 14, and 15
-    [1,7,15]    {1}                    1
-                                       |
-    [3,7,15]    {1}          2-------------------3
-                             |                   |
-    [6,7,15]    {2}     4---------5         6---------7
-                       / \       / \       / \       / \
-    [13,14,15]  {3}  08   09   10   11   12   13   14   15
-    [] = leafHashes array
-    {} = count variable
-    */
-
-    // Get initial count
-    uint256 count = _leafHashes.length;
-
-    // If 0 leaves are passed in no-op
-    if (count == 0) {
-      return;
-    }
-
-    // Create new tree if current one can't contain new leaves
-    // We insert all new commitment into a new tree to ensure they can be spent in the same transaction
-    if ((nextLeafIndex + count) > (2**TREE_DEPTH)) {
-      newTree();
-    }
-
-    // Current index is the index at each level to insert the hash
-    uint256 levelInsertionIndex = nextLeafIndex;
-
-    // Update nextLeafIndex
-    nextLeafIndex += count;
-
-    // Variables for starting point at next tree level
-    uint256 nextLevelHashIndex;
-    uint256 nextLevelStartIndex;
-
-    // Loop through each level of the merkle tree and update
-    for (uint256 level = 0; level < TREE_DEPTH; level += 1) {
-      // Calculate the index to start at for the next level
-      // >> is equivalent to / 2 rounded down
-      nextLevelStartIndex = levelInsertionIndex >> 1;
-
-      uint256 insertionElement = 0;
-
-      // If we're on the right, hash and increment to get on the left
-      if (levelInsertionIndex % 2 == 1) {
-        // Calculate index to insert hash into leafHashes[]
-        // >> is equivalent to / 2 rounded down
-        nextLevelHashIndex = (levelInsertionIndex >> 1) - nextLevelStartIndex;
-
-        // Calculate the hash for the next level
-        _leafHashes[nextLevelHashIndex] = hashLeftRight(
-          filledSubTrees[level],
-          _leafHashes[insertionElement]
+    /**
+     * @notice addZkKYCRecord issues a zkKYC record by adding it to the Merkle tree
+     * @param leafIndex - leaf position of the zkKYC in the Merkle tree
+     * @param zkKYCRecordHash - hash of the zkKYC record leaf
+     * @param merkleProof - Merkle proof of the zkKYC record leaf being free
+     */
+    function addZkKYCRecord(
+        uint256 leafIndex,
+        bytes32 zkKYCRecordHash,
+        bytes32[] memory merkleProof
+    ) public {
+        // since we are adding a new zkKYC record, we assume that the leaf is of zero value
+        bytes32 currentLeafHash = ZERO_VALUE;
+        require(
+            _KYCCenterRegistry.KYCCenters(msg.sender),
+            "KYCRecordRegistry: not a KYC Center"
         );
-
-        // Increment
-        insertionElement += 1;
-        levelInsertionIndex += 1;
-      }
-
-      // We'll always be on the left side now
-      for (insertionElement; insertionElement < count; insertionElement += 2) {
-        bytes32 right;
-
-        // Calculate right value
-        if (insertionElement < count - 1) {
-          right = _leafHashes[insertionElement + 1];
-        } else {
-          right = zeros[level];
-        }
-
-        // If we've created a new subtree at this level, update
-        if (insertionElement == count - 1 || insertionElement == count - 2) {
-          filledSubTrees[level] = _leafHashes[insertionElement];
-        }
-
-        // Calculate index to insert hash into leafHashes[]
-        // >> is equivalent to / 2 rounded down
-        nextLevelHashIndex = (levelInsertionIndex >> 1) - nextLevelStartIndex;
-
-        // Calculate the hash for the next level
-        _leafHashes[nextLevelHashIndex] = hashLeftRight(_leafHashes[insertionElement], right);
-
-        // Increment level insertion index
-        levelInsertionIndex += 2;
-      }
-
-      // Get starting levelInsertionIndex value for next level
-      levelInsertionIndex = nextLevelStartIndex;
-
-      // Get count of elements for next level
-      count = nextLevelHashIndex + 1;
+        _changeLeafHash(
+            leafIndex,
+            currentLeafHash,
+            zkKYCRecordHash,
+            merkleProof
+        );
+        ZKKYCRecordToCenter[zkKYCRecordHash] = msg.sender;
+        emit zkKYCRecordAddition(zkKYCRecordHash, msg.sender, leafIndex);
     }
 
-    // Update the Merkle tree root
-    merkleRoot = _leafHashes[0];
-    rootHistory[merkleRoot] = true;
-  }
+    /**
+     * @notice revokeZkKYCRecord removes a previously issued zkKYC from the registry by setting the content of the merkle leaf to zero.
+     * @param leafIndex - leaf position of the zkKYC in the Merkle tree
+     * @param zkKYCRecordHash - hash of the zkKYC record leaf
+     * @param merkleProof - Merkle proof of the zkKYC record being in the tree
+     */
+    function revokeZkKYCRecord(
+        uint256 leafIndex,
+        bytes32 zkKYCRecordHash,
+        bytes32[] memory merkleProof
+    ) public {
+        // since we are deleting the content of a leaf, the new value is the zero value
+        bytes32 newLeafHash = ZERO_VALUE;
+        require(
+            ZKKYCRecordToCenter[zkKYCRecordHash] == msg.sender,
+            "KYCRecordRegistry: not the corresponding KYC Center"
+        );
+        _changeLeafHash(leafIndex, zkKYCRecordHash, newLeafHash, merkleProof);
+        ZKKYCRecordToCenter[zkKYCRecordHash] = address(0);
+        emit zkKYCRecordRevocation(zkKYCRecordHash, msg.sender, leafIndex);
+    }
 
-  /**
-   * @notice Creates new merkle tree
-   */
-  function newTree() internal {
-    // Restore merkleRoot to newTreeRoot
-    merkleRoot = newTreeRoot;
+    /** @notice Function change the leaf content at a certain index
+     * @param index the index of the overwritten leaf in the last level
+     * @param currentLeafHash the current content of the leaf
+     * @param newLeafHash the new content we want to write into the leaf
+     * @param merkleProof the merkle sibling path
+     **/
+    function _changeLeafHash(
+        uint256 index,
+        bytes32 currentLeafHash,
+        bytes32 newLeafHash,
+        bytes32[] memory merkleProof
+    ) internal {
+        require(
+            validate(merkleProof, index, currentLeafHash, merkleRoot),
+            "merkle proof is not valid"
+        );
+        // we update the merkle tree accordingly
+        merkleRoot = compute(merkleProof, index, newLeafHash);
+    }
 
-    // Existing values in filledSubtrees will never be used so overwriting them is unnecessary
+    /**
+     * @notice Hash 2 uint256 values
+     * @param _left - Left side of hash
+     * @param _right - Right side of hash
+     * @return hash result
+     */
+    function hashLeftRight(
+        bytes32 _left,
+        bytes32 _right
+    ) public pure returns (bytes32) {
+        return PoseidonT3.poseidon([_left, _right]);
+    }
 
-    // Reset next leaf index to 0
-    nextLeafIndex = 0;
+    /**
+     * @notice function to validate a leaf content at a certain index with its merkle proof against a certain merkle root
+     */
+    function validate(
+        bytes32[] memory merkleProof,
+        uint256 index,
+        bytes32 leafHash,
+        bytes32 _merkleRoot
+    ) internal pure returns (bool) {
+        return (compute(merkleProof, index, leafHash) == _merkleRoot);
+    }
 
-    // Increment tree number
-    treeNumber += 1;
-  }
+    function compute(
+        bytes32[] memory merkleProof,
+        uint256 index,
+        bytes32 leafHash
+    ) internal pure returns (bytes32) {
+        require(index < TREE_SIZE, "_index bigger than tree size");
+        require(merkleProof.length == TREE_DEPTH, "Invalid _proofs length");
 
-  /**
-   * @notice Gets tree number that new zkKYC record will get inserted to
-   * @param _newZkKYCRecords - number of new zkKYC records
-   * @return treeNumber, startingIndex
-   */
-  function getInsertionTreeNumberAndStartingIndex(uint256 _newZkKYCRecords)
-    public
-    view
-    returns (uint256, uint256)
-  {
-    // New tree will be created if current one can't contain new leaves
-    if ((nextLeafIndex + _newZkKYCRecords) > (2**TREE_DEPTH)) return (treeNumber + 1, 0);
-
-    // Else return current state
-    return (treeNumber, nextLeafIndex);
-  }
-
-  uint256[10] private __gap;
+        for (uint256 d = 0; d < TREE_DEPTH; d++) {
+            if ((index & 1) == 1) {
+                leafHash = hashLeftRight(merkleProof[d], leafHash);
+            } else {
+                leafHash = hashLeftRight(leafHash, merkleProof[d]);
+            }
+            index = index >> 1;
+        }
+        return leafHash;
+    }
 }

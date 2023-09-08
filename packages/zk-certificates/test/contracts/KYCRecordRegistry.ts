@@ -5,14 +5,14 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { buildEddsa } from 'circomlibjs';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { MerkleTree } from '../../lib/merkleTree';
+import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 const hre = require('hardhat');
 import {
   overwriteArtifact,
   fromDecToHex,
   fromHexToBytes32,
   generateRandomBytes32Array,
-  arrayToBigInt,
+  generateRandomNumberArray,
 } from '../../lib/helpers';
 import { poseidonContract } from 'circomlibjs';
 
@@ -70,7 +70,7 @@ describe('KYCRecordRegistry', () => {
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
-    const merkleTree = new MerkleTree(treeDepth, eddsa.poseidon);
+    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
     // Each value in the zero values array should be the same
     for (let i = 0; i < treeDepth; i++) {
@@ -85,7 +85,7 @@ describe('KYCRecordRegistry', () => {
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
-    const merkleTree = new MerkleTree(treeDepth, eddsa.poseidon);
+    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
     // Should initialize empty root correctly
     expect(await KYCRecordRegistry.merkleRoot()).to.equal(
@@ -93,7 +93,7 @@ describe('KYCRecordRegistry', () => {
     );
   });
 
-  it('Should incrementally insert elements', async function () {
+  it('Should insert elements', async function () {
     let loops = 5;
 
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
@@ -103,99 +103,76 @@ describe('KYCRecordRegistry', () => {
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
-    const merkleTree = new MerkleTree(treeDepth, eddsa.poseidon);
+    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
-    const insertList = [];
+    const leafHashes = generateRandomBytes32Array(5);
+    const leafIndices = generateRandomNumberArray(5);
     for (let i = 0; i < loops; i += 1) {
-      // Check the insertion numbers
-      expect(
-        await KYCRecordRegistry.getInsertionTreeNumberAndStartingIndex(
-          insertList.length
-        )
-      ).to.deep.equal([0, merkleTree.tree[0].length]);
+      console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
 
-      // Update with insert list on local and contract
-      await KYCRecordRegistry.insertLeavesTest(insertList);
-      merkleTree.insertLeaves(insertList);
+      // add new zkKYCRecord and check the root
+      let merkleProof = merkleTree.createProof(leafIndices[i]);
+      let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
+      await KYCRecordRegistry.addZkKYCRecord(leafIndices[i], leafHashes[i], merkleProofPath);
+      merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
 
       // Check roots match
       expect(await KYCRecordRegistry.merkleRoot()).to.equal(
         fromHexToBytes32(fromDecToHex(merkleTree.root))
       );
-
-      // Check tree length matches
-      expect(await KYCRecordRegistry.nextLeafIndex()).to.equal(
-        merkleTree.tree[0].length
-      );
-
-      // Add another element to insert list
-      insertList.push(
-        fromHexToBytes32(
-          arrayToBigInt(generateRandomBytes32Array(1)[0]).toString(16)
-        )
-      );
     }
   });
 
-  it('Should roll over to new tree', async function () {
+  it('Should be able to nullify a leaf', async function () {
+    let loops = 5;
+
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
 
     // add deployer as a KYCCenter
     KYCCenterRegistry.grantKYCCenterRole(deployer.address);
-    // Check tree number is 0
-    expect(await KYCRecordRegistry.treeNumber()).to.equal(0);
 
-    // Set next leaf index to one less than filled tree
+    const eddsa = await buildEddsa();
     const treeDepth = 32;
-    await KYCRecordRegistry.setNextLeafIndex(2 ** treeDepth - 2);
+    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
-    // Check the insertion numbers
-    expect(
-      await KYCRecordRegistry.getInsertionTreeNumberAndStartingIndex(1)
-    ).to.deep.equal([0, 2 ** treeDepth - 2]);
+    const leafHashes = generateRandomBytes32Array(loops);
+    const leafIndices = generateRandomNumberArray(loops);
+    for (let i = 0; i < loops; i += 1) {
+      console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
 
-    // Insert leaf hash
-    await KYCRecordRegistry.insertLeavesTest(generateRandomBytes32Array(1));
+      // add new zkKYCRecord 
+      let merkleProof = merkleTree.createProof(leafIndices[i]);
+      let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
+      await KYCRecordRegistry.addZkKYCRecord(leafIndices[i], leafHashes[i], merkleProofPath);
+      merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
+    }
 
-    // Check the insertion numbers
-    expect(
-      await KYCRecordRegistry.getInsertionTreeNumberAndStartingIndex(1)
-    ).to.deep.equal([0, 2 ** treeDepth - 1]);
+    // now we will try to nullify the first added leaf
+    let merkleProof = merkleTree.createProof(leafIndices[0]);
+    let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
+    await KYCRecordRegistry.revokeZkKYCRecord(leafIndices[0], leafHashes[0], merkleProofPath);
+    merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[0]]);
 
-    // Check tree number is 0
-    expect(await KYCRecordRegistry.treeNumber()).to.equal(0);
-
-    // Insert leaf hash
-    await KYCRecordRegistry.insertLeavesTest(generateRandomBytes32Array(1));
-
-    // Check the insertion numbers
-    expect(
-      await KYCRecordRegistry.getInsertionTreeNumberAndStartingIndex(1)
-    ).to.deep.equal([1, 0]);
-
-    // Insert leaf hash
-    await KYCRecordRegistry.insertLeavesTest(generateRandomBytes32Array(1));
-
-    // Check tree number is 1
-    expect(await KYCRecordRegistry.treeNumber()).to.equal(1);
+    // Check roots match
+    expect(await KYCRecordRegistry.merkleRoot()).to.equal(
+      fromHexToBytes32(fromDecToHex(merkleTree.root))
+    );
   });
 
+
   it('Only KYC Center can add leaf', async function () {
+
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
 
-    const leafHash = fromHexToBytes32(
-      arrayToBigInt(generateRandomBytes32Array(1)[0]).toString(16)
-    );
+    const eddsa = await buildEddsa();
+    const treeDepth = 32;
+    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
-    await expect(
-      KYCRecordRegistry.connect(deployer).addZkKYCRecord(leafHash)
-    ).to.be.revertedWith('KYCRecordRegistry: not a KYC Center');
-
-    // add deployer as a KYCCenter
-    KYCCenterRegistry.grantKYCCenterRole(deployer.address);
-
-    await expect(KYCRecordRegistry.connect(deployer).addZkKYCRecord(leafHash))
-      .to.emit(KYCRecordRegistry, 'zkKYCRecordAddition')
-      .withArgs(leafHash, deployer.address);
+    const leafHashes = generateRandomBytes32Array(1);
+    const leafIndices = generateRandomNumberArray(1);
+    // add new zkKYCRecord and check the root
+    let merkleProof = merkleTree.createProof(leafIndices[0]);
+    let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));
+    await expect(KYCRecordRegistry.addZkKYCRecord(leafIndices[0], leafHashes[0], merkleProofPath)).to.be.revertedWith("KYCRecordRegistry: not a KYC Center");
   });
 });

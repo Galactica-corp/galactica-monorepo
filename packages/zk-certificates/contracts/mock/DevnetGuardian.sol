@@ -12,29 +12,48 @@ import {KYCRecordRegistry} from "../KYCRecordRegistry.sol";
 contract DevnetGuardian {
     KYCRecordRegistry public recordRegistry;
 
+    mapping(uint256 => address) public creatorOfIndex;
+
     constructor(address _recordRegistry) {
         recordRegistry = KYCRecordRegistry(_recordRegistry);
     }
 
     /**
      * @notice addZkKYCRecord issues a zkKYC record by adding it to the Merkle tree
-     * @param zkKYCRecordLeafHash - hash of the zkKYC record leaf
+     * @param leafIndex - leaf position of the zkKYC in the Merkle tree
+     * @param zkKYCRecordHash - hash of the zkKYC record leaf
+     * @param merkleProof - Merkle proof of the zkKYC record leaf being free
      */
-    function addZkKYCRecord(bytes32 zkKYCRecordLeafHash) public {
-        recordRegistry.addZkKYCRecord(zkKYCRecordLeafHash);
+    function addZkKYCRecord(
+        uint256 leafIndex,
+        bytes32 zkKYCRecordHash,
+        bytes32[] memory merkleProof
+    ) public {
+        recordRegistry.addZkKYCRecord(leafIndex, zkKYCRecordHash, merkleProof);
+        creatorOfIndex[leafIndex] = msg.sender;
     }
 
     /**
-     * @notice Gets tree number that new zkKYC record will get inserted to
-     * @param _newZkKYCRecords - number of new zkKYC records
-     * @return treeNumber, startingIndex
+     * @notice revokeZkKYCRecord removes a previously issued zkKYC from the registry by setting the content of the merkle leaf to zero.
+     * @param leafIndex - leaf position of the zkKYC in the Merkle tree
+     * @param zkKYCRecordHash - hash of the zkKYC record leaf
+     * @param merkleProof - Merkle proof of the zkKYC record being in the tree
      */
-    function getInsertionTreeNumberAndStartingIndex(
-        uint256 _newZkKYCRecords
-    ) public view returns (uint256, uint256) {
-        return
-            recordRegistry.getInsertionTreeNumberAndStartingIndex(
-                _newZkKYCRecords
-            );
+    function revokeZkKYCRecord(
+        uint256 leafIndex,
+        bytes32 zkKYCRecordHash,
+        bytes32[] memory merkleProof
+    ) public {
+        // we check that address revoking the zkKYC is the creator to make this contract behave the same way as the original registry
+        require(
+            creatorOfIndex[leafIndex] == msg.sender,
+            "KYCRecordRegistry (DevNet Test): not the corresponding KYC Center"
+        );
+        creatorOfIndex[leafIndex] = address(0);
+        recordRegistry.revokeZkKYCRecord(
+            leafIndex,
+            zkKYCRecordHash,
+            merkleProof
+        );
     }
 }

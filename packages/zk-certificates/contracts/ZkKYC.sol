@@ -98,7 +98,7 @@ contract ZkKYC is Ownable {
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
         require(
-            KYCRegistry.rootHistory(proofRoot),
+            KYCRegistry.merkleRoot() == proofRoot,
             "the root in the proof doesn't match"
         );
 

@@ -49,10 +49,19 @@ export function fromHexToBytes32(hex: string): string {
   }
 }
 
-export function generateRandomBytes32Array(length: number): Uint8Array[] {
+export function generateRandomBytes32Array(length: number): string[] {
   const result = [];
   for (let i = 0; i < length; i++) {
-    result.push(utils.randomBytes(32));
+    result.push(fromHexToBytes32(fromDecToHex(ethers.BigNumber.from(utils.randomBytes(32)).toString())));
+  }
+  return result;
+}
+
+export function generateRandomNumberArray(length: number): any[] {
+  const result = [];
+  for (let i = 0; i < length; i++) {
+    result.push(ethers.BigNumber.from(utils.randomBytes(2)));
+
   }
   return result;
 }

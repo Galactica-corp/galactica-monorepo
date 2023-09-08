@@ -27,8 +27,9 @@ export async function deploySC(name: string, verify?: boolean, signerOrOptions?:
   await contract.deployed();
 
   console.log(chalk.green(`${name} deployed to ${contract.address}`));
+  console.log("constructorArgs:", JSON.stringify(constructorArgs));
 
-  
+
   if (verify) {
     try {
       // in case there are multiple contracts with the same bytecode (e.g. tokens), we need to pass the fully qualified name to the verifier
@@ -36,7 +37,7 @@ export async function deploySC(name: string, verify?: boolean, signerOrOptions?:
       if (name.includes('.sol:')) {
         contractArgs = { contract: name };
       }
-      
+
       await run("verify:verify", {
         address: contract.address,
         constructorArguments: constructorArgs,
