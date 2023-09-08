@@ -75,8 +75,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const newZkKYCFields = { ...zkKYCFields };
   newZkKYCFields['expirationDate'] = args.newExpirationDate;
   // TODO: create ZkKYC subclass requiring all the other fields
-  let oldZkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.zkKYC, eddsa, args.randomSalt, oldZkKYCFields);
-  let newZkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.zkKYC, eddsa, args.randomSalt, newZkKYCFields);
+  let oldZkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.ZkKYC, eddsa, args.randomSalt, oldZkKYCFields);
+  let newZkKYC = new ZKCertificate(args.holderCommitment, ZkCertStandard.ZkKYC, eddsa, args.randomSalt, newZkKYCFields);
 
   // let provider sign the zkKYC
   const providerEdDSAKey = await getEddsaKeyFromEthSigner(provider);

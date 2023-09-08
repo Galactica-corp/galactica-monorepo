@@ -17,7 +17,7 @@ import {
 import { poseidonContract } from 'circomlibjs';
 
 
-describe('KYCRecordRegistry', () => {
+describe.only('KYCRecordRegistry', () => {
   let deployer: SignerWithAddress;
 
   beforeEach(async () => {
@@ -108,8 +108,7 @@ describe('KYCRecordRegistry', () => {
     const leafHashes = generateRandomBytes32Array(5);
     const leafIndices = generateRandomNumberArray(5);
     for (let i = 0; i < loops; i += 1) {
-      console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
-
+      // console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
       // add new zkKYCRecord and check the root
       let merkleProof = merkleTree.createProof(leafIndices[i]);
       let merkleProofPath = merkleProof.path.map(x => fromHexToBytes32(fromDecToHex(x)));

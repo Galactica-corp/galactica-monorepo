@@ -37,11 +37,11 @@ export async function queryOnChainLeaves(ethers: HardhatEthersHelpers, contractA
 
 
     for (let log of leafAddedLogs) {
-      resAdded.push({ leafHash: BigInt(log.args[0]).toString(), index: BigInt(log.args[2]) });
+      resAdded.push({ leafHash: BigInt(log.args[0]).toString(), index: BigInt(log.args[2].toString()) });
     }
 
     for (let log of leafRevokedLogs) {
-      resRevoked.push({ leafHash: BigInt(log.args[0]).toString(), index: BigInt(log.args[2]) });
+      resRevoked.push({ leafHash: BigInt(log.args[0]).toString(), index: BigInt(log.args[2].toString()) });
     }
   }
 

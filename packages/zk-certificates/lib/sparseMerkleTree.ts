@@ -15,7 +15,7 @@ export class SparseMerkleTree {
     emptyBranchLevels: string[];
 
     // nodes of the tree as two layers dictionary
-    tree: any;
+    tree: Record<number, Record<number, string>>;
 
     /**
      * @description Create a MerkleTree
@@ -39,7 +39,7 @@ export class SparseMerkleTree {
             this.tree[i] = {};
         }
         // set root
-        this.tree[depth][0] = [this.emptyBranchLevels[depth]];
+        this.tree[depth][0] = this.emptyBranchLevels[depth];
     }
 
     /**
@@ -80,7 +80,7 @@ export class SparseMerkleTree {
      * Calculate node hashes for empty branches of all depths
      * 
      * @param depth Max depth to calculate
-     * @return Array of hashes for empty brancheswith [0] being an empty leaf and [depth] being the root
+     * @return Array of hashes for empty branches with [0] being an empty leaf and [depth] being the root
      */
     calculateEmptyBranchHashes(depth: number): string[] {
         const levels: string[] = [];
@@ -98,7 +98,7 @@ export class SparseMerkleTree {
     /**
      * @description Insert leaves on certain indices into the tree and rebuilds the tree hashes up to the root.
      *  A more efficient way would be inserting individual leaves
-     *  and updating hashes along the path to the root. This is not necessary for the curret use case
+     *  and updating hashes along the path to the root. This is not necessary for the current use case
      *  because inserting new leaves into an existing tree is done in the smart contract.
      *  Here in the frontend or backend you want to build a new tree from scratch.
      * 
@@ -106,7 +106,7 @@ export class SparseMerkleTree {
      */
     insertLeaves(leaves: string[], indices: number[]): void {
         if (leaves.length != indices.length) {
-            throw new Error('lenghts of leaves and indices have to be equal');
+            throw new Error('lengths of leaves and indices have to be equal');
         }
         if (leaves.length == 0) { return; }
         // insert leaves into new tree
@@ -118,16 +118,17 @@ export class SparseMerkleTree {
         for (let level = 0; level < this.depth; level += 1) {
             // recalculate level above
             for (let index in this.tree[level]) {
-                if (index % 2 === 0) {
-                    this.tree[level + 1][Math.floor(index / 2)] = this.calculateNodeHash(
-                        this.retrieveLeaf(level, index),
-                        this.retrieveLeaf(level, index + 1),
+                let indexNum = Number(index);
+                if (indexNum % 2 === 0) {
+                    this.tree[level + 1][Math.floor(indexNum / 2)] = this.calculateNodeHash(
+                        this.retrieveLeaf(level, indexNum),
+                        this.retrieveLeaf(level, indexNum + 1),
                     );
 
                 } else {
-                    this.tree[level + 1][Math.floor(index / 2)] = this.calculateNodeHash(
-                        this.retrieveLeaf(level, index - 1),
-                        this.retrieveLeaf(level, index),
+                    this.tree[level + 1][Math.floor(indexNum / 2)] = this.calculateNodeHash(
+                        this.retrieveLeaf(level, indexNum - 1),
+                        this.retrieveLeaf(level, indexNum),
                     );
                 }
 
