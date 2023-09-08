@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "test": "hardhat smartCircuitBuild --verbose && hardhat test",
-    "build": "tsc",
+    "build": "hardhat smartCircuitBuild --verbose && hardhat compile && tsc",
     "compile": "hardhat smartCircuitBuild --verbose",
     "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose"
   },
