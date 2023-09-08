@@ -27,17 +27,12 @@ const config: HardhatUserConfig = {
   networks: {
     galaTestnet: {
       url: 'https://evm-rpc-http-devnet-41233.galactica.com/', // requires gala dev wireguard connection
-      accounts: [
-        process.env.GalaTestnetDeployerPrivateKey!, // deployer
-        process.env.GalaTestnetInstitution1PrivateKey!, // test institution for fraud investigation
-        process.env.GalaTestnetInstitution2PrivateKey!, // test institution for fraud investigation
-        process.env.GalaTestnetInstitution3PrivateKey!, // test institution for fraud investigation
-      ],
+      accounts: getAccounts(),
     },
   },
   etherscan: {
     apiKey: {
-      galaTestnet: 'something'!, // not needed for now, I guess
+      galaTestnet: 'something', // not needed for now, I guess
     },
     customChains: [
       {
@@ -152,5 +147,32 @@ const config: HardhatUserConfig = {
     ],
   },
 };
+
+/**
+ * Gets the accounts for operation from the environment variables.
+ *
+ * @returns Array of private keys.
+ */
+function getAccounts(): string[] {
+  // check if environment variables exist
+  if (!process.env.GalaTestnetDeployerPrivateKey) {
+    throw new Error('GalaTestnetDeployerPrivateKey env var not set');
+  }
+  if (!process.env.GalaTestnetInstitution1PrivateKey) {
+    throw new Error('GalaTestnetInstitution1PrivateKey env var not set');
+  }
+  if (!process.env.GalaTestnetInstitution2PrivateKey) {
+    throw new Error('GalaTestnetInstitution2PrivateKey env var not set');
+  }
+  if (!process.env.GalaTestnetInstitution3PrivateKey) {
+    throw new Error('GalaTestnetInstitution3PrivateKey env var not set');
+  }
+  return [
+    process.env.GalaTestnetDeployerPrivateKey, // deployer
+    process.env.GalaTestnetInstitution1PrivateKey, // test institution for fraud investigation
+    process.env.GalaTestnetInstitution2PrivateKey, // test institution for fraud investigation
+    process.env.GalaTestnetInstitution3PrivateKey, // test institution for fraud investigation
+  ];
+}
 
 export default config;

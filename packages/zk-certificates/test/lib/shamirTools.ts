@@ -11,7 +11,7 @@ describe('Shamir Tools', () => {
     eddsa = await buildEddsa();
   });
 
-  it('Correctly reconstructs example secret', async () => {
+  it('correctly reconstructs example secret', async () => {
     expect(
       reconstructShamirSecret(eddsa.F, 3, [
         [2, '1942'],
@@ -21,7 +21,7 @@ describe('Shamir Tools', () => {
     ).to.equal('1234');
   });
 
-  it('Fails to reconstruct with wrong inputs', async () => {
+  it('fails to reconstruct with wrong inputs', async () => {
     expect(
       reconstructShamirSecret(eddsa.F, 3, [
         [2, '3490582395892395'],
@@ -31,7 +31,7 @@ describe('Shamir Tools', () => {
     ).to.not.equal('1234');
   });
 
-  it('Fails with conflicting inputs', async () => {
+  it('fails with conflicting inputs', async () => {
     expect(() =>
       reconstructShamirSecret(eddsa.F, 3, [
         [4, '3402'],

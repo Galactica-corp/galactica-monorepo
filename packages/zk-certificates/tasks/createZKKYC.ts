@@ -22,7 +22,8 @@ import { SparseMerkleTree } from '../lib/sparseMerkleTree';
 import { ZKCertificate } from '../lib/zkCertificate';
 
 /**
- * @description Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
+ * Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
+ *
  * @param hre
  * @param args - See task definition below or 'npx hardhat createZkKYC --help'
  */

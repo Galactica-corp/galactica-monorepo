@@ -4,7 +4,8 @@ import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
 import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 
 /**
- * @description Query the on-chain Merkle tree leaves needed as input for the Merkle tree
+ * Query the on-chain Merkle tree leaves needed as input for the Merkle tree
+ *
  * @param ethers - Ethers instance
  * @param contractAddr - Address of the KYCRecordRegistry contract
  * @param firstBlock - First block to query (ideally the contract creation block)

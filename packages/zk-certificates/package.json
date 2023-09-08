@@ -56,11 +56,13 @@
     "@typechain/truffle-v5": "^8.0.2",
     "@typechain/web3-v1": "^6.0.2",
     "bignumber.js": "^9.0.1",
+    "blake-hash": "^2.0.0",
     "buffer": "^6.0.3",
     "circom2": "^0.2.13",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
     "ethers": "^5.7.2",
+    "ffjavascript": "^0.2.57",
     "hardhat-circom": "^3.3.2",
     "keccak256": "^1.0.6"
   }

@@ -4,7 +4,7 @@ import { buildPoseidon } from 'circomlibjs';
 import { MerkleTree } from '../lib/merkleTree';
 
 /**
- * @description Script for creating a merkle tree for testing from a list of UTXOs
+ * Script for creating a merkle tree for testing from a list of UTXOs
  */
 async function main() {
   // Create a new poseidon instance for hashing

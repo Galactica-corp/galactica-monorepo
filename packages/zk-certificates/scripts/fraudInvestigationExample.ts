@@ -7,7 +7,7 @@ import { reconstructShamirSecret } from '../lib/shamirTools';
 import { VerificationSBT } from '../typechain-types/contracts/VerificationSBT';
 
 /**
- * @description Example script showing the fraud investigation process with 2 of 3 shamir secret sharing.
+ * Example script showing the fraud investigation process with 2 of 3 shamir secret sharing.
  */
 async function main() {
   const verificationSBTAddr = '0x4E49d2383158568F5d4A30075e63614Dd7459060';

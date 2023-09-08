@@ -6,8 +6,9 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
 /**
+ * @param hre- -
+ * Script (re)building circom circuits when needed
  * @param hre
- * @description Script (re)building circom circuits when needed
  */
 async function smartCircuitBuild(
   // place for task arguments:
@@ -145,8 +146,9 @@ task(
 
 /**
  * @param rootCircuit
+ * @param visited- -
+ * Helper function to recursively find all imported files
  * @param visited
- * @description Helper function to recursively find all imported files
  */
 function findAllImportedSourceFiles(
   rootCircuit: string,

@@ -5,7 +5,7 @@ import { queryOnChainLeaves } from '../lib/queryMerkleTree';
 import { SparseMerkleTree } from '../lib/sparseMerkleTree';
 
 /**
- * @description Script for creating a merkle tree for testing from a list of UTXOs, benchmark version
+ * Script for creating a merkle tree for testing from a list of UTXOs, benchmark version
  */
 async function main() {
   const registryAddress = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';

@@ -2,7 +2,8 @@
 import { ethers } from 'hardhat';
 
 /**
- * @description Script for creating a promocodes
+ * Script for creating a promocodes
+ *
  * @dev Just modify the prefix to get different codes. It should be long enough so avoid brute force attacks
  */
 async function main() {

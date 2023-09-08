@@ -9,8 +9,9 @@ import { Signer } from 'ethers';
 import { Scalar, utils } from 'ffjavascript';
 
 /**
- * @description Generates the eddsa private key from the ethereum private key signing a fixed message
- * @param signer - Ethers signer
+ * Generates the eddsa private key from the ethereum private key signing a fixed message.
+ *
+ * @param signer - Ethers signer.
  * @returns The eddsa private key.
  */
 export async function getEddsaKeyFromEthSigner(
@@ -20,13 +21,14 @@ export async function getEddsaKeyFromEthSigner(
 }
 
 /**
- * @description Generates an Elliptic-curve Diffie–Hellman shared key https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman
- *   It is symmetric and can be produced by both parties using their private key and the other party's public key.
- *   Implementation based on https://github.com/privacy-scaling-explorations/maci/blob/796c3fa49d4983478d306061f094cf8a7532d63a/crypto/ts/index.ts#L328
- * @param privKey - EdDSA private key of Alice
- * @param pubKey - EdDSA public key of Bob
- * @param eddsa - eddsa instance from circomlibjs
- * @returns The ECDH shared key.
+ * Generates an Elliptic-curve Diffie–Hellman shared key https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman.
+ * It is symmetric and can be produced by both parties using their private key and the other party's public key.
+ * Implementation based on https://github.com/privacy-scaling-explorations/maci/blob/796c3fa49d4983478d306061f094cf8a7532d63a/crypto/ts/index.ts#L328.
+ *
+ * @param privKey - EdDSA private key of Alice.
+ * @param pubKey - EdDSA public key of Bob.
+ * @param eddsa - EdDSA instance from circomlibjs.
+ * @returns The ECDH shared key..
  */
 export function generateEcdhSharedKey(
   privKey: string,
@@ -41,10 +43,12 @@ export function generateEcdhSharedKey(
 }
 
 /**
- * @param privKey
- * @param eddsa
- * @description Format a random private key to be compatible with the BabyJub curve.
- *  This is the format which should be passed into the PublicKey and other circuits.
+ * Format a random private key to be compatible with the BabyJub curve.
+ * This is the format which should be passed into the PublicKey and other circuits.
+ *
+ * @param privKey - Private key to format.
+ * @param eddsa - EdDSA instance from circomlibjs.
+ * @returns The formatted private key.
  */
 export function formatPrivKeyForBabyJub(privKey: string, eddsa: any) {
   const sBuff = eddsa.pruneBuffer(
@@ -53,16 +57,17 @@ export function formatPrivKeyForBabyJub(privKey: string, eddsa: any) {
       .digest()
       .slice(0, 32),
   );
-  const s = utils.leBuff2int(sBuff);
-  return Scalar.shr(s, 3);
+  const scalar = utils.leBuff2int(sBuff);
+  return Scalar.shr(scalar, 3);
 }
 
 /**
- * @description Create the holder commitment for a zkCert
- * @dev holder commitment = poseidon(sign_eddsa(poseidon(pubkey)))
- * @param eddsa - EdDSA instance to use for signing (passed to avoid making this function async)
- * @param privateKey - EdDSA Private key of the holder
- * @returns holder commitment
+ * Create the holder commitment for a zkCert.
+ * Holder commitment = poseidon(sign_eddsa(poseidon(pubkey))).
+ *
+ * @param eddsa - EdDSA instance to use for signing (passed to avoid making this function async).
+ * @param privateKey - EdDSA Private key of the holder.
+ * @returns Holder commitment.
  */
 export function createHolderCommitment(eddsa: any, privateKey: string): string {
   const { poseidon } = eddsa;
@@ -75,18 +80,18 @@ export function createHolderCommitment(eddsa: any, privateKey: string): string {
   const hashPubkeyMsg = poseidon.F.e(
     Scalar.mod(hashPubkey, eddsaPrimeFieldMod),
   );
-  const sig = eddsa.signPoseidon(privateKey, hashPubkeyMsg);
+  const signature = eddsa.signPoseidon(privateKey, hashPubkeyMsg);
 
-  // selfcheck
-  if (!eddsa.verifyPoseidon(hashPubkeyMsg, sig, pubKey)) {
+  // self-check
+  if (!eddsa.verifyPoseidon(hashPubkeyMsg, signature, pubKey)) {
     throw new Error('Self check on EdDSA signature failed');
   }
 
   return poseidon.F.toObject(
     poseidon([
-      sig.S.toString(),
-      poseidon.F.toObject(sig.R8[0]).toString(),
-      poseidon.F.toObject(sig.R8[1]).toString(),
+      signature.S.toString(),
+      poseidon.F.toObject(signature.R8[0]).toString(),
+      poseidon.F.toObject(signature.R8[1]).toString(),
     ]),
   ).toString();
 }

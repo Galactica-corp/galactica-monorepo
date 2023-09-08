@@ -7,7 +7,7 @@ import {
 } from './generateZKKYCInput';
 
 /**
- * @description Script for creating proof input for a zkKYC certificate
+ * Script for creating proof input for a zkKYC certificate
  */
 async function main() {
   const zkKYC = await generateSampleZkKYC();

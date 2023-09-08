@@ -24,14 +24,14 @@ describe('MiMC Sponge Encryption test', function () {
       keyW = F.e(ethers.utils.id('keyW').toString());
     });
 
-    it('Should encrypt and decrypt with same key', async () => {
+    it('should encrypt and decrypt with same key', async () => {
       const ct = mimcjs.encrypt(xL, xR, key);
       const pt = mimcjs.decrypt(ct.xL, ct.xR, key);
       assert.equal(xL.toString(), pt.xL.toString());
       assert.equal(xR.toString(), pt.xR.toString());
     });
 
-    it('Should fail to encrypt and decrypt with different keys', async () => {
+    it('should fail to encrypt and decrypt with different keys', async () => {
       const ct = mimcjs.encrypt(xL, xR, key);
       const pt = mimcjs.decrypt(ct.xL, ct.xR, keyW);
       assert.notEqual(xL.toString(), pt.xL.toString());
@@ -50,7 +50,7 @@ describe('MiMC Sponge Encryption test', function () {
       );
     });
 
-    it('Should encrypt and decrypt a single message', async () => {
+    it('should encrypt and decrypt a single message', async () => {
       const witness = await circuit.calculateLabeledWitness(
         sampleInput,
         sanityCheck,
@@ -61,7 +61,7 @@ describe('MiMC Sponge Encryption test', function () {
       assert.propertyVal(witness, 'main.xR_out', sampleInput.xR_in);
     });
 
-    it('Should fail decrypt with wrong key', async () => {
+    it('should fail decrypt with wrong key', async () => {
       const wrongInput = sampleInput;
       wrongInput.k_two = '32547';
 
@@ -99,7 +99,7 @@ describe('MiMC Sponge Encryption test', function () {
       key = F.e(sampleInput.k.toString());
     });
 
-    it('Should have the same result as mimc js', async () => {
+    it('should have the same result as mimc js', async () => {
       const witness = await circuit.calculateLabeledWitness(
         sampleInput,
         sanityCheck,

@@ -12,7 +12,8 @@ import { KYCCenterRegistry } from '../typechain-types/contracts/KYCCenterRegistr
 import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 
 /**
- * @description Script for revoking a zkKYC certificate, issuing it and adding a merkle proof for it.
+ * Script for revoking a zkKYC certificate, issuing it and adding a merkle proof for it.
+ *
  * @param hre
  * @param args - See task definition below or 'npx hardhat createZkKYC --help'
  */

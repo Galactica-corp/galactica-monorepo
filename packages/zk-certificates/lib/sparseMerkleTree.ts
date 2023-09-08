@@ -1,14 +1,10 @@
-import {
-  SNARK_SCALAR_FIELD,
-  arrayToBigInt,
-  fromDecToHex,
-  fromHexToBytes32,
-} from './helpers';
+/* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import { SNARK_SCALAR_FIELD, arrayToBigInt } from './helpers';
 
 const keccak256 = require('keccak256');
 
 /**
- * @description Class for managing and constructing merkle trees.
+ * Class for managing and constructing merkle trees.
  */
 
 export class SparseMerkleTree {
@@ -25,7 +21,8 @@ export class SparseMerkleTree {
   tree: Record<number, Record<number, string>>;
 
   /**
-   * @description Create a MerkleTree
+   * Create a MerkleTree
+   *
    * @param depth - Depth of the tree
    * @param poseidon - Poseidon instance to use for hashing
    */
@@ -51,7 +48,8 @@ export class SparseMerkleTree {
   }
 
   /**
-   * @description Retrieve leaf
+   * Retrieve leaf
+   *
    * @param level - level numbered with depth contains the root
    * @param index - index of the leaf in that level
    * @returns content of the leaf
@@ -76,7 +74,8 @@ export class SparseMerkleTree {
   }
 
   /**
-   * @description Calculate hash of a node from its left and right children
+   * Calculate hash of a node from its left and right children
+   *
    * @param left - Left child of the node
    * @param right - Right child of the node
    * @returns Hash of the node
@@ -105,7 +104,8 @@ export class SparseMerkleTree {
   }
 
   /**
-   * @description Insert leaves on certain indices into the tree and rebuilds the tree hashes up to the root.
+   * Insert leaves on certain indices into the tree and rebuilds the tree hashes up to the root.
+   *
    * @param indices- -
    *  A more efficient way would be inserting individual leaves
    *  and updating hashes along the path to the root. This is not necessary for the current use case
@@ -153,7 +153,8 @@ export class SparseMerkleTree {
   }
 
   /**
-   * @description Create a merkle proof for a leaf at certain index
+   * Create a merkle proof for a leaf at certain index
+   *
    * @param index
    * @param leaf - Hash of the leaf to prove
    * @returns Merkle proof for the leaf

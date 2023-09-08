@@ -2527,12 +2527,14 @@ __metadata:
     "@typechain/web3-v1": ^6.0.2
     "@types/mocha": ^9.1.0
     bignumber.js: ^9.0.1
+    blake-hash: ^2.0.0
     buffer: ^6.0.3
     chalk: ^4
     circom2: ^0.2.13
     circomlib: ^2.0.5
     circomlibjs: ^0.1.7
     ethers: ^5.7.2
+    ffjavascript: ^0.2.57
     hardhat: ^2.10.1
     hardhat-circom: ^3.3.2
     hardhat-gas-reporter: ^1.0.8

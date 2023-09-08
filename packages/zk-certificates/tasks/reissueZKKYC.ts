@@ -25,7 +25,8 @@ import { KYCCenterRegistry } from '../typechain-types/contracts/KYCCenterRegistr
 import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 
 /**
- * @description Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.
+ * Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.
+ *
  * @param hre
  * @param args - See task definition below or 'npx hardhat reissueZkKYC --help'
  */

@@ -18,7 +18,8 @@ import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
 
 /**
- * @description Class for managing and constructing zkCertificates, the generalized version of zkKYC.
+ * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
+ *
  * @dev specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac
  */
 export class ZKCertificate implements ZkCertData {
@@ -28,7 +29,8 @@ export class ZKCertificate implements ZkCertData {
   protected fieldPoseidon: any;
 
   /**
-   * @description Create a ZKCertificate
+   * Create a ZKCertificate
+   *
    * @param holderCommitment - commitment fixing the holder eddsa key without revealing it to the provider
    * @param zkCertStandard - zkCert standard to use
    * @param eddsa - eddsa instance to use for signing
@@ -127,7 +129,8 @@ export class ZKCertificate implements ZkCertData {
   }
 
   /**
-   * @description Create the input for the ownership proof of this zkCert
+   * Create the input for the ownership proof of this zkCert
+   *
    * @param holderKey - EdDSA Private key of the holder
    * @returns OwnershipProofInput struct
    */
@@ -160,7 +163,8 @@ export class ZKCertificate implements ZkCertData {
   }
 
   /**
-   * @description Create the input for the provider signature check of this zkCert
+   * Create the input for the provider signature check of this zkCert
+   *
    * @param providerKey - EdDSA Private key of the KYC provider
    * @returns ProviderData struct
    */
@@ -193,7 +197,8 @@ export class ZKCertificate implements ZkCertData {
   }
 
   /**
-   * @description Create the input for the authorization proof of this zkCert
+   * Create the input for the authorization proof of this zkCert
+   *
    * @param holderKey - EdDSA Private key of the holder
    * @param userAddress - user address to be signed
    * @returns AuthorizationProofInput struct
@@ -230,7 +235,8 @@ export class ZKCertificate implements ZkCertData {
   }
 
   /**
-   * @description Create the input for the fraud investigation data encryption proof of this zkCert
+   * Create the input for the fraud investigation data encryption proof of this zkCert
+   *
    * @param galaInstitutionPubKey
    * @param institutionPub
    * @param userPrivKey
@@ -264,7 +270,8 @@ export class ZKCertificate implements ZkCertData {
   }
 
   /**
-   * @description Calculate dApp specific human ID from zkKYC and dApp address.
+   * Calculate dApp specific human ID from zkKYC and dApp address.
+   *
    * @param dAppAddress - Address of the dApp.
    * @returns Human ID as string.
    */

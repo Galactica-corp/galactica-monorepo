@@ -5,16 +5,13 @@ import { generateEcdhSharedKey } from './keyManagement';
 import { buildMimcSponge } from './mimcEncrypt';
 
 /**
- * @description Generates encrypted data for fraud investigation
- * @param galaInstitutionPubKey: - public
- * @param userPrivKey: - encryption key derived from user private key
- * @param galaInstitutionPub
- * @param userPrivKey
- * @param providerPubKey
- * @param zkCertHash
- * @param providerPubKey: - the provider pubkey contains 2 uint256, but we only take the first one, it is enough for identification
- * @param zkCertHash:
- * @returns encryptedData
+ * Encrypts data for fraud investigation, so that it can be posted on-chain and only be decrypted by the user and the institution.
+ *
+ * @param galaInstitutionPub - Public key of institution.
+ * @param userPrivKey - Encryption key derived from user private key.
+ * @param providerPubKey - The provider pubkey contains 2 uint256, but we only take the first one, it is enough for identification.
+ * @param zkCertHash - Hash of the zkCert.
+ * @returns EncryptedData to share for fraud investigation.
  */
 export async function encryptFraudInvestigationData(
   galaInstitutionPub: string[],
@@ -37,10 +34,11 @@ export async function encryptFraudInvestigationData(
 }
 
 /**
+ * Decrypts data for fraud investigation according to the encryption.
  *
- * @param galaInstitutionPrivKey
- * @param userPubKey
- * @param encryptedData
+ * @param galaInstitutionPrivKey - Private key of institution.
+ * @param userPubKey - Public key of user (disclosed in proof, unique for each ZKP).
+ * @param encryptedData - Message to decrypt.
  */
 export async function decryptFraudInvestigationData(
   galaInstitutionPrivKey: string,

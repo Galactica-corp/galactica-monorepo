@@ -16,7 +16,7 @@ import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
 const hre = require('hardhat');
 
-describe.only('KYCRecordRegistry', () => {
+describe('KYCRecordRegistry', () => {
   let deployer: SignerWithAddress;
 
   beforeEach(async () => {
@@ -56,7 +56,7 @@ describe.only('KYCRecordRegistry', () => {
     };
   }
 
-  it("Shouldn't initialize twice", async () => {
+  it("shouldn't initialize twice", async () => {
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
 
     await expect(
@@ -64,7 +64,7 @@ describe.only('KYCRecordRegistry', () => {
     ).to.be.revertedWith('Initializable: contract is not initializing');
   });
 
-  it('Should calculate zero values', async () => {
+  it('should calculate zero values', async () => {
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
@@ -79,7 +79,7 @@ describe.only('KYCRecordRegistry', () => {
     }
   });
 
-  it('Should calculate empty root', async () => {
+  it('should calculate empty root', async () => {
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
@@ -92,7 +92,7 @@ describe.only('KYCRecordRegistry', () => {
     );
   });
 
-  it('Should insert elements', async function () {
+  it('should insert elements', async function () {
     const loops = 5;
 
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
@@ -127,7 +127,7 @@ describe.only('KYCRecordRegistry', () => {
     }
   });
 
-  it('Should be able to nullify a leaf', async function () {
+  it('should be able to nullify a leaf', async function () {
     const loops = 5;
 
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
@@ -177,7 +177,7 @@ describe.only('KYCRecordRegistry', () => {
     );
   });
 
-  it('Only KYC Center can add leaf', async function () {
+  it('only KYC Center can add leaf', async function () {
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();

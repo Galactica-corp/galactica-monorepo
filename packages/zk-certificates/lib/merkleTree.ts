@@ -6,7 +6,7 @@ import { SNARK_SCALAR_FIELD, arrayToBigInt } from './helpers';
 const keccak256 = require('keccak256');
 
 /**
- * @description Class for managing and constructing merkle trees.
+ * Class for managing and constructing merkle trees.
  */
 export class MerkleTree {
   // Field of the curve used by Poseidon
@@ -22,7 +22,8 @@ export class MerkleTree {
   tree: string[][];
 
   /**
-   * @description Create a MerkleTree
+   * Create a MerkleTree
+   *
    * @param depth - Depth of the tree
    * @param poseidon - Poseidon instance to use for hashing
    */
@@ -48,7 +49,8 @@ export class MerkleTree {
   }
 
   /**
-   * @description Calculate hash of a node from its left and right children
+   * Calculate hash of a node from its left and right children
+   *
    * @param left - Left child of the node
    * @param right - Right child of the node
    * @returns Hash of the node
@@ -77,11 +79,12 @@ export class MerkleTree {
   }
 
   /**
-   * @description Insert leaves into the tree and rebuilds the tree hashes up to the root.
+   * Insert leaves into the tree and rebuilds the tree hashes up to the root.
    *  A more efficient way would be inserting individual leaves
    *  and updating hashes along the path to the root. This is not necessary for the curret use case
    *  because inserting new leaves into an existing tree is done in the smart contract.
    *  Here in the frontend or backend you want to build a new tree from scratch.
+   *
    * @param leaves - Array of leaf hashes to insert
    */
   insertLeaves(leaves: string[]): void {
@@ -115,7 +118,8 @@ export class MerkleTree {
   }
 
   /**
-   * @description Create a merkle proof for a leaf
+   * Create a merkle proof for a leaf
+   *
    * @param leaf - Hash of the leaf to prove
    * @returns Merkle proof for the leaf
    */

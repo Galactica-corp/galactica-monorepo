@@ -12,22 +12,20 @@ import {
   fromHexToBytes32,
 } from '../../lib/helpers';
 import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { queryVerificationSBTs } from '../../lib/queryVerificationSBT';
 import { decryptFraudInvestigationData } from '../../lib/SBTData';
 import { reconstructShamirSecret } from '../../lib/shamirTools';
+import { ZKCertificate } from '../../lib/zkCertificate';
 import {
   generateZkKYCProofInput,
   generateSampleZkKYC,
 } from '../../scripts/generateZKKYCInput';
 import { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
-import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
-import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import { ExampleMockDAppVerifier } from '../../typechain-types/contracts/ExampleMockDAppVerifier';
 import { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
+import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
+import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
 import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
-
-
-import { ZKCertificate } from '../../lib/zkCertificate';
-import { queryVerificationSBTs } from '../../lib/queryVerificationSBT';
 
 chai.config.includeStack = true;
 
