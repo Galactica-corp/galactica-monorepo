@@ -23,7 +23,7 @@ module.exports = {
     },
 
     {
-      files: ['**/*.test.ts', '**/*.test.js'],
+      files: ['**/*.test.ts', '**/*.test.js', '**/test/**/**.ts'],
       extends: ['@metamask/eslint-config-jest'],
       rules: {
         '@typescript-eslint/no-shadow': [
