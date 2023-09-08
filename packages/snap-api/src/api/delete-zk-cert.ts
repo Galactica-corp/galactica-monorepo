@@ -1,7 +1,6 @@
-import { invokeSnap } from '../utils/invoke-snap';
 import { RpcMethods } from './rpcEnums';
 import { ZkCertSelectionParams } from './types';
-
+import { invokeSnap } from '../utils/invoke-snap';
 
 export type DeleteZkCertResponse = string;
 
@@ -12,9 +11,7 @@ export type DeleteZkCertResponse = string;
  * @returns ZkCert data or error.
  * @throws RPCError on failure.
  */
-export const deleteZkCert = async (
-  params: ZkCertSelectionParams,
-) => {
+export const deleteZkCert = async (params: ZkCertSelectionParams) => {
   const response: DeleteZkCertResponse = await invokeSnap({
     method: RpcMethods.DeleteZkCert,
     params,

@@ -1,7 +1,7 @@
 import { BigNumber, ethers } from 'ethers';
 
-import galacticaInstitutionABI from '../config/abi/IGalacticaInstitution.json';
 import { getCurrentBlockTime } from './metamask';
+import galacticaInstitutionABI from '../config/abi/IGalacticaInstitution.json';
 
 /**
  * Prepares the proof input for the ZKP.

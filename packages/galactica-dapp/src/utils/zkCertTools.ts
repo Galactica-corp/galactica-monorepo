@@ -1,7 +1,7 @@
 import { ethers, BigNumber, EventFilter } from 'ethers';
 
-import VerificationSbtABI from '../config/abi/IVerificationSBT.json';
 import { getLocalStorage, setLocalStorage } from './localStorage';
+import VerificationSbtABI from '../config/abi/IVerificationSBT.json';
 
 /**
  * Data structure for a verification SBT.

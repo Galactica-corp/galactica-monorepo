@@ -18,11 +18,7 @@ import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
 import { generateZkKycProof } from './proofGenerator';
 import { getState, saveState } from './stateManagement';
-import {
-  HolderData,
-  SnapRpcProcessor,
-  PanelContent,
-} from './types';
+import { HolderData, SnapRpcProcessor, PanelContent } from './types';
 import {
   getZkCertStorageHashes,
   getZkCertStorageOverview,

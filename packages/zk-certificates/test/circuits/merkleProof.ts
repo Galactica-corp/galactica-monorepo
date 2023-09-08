@@ -8,7 +8,7 @@ describe('Merkle Proof Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(
-    readFileSync('./circuits/input/merkleProof.json', 'utf8')
+    readFileSync('./circuits/input/merkleProof.json', 'utf8'),
   );
   const expectedRoot =
     '9091466005283815162448404040090924144531762766638646206839479435316552583073';
@@ -27,7 +27,7 @@ describe('Merkle Proof Circuit Component', () => {
   it('has expected witness values', async () => {
     const witness = await circuit.calculateLabeledWitness(
       sampleInput,
-      sanityCheck
+      sanityCheck,
     );
     assert.propertyVal(witness, 'main.leaf', '0');
     assert.propertyVal(witness, 'main.pathIndices', '5');
@@ -42,31 +42,31 @@ describe('Merkle Proof Circuit Component', () => {
   });
 
   it('output changes on having a different leaf', async () => {
-    let forgedInput = { ...sampleInput };
+    const forgedInput = { ...sampleInput };
     forgedInput.leaf += 1;
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
-      sanityCheck
+      sanityCheck,
     );
     assert.notPropertyVal(witness, 'main.root', expectedRoot);
   });
 
   it('output changes on having a different path', async () => {
-    let forgedInput = { ...sampleInput };
+    const forgedInput = { ...sampleInput };
     forgedInput.pathIndices -= 1; // flip some bits to have a different path
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
-      sanityCheck
+      sanityCheck,
     );
     assert.notPropertyVal(witness, 'main.root', expectedRoot);
   });
 
   it('output changes on having a different neighbor hashes', async () => {
-    let forgedInput = { ...sampleInput };
+    const forgedInput = { ...sampleInput };
     forgedInput.pathElements[1] = forgedInput.pathElements[2];
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
-      sanityCheck
+      sanityCheck,
     );
     assert.notPropertyVal(witness, 'main.root', expectedRoot);
   });

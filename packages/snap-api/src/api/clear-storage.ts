@@ -1,5 +1,5 @@
-import { invokeSnap } from '../utils/invoke-snap';
 import { RpcMethods } from './rpcEnums';
+import { invokeSnap } from '../utils/invoke-snap';
 
 /**
  * Request for removing data stored in the Snap (holders and zkCertificates).

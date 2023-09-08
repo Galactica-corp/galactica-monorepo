@@ -1,14 +1,15 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { buildEddsa } from 'circomlibjs';
-import { ZKCertificate } from '../lib/zkCertificate';
+import { ethers } from 'hardhat';
+
+import { ZkCertStandard } from '../lib';
 import {
   createHolderCommitment,
   getEddsaKeyFromEthSigner,
+  formatPrivKeyForBabyJub,
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
-import { ethers } from 'hardhat';
-import { ZkCertStandard } from '../lib';
-import { formatPrivKeyForBabyJub } from '../lib/keyManagement';
+import { ZKCertificate } from '../lib/zkCertificate';
 
 // sample field inputs
 export const fields = {
@@ -29,6 +30,9 @@ export const fields = {
   passportID: '3095472098',
 };
 
+/**
+ *
+ */
 export async function generateSampleZkKYC(): Promise<ZKCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
@@ -39,11 +43,11 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
   // TODO: create ZkKYC subclass requiring all the other fields
-  let zkKYC = new ZKCertificate(
+  const zkKYC = new ZKCertificate(
     holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
-    1773
+    1773,
   );
 
   // set the fields in zkKYC object
@@ -57,7 +61,17 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
   return zkKYC;
 }
 
-export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstitutions: number, dAppAddress: string): Promise<any> {
+/**
+ *
+ * @param zkKYC
+ * @param amountInstitutions
+ * @param dAppAddress
+ */
+export async function generateZkKYCProofInput(
+  zkKYC: ZKCertificate,
+  amountInstitutions: number,
+  dAppAddress: string,
+): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -65,7 +79,7 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
   // you can change the holder to another address, the script just needs to be able to sign a message with it
   const [holder, user, encryptionAccount, KYCProvider] =
     await ethers.getSigners();
-  let institutions = [];
+  const institutions = [];
   for (let i = 0; i < amountInstitutions; i++) {
     institutions.push((await ethers.getSigners())[4 + i]);
   }
@@ -73,16 +87,16 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
 
   // create json output file for ownership test
-  let ownershipProofInput = zkKYC.getOwnershipProofInput(holderEdDSAKey);
-  let authorizationProofInput = zkKYC.getAuthorizationProofInput(
+  const ownershipProofInput = zkKYC.getOwnershipProofInput(holderEdDSAKey);
+  const authorizationProofInput = zkKYC.getAuthorizationProofInput(
     holderEdDSAKey,
-    user.address
+    user.address,
   );
 
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
-  //construct the zkKYC inputs
-  let zkKYCInput: any = { ...fields };
+  // construct the zkKYC inputs
+  const zkKYCInput: any = { ...fields };
 
   zkKYCInput.providerAx = zkKYC.providerData.ax;
   zkKYCInput.providerAy = zkKYC.providerData.ay;
@@ -91,23 +105,26 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
   zkKYCInput.providerR8y = zkKYC.providerData.r8y;
 
   // calculate zkKYC leaf hash
-  let leafHash = zkKYC.leafHash;
+  const { leafHash } = zkKYC;
 
-  let encryptionPrivKey = BigInt(
-    await getEddsaKeyFromEthSigner(encryptionAccount)
+  const encryptionPrivKey = BigInt(
+    await getEddsaKeyFromEthSigner(encryptionAccount),
   ).toString();
 
-  let humanIDProofInput = zkKYC.getHumanIDProofInput(dAppAddress, fields.passportID);
+  const humanIDProofInput = zkKYC.getHumanIDProofInput(
+    dAppAddress,
+    fields.passportID,
+  );
 
   // initiate an empty merkle tree
-  let merkleTree = new MerkleTree(32, eddsa.poseidon);
+  const merkleTree = new MerkleTree(32, eddsa.poseidon);
 
   // add leaf hash as a leaf to this merkle tree
   merkleTree.insertLeaves([leafHash]);
 
-  let merkleRoot = merkleTree.root;
+  const merkleRoot = merkleTree.root;
 
-  let merkleProof = merkleTree.createProof(leafHash);
+  const merkleProof = merkleTree.createProof(leafHash);
 
   // general zkCert fields
   zkKYCInput.holderCommitment = zkKYC.holderCommitment;
@@ -132,21 +149,24 @@ export async function generateZkKYCProofInput(zkKYC: ZKCertificate, amountInstit
   zkKYCInput.r8y2 = authorizationProofInput.r8y;
 
   // add fraud investigation data
-  zkKYCInput.userPrivKey = formatPrivKeyForBabyJub(encryptionPrivKey, eddsa).toString();
+  zkKYCInput.userPrivKey = formatPrivKeyForBabyJub(
+    encryptionPrivKey,
+    eddsa,
+  ).toString();
   zkKYCInput.investigationInstitutionPubKey = [];
   for (let i = 0; i < institutions.length; i++) {
-    let institutionPrivKey = BigInt(
-      await getEddsaKeyFromEthSigner(institutions[i])
+    const institutionPrivKey = BigInt(
+      await getEddsaKeyFromEthSigner(institutions[i]),
     ).toString();
-    let institutionPub = eddsa.prv2pub(institutionPrivKey);
+    const institutionPub = eddsa.prv2pub(institutionPrivKey);
 
-    let fraudInvestigationDataEncryptionProofInput =
+    const fraudInvestigationDataEncryptionProofInput =
       await zkKYC.getFraudInvestigationDataEncryptionProofInput(
         institutionPub,
-        encryptionPrivKey
+        encryptionPrivKey,
       );
     zkKYCInput.investigationInstitutionPubKey.push(
-      fraudInvestigationDataEncryptionProofInput.investigationInstitutionPubkey
+      fraudInvestigationDataEncryptionProofInput.investigationInstitutionPubkey,
     );
   }
 

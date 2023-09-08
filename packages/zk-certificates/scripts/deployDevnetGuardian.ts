@@ -1,8 +1,9 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import hre from "hardhat";
+import hre from 'hardhat';
+
 import { deploySC } from '../lib/hardhatHelpers';
 
-const log = console.log;
+const { log } = console;
 
 /**
  * Deploys a simple contract that everyone can use to test issuing zkKYCs without having to be whitelisted as guardians first.
@@ -19,10 +20,15 @@ async function main() {
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   // deploying everything
-  const devnetGuardian = await deploySC('DevnetGuardian', true, {}, [recordRegistryAddr]);
+  const devnetGuardian = await deploySC('DevnetGuardian', true, {}, [
+    recordRegistryAddr,
+  ]);
   log(`DevnetGuardian deployed to: ${devnetGuardian.address}`);
 
-  const centerRegistry = await hre.ethers.getContractAt('KYCCenterRegistry', centerRegistryAddr);
+  const centerRegistry = await hre.ethers.getContractAt(
+    'KYCCenterRegistry',
+    centerRegistryAddr,
+  );
   centerRegistry.grantKYCCenterRole(devnetGuardian.address);
   log(`DevnetGuardian whitelisted as KYC Guardian in KYCCenterRegistry`);
 }

@@ -1,12 +1,12 @@
-import { invokeSnap } from '../utils/invoke-snap';
 import { GalacticaErrorBase } from './error';
 import { ZkCertMetadataList } from './list-zk-certs';
 import { RpcMethods } from './rpcEnums';
 import { ZkCertRegistered } from './types';
+import { invokeSnap } from '../utils/invoke-snap';
 
 type ImportErrorName = 'HolderMissing';
 
-export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> { }
+export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> {}
 
 export type ImportZkCertParams = {
   // The zkCert to be imported
@@ -29,5 +29,5 @@ export const importZkCert = async (importParams: ImportZkCertParams) => {
     method: RpcMethods.ImportZkCert,
     params: importParams,
   });
-  return response as ZkCertMetadataList
+  return response as ZkCertMetadataList;
 };

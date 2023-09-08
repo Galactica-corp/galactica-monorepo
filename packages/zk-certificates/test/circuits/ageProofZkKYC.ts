@@ -2,8 +2,12 @@
 import { assert } from 'chai';
 import hre from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
-import { generateSampleZkKYC, generateZkKYCProofInput } from '../../scripts/generateZKKYCInput';
+
 import { ZKCertificate } from '../../lib';
+import {
+  generateSampleZkKYC,
+  generateZkKYCProofInput,
+} from '../../scripts/generateZKKYCInput';
 
 describe('Age Proof combined with zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;
@@ -17,7 +21,7 @@ describe('Age Proof combined with zkKYC Circuit Component', () => {
     circuit = await hre.circuitTest.setup('ageProofZkKYC');
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, 0, "0x0");
+    sampleInput = await generateZkKYCProofInput(zkKYC, 0, '0x0');
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
     sampleInput.currentMonth = today.getUTCMonth() + 1;
@@ -26,7 +30,6 @@ describe('Age Proof combined with zkKYC Circuit Component', () => {
 
     // advance time a bit to set it later in the test
     sampleInput.currentTime += 100;
-
   });
 
   it('produces a witness with valid constraints', async () => {
@@ -37,13 +40,13 @@ describe('Age Proof combined with zkKYC Circuit Component', () => {
   it('has expected witness values', async () => {
     const witness = await circuit.calculateLabeledWitness(
       sampleInput,
-      sanityCheck
+      sanityCheck,
     );
 
     assert.propertyVal(
       witness,
       'main.ageThreshold',
-      sampleInput.ageThreshold.toString()
+      sampleInput.ageThreshold.toString(),
     );
     // check resulting root as output
     assert.propertyVal(witness, 'main.valid', '1');

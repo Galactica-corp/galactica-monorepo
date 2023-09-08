@@ -9,7 +9,6 @@ export * from './api/import-zk-cert';
 export * from './api/list-zk-certs';
 export * from './api/update-merkle-proof';
 
-
 export * from './api/types';
 export * from './api/zkpInputTypes';
 
@@ -18,4 +17,5 @@ export { sdkConfig, type SdkConfig } from './config';
 export { RpcMethods, RpcResponseErr } from './api/rpcEnums';
 
 export { GenericError } from './api/error';
-export { ConfirmationResponse, RpcResponseMsg } from './api/confirmation';
+export type { ConfirmationResponse } from './api/confirmation';
+export { RpcResponseMsg } from './api/confirmation';

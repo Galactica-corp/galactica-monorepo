@@ -7,7 +7,7 @@ describe('Polynomial', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(
-    readFileSync('./circuits/input/polynomial.json', 'utf8')
+    readFileSync('./circuits/input/polynomial.json', 'utf8'),
   );
 
   const sanityCheck = true;
@@ -23,20 +23,28 @@ describe('Polynomial', () => {
 
   it('computes correct results', async () => {
     const testInputs = [
-      {x: [3, 1, 56], coef: [2, 1, 1, 0, 0, 0, 0]},
-      {x: [2, 4, 0], coef: [2, 78, 1, 4, 78, 7, 9]},
-      {x: [2, 1, 7], coef: [5, 145, 78, 78, 432452, 2, 488]},
+      { x: [3, 1, 56], coef: [2, 1, 1, 0, 0, 0, 0] },
+      { x: [2, 4, 0], coef: [2, 78, 1, 4, 78, 7, 9] },
+      { x: [2, 1, 7], coef: [5, 145, 78, 78, 432452, 2, 488] },
     ];
     for (const testInput of testInputs) {
       const witness = await circuit.calculateWitness(testInput, sanityCheck);
       const expected: any = {};
-      for (let i = 0; i < testInput.x.length; i++){
-        expected[`y[${i}]`] = calculatePolynomial(testInput.x[i], testInput.coef).toString();
-      } 
+      for (let i = 0; i < testInput.x.length; i++) {
+        expected[`y[${i}]`] = calculatePolynomial(
+          testInput.x[i],
+          testInput.coef,
+        ).toString();
+      }
       await circuit.assertOut(witness, expected);
     }
   });
 
+  /**
+   *
+   * @param x
+   * @param coef
+   */
   function calculatePolynomial(x: number, coef: number[]): number {
     let res = 0;
     for (let i = 0; i < coef.length; i++) {

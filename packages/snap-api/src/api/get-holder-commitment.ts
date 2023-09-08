@@ -1,10 +1,10 @@
-import { invokeSnap } from '../utils/invoke-snap';
 import { RpcMethods } from './rpcEnums';
+import { invokeSnap } from '../utils/invoke-snap';
 
-export interface HolderCommitmentData {
+export type HolderCommitmentData = {
   holderCommitment: string;
   // TODO: add pubkey for encryption
-}
+};
 
 /**
  * GetHolderCommitment queries the commitment identifying the holder from the snap.

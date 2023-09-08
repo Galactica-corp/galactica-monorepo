@@ -1,8 +1,8 @@
-import { invokeSnap } from '../utils/invoke-snap';
 import { RpcMethods } from './rpcEnums';
 import { ZkCertStandard } from './types';
+import { invokeSnap } from '../utils/invoke-snap';
 
-export interface ZkCertListItem {
+export type ZkCertListItem = {
   providerPubKey: {
     ax: string;
     ay: string;

@@ -1,5 +1,5 @@
 import '@nomicfoundation/hardhat-toolbox';
-import "@nomicfoundation/hardhat-chai-matchers";
+import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
@@ -9,7 +9,6 @@ import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
 import './tasks/revokeZKKYC';
 import './tasks/reissueZKKYC';
-
 
 const config: HardhatUserConfig = {
   mocha: {
@@ -27,29 +26,29 @@ const config: HardhatUserConfig = {
   },
   networks: {
     galaTestnet: {
-      url: "https://evm-rpc-http-devnet-41233.galactica.com/",  // requires gala dev wireguard connection
+      url: 'https://evm-rpc-http-devnet-41233.galactica.com/', // requires gala dev wireguard connection
       accounts: [
         process.env.GalaTestnetDeployerPrivateKey!, // deployer
         process.env.GalaTestnetInstitution1PrivateKey!, // test institution for fraud investigation
         process.env.GalaTestnetInstitution2PrivateKey!, // test institution for fraud investigation
         process.env.GalaTestnetInstitution3PrivateKey!, // test institution for fraud investigation
       ],
-    }
+    },
   },
   etherscan: {
     apiKey: {
-      galaTestnet: "something"!, // not needed for now, I guess
+      galaTestnet: 'something'!, // not needed for now, I guess
     },
     customChains: [
       {
-        network: "galaTestnet",
+        network: 'galaTestnet',
         chainId: 41233,
         urls: {
-          apiURL: "https://explorer-devnet-41233.galactica.com/api",
-          browserURL: "https://explorer-devnet-41233.galactica.com/"
-        }
-      }
-    ]
+          apiURL: 'https://explorer-devnet-41233.galactica.com/api',
+          browserURL: 'https://explorer-devnet-41233.galactica.com/',
+        },
+      },
+    ],
   },
   circom: {
     // Base path for input files

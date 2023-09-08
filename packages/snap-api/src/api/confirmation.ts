@@ -1,9 +1,9 @@
 /**
  * Interface for returning a confirmation response on successful requests without another return type.
  */
-export interface ConfirmationResponse {
+export type ConfirmationResponse = {
   message: RpcResponseMsg;
-}
+};
 
 /**
  * Enum for string responses by the snap.

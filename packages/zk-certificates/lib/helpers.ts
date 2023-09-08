@@ -1,8 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import BigNumber from 'bignumber.js';
-import { utils } from 'ethers';
 import { Buffer } from 'buffer';
-
+import { utils } from 'ethers';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 /**
@@ -16,7 +15,7 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 export async function overwriteArtifact(
   hre: HardhatRuntimeEnvironment,
   contractName: string,
-  bytecode: string
+  bytecode: string,
 ): Promise<void> {
   const artifact = await hre.artifacts.readArtifact(contractName);
   artifact.bytecode = bytecode;
@@ -26,55 +25,78 @@ export async function overwriteArtifact(
 export const SNARK_SCALAR_FIELD =
   21888242871839275222246405745257275088548364400416034343698204186575808495617n;
 
+/**
+ *
+ * @param hex
+ */
 export function fromHexToDec(hex: string): string {
-  if (hex.slice(0, 2) === '0x') {
+  if (hex.startsWith('0x')) {
     return new BigNumber(hex.slice(2).toUpperCase(), 16).toString(10);
-  } else {
-    return new BigNumber(hex, 16).toString(10);
   }
+  return new BigNumber(hex, 16).toString(10);
 }
 
-export function fromDecToHex(dec: string, withPrefix: boolean = false): string {
+/**
+ *
+ * @param dec
+ * @param withPrefix
+ */
+export function fromDecToHex(dec: string, withPrefix = false): string {
   if (withPrefix) {
-    return '0x' + new BigNumber(dec, 10).toString(16);
-  } else {
-    return new BigNumber(dec, 10).toString(16);
+    return `0x${new BigNumber(dec, 10).toString(16)}`;
   }
+  return new BigNumber(dec, 10).toString(16);
 }
 
+/**
+ *
+ * @param hex
+ */
 export function fromHexToBytes32(hex: string): string {
   if (hex.length <= 64) {
-    return '0x' + new Array(64 - hex.length + 1).join(`0`) + hex;
-  } else {
-    throw new Error('hex string too long');
+    return `0x${new Array(64 - hex.length + 1).join(`0`)}${hex}`;
   }
+  throw new Error('hex string too long');
 }
 
+/**
+ *
+ * @param length
+ */
 export function generateRandomBytes32Array(length: number): string[] {
   const result = [];
   for (let i = 0; i < length; i++) {
-    result.push(fromHexToBytes32(Buffer.from(utils.randomBytes(32)).toString('hex')));
+    result.push(
+      fromHexToBytes32(Buffer.from(utils.randomBytes(32)).toString('hex')),
+    );
   }
   return result;
 }
 
+/**
+ *
+ * @param length
+ */
 export function generateRandomNumberArray(length: number): number[] {
   const result = [];
   for (let i = 0; i < length; i++) {
-    result.push(Number(fromHexToDec(Buffer.from(utils.randomBytes(2)).toString('hex'))));
+    result.push(
+      Number(fromHexToDec(Buffer.from(utils.randomBytes(2)).toString('hex'))),
+    );
   }
   return result;
 }
 
 /**
  * Hashes string to field number using poseidon. This is needed to break down the string into field elements that can be used in the circuit.
- * @param input string to be hashed
- * @param poseidon poseidon object for hashing (passed to avoid rebuilding with await)
+ *
+ * @param input - string to be hashed
+ * @param poseidon - poseidon object for hashing (passed to avoid rebuilding with await)
  * @returns field number as BigNumber
  */
 export function hashStringToFieldNumber(
   input: string,
-  poseidon: any
+  poseidon: any,
 ): BigNumber {
   // prepare string for hashing (poseidon requires an array of 1 to 16 numbers
   // to allow strings longer than 16, we compress 4 characters into one 32 bit number
@@ -94,7 +116,7 @@ export function hashStringToFieldNumber(
         const char = input.charCodeAt(i + j);
         if (char > 255) {
           throw new Error(
-            `Input string ${input} contains non-ascii character '${char}'`
+            `Input string ${input} contains non-ascii character '${char}'`,
           );
         }
         // shift bits into position (first character is in the most significant bits)
@@ -120,7 +142,7 @@ export function arrayToBigInt(array: Uint8Array): bigint {
   // Loop through each element in the array
   array.forEach((element) => {
     // Shift result bits left by 1 byte
-    result = result << 8n;
+    result <<= 8n;
 
     // Add element to result, filling the last bit positions
     result += BigInt(element);
@@ -139,7 +161,9 @@ export function bigIntToArray(bn: bigint): Uint8Array {
   let hex = BigInt(bn).toString(16);
 
   // If hex is odd length then add leading zero
-  if (hex.length % 2) hex = `0${hex}`;
+  if (hex.length % 2) {
+    hex = `0${hex}`;
+  }
 
   // Split into groups of 2 to create hex array
   const hexArray = hex.match(/.{2}/g) ?? [];
@@ -151,6 +175,10 @@ export function bigIntToArray(bn: bigint): Uint8Array {
 }
 
 // this function convert the proof output from snarkjs to parameter format for onchain solidity verifier
+/**
+ *
+ * @param proof
+ */
 export function processProof(proof: any) {
   const a = proof.pi_a.slice(0, 2).map((x: any) => fromDecToHex(x, true));
   // for some reason the order of coordinate is reverse
@@ -164,6 +192,10 @@ export function processProof(proof: any) {
 }
 
 // this function processes the public inputs
+/**
+ *
+ * @param publicSignals
+ */
 export function processPublicSignals(publicSignals: any) {
   return publicSignals.map((x: any) => fromDecToHex(x, true));
 }
