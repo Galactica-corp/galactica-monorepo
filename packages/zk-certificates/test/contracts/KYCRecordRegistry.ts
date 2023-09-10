@@ -22,6 +22,7 @@ describe('KYCRecordRegistry', () => {
   beforeEach(async () => {
     [deployer] = await hre.ethers.getSigners();
   });
+
   /**
    * Deploy fixtures
    *

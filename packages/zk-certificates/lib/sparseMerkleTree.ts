@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { SNARK_SCALAR_FIELD, arrayToBigInt } from './helpers';
+import keccak256 from 'keccak256';
 
-const keccak256 = require('keccak256');
+import { SNARK_SCALAR_FIELD, arrayToBigInt } from './helpers';
 
 /**
  * Class for managing and constructing merkle trees.
@@ -9,10 +9,13 @@ const keccak256 = require('keccak256');
 
 export class SparseMerkleTree {
   // Field of the curve used by Poseidon
-  F: any;
+  field: any;
 
   // hash value placeholder for empty merkle tree leaves
   emptyLeaf: string;
+
+  // Depth of the tree
+  depth: number;
 
   // hashes of empty branches
   emptyBranchLevels: string[];
@@ -20,16 +23,19 @@ export class SparseMerkleTree {
   // nodes of the tree as two layers dictionary
   tree: Record<number, Record<number, string>>;
 
+  // Poseidon instance to use for hashing
+  poseidon: any;
+
   /**
-   * Create a MerkleTree
+   * Create a MerkleTree.
    *
-   * @param depth - Depth of the tree
-   * @param poseidon - Poseidon instance to use for hashing
+   * @param depth - Depth of the tree.
+   * @param poseidon - Poseidon instance to use for hashing.
    */
-  constructor(public depth: number, private readonly poseidon: any) {
+  constructor(depth: number, poseidon: any) {
     this.depth = depth;
     this.poseidon = poseidon;
-    this.F = poseidon.F;
+    this.field = poseidon.F;
 
     this.emptyLeaf = (
       arrayToBigInt(keccak256('Galactica')) % SNARK_SCALAR_FIELD
@@ -48,11 +54,11 @@ export class SparseMerkleTree {
   }
 
   /**
-   * Retrieve leaf
+   * Retrieve node/leaf at certain index and level of the tree.
    *
-   * @param level - level numbered with depth contains the root
-   * @param index - index of the leaf in that level
-   * @returns content of the leaf
+   * @param level - Level numbered with depth contains the root.
+   * @param index - Index of the leaf in that level.
+   * @returns Content of the leaf.
    */
   retrieveLeaf(level: number, index: number): string {
     if (level < 0 || level > this.depth) {
@@ -74,21 +80,21 @@ export class SparseMerkleTree {
   }
 
   /**
-   * Calculate hash of a node from its left and right children
+   * Calculate hash of a node from its left and right children.
    *
-   * @param left - Left child of the node
-   * @param right - Right child of the node
-   * @returns Hash of the node
+   * @param left - Left child of the node.
+   * @param right - Right child of the node.
+   * @returns Hash of the node.
    */
   calculateNodeHash(left: string, right: string): string {
-    return this.F.toObject(this.poseidon([left, right])).toString();
+    return this.field.toObject(this.poseidon([left, right])).toString();
   }
 
   /**
-   * Calculate node hashes for empty branches of all depths
+   * Calculate node hashes for empty branches of all depths.
    *
-   * @param depth - Max depth to calculate
-   * @returns Array of hashes for empty branches with [0] being an empty leaf and [depth] being the root
+   * @param depth - Max depth to calculate.
+   * @returns Array of hashes for empty branches with [0] being an empty leaf and [depth] being the root.
    */
   calculateEmptyBranchHashes(depth: number): string[] {
     const levels: string[] = [];
@@ -105,20 +111,19 @@ export class SparseMerkleTree {
 
   /**
    * Insert leaves on certain indices into the tree and rebuilds the tree hashes up to the root.
+   * A more efficient way would be inserting individual leaves
+   * and updating hashes along the path to the root. This is not necessary for the current use case
+   * because inserting new leaves into an existing tree is done in the smart contract.
+   * Here in the frontend or backend you want to build a new tree from scratch.
    *
-   * @param indices- -
-   *  A more efficient way would be inserting individual leaves
-   *  and updating hashes along the path to the root. This is not necessary for the current use case
-   *  because inserting new leaves into an existing tree is done in the smart contract.
-   *  Here in the frontend or backend you want to build a new tree from scratch.
-   * @param indices
-   * @param leaves - Array of leaf hashes to insert
+   * @param leaves - Array of leaf hashes to insert.
+   * @param indices - Array of indices of the leaves to insert.
    */
   insertLeaves(leaves: string[], indices: number[]): void {
-    if (leaves.length != indices.length) {
+    if (leaves.length !== indices.length) {
       throw new Error('lengths of leaves and indices have to be equal');
     }
-    if (leaves.length == 0) {
+    if (leaves.length === 0) {
       return;
     }
     // insert leaves into new tree
@@ -130,19 +135,21 @@ export class SparseMerkleTree {
     for (let level = 0; level < this.depth; level += 1) {
       // recalculate level above
       for (const index in this.tree[level]) {
-        const indexNum = Number(index);
-        if (indexNum % 2 === 0) {
-          this.tree[level + 1][Math.floor(indexNum / 2)] =
-            this.calculateNodeHash(
-              this.retrieveLeaf(level, indexNum),
-              this.retrieveLeaf(level, indexNum + 1),
-            );
-        } else {
-          this.tree[level + 1][Math.floor(indexNum / 2)] =
-            this.calculateNodeHash(
-              this.retrieveLeaf(level, indexNum - 1),
-              this.retrieveLeaf(level, indexNum),
-            );
+        if (this.tree[level][index] !== undefined) {
+          const indexNum = Number(index);
+          if (indexNum % 2 === 0) {
+            this.tree[level + 1][Math.floor(indexNum / 2)] =
+              this.calculateNodeHash(
+                this.retrieveLeaf(level, indexNum),
+                this.retrieveLeaf(level, indexNum + 1),
+              );
+          } else {
+            this.tree[level + 1][Math.floor(indexNum / 2)] =
+              this.calculateNodeHash(
+                this.retrieveLeaf(level, indexNum - 1),
+                this.retrieveLeaf(level, indexNum),
+              );
+          }
         }
       }
     }
@@ -153,31 +160,31 @@ export class SparseMerkleTree {
   }
 
   /**
-   * Create a merkle proof for a leaf at certain index
+   * Create a merkle proof for a leaf at certain index.
    *
-   * @param index
-   * @param leaf - Hash of the leaf to prove
-   * @returns Merkle proof for the leaf
+   * @param leafIndex - Index of the leaf to prove.
+   * @returns Merkle proof for the leaf at the index.
    */
-  createProof(index: number): MerkleProof {
+  createProof(leafIndex: number): MerkleProof {
     const path = [];
     let pathIndices = 0;
-    const leaf = this.retrieveLeaf(0, index);
+    const leaf = this.retrieveLeaf(0, leafIndex);
 
+    let curIndex = leafIndex;
     // Walk up the tree to the root
     for (let level = 0; level < this.depth; level += 1) {
       // check side we are on
-      if (index % 2 === 0) {
+      if (curIndex % 2 === 0) {
         // if the index is even we are on the left and need to get the node from the right
-        path.push(this.retrieveLeaf(level, index + 1));
+        path.push(this.retrieveLeaf(level, curIndex + 1));
       } else {
-        path.push(this.retrieveLeaf(level, index - 1));
+        path.push(this.retrieveLeaf(level, curIndex - 1));
         // set bit indicating that we are on the right side of the parent node
         pathIndices |= 1 << level;
       }
 
       // Get index for next level
-      index = Math.floor(index / 2);
+      curIndex = Math.floor(curIndex / 2);
     }
 
     return {
@@ -190,7 +197,7 @@ export class SparseMerkleTree {
 }
 
 /**
- * Simple struct for a merkle proof
+ * Simple struct for a merkle proof.
  */
 export type MerkleProof = {
   leaf: string;

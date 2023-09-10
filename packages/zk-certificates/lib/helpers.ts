@@ -219,3 +219,16 @@ export function processProof(proof: any) {
 export function processPublicSignals(publicSignals: any) {
   return publicSignals.map((value: any) => fromDecToHex(value, true));
 }
+
+/**
+ * Command line helper to print progress in percent.
+ *
+ * @param progress - Progress in percent.
+ */
+export function printProgress(progress: string) {
+  /* eslint-disable no-restricted-globals */
+  process.stdout.clearLine(-1);
+  process.stdout.cursorTo(0);
+  process.stdout.write(`${progress}%`);
+  /* eslint-enable no-restricted-globals */
+}

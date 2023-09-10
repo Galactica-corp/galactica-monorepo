@@ -1,6 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
 
+import { printProgress } from './helpers';
 import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 
 /**
@@ -17,10 +18,12 @@ export type LeafLogResult = {
   index: bigint;
 };
 /**
+ * Get Merkle tree leaves by reading blockchain log.
  *
- * @param ethers
- * @param contractAddr
- * @param firstBlock
+ * @param ethers - Ethers instance.
+ * @param contractAddr - Address of the RecordRegistry contract.
+ * @param firstBlock - First block to query (optional, ideally the contract creation block).
+ * @returns Promise of an LeafLogResult array of Merkle tree leaves.
  */
 export async function queryOnChainLeaves(
   ethers: HardhatEthersHelpers,
@@ -105,14 +108,4 @@ export async function queryOnChainLeaves(
   printProgress(`100`);
   console.log(``);
   return res;
-}
-
-/**
- *
- * @param progress
- */
-function printProgress(progress: string) {
-  process.stdout.clearLine(-1);
-  process.stdout.cursorTo(0);
-  process.stdout.write(`${progress}%`);
 }

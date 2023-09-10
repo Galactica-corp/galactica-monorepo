@@ -1,19 +1,21 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { MerkleProof } from '@galactica-net/galactica-types';
+import keccak256 from 'keccak256';
 
 import { SNARK_SCALAR_FIELD, arrayToBigInt } from './helpers';
-
-const keccak256 = require('keccak256');
 
 /**
  * Class for managing and constructing merkle trees.
  */
 export class MerkleTree {
   // Field of the curve used by Poseidon
-  F: any;
+  field: any;
 
   // hash value placeholder for empty merkle tree leaves
   emptyLeaf: string;
+
+  // Depth of the tree
+  depth: number;
 
   // hashes of empty branches
   emptyBranchLevels: string[];
@@ -21,16 +23,19 @@ export class MerkleTree {
   // nodes of the tree as array of levels each containing an array of hashes
   tree: string[][];
 
+  // Poseidon instance to use for hashing
+  poseidon: any;
+
   /**
-   * Create a MerkleTree
+   * Creates a MerkleTree.
    *
-   * @param depth - Depth of the tree
-   * @param poseidon - Poseidon instance to use for hashing
+   * @param depth - Depth of the tree.
+   * @param poseidon - Poseidon instance to use for hashing.
    */
-  constructor(public depth: number, private readonly poseidon: any) {
+  constructor(depth: number, poseidon: any) {
     this.depth = depth;
     this.poseidon = poseidon;
-    this.F = poseidon.F;
+    this.field = poseidon.F;
 
     this.emptyLeaf = (
       arrayToBigInt(keccak256('Galactica')) % SNARK_SCALAR_FIELD
@@ -49,21 +54,21 @@ export class MerkleTree {
   }
 
   /**
-   * Calculate hash of a node from its left and right children
+   * Calculate hash of a node from its left and right children.
    *
-   * @param left - Left child of the node
-   * @param right - Right child of the node
-   * @returns Hash of the node
+   * @param left - Left child of the node.
+   * @param right - Right child of the node.
+   * @returns Hash of the node.
    */
   calculateNodeHash(left: string, right: string): string {
-    return this.F.toObject(this.poseidon([left, right])).toString();
+    return this.field.toObject(this.poseidon([left, right])).toString();
   }
 
   /**
-   * Calculate node hashes for empty branches of all depths
+   * Calculate node hashes for empty branches of all depths.
    *
-   * @param depth - Max depth to calculate
-   * @returns Array of hashes for empty brancheswith [0] being an empty leaf and [depth] being the root
+   * @param depth - Max depth to calculate.
+   * @returns Array of hashes for empty branches with [0] being an empty leaf and [depth] being the root.
    */
   calculateEmptyBranchHashes(depth: number): string[] {
     const levels: string[] = [];
@@ -80,15 +85,15 @@ export class MerkleTree {
 
   /**
    * Insert leaves into the tree and rebuilds the tree hashes up to the root.
-   *  A more efficient way would be inserting individual leaves
-   *  and updating hashes along the path to the root. This is not necessary for the curret use case
-   *  because inserting new leaves into an existing tree is done in the smart contract.
-   *  Here in the frontend or backend you want to build a new tree from scratch.
+   * A more efficient way would be inserting individual leaves
+   * and updating hashes along the path to the root. This is not necessary for the curret use case
+   * because inserting new leaves into an existing tree is done in the smart contract.
+   * Here in the frontend or backend you want to build a new tree from scratch.
    *
-   * @param leaves - Array of leaf hashes to insert
+   * @param leaves - Array of leaf hashes to insert.
    */
   insertLeaves(leaves: string[]): void {
-    if (leaves.length == 0) {
+    if (leaves.length === 0) {
       return;
     }
     // insert leaves into new tree
@@ -118,10 +123,10 @@ export class MerkleTree {
   }
 
   /**
-   * Create a merkle proof for a leaf
+   * Create a merkle proof for a leaf.
    *
-   * @param leaf - Hash of the leaf to prove
-   * @returns Merkle proof for the leaf
+   * @param leaf - Hash of the leaf to prove.
+   * @returns Merkle proof for the leaf.
    */
   createProof(leaf: string): MerkleProof {
     const path = [];

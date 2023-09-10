@@ -29,15 +29,15 @@ export function reconstructShamirSecret(
   let sum = field.e(0);
   for (let j = 0; j < k; j++) {
     let product = field.e(1);
-    for (let m = 0; m < k; m++) {
-      if (m == j) {
+    for (let i = 0; i < k; i++) {
+      if (i === j) {
         continue;
       }
       product = field.mul(
         product,
         field.div(
-          field.e(shares[m][0]),
-          field.sub(field.e(shares[m][0]), field.e(shares[j][0])),
+          field.e(shares[i][0]),
+          field.sub(field.e(shares[i][0]), field.e(shares[j][0])),
         ),
       );
     }

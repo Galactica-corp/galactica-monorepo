@@ -1,15 +1,4 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-/**
- * SNARK efficient encryption and decryption with mimc in sponge mode.
- * Merged circomlibjs with version from https://github.com/iden3/circomlib/pull/16
- *
- * TODO: This should be audited before using in production with real user data.
- * The MimcEncrypt only encrypts a single field element. If we need to encrypt more
- *  it might make sense in the future to take a look at Poseidon encryption:
- *  - spec: https://drive.google.com/file/d/1EVrP3DzoGbmzkRmYnyEDcIQcXVU7GlOd/view
- *  - implementation (not audited and not compatible as is): https://github.com/iden3/circomlib/pull/60
- */
-
 import { utils } from 'ethers';
 import { Scalar, getCurveFromName } from 'ffjavascript';
 
@@ -17,13 +6,15 @@ const SEED = 'mimcsponge';
 const NROUNDS = 220;
 
 /**
+ * SNARK efficient encryption and decryption with mimc in sponge mode.
+ * Merged circomlibjs with version from https://github.com/iden3/circomlib/pull/16
  *
+ * TODO: This should be audited before using in production with real user data.
+ * The MimcEncrypt only encrypts a single field element. If we need to encrypt more
+ * it might make sense in the future to take a look at Poseidon encryption:
+ * - spec: https://drive.google.com/file/d/1EVrP3DzoGbmzkRmYnyEDcIQcXVU7GlOd/view
+ * - implementation (not audited and not compatible as is): https://github.com/iden3/circomlib/pull/60
  */
-export async function buildMimcSponge() {
-  const bn128 = await getCurveFromName('bn128', true);
-  return new MimcEncrypt(bn128.Fr);
-}
-
 export class MimcEncrypt {
   F: any;
 
@@ -146,4 +137,14 @@ export class MimcEncrypt {
     }
     return outputs;
   }
+}
+
+/**
+ * Build a mimc sponge instance.
+ *
+ * @returns Promise of a mimc sponge instance.
+ */
+export async function buildMimcSponge() {
+  const bn128 = await getCurveFromName('bn128', true);
+  return new MimcEncrypt(bn128.Fr);
 }
