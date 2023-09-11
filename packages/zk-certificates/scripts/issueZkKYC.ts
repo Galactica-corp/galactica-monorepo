@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import { fromDecToHex, fromHexToBytes32 } from '../lib/helpers';
 
 /**
- *
+ * Script to issue zkKYC records on-chain.
  */
 async function main() {
   // parameters

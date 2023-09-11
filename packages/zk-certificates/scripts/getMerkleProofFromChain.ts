@@ -5,7 +5,7 @@ import { queryOnChainLeaves } from '../lib/queryMerkleTree';
 import { SparseMerkleTree } from '../lib/sparseMerkleTree';
 
 /**
- * Script for creating a merkle tree for testing from a list of UTXOs, benchmark version
+ * Script for creating a merkle tree for testing from a list of UTXOs, benchmark version.
  */
 async function main() {
   const registryAddress = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';
@@ -22,8 +22,8 @@ async function main() {
   // build merkle tree
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
   const leafLogResults = await queryOnChainLeaves(ethers, registryAddress);
-  const leafHashes = leafLogResults.map((x) => x.leafHash);
-  const leafIndices = leafLogResults.map((x) => Number(x.index));
+  const leafHashes = leafLogResults.map((log) => log.leafHash);
+  const leafIndices = leafLogResults.map((log) => Number(log.index));
   const batchSize = 10_000;
   for (let i = 0; i < leafLogResults.length; i += batchSize) {
     merkleTree.insertLeaves(
@@ -32,7 +32,7 @@ async function main() {
     );
   }
 
-  console.log(`Merkle leaves: ${merkleTree.tree[0]}`);
+  // console.log(`Merkle leaves: ${merkleTree.tree[0]}`);
 
   // create Merkle proofs
   for (const leaf of leavesToProve) {

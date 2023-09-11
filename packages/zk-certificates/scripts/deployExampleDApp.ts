@@ -6,7 +6,7 @@ import { deploySC } from '../lib/hardhatHelpers';
 const { log } = console;
 
 /**
- *
+ * Script to deploy the example DApp, a smart contract requiring zkKYC + age proof to airdrop tokens once to each user.
  */
 async function main() {
   // parameters

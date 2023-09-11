@@ -2529,6 +2529,8 @@ __metadata:
     bignumber.js: ^9.0.1
     blake-hash: ^2.0.0
     buffer: ^6.0.3
+    camelcase: ^6.3.0
+    chai: ^4.3.8
     chalk: ^4
     circom2: ^0.2.13
     circomlib: ^2.0.5
@@ -8259,7 +8261,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^4.2.0, chai@npm:^4.3.7":
+"chai@npm:^4.2.0, chai@npm:^4.3.7, chai@npm:^4.3.8":
   version: 4.3.8
   resolution: "chai@npm:4.3.8"
   dependencies:

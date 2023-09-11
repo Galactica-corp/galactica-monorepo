@@ -12,16 +12,16 @@ describe('MiMC Sponge Encryption test', function () {
   describe('JS code', function () {
     let xL: any, xR: any, key: any, keyW: any;
     let mimcjs: any;
-    let F: any;
+    let field: any;
 
     before(async () => {
       mimcjs = await buildMimcSponge();
-      F = mimcjs.F;
+      field = mimcjs.F;
 
-      xL = F.e(ethers.utils.id('left').toString());
-      xR = F.e(ethers.utils.id('right').toString());
-      key = F.e(ethers.utils.id('key').toString());
-      keyW = F.e(ethers.utils.id('keyW').toString());
+      xL = field.e(ethers.utils.id('left').toString());
+      xR = field.e(ethers.utils.id('right').toString());
+      key = field.e(ethers.utils.id('key').toString());
+      keyW = field.e(ethers.utils.id('keyW').toString());
     });
 
     it('should encrypt and decrypt with same key', async () => {
@@ -81,7 +81,7 @@ describe('MiMC Sponge Encryption test', function () {
     let sampleInput: any;
     let xL: any, xR: any, key: any;
     let mimcjs: any;
-    let F: any;
+    let field: any;
 
     before(async () => {
       // setup mimc circuit
@@ -92,11 +92,11 @@ describe('MiMC Sponge Encryption test', function () {
 
       // setup mimcjs
       mimcjs = await buildMimcSponge();
-      F = mimcjs.F;
+      field = mimcjs.F;
 
-      xL = F.e(sampleInput.xL_in.toString());
-      xR = F.e(sampleInput.xR_in.toString());
-      key = F.e(sampleInput.k.toString());
+      xL = field.e(sampleInput.xL_in.toString());
+      xR = field.e(sampleInput.xR_in.toString());
+      key = field.e(sampleInput.k.toString());
     });
 
     it('should have the same result as mimc js', async () => {
@@ -111,12 +111,12 @@ describe('MiMC Sponge Encryption test', function () {
       assert.propertyVal(
         witness,
         'main.xL_out',
-        F.toObject(expected.xL).toString(),
+        field.toObject(expected.xL).toString(),
       );
       assert.propertyVal(
         witness,
         'main.xR_out',
-        F.toObject(expected.xR).toString(),
+        field.toObject(expected.xR).toString(),
       );
     });
   });

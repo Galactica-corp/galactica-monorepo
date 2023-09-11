@@ -21,14 +21,12 @@ import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { queryOnChainLeaves } from '../lib/queryMerkleTree';
 import { SparseMerkleTree } from '../lib/sparseMerkleTree';
 import { ZKCertificate } from '../lib/zkCertificate';
-import { KYCCenterRegistry } from '../typechain-types/contracts/KYCCenterRegistry';
-import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 
 /**
  * Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.
  *
- * @param hre
- * @param args - See task definition below or 'npx hardhat reissueZkKYC --help'
+ * @param args - See task definition below or 'npx hardhat reissueZkKYC --help'.
+ * @param hre - Hardhat runtime environment.
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log('Creating zkKYC certificate');
@@ -43,9 +41,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log('holderCommitment', args.holderCommitment);
   console.log('randomSalt', args.randomSalt);
 
-  console.log(`reading KYC data from ${args.kycDataFile}`);
+  console.log(`reading KYC data from ${args.kycDataFile as string}`);
   const data = JSON.parse(fs.readFileSync(args.kycDataFile, 'utf-8'));
-  console.log('input data', data);
+  console.log('input data', JSON.stringify(data, null, 2));
 
   const eddsa = await buildEddsa();
 
@@ -66,7 +64,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   ];
   const zkKYCFields: Record<string, any> = {};
   for (const field of zkKYCContentFields.filter(
-    (field) => !exceptions.includes(field),
+    (content) => !exceptions.includes(content),
   )) {
     if (data[field] === undefined) {
       throw new Error(`Field ${field} missing in KYC data`);
@@ -152,8 +150,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     hre.ethers,
     recordRegistry.address,
   ); // TODO: provide first block to start querying from to speed this up
-  const leafHashes = leafLogResults.map((x) => x.leafHash);
-  const leafIndices = leafLogResults.map((x) => Number(x.index));
+  const leafHashes = leafLogResults.map((value) => value.leafHash);
+  const leafIndices = leafLogResults.map((value) => Number(value.index));
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
   const batchSize = 10_000;
   console.log(`Adding leaves to the merkle tree`);
@@ -166,13 +164,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   if (merkleTree.retrieveLeaf(0, args.index) !== fromHexToDec(oldLeafBytes)) {
     console.log(
-      `the current leaf hash at index ${args.index} does not correspond with the outdated zkKYC Cert we want to update`,
+      `the current leaf hash at index ${
+        args.index as number
+      } does not correspond with the outdated zkKYC Cert we want to update`,
     );
     console.log(
-      `current leaf hash at index ${args.index}: ${merkleTree.retrieveLeaf(
-        0,
-        args.index,
-      )}`,
+      `current leaf hash at index ${
+        args.index as number
+      }: ${merkleTree.retrieveLeaf(0, args.index)}`,
     );
     console.log(`outdated zkKYC Cert leaf hash: ${oldLeafBytes}`);
     return;
@@ -183,7 +182,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   let tx = await recordRegistry.revokeZkKYCRecord(
     args.index,
     oldLeafBytes,
-    oldMerkleProof.path.map((x) => fromHexToBytes32(fromDecToHex(x))),
+    oldMerkleProof.path.map((value) => fromHexToBytes32(fromDecToHex(value))),
   );
   await tx.wait();
   console.log(chalk.green(`revoked old zkKYC certificate ${oldZkKYC.did}`));
@@ -194,12 +193,16 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   tx = await recordRegistry.addZkKYCRecord(
     args.index,
     newLeafBytes,
-    emptiedMerkleProof.path.map((x) => fromHexToBytes32(fromDecToHex(x))),
+    emptiedMerkleProof.path.map((value) =>
+      fromHexToBytes32(fromDecToHex(value)),
+    ),
   );
   await tx.wait();
   console.log(
     chalk.green(
-      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${args.index} with new expiration date ${args.newExpirationDate}`,
+      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${
+        args.index as number
+      } with new expiration date ${args.newExpirationDate as number}`,
     ),
   );
   console.log(chalk.green('ZkKYC (reissued, including merkle proof)'));
@@ -216,7 +219,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     pathIndices: newMerkleProof.pathIndices,
     pathElements: newMerkleProof.path,
   };
-  const outputFileName =
+  const outputFileName: string =
     args.outputFile || `issuedZkKYCs/${newZkKYC.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
   fs.writeFileSync(outputFileName, JSON.stringify(output, null, 2));

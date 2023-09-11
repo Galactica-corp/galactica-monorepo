@@ -43,19 +43,21 @@ describe('ECDH shared key derivation', () => {
     // same key for alice and bob
     const sharedKeyAB = generateEcdhSharedKey(alicePriv, bobPub, eddsa);
     const sharedKeyBA = generateEcdhSharedKey(bobPriv, alicePub, eddsa);
-    for (const i in [0, 1]) {
+    for (const i of [0, 1]) {
       expect(sharedKeyAB[i]).to.equal(sharedKeyBA[i]);
     }
 
     const witness = await circuit.calculateLabeledWitness(
       {
         privKey: formatPrivKeyForBabyJub(alicePriv, eddsa),
-        pubKey: bobPub.map((p: any) => eddsa.poseidon.F.toObject(p).toString()),
+        pubKey: bobPub.map((pubKey: any) =>
+          eddsa.poseidon.F.toObject(pubKey).toString(),
+        ),
       },
       sanityCheck,
     );
 
-    for (const i in [0, 1]) {
+    for (const i of [0, 1]) {
       assert.propertyVal(witness, `main.sharedKey[${i}]`, sharedKeyAB[i]);
     }
   });

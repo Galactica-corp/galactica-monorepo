@@ -2,9 +2,8 @@
 import { ethers } from 'hardhat';
 
 /**
- * Script for creating a promocodes
- *
- * @dev Just modify the prefix to get different codes. It should be long enough so avoid brute force attacks
+ * Script for creating promo-codes.
+ * Just modify the prefix to get different codes. It should be long enough so avoid brute force attacks.
  */
 async function main() {
   const basePrefix = 'PutPrefixHere_';
@@ -16,7 +15,7 @@ async function main() {
     const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(base));
     const promoCode = hash.toUpperCase().slice(2, 2 + length);
 
-    // to prevent frontrunning, we need to do a bit more than putting the verification code on chain.
+    // To prevent frontrunning, we need to do a bit more than putting the verification code on chain.
     // Options are using a zk proof including the recipients address or redeeming the code off chain.
     // const verificationHash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(promoCode));
     console.log(`${base}\t${promoCode}`);

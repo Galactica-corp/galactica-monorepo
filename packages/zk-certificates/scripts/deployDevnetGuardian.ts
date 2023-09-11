@@ -29,7 +29,7 @@ async function main() {
     'KYCCenterRegistry',
     centerRegistryAddr,
   );
-  centerRegistry.grantKYCCenterRole(devnetGuardian.address);
+  await centerRegistry.grantKYCCenterRole(devnetGuardian.address);
   log(`DevnetGuardian whitelisted as KYC Guardian in KYCCenterRegistry`);
 }
 

@@ -1,6 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { poseidonContract } from 'circomlibjs';
-import { buildEddsa } from 'circomlibjs';
+import { buildEddsa, poseidonContract } from 'circomlibjs';
 import hre from 'hardhat';
 
 import { deploySC } from '../lib/hardhatHelpers';
@@ -10,7 +9,15 @@ import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 const { log } = console;
 
 /**
- *
+ * Script to deploy the infrastructure for zkKYC.
+ * Including:
+ * - PoseidonT3 hash function
+ * - KYCCenterRegistry
+ * - KYCRecordRegistry
+ * - ExampleMockDAppVerifier
+ * - 3 example institutions for fraud investigation
+ * - AgeProofZkKYC
+ * - VerificationSBT.
  */
 async function main() {
   // wallets
@@ -54,21 +61,21 @@ async function main() {
     const eddsa = await buildEddsa();
     let institutionPub = eddsa.prv2pub(institutionPrivKey);
     // convert pubkey uint8array to decimal string
-    institutionPub = institutionPub.map((x: Uint8Array) =>
-      eddsa.poseidon.F.toObject(x).toString(),
+    institutionPub = institutionPub.map((pubKey: Uint8Array) =>
+      eddsa.poseidon.F.toObject(pubKey).toString(),
     );
     console.log('Institution pubkey: ', institutionPub);
     await galacticaInstitution.setInstitutionPubkey(institutionPub);
     institutionContracts.push(galacticaInstitution);
   }
 
-  const ageProofZkKYC = await deploySC('AgeProofZkKYC', true, {}, [
+  await deploySC('AgeProofZkKYC', true, {}, [
     deployer.address,
     zkpVerifier.address,
     recordRegistry.address,
-    institutionContracts.map((x) => x.address),
+    institutionContracts.map((contract) => contract.address),
   ]);
-  const verificationSBT = await deploySC('VerificationSBT', true);
+  await deploySC('VerificationSBT', true);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

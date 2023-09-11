@@ -41,14 +41,15 @@ describe('Polynomial', () => {
   });
 
   /**
+   * Calculates the polynomial for a given x and coefficients.
    *
-   * @param x
-   * @param coef
+   * @param xVal - The x value to evaluate at.
+   * @param coef - The coefficients of the polynomial.
    */
-  function calculatePolynomial(x: number, coef: number[]): number {
+  function calculatePolynomial(xVal: number, coef: number[]): number {
     let res = 0;
     for (let i = 0; i < coef.length; i++) {
-      res += coef[i] * Math.pow(x, i);
+      res += coef[i] * Math.pow(xVal, i);
     }
     return res;
   }

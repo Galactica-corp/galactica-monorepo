@@ -24,8 +24,8 @@ import { ZKCertificate } from '../lib/zkCertificate';
 /**
  * Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
  *
- * @param hre
- * @param args - See task definition below or 'npx hardhat createZkKYC --help'
+ * @param args - See task definition below or 'npx hardhat createZkKYC --help'.
+ * @param hre - Hardhat runtime environment.
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log('Creating zkKYC certificate');
@@ -40,7 +40,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log('holderCommitment', args.holderCommitment);
   console.log('randomSalt', args.randomSalt);
 
-  console.log(`reading KYC data from ${args.kycDataFile}`);
+  console.log(`reading KYC data from ${args.kycDataFile as string}`);
   const data = JSON.parse(fs.readFileSync(args.kycDataFile, 'utf-8'));
   console.log('input data', data);
 
@@ -63,7 +63,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   ];
   const zkKYCFields: Record<string, any> = {};
   for (const field of zkKYCContentFields.filter(
-    (field) => !exceptions.includes(field),
+    (content) => !exceptions.includes(content),
   )) {
     if (data[field] === undefined) {
       throw new Error(`Field ${field} missing in KYC data`);
@@ -139,8 +139,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     hre.ethers,
     recordRegistry.address,
   ); // TODO: provide first block to start querying from to speed this up
-  const leafHashes = leafLogResults.map((x) => x.leafHash);
-  const leafIndices = leafLogResults.map((x) => Number(x.index));
+  const leafHashes = leafLogResults.map((value) => value.leafHash);
+  const leafIndices = leafLogResults.map((value) => Number(value.index));
   // console.log(`leafHashes ${JSON.stringify(leafHashes)}`);
   // console.log(`leafIndices ${JSON.stringify(leafIndices)}`);
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
@@ -159,7 +159,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   leafIndices.sort();
   // if the list is not empty and the first index is 0 then we proceed to find the gap
   // otherwise the index remains 0
-  if (leafIndices.length >= 1 && leafIndices[0] == 0) {
+  if (leafIndices.length >= 1 && leafIndices[0] === 0) {
     for (let i = 0; i < leafIndices.length - 1; i++) {
       if (leafIndices[i + 1] - leafIndices[i] >= 2) {
         index = leafIndices[i] + 1;
@@ -167,7 +167,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       }
     }
     // if the index is not assigned in the for loop yet, i.e. there is no gap in the indices array
-    if (index == 0) {
+    if (index === 0) {
       index = leafIndices[leafIndices.length - 1] + 1;
     }
   }
@@ -180,7 +180,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const tx = await recordRegistry.addZkKYCRecord(
     index,
     leafBytes,
-    merkleProof.path.map((x) => fromHexToBytes32(fromDecToHex(x))),
+    merkleProof.path.map((value) => fromHexToBytes32(fromDecToHex(value))),
   );
   await tx.wait();
   console.log(
@@ -204,7 +204,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     pathIndices: merkleProof.pathIndices,
     pathElements: merkleProof.path,
   };
-  const outputFileName =
+  const outputFileName: string =
     args.outputFile || `issuedZkKYCs/${zkKYC.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
   fs.writeFileSync(outputFileName, JSON.stringify(output, null, 2));

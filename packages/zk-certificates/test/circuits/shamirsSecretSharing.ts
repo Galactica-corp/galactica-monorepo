@@ -35,20 +35,16 @@ describe("Shamir's secret sharing", () => {
     const testInputs = [
       { secret: 3, salt: 15649468315 },
       { secret: 0, salt: 48946548941654 },
-      { secret: 486481648, salt: 16841814841235345 },
+      { secret: 486481648, salt: 168418148412355 },
     ];
     for (const testInput of testInputs) {
-      const { _, publicSignals } = await groth16.fullProve(
-        testInput,
-        wasmPath,
-        zkeyPath,
-      );
+      const proof = await groth16.fullProve(testInput, wasmPath, zkeyPath);
 
       expect(
         reconstructShamirSecret(eddsa.F, 3, [
-          [1, publicSignals[0]],
-          [2, publicSignals[1]],
-          [3, publicSignals[2]],
+          [1, proof.publicSignals[0]],
+          [2, proof.publicSignals[1]],
+          [3, proof.publicSignals[2]],
         ]),
       ).to.equal(testInput.secret.toString());
     }
@@ -56,39 +52,31 @@ describe("Shamir's secret sharing", () => {
 
   it('fails to reconstruct with invalid fragments', async () => {
     const testInput = { secret: 3, salt: 15649468315 };
-    const { _, publicSignals } = await groth16.fullProve(
-      testInput,
-      wasmPath,
-      zkeyPath,
-    );
+    const proof = await groth16.fullProve(testInput, wasmPath, zkeyPath);
     expect(
       reconstructShamirSecret(eddsa.F, 3, [
-        [1, publicSignals[0]],
+        [1, proof.publicSignals[0]],
         [2, '345278543'],
-        [3, publicSignals[2]],
+        [3, proof.publicSignals[2]],
       ]),
     ).to.not.equal(testInput.secret.toString());
   });
 
   it('same secret no matter which fragments are used', async () => {
     const testInput = { secret: 468146, salt: 45648916549816548 };
-    const { _, publicSignals } = await groth16.fullProve(
-      testInput,
-      wasmPath,
-      zkeyPath,
-    );
+    const proof = await groth16.fullProve(testInput, wasmPath, zkeyPath);
     expect(
       reconstructShamirSecret(eddsa.F, 3, [
-        [1, publicSignals[0]],
-        [2, publicSignals[1]],
-        [3, publicSignals[2]],
+        [1, proof.publicSignals[0]],
+        [2, proof.publicSignals[1]],
+        [3, proof.publicSignals[2]],
       ]),
     ).to.equal(testInput.secret.toString());
     expect(
       reconstructShamirSecret(eddsa.F, 3, [
-        [3, publicSignals[2]],
-        [4, publicSignals[3]],
-        [5, publicSignals[4]],
+        [3, proof.publicSignals[2]],
+        [4, proof.publicSignals[3]],
+        [5, proof.publicSignals[4]],
       ]),
     ).to.equal(testInput.secret.toString());
   });

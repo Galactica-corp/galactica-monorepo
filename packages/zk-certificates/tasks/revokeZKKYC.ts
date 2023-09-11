@@ -8,14 +8,12 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { fromDecToHex, fromHexToBytes32 } from '../lib/helpers';
 import { queryOnChainLeaves } from '../lib/queryMerkleTree';
 import { SparseMerkleTree } from '../lib/sparseMerkleTree';
-import { KYCCenterRegistry } from '../typechain-types/contracts/KYCCenterRegistry';
-import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 
 /**
  * Script for revoking a zkKYC certificate, issuing it and adding a merkle proof for it.
  *
- * @param hre
- * @param args - See task definition below or 'npx hardhat createZkKYC --help'
+ * @param args - See task definition below or 'npx hardhat createZkKYC --help'.
+ * @param hre - Hardhat runtime environment.
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log('Revoking zkKYC certificate');
@@ -62,8 +60,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     hre.ethers,
     recordRegistry.address,
   ); // TODO: provide first block to start querying from to speed this up
-  const leafHashes = leafLogResults.map((x) => x.leafHash);
-  const leafIndices = leafLogResults.map((x) => Number(x.index));
+  const leafHashes = leafLogResults.map((value) => value.leafHash);
+  const leafIndices = leafLogResults.map((value) => Number(value.index));
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
   const batchSize = 10_000;
   for (let i = 0; i < leafLogResults.length; i += batchSize) {
@@ -85,12 +83,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const tx = await recordRegistry.revokeZkKYCRecord(
     args.index,
     fromDecToHex(args.leafHash, true),
-    merkleProof.path.map((x) => fromHexToBytes32(fromDecToHex(x))),
+    merkleProof.path.map((value) => fromHexToBytes32(fromDecToHex(value))),
   );
   await tx.wait();
   console.log(
     chalk.green(
-      `Revoked the zkKYC certificate ${args.leafHash} on chain at index ${args.index}`,
+      `Revoked the zkKYC certificate ${
+        args.leafHash as string
+      } on chain at index ${args.index as number}`,
     ),
   );
 

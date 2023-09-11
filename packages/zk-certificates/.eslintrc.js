@@ -34,6 +34,26 @@ module.exports = {
         '@typescript-eslint/prefer-for-of': 0,
       },
     },
+    {
+      files: ['scripts/verifyProofTest.ts'],
+      rules: {
+        // accepting naming given by snarkjs
+        '@typescript-eslint/naming-convention': 0,
+        camelcase: 0,
+      },
+    },
+    {
+      files: ['tasks/*.ts'],
+      rules: {
+        'no-restricted-globals': 0, // hardhat script can use process
+      },
+    },
+    {
+      files: ['test/circuits/*.ts'],
+      rules: {
+        'jest/expect-expect': 0, // accept tests that only try to run through without causing exceptions
+      },
+    },
   ],
 
   ignorePatterns: ['!.eslintrc.js', 'build/', 'gatsby*'],

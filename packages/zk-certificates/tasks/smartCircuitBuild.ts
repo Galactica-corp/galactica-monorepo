@@ -6,13 +6,15 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
 /**
- * @param hre- -
- * Script (re)building circom circuits when needed
- * @param hre
+ * Script (re)building circom circuits when needed.
+ *
+ * @param args - Task arguments.
+ * @param hre - Hardhat runtime environment.
  */
 async function smartCircuitBuild(
-  // place for task arguments:
-  {}: {},
+  // place for task arguments ignored because not needed yet
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  args: any,
   hre: HardhatRuntimeEnvironment,
 ) {
   console.log('Smart circuit build:');
@@ -101,9 +103,7 @@ async function smartCircuitBuild(
       }
     }
 
-    if (!buildNeeded) {
-      console.log(`${circuit.name} is up to date`);
-    } else {
+    if (buildNeeded) {
       console.log(
         `Compiling circuit ${circuit.name}. This might take a while...`,
       );
@@ -127,6 +127,8 @@ async function smartCircuitBuild(
         JSON.stringify(circuit, null, 2),
         'utf8',
       );
+    } else {
+      console.log(`${circuit.name} is up to date`);
     }
   }
 
@@ -145,10 +147,11 @@ task(
 });
 
 /**
- * @param rootCircuit
- * @param visited- -
- * Helper function to recursively find all imported files
- * @param visited
+ * Helper function to recursively find all imported files.
+ *
+ * @param rootCircuit - Circuit file to start with.
+ * @param visited - List of already visited files.
+ * @returns List of all imported files.
  */
 function findAllImportedSourceFiles(
   rootCircuit: string,

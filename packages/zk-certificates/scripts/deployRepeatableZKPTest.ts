@@ -6,7 +6,7 @@ import { deploySC } from '../lib/hardhatHelpers';
 const { log } = console;
 
 /**
- *
+ * Script to deploy the example DApp, a smart contract requiring zkKYC to issue a verification SBT, repeatably.
  */
 async function main() {
   // parameters

@@ -39,7 +39,7 @@ describe('Authorization Component', () => {
   });
 
   it('has verified the signature successfully', async () => {
-    const witness = await circuit.calculateWitness(sampleInput, sanityCheck);
+    await circuit.calculateWitness(sampleInput, sanityCheck);
   });
 
   it('identifies invalid signatures correctly', async () => {
@@ -58,10 +58,7 @@ describe('Authorization Component', () => {
     const holder = (await ethers.getSigners())[5];
 
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
-    const holderCommitment = await createHolderCommitment(
-      eddsa,
-      holderEdDSAKey,
-    );
+    const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
     const { userAddress } = sampleInput;
     const zkKYC = new ZKCertificate(
       holderCommitment,

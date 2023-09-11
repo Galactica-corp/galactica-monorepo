@@ -62,10 +62,7 @@ describe('Ownership Component', () => {
     const holder = (await ethers.getSigners())[5];
 
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
-    const holderCommitment = await createHolderCommitment(
-      eddsa,
-      holderEdDSAKey,
-    );
+    const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
     const zkKYC = new ZKCertificate(
       holderCommitment,
       ZkCertStandard.zkKYC,

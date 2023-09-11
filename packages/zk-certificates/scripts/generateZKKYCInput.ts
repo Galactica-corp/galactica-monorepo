@@ -31,14 +31,18 @@ export const fields = {
 };
 
 /**
+ * Generates a sample ZkKYC object with the given fields.
  *
+ * @returns ZkKYC object promise.
  */
 export async function generateSampleZkKYC(): Promise<ZKCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
   // you can change the holder to another address, the script just needs to be able to sign a message with it
-  const [holder, _1, _2, KYCProvider] = await ethers.getSigners();
+  const signers = await ethers.getSigners();
+  const holder = signers[0];
+  const KYCProvider = signers[3];
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
@@ -62,10 +66,11 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
 }
 
 /**
+ * Generates the zkKYC proof input for the zkKYC smart contract.
  *
- * @param zkKYC
- * @param amountInstitutions
- * @param dAppAddress
+ * @param zkKYC - The zkKYC object.
+ * @param amountInstitutions - The amount of institutions to use for fraud investigation.
+ * @param dAppAddress - The address of the DApp smart contract.
  */
 export async function generateZkKYCProofInput(
   zkKYC: ZKCertificate,
@@ -77,8 +82,7 @@ export async function generateZkKYCProofInput(
 
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
-  const [holder, user, encryptionAccount, KYCProvider] =
-    await ethers.getSigners();
+  const [holder, user, encryptionAccount] = await ethers.getSigners();
   const institutions = [];
   for (let i = 0; i < amountInstitutions; i++) {
     institutions.push((await ethers.getSigners())[4 + i]);
@@ -154,9 +158,9 @@ export async function generateZkKYCProofInput(
     eddsa,
   ).toString();
   zkKYCInput.investigationInstitutionPubKey = [];
-  for (let i = 0; i < institutions.length; i++) {
+  for (const inst of institutions) {
     const institutionPrivKey = BigInt(
-      await getEddsaKeyFromEthSigner(institutions[i]),
+      await getEddsaKeyFromEthSigner(inst),
     ).toString();
     const institutionPub = eddsa.prv2pub(institutionPrivKey);
 

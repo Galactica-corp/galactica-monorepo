@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import { buildEddsa } from 'circomlibjs';
 import { readFileSync } from 'fs';
 import hre, { ethers } from 'hardhat';
@@ -36,7 +36,7 @@ describe('Encryption Proof', () => {
 
   it('generates unique shared ECDH key for sender and receiver', async () => {
     const [sender, receiver] = await ethers.getSigners();
-    const msg = ['42', '69'];
+    const message = ['42', '69'];
 
     const senderPriv = BigInt(
       await getEddsaKeyFromEthSigner(sender),
@@ -51,17 +51,18 @@ describe('Encryption Proof', () => {
 
     const circuitInputs = {
       senderPrivKey: formatPrivKeyForBabyJub(senderPriv, eddsa),
-      receiverPubKey: receiverPub.map((p: any) =>
-        eddsa.poseidon.F.toObject(p).toString(),
+      receiverPubKey: receiverPub.map((pubKey: any) =>
+        eddsa.poseidon.F.toObject(pubKey).toString(),
       ),
-      msg,
+      // eslint-disable-next-line id-denylist
+      msg: message,
     };
     const witness = await circuit.calculateLabeledWitness(
       circuitInputs,
       sanityCheck,
     );
 
-    const expectedResult = mimcjs.encrypt(msg[0], msg[1], sharedKey[0]);
+    const expectedResult = mimcjs.encrypt(message[0], message[1], sharedKey[0]);
 
     assert.propertyVal(
       witness,
