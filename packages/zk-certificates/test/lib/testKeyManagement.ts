@@ -1,10 +1,8 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { eddsaKeyGenerationMessage } from '@galactica-net/galactica-types';
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { buildEddsa } from 'circomlibjs';
-import { readFileSync } from 'fs';
-import hre, { ethers } from 'hardhat';
-import { CircuitTestUtils } from 'hardhat-circom';
+import { ethers } from 'hardhat';
 
 import {
   getEddsaKeyFromEthSigner,
@@ -12,17 +10,10 @@ import {
 } from '../../lib/keyManagement';
 
 describe('Key Management', () => {
-  let babyjub, eddsa: any;
-
-  const sampleInput = JSON.parse(
-    readFileSync('./circuits/input/ownership.json', 'utf8'),
-  );
-
-  const sanityCheck = true;
+  let eddsa: any;
 
   before(async () => {
     eddsa = await buildEddsa();
-    babyjub = await eddsa.babyJub;
   });
 
   it('can generate EdDSA key from signature', async () => {
@@ -52,13 +43,13 @@ describe('Key Management', () => {
     // same key for alice and bob
     const sharedKeyAB = generateEcdhSharedKey(alicePriv, bobPub, eddsa);
     const sharedKeyBA = generateEcdhSharedKey(bobPriv, alicePub, eddsa);
-    for (const i in [0, 1]) {
+    for (const i of [0, 1]) {
       expect(sharedKeyAB[i]).to.equal(sharedKeyBA[i]);
     }
 
     // different keys for different participants
     const sharedKeyAC = generateEcdhSharedKey(alicePriv, charliePub, eddsa);
-    for (const i in [0, 1]) {
+    for (const i of [0, 1]) {
       expect(sharedKeyAB[i]).to.not.equal(sharedKeyAC[i]);
     }
   });

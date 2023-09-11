@@ -1,9 +1,11 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import chai, { use } from 'chai';
+import chai, { use, expect } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { buildEddsa } from 'circomlibjs';
 import { BigNumber } from 'ethers';
-import { ethers } from 'hardhat';
+import hre, { ethers } from 'hardhat';
+import { groth16 } from 'snarkjs';
 
 import {
   fromDecToHex,
@@ -27,14 +29,11 @@ import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/M
 import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
 import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 
+use(chaiAsPromised);
+
 chai.config.includeStack = true;
 
-const hre = require('hardhat');
-const snarkjs = require('snarkjs');
-
-const { expect } = chai;
-
-describe('Verification SBT Smart contract', async () => {
+describe('Verification SBT Smart contract', () => {
   let ageProofZkKYC: AgeProofZkKYC;
   let exampleMockDAppVerifier: ExampleMockDAppVerifier;
   let mockKYCRegistry: MockKYCRegistry;
@@ -48,7 +47,6 @@ describe('Verification SBT Smart contract', async () => {
   let user: SignerWithAddress;
   let encryptionAccount: SignerWithAddress;
   const institutions: SignerWithAddress[] = [];
-  let KYCProvider: SignerWithAddress;
   let zkKYC: ZKCertificate;
   let sampleInput: any;
   let circuitWasmPath: string;
@@ -58,8 +56,7 @@ describe('Verification SBT Smart contract', async () => {
     // reset the testing chain so we can perform time related tests
     await hre.network.provider.send('hardhat_reset');
 
-    [deployer, user, encryptionAccount, KYCProvider] =
-      await hre.ethers.getSigners();
+    [deployer, user, encryptionAccount] = await hre.ethers.getSigners();
     for (let i = 0; i < amountInstitutions; i++) {
       institutions.push((await ethers.getSigners())[4 + i]);
     }
@@ -69,7 +66,8 @@ describe('Verification SBT Smart contract', async () => {
       'MockKYCRegistry',
       deployer,
     );
-    mockKYCRegistry = await mockKYCRegistryFactory.deploy();
+    mockKYCRegistry =
+      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
 
     const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
       'MockGalacticaInstitution',
@@ -78,7 +76,7 @@ describe('Verification SBT Smart contract', async () => {
     mockGalacticaInstitutions = [];
     for (let i = 0; i < amountInstitutions; i++) {
       mockGalacticaInstitutions.push(
-        await mockGalacticaInstitutionFactory.deploy(),
+        (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution,
       );
     }
 
@@ -86,33 +84,35 @@ describe('Verification SBT Smart contract', async () => {
       'ExampleMockDAppVerifier',
       deployer,
     );
-    exampleMockDAppVerifier = await exampleMockDAppVerifierFactory.deploy();
+    exampleMockDAppVerifier =
+      (await exampleMockDAppVerifierFactory.deploy()) as ExampleMockDAppVerifier;
 
     const ageProofZkKYCFactory = await ethers.getContractFactory(
       'AgeProofZkKYC',
       deployer,
     );
-    ageProofZkKYC = await ageProofZkKYCFactory.deploy(
+    ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
       deployer.address,
       exampleMockDAppVerifier.address,
       mockKYCRegistry.address,
       mockGalacticaInstitutions.map((inst) => inst.address),
-    );
+    )) as AgeProofZkKYC;
 
     const verificationSBTFactory = await ethers.getContractFactory(
       'VerificationSBT',
       deployer,
     );
-    verificationSBT = await verificationSBTFactory.deploy();
+    verificationSBT =
+      (await verificationSBTFactory.deploy()) as VerificationSBT;
 
     const mockDAppFactory = await ethers.getContractFactory(
       'MockDApp',
       deployer,
     );
-    mockDApp = await mockDAppFactory.deploy(
+    mockDApp = (await mockDAppFactory.deploy(
       verificationSBT.address,
       ageProofZkKYC.address,
-    );
+    )) as MockDApp;
 
     const mockTokenFactory = await ethers.getContractFactory(
       'MockToken',
@@ -152,7 +152,7 @@ describe('Verification SBT Smart contract', async () => {
   });
 
   it('if the proof is correct the verification SBT is minted', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -190,10 +190,10 @@ describe('Verification SBT Smart contract', async () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
 
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    await mockDApp.connect(user).airdropToken(1, a, b, c, publicInputs);
+    await mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs);
 
     // check that the verification SBT is created
     expect(
@@ -235,7 +235,7 @@ describe('Verification SBT Smart contract', async () => {
       await mockDApp.hasReceivedToken2(
         fromHexToBytes32(fromDecToHex(sampleInput.humanID)),
       ),
-    ).to.be.equal(true);
+    ).to.be.true;
 
     // test decryption
     const userPriv = BigInt(
@@ -278,18 +278,19 @@ describe('Verification SBT Smart contract', async () => {
       user.address,
     );
     expect(loggedSBTs.has(mockDApp.address)).to.be.true;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     expect(loggedSBTs.get(mockDApp.address)!.length).to.be.equal(1);
   });
 
   it('should revert on incorrect proof', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
     );
 
     // change the proof to make it incorrect
-    proof.pi_a[0] = `${proof.pi_a[0]}1`;
+    proof.pi_a[0] = `${JSON.stringify(proof.pi_a[0])}1`;
 
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
     const publicTime = parseInt(
@@ -305,11 +306,13 @@ describe('Verification SBT Smart contract', async () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
 
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
 
-    const tx = mockDApp.connect(user).airdropToken(1, a, b, c, publicInputs);
+    const tx = mockDApp
+      .connect(user)
+      .airdropToken(1, piA, piB, piC, publicInputs);
 
     await expect(tx).to.be.rejected;
   });

@@ -48,14 +48,14 @@ describe('zkKYC Circuit Component', () => {
     assert.propertyVal(
       witness,
       'main.verificationExpiration',
-      `${sampleInput.currentTime + maxValidityLength}`,
+      `${Number(sampleInput.currentTime) + maxValidityLength}`,
       'expiration of Verification SBT should be capped by the max validity duration parameter',
     );
   });
 
   it('the proof is not valid if the expiration time has passed', async () => {
     const forgedInput = { ...sampleInput };
-    forgedInput.currentTime = forgedInput.expirationDate + 1;
+    forgedInput.currentTime = Number(forgedInput.expirationDate) + 1;
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
       sanityCheck,

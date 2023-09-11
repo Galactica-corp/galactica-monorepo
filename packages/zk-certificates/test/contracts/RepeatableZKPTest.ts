@@ -1,7 +1,8 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai from 'chai';
-import { ethers } from 'hardhat';
+import hre, { ethers } from 'hardhat';
+import { groth16 } from 'snarkjs';
 
 import {
   fromDecToHex,
@@ -20,13 +21,10 @@ import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT
 import { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
 
-const hre = require('hardhat');
-const snarkjs = require('snarkjs');
-
 chai.config.includeStack = true;
 const { expect } = chai;
 
-describe('RepeatableZKPTest', async () => {
+describe('RepeatableZKPTest', () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKycSC: ZkKYC;
@@ -37,7 +35,6 @@ describe('RepeatableZKPTest', async () => {
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
-  let randomUser: SignerWithAddress;
   let zkKYC: ZKCertificate;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
@@ -46,45 +43,47 @@ describe('RepeatableZKPTest', async () => {
     // reset the testing chain so we can perform time related tests
     await hre.network.provider.send('hardhat_reset');
 
-    [deployer, user, randomUser] = await hre.ethers.getSigners();
+    [deployer, user] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
     const mockKYCRegistryFactory = await ethers.getContractFactory(
       'MockKYCRegistry',
       deployer,
     );
-    mockKYCRegistry = await mockKYCRegistryFactory.deploy();
+    mockKYCRegistry =
+      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
       'ZkKYCVerifier',
       deployer,
     );
 
-    zkKYCVerifier = await zkKYCVerifierFactory.deploy();
+    zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
 
     const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
-    zkKycSC = await zkKYCFactory.deploy(
+    zkKycSC = (await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
       mockKYCRegistry.address,
       [],
-    );
+    )) as ZkKYC;
     await zkKYCVerifier.deployed();
 
     const verificationSBTFactory = await ethers.getContractFactory(
       'VerificationSBT',
       deployer,
     );
-    verificationSBT = await verificationSBTFactory.deploy();
+    verificationSBT =
+      (await verificationSBTFactory.deploy()) as VerificationSBT;
 
     const repeatableZKPTestFactory = await ethers.getContractFactory(
       'RepeatableZKPTest',
       deployer,
     );
-    repeatableZKPTest = await repeatableZKPTestFactory.deploy(
+    repeatableZKPTest = (await repeatableZKPTestFactory.deploy(
       verificationSBT.address,
       zkKycSC.address,
-    );
+    )) as RepeatableZKPTest;
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
@@ -106,7 +105,7 @@ describe('RepeatableZKPTest', async () => {
   });
 
   it('should issue VerificationSBT on correct proof and accept ZKP multiple times', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -126,10 +125,12 @@ describe('RepeatableZKPTest', async () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
 
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    await repeatableZKPTest.connect(user).submitZKP(a, b, c, publicInputs);
+    await repeatableZKPTest
+      .connect(user)
+      .submitZKP(piA, piB, piC, publicInputs);
 
     expect(
       await verificationSBT.isVerificationSBTValid(
@@ -138,11 +139,13 @@ describe('RepeatableZKPTest', async () => {
       ),
     ).to.be.true;
 
-    await repeatableZKPTest.connect(user).submitZKP(a, b, c, publicInputs);
+    await repeatableZKPTest
+      .connect(user)
+      .submitZKP(piA, piB, piC, publicInputs);
   });
 
   it('should catch incorrect proof', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -154,14 +157,14 @@ describe('RepeatableZKPTest', async () => {
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
 
     // switch c, a to get an incorrect proof
     // it doesn't fail on time because the time change remains from the previous test
     await expect(
-      repeatableZKPTest.connect(user).submitZKP(c, b, a, publicInputs),
+      repeatableZKPTest.connect(user).submitZKP(piC, piB, piA, publicInputs),
     ).to.be.reverted;
   });
 });

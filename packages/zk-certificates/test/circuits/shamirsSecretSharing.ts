@@ -63,7 +63,7 @@ describe("Shamir's secret sharing", () => {
   });
 
   it('same secret no matter which fragments are used', async () => {
-    const testInput = { secret: 468146, salt: 45648916549816548 };
+    const testInput = { secret: 468146, salt: 4564891654948 };
     const proof = await groth16.fullProve(testInput, wasmPath, zkeyPath);
     expect(
       reconstructShamirSecret(eddsa.F, 3, [

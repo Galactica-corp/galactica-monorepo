@@ -54,6 +54,13 @@ module.exports = {
         'jest/expect-expect': 0, // accept tests that only try to run through without causing exceptions
       },
     },
+    {
+      files: ['test/contracts/*.ts'],
+      rules: {
+        '@typescript-eslint/no-unnecessary-type-assertion': 0, // disabled because ts and eslint disagree if it is needed or not
+        'jest/expect-expect': 0, // accept tests that only try to run through without causing exceptions
+      },
+    },
   ],
 
   ignorePatterns: ['!.eslintrc.js', 'build/', 'gatsby*'],

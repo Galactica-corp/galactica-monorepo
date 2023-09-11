@@ -1,8 +1,9 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import chai, { use } from 'chai';
+import chai from 'chai';
 import { BigNumber } from 'ethers';
-import { ethers } from 'hardhat';
+import hre, { ethers } from 'hardhat';
+import { groth16 } from 'snarkjs';
 
 import {
   fromDecToHex,
@@ -22,12 +23,9 @@ import { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
 
 chai.config.includeStack = true;
 
-const hre = require('hardhat');
-const snarkjs = require('snarkjs');
-
 const { expect } = chai;
 
-describe('zkKYC SC', async () => {
+describe('zkKYC SC', () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKYCContract: ZkKYC;
@@ -53,7 +51,8 @@ describe('zkKYC SC', async () => {
       'MockKYCRegistry',
       deployer,
     );
-    mockKYCRegistry = await mockKYCRegistryFactory.deploy();
+    mockKYCRegistry =
+      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
 
     const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
       'MockGalacticaInstitution',
@@ -62,7 +61,7 @@ describe('zkKYC SC', async () => {
     mockGalacticaInstitutions = [];
     for (let i = 0; i < amountInstitutions; i++) {
       mockGalacticaInstitutions.push(
-        await mockGalacticaInstitutionFactory.deploy(),
+        (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution,
       );
     }
 
@@ -70,15 +69,15 @@ describe('zkKYC SC', async () => {
       'ZkKYCVerifier',
       deployer,
     );
-    zkKYCVerifier = await zkKYCVerifierFactory.deploy();
+    zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
 
     const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
-    zkKYCContract = await zkKYCFactory.deploy(
+    zkKYCContract = (await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
       mockKYCRegistry.address,
       [],
-    );
+    )) as ZkKYC;
 
     zkKYC = await generateSampleZkKYC();
     sampleInput = await generateZkKYCProofInput(
@@ -98,10 +97,10 @@ describe('zkKYC SC', async () => {
     // random user cannot change the addresses
     await expect(
       zkKYCContract.connect(user).setVerifier(user.address),
-    ).to.be.rejectedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWith('Ownable: caller is not the owner');
     await expect(
       zkKYCContract.connect(user).setKYCRegistry(user.address),
-    ).to.be.rejectedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWith('Ownable: caller is not the owner');
 
     // owner can change addresses
     await zkKYCContract.connect(deployer).setVerifier(user.address);
@@ -112,7 +111,7 @@ describe('zkKYC SC', async () => {
   });
 
   it('correct proof can be verified onchain', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -132,14 +131,14 @@ describe('zkKYC SC', async () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
 
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    await zkKYCContract.connect(user).verifyProof(a, b, c, publicInputs);
+    await zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
   });
 
   it('incorrect proof failed to be verified', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -150,21 +149,22 @@ describe('zkKYC SC', async () => {
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
 
     // switch c, a to get an incorrect proof
-    await expect(zkKYCContract.connect(user).verifyProof(c, b, a, publicInputs))
-      .to.be.rejected;
+    await expect(
+      zkKYCContract.connect(user).verifyProof(piC, piB, piA, publicInputs),
+    ).to.be.reverted;
   });
 
   it('revert if proof output is invalid', async () => {
     const forgedInput = { ...sampleInput };
     // make the zkKYC record expire leading to invalid proof output
-    forgedInput.currentTime = forgedInput.expirationDate + 1;
+    forgedInput.currentTime = Number(forgedInput.expirationDate) + 1;
 
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       forgedInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -179,16 +179,16 @@ describe('zkKYC SC', async () => {
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYCContract.connect(user).verifyProof(c, b, a, publicInputs),
-    ).to.be.rejectedWith('the proof output is not valid');
+      zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+    ).to.be.revertedWith('the proof output is not valid');
   });
 
   it('revert if public output merkle root does not match with the one onchain', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -197,16 +197,16 @@ describe('zkKYC SC', async () => {
     // we don't set the merkle root to the correct one
 
     // set time to the public time
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYCContract.connect(user).verifyProof(c, b, a, publicInputs),
-    ).to.be.rejectedWith("the root in the proof doesn't match");
+      zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+    ).to.be.revertedWith("the root in the proof doesn't match");
   });
 
   it('revert if time is too far from current time', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -228,16 +228,16 @@ describe('zkKYC SC', async () => {
     ]);
 
     await hre.network.provider.send('evm_mine');
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYCContract.connect(user).verifyProof(c, b, a, publicInputs),
-    ).to.be.rejectedWith('the current time is incorrect');
+      zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+    ).to.be.revertedWith('the current time is incorrect');
   });
 
   it('unauthorized user cannot use the proof', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -256,12 +256,14 @@ describe('zkKYC SC', async () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
 
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      zkKYCContract.connect(randomUser).verifyProof(c, b, a, publicInputs),
-    ).to.be.rejectedWith(
+      zkKYCContract
+        .connect(randomUser)
+        .verifyProof(piA, piB, piC, publicInputs),
+    ).to.be.revertedWith(
       'transaction submitter is not authorized to use this proof',
     );
   });
@@ -289,7 +291,7 @@ describe('zkKYC SC', async () => {
       mockGalacticaInstitutions.map((inst) => inst.address),
     );
 
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       inputWithInstitutions,
       './circuits/build/investigatableZkKYC.wasm',
       './circuits/build/investigatableZkKYC.zkey',
@@ -327,10 +329,12 @@ describe('zkKYC SC', async () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
 
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    await investigatableZkKYC.connect(user).verifyProof(a, b, c, publicInputs);
+    await investigatableZkKYC
+      .connect(user)
+      .verifyProof(piA, piB, piC, publicInputs);
 
     // also check that it correctly reverts if an institution key is wrong
     // set different institution pub key
@@ -348,7 +352,9 @@ describe('zkKYC SC', async () => {
       galacticaInstitutionPubKey,
     );
     await expect(
-      investigatableZkKYC.connect(user).verifyProof(a, b, c, publicInputs),
-    ).to.be.rejectedWith('the first part of institution pubkey is incorrect');
+      investigatableZkKYC
+        .connect(user)
+        .verifyProof(piA, piB, piC, publicInputs),
+    ).to.be.revertedWith('the first part of institution pubkey is incorrect');
   });
 });

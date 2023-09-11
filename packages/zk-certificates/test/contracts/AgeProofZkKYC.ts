@@ -1,8 +1,9 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import chai, { use } from 'chai';
-import { ethers } from 'hardhat';
+import chai from 'chai';
+import hre, { ethers } from 'hardhat';
+import { groth16 } from 'snarkjs';
 
 import {
   fromDecToHex,
@@ -20,13 +21,9 @@ import { AgeProofZkKYCVerifier } from '../../typechain-types/contracts/AgeProofZ
 import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
 
 chai.config.includeStack = true;
-
-const hre = require('hardhat');
-const snarkjs = require('snarkjs');
-
 const { expect } = chai;
 
-describe('ageProofZkKYC SC', async () => {
+describe('ageProofZkKYC SC', () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let ageProofZkKYC: AgeProofZkKYC;
@@ -50,24 +47,26 @@ describe('ageProofZkKYC SC', async () => {
       'MockKYCRegistry',
       deployer,
     );
-    mockKYCRegistry = await mockKYCRegistryFactory.deploy();
+    mockKYCRegistry =
+      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
 
     const ageProofZkKYCVerifierFactory = await ethers.getContractFactory(
       'AgeProofZkKYCVerifier',
       deployer,
     );
-    ageProofZkKYCVerifier = await ageProofZkKYCVerifierFactory.deploy();
+    ageProofZkKYCVerifier =
+      (await ageProofZkKYCVerifierFactory.deploy()) as AgeProofZkKYCVerifier;
 
     const ageProofZkKYCFactory = await ethers.getContractFactory(
       'AgeProofZkKYC',
       deployer,
     );
-    ageProofZkKYC = await ageProofZkKYCFactory.deploy(
+    ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
       deployer.address,
       ageProofZkKYCVerifier.address,
       mockKYCRegistry.address,
       [],
-    );
+    )) as AgeProofZkKYC;
     await ageProofZkKYCVerifier.deployed();
 
     // inputs to create proof
@@ -111,7 +110,7 @@ describe('ageProofZkKYC SC', async () => {
   });
 
   it('correct proof can be verified onchain', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -131,14 +130,14 @@ describe('ageProofZkKYC SC', async () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
 
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    await ageProofZkKYC.connect(user).verifyProof(a, b, c, publicInputs);
+    await ageProofZkKYC.connect(user).verifyProof(piA, piB, piC, publicInputs);
   });
 
   it('incorrect proof failed to be verified', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -150,22 +149,23 @@ describe('ageProofZkKYC SC', async () => {
     await mockKYCRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
 
     // switch c, a to get an incorrect proof
     // it doesn't fail on time because the time change remains from the previous test
-    await expect(ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs))
-      .to.be.reverted;
+    await expect(
+      ageProofZkKYC.connect(user).verifyProof(piC, piB, piA, publicInputs),
+    ).to.be.reverted;
   });
 
   it('revert if proof output is invalid', async () => {
     const forgedInput = { ...sampleInput };
     // make the zkKYC record expire leading to invalid proof output
-    forgedInput.currentTime = forgedInput.expirationDate + 1;
+    forgedInput.currentTime = Number(forgedInput.expirationDate) + 1;
 
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       forgedInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -180,16 +180,16 @@ describe('ageProofZkKYC SC', async () => {
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs),
+      ageProofZkKYC.connect(user).verifyProof(piC, piB, piA, publicInputs),
     ).to.be.revertedWith('the proof output is not valid');
   });
 
   it('revert if public output merkle root does not match with the one onchain', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -198,16 +198,16 @@ describe('ageProofZkKYC SC', async () => {
     // we don't set the merkle root to the correct one
 
     // set time to the public time
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs),
+      ageProofZkKYC.connect(user).verifyProof(piC, piB, piA, publicInputs),
     ).to.be.revertedWith("the root in the proof doesn't match");
   });
 
   it('revert if time is too far from current time', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -229,16 +229,16 @@ describe('ageProofZkKYC SC', async () => {
     ]);
 
     await hre.network.provider.send('evm_mine');
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs),
+      ageProofZkKYC.connect(user).verifyProof(piC, piB, piA, publicInputs),
     ).to.be.revertedWith('the current time is incorrect');
   });
 
   it('unauthorized user cannot use the proof', async () => {
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -257,11 +257,13 @@ describe('ageProofZkKYC SC', async () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
 
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      ageProofZkKYC.connect(randomUser).verifyProof(c, b, a, publicInputs),
+      ageProofZkKYC
+        .connect(randomUser)
+        .verifyProof(piC, piB, piA, publicInputs),
     ).to.be.revertedWith(
       'transaction submitter is not authorized to use this proof',
     );
@@ -272,7 +274,7 @@ describe('ageProofZkKYC SC', async () => {
     // make the zkKYC record expire leading to invalid proof output
     forgedInput.currentYear += 1;
 
-    const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    const { proof, publicSignals } = await groth16.fullProve(
       forgedInput,
       circuitWasmPath,
       circuitZkeyPath,
@@ -292,11 +294,11 @@ describe('ageProofZkKYC SC', async () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [pulicTime]);
 
     await hre.network.provider.send('evm_mine');
-    const [a, b, c] = processProof(proof);
+    const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      ageProofZkKYC.connect(user).verifyProof(c, b, a, publicInputs),
+      ageProofZkKYC.connect(user).verifyProof(piC, piB, piA, publicInputs),
     ).to.be.revertedWith('the current year is incorrect');
   });
 });

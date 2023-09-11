@@ -3,7 +3,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
-import { ethers } from 'hardhat';
+import hre, { ethers } from 'hardhat';
 
 import {
   overwriteArtifact,
@@ -14,8 +14,6 @@ import {
 } from '../../lib/helpers';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
-const hre = require('hardhat');
-
 describe('KYCRecordRegistry', () => {
   let deployer: SignerWithAddress;
 
@@ -24,9 +22,9 @@ describe('KYCRecordRegistry', () => {
   });
 
   /**
-   * Deploy fixtures
+   * Deploy fixtures to work with the same setup in an efficient way.
    *
-   * @returns fixtures
+   * @returns Fixtures.
    */
   async function deploy() {
     await overwriteArtifact(hre, 'PoseidonT3', poseidonContract.createCode(2));
@@ -66,7 +64,7 @@ describe('KYCRecordRegistry', () => {
   });
 
   it('should calculate zero values', async () => {
-    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -81,7 +79,7 @@ describe('KYCRecordRegistry', () => {
   });
 
   it('should calculate empty root', async () => {
-    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -99,7 +97,7 @@ describe('KYCRecordRegistry', () => {
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
 
     // add deployer as a KYCCenter
-    KYCCenterRegistry.grantKYCCenterRole(deployer.address);
+    await KYCCenterRegistry.grantKYCCenterRole(deployer.address);
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -111,8 +109,8 @@ describe('KYCRecordRegistry', () => {
       // console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
       // add new zkKYCRecord and check the root
       const merkleProof = merkleTree.createProof(leafIndices[i]);
-      const merkleProofPath = merkleProof.path.map((x) =>
-        fromHexToBytes32(fromDecToHex(x)),
+      const merkleProofPath = merkleProof.path.map((value) =>
+        fromHexToBytes32(fromDecToHex(value)),
       );
       await KYCRecordRegistry.addZkKYCRecord(
         leafIndices[i],
@@ -134,7 +132,7 @@ describe('KYCRecordRegistry', () => {
     const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
 
     // add deployer as a KYCCenter
-    KYCCenterRegistry.grantKYCCenterRole(deployer.address);
+    await KYCCenterRegistry.grantKYCCenterRole(deployer.address);
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -149,8 +147,8 @@ describe('KYCRecordRegistry', () => {
 
       // add new zkKYCRecord
       const merkleProof = merkleTree.createProof(leafIndices[i]);
-      const merkleProofPath = merkleProof.path.map((x) =>
-        fromHexToBytes32(fromDecToHex(x)),
+      const merkleProofPath = merkleProof.path.map((value) =>
+        fromHexToBytes32(fromDecToHex(value)),
       );
       await KYCRecordRegistry.addZkKYCRecord(
         leafIndices[i],
@@ -162,8 +160,8 @@ describe('KYCRecordRegistry', () => {
 
     // now we will try to nullify the first added leaf
     const merkleProof = merkleTree.createProof(leafIndices[0]);
-    const merkleProofPath = merkleProof.path.map((x) =>
-      fromHexToBytes32(fromDecToHex(x)),
+    const merkleProofPath = merkleProof.path.map((value) =>
+      fromHexToBytes32(fromDecToHex(value)),
     );
     await KYCRecordRegistry.revokeZkKYCRecord(
       leafIndices[0],
@@ -179,7 +177,7 @@ describe('KYCRecordRegistry', () => {
   });
 
   it('only KYC Center can add leaf', async function () {
-    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -189,8 +187,8 @@ describe('KYCRecordRegistry', () => {
     const leafIndices = generateRandomNumberArray(1);
     // add new zkKYCRecord and check the root
     const merkleProof = merkleTree.createProof(leafIndices[0]);
-    const merkleProofPath = merkleProof.path.map((x) =>
-      fromHexToBytes32(fromDecToHex(x)),
+    const merkleProofPath = merkleProof.path.map((value) =>
+      fromHexToBytes32(fromDecToHex(value)),
     );
     await expect(
       KYCRecordRegistry.addZkKYCRecord(

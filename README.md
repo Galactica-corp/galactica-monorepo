@@ -1,7 +1,9 @@
 # Galactica Monorepo
+
 Galactica Network monorepo including zero-knowledge certificates, the Galactica ZK Vault Snap for Metamask and front-end examples.
 
 ## Galactica ZK Vault Snap
+
 The the README in `pagages/snap` for more details.
 
 This package provides a Metamaks Snap for Galactica Network.

@@ -2531,6 +2531,7 @@ __metadata:
     buffer: ^6.0.3
     camelcase: ^6.3.0
     chai: ^4.3.8
+    chai-as-promised: ^7.1.1
     chalk: ^4
     circom2: ^0.2.13
     circomlib: ^2.0.5
@@ -2541,6 +2542,7 @@ __metadata:
     hardhat-circom: ^3.3.2
     hardhat-gas-reporter: ^1.0.8
     keccak256: ^1.0.6
+    snarkjs: ^0.5.0
     solidity-coverage: ^0.7.21
     ts-node: ^10.9.1
     typechain: ^8.1.0

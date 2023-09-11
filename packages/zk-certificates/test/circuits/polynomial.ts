@@ -45,6 +45,7 @@ describe('Polynomial', () => {
    *
    * @param xVal - The x value to evaluate at.
    * @param coef - The coefficients of the polynomial.
+   * @returns The result of the polynomial at xVal.
    */
   function calculatePolynomial(xVal: number, coef: number[]): number {
     let res = 0;
