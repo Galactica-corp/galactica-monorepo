@@ -17,7 +17,8 @@ import { groth16 } from 'snarkjs';
 
 import {
   defaultRPCRequest,
-  testEntropy,
+  testEntropyEncrypt,
+  testEntropyHolder,
   testHolder,
   testZkpParams,
 } from './constants.mock';
@@ -30,6 +31,7 @@ import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMock
 import { processRpcRequest } from '../src';
 import { RpcArgs } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
+import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -76,7 +78,9 @@ describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
 
   beforeEach(function () {
-    snapProvider.rpcStubs.snap_getEntropy.resolves(testEntropy);
+    snapProvider.rpcStubs.snap_getEntropy
+      .onFirstCall().resolves(testEntropyHolder)
+      .onSecondCall().resolves(testEntropyEncrypt);
   });
 
   afterEach(function () {
@@ -171,9 +175,13 @@ describe('Test rpc handler function', function () {
       this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
+      const expectedHolderCommitment = await calculateHolderCommitment(testEntropyHolder);
+      let zkKYC = { ...zkKYCToImportInUnitTest };
+      zkKYC.holderCommitment = expectedHolderCommitment;
+
       await processRpcRequest(
         buildRPCRequest(RpcMethods.ImportZkCert, {
-          zkCert: zkKYCToImportInUnitTest,
+          zkCert: zkKYC,
         }),
         snapProvider,
       );
@@ -184,11 +192,13 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [
             {
-              eddsaKey: testEntropy,
-              holderCommitment: await calculateHolderCommitment(testEntropy),
+              eddsaKey: testEntropyHolder,
+              holderCommitment: expectedHolderCommitment,
+              encryptionPrivKey: testEntropyEncrypt.slice(2),
+              encryptionPubKey: getEncryptionPublicKey(testEntropyEncrypt.slice(2)),
             },
           ],
-          zkCerts: [zkKYCToImportInUnitTest],
+          zkCerts: [zkKYC],
         },
       });
     });

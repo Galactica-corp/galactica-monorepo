@@ -3,7 +3,7 @@ import { invokeSnap } from '../utils/invoke-snap';
 
 export type HolderCommitmentData = {
   holderCommitment: string;
-  // TODO: add pubkey for encryption
+  encryptionPubKey: string;
 };
 
 /**

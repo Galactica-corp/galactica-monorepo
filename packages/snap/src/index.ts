@@ -310,6 +310,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       const holderCommitmentData: HolderCommitmentData = {
         holderCommitment: holder.holderCommitment,
+        encryptionPubKey: holder.encryptionPubKey,
       };
       return holderCommitmentData;
     }

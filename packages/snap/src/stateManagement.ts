@@ -4,6 +4,7 @@ import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
 
 import { HolderData, StorageState } from './types';
 import { calculateHolderCommitment } from './zkCertHandler';
+import { createEncryptionKeyPair } from './encryption';
 
 /**
  * Get the state from the snap storage in MetaMask's browser extension.
@@ -43,10 +44,20 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
         salt: 'galactica',
       },
     });
+    const encryptionKeyPair = await createEncryptionKeyPair(snap);
     state.holders.push({
       holderCommitment: await calculateHolderCommitment(holderEdDSAKey),
       eddsaKey: holderEdDSAKey,
+      encryptionPubKey: encryptionKeyPair.pubKey,
+      encryptionPrivKey: encryptionKeyPair.privKey,
     });
+  } else {
+    if (state.holders[0].encryptionPubKey === undefined) {
+      // migrate old holder state without encryption keys
+      const encryptionKeyPair = await createEncryptionKeyPair(snap);
+      state.holders[0].encryptionPubKey = encryptionKeyPair.pubKey;
+      state.holders[0].encryptionPrivKey = encryptionKeyPair.privKey;
+    }
   }
 
   return state;

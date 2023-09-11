@@ -18,6 +18,9 @@ export type HolderData = {
   // address: string; Not needed as long as we do not support HW wallets
   holderCommitment: string;
   eddsaKey: string;
+  // keys for encrypting zkCert data between the holder and the guardian
+  encryptionPubKey: string;
+  encryptionPrivKey: string;
 };
 
 export type StorageState = {
@@ -27,14 +30,14 @@ export type StorageState = {
 
 export type PanelContent = (
   | {
-      value: string;
-      type: NodeType.Heading;
-    }
+    value: string;
+    type: NodeType.Heading;
+  }
   | {
-      value: string;
-      type: NodeType.Text;
-    }
+    value: string;
+    type: NodeType.Text;
+  }
   | {
-      type: NodeType.Divider;
-    }
+    type: NodeType.Divider;
+  }
 )[];
