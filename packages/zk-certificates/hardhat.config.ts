@@ -4,6 +4,7 @@ import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
 import { HardhatUserConfig } from 'hardhat/config';
+import { Wallet } from 'ethers';
 
 import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
@@ -150,29 +151,38 @@ const config: HardhatUserConfig = {
 
 /**
  * Gets the accounts for operation from the environment variables.
+ * If they are not present, it will use random private keys (for example on the GitHub pipeline).
  *
  * @returns Array of private keys.
  */
 function getAccounts(): string[] {
+  let accounts: string[] = [];
   // check if environment variables exist
   if (!process.env.GalaTestnetDeployerPrivateKey) {
-    throw new Error('GalaTestnetDeployerPrivateKey env var not set');
+    console.warn('GalaTestnetDeployerPrivateKey env var not set, using random private key');
+    accounts.push(Wallet.createRandom().privateKey);
+  } else {
+    accounts.push(process.env.GalaTestnetDeployerPrivateKey);
   }
   if (!process.env.GalaTestnetInstitution1PrivateKey) {
-    throw new Error('GalaTestnetInstitution1PrivateKey env var not set');
+    console.warn('GalaTestnetInstitution1PrivateKey env var not set, using random private key');
+    accounts.push(Wallet.createRandom().privateKey);
+  } else {
+    accounts.push(process.env.GalaTestnetInstitution1PrivateKey);
   }
   if (!process.env.GalaTestnetInstitution2PrivateKey) {
-    throw new Error('GalaTestnetInstitution2PrivateKey env var not set');
+    console.warn('GalaTestnetInstitution2PrivateKey env var not set, using random private key');
+    accounts.push(Wallet.createRandom().privateKey);
+  } else {
+    accounts.push(process.env.GalaTestnetInstitution2PrivateKey);
   }
   if (!process.env.GalaTestnetInstitution3PrivateKey) {
-    throw new Error('GalaTestnetInstitution3PrivateKey env var not set');
+    console.warn('GalaTestnetInstitution3PrivateKey env var not set, using random private key');
+    accounts.push(Wallet.createRandom().privateKey);
+  } else {
+    accounts.push(process.env.GalaTestnetInstitution3PrivateKey);
   }
-  return [
-    process.env.GalaTestnetDeployerPrivateKey, // deployer
-    process.env.GalaTestnetInstitution1PrivateKey, // test institution for fraud investigation
-    process.env.GalaTestnetInstitution2PrivateKey, // test institution for fraud investigation
-    process.env.GalaTestnetInstitution3PrivateKey, // test institution for fraud investigation
-  ];
+  return accounts;
 }
 
 export default config;
