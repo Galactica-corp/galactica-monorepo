@@ -16,6 +16,7 @@ import {
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
+import { encryptZkCert } from './encryption';
 import { generateZkKycProof } from './proofGenerator';
 import { getState, saveState } from './stateManagement';
 import { HolderData, SnapRpcProcessor, PanelContent } from './types';
@@ -279,8 +280,16 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const zkCertStorageData = state.zkCerts.find(
         (cert) => cert.leafHash === zkCertForExport.leafHash,
       );
-
-      return zkCertStorageData;
+      if (zkCertStorageData === undefined) {
+        throw new Error(
+          `Could not export ${zkCertForExport.leafHash} because it was not found in the wallet.`,
+        );
+      }
+      const encryptedZkCert = encryptZkCert(
+        zkCertStorageData,
+        state.holders[0].encryptionPubKey,
+      );
+      return encryptedZkCert;
     }
 
     case RpcMethods.GetHolderCommitment: {

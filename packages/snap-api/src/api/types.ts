@@ -51,3 +51,14 @@ export type ZkCertSelectionParams = {
   expirationDate?: number;
   providerAx?: string;
 };
+
+/**
+ * Encrypted data type consistent with the EthEncryptedData type from eth-sig-util.
+ * We use it to encrypt zkCerts.
+ */
+export declare type EthEncryptedData = {
+  version: string;
+  nonce: string;
+  ephemPublicKey: string;
+  ciphertext: string;
+};

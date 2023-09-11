@@ -9,6 +9,11 @@ import {
   MerkleProofUpdateRequestParams,
   ConfirmationResponse,
 } from '@galactica-net/snap-api';
+import {
+  EthEncryptedData,
+  decryptSafely,
+  getEncryptionPublicKey,
+} from '@metamask/eth-sig-util';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { match } from 'sinon';
@@ -31,7 +36,6 @@ import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMock
 import { processRpcRequest } from '../src';
 import { RpcArgs } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
-import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -79,8 +83,10 @@ describe('Test rpc handler function', function () {
 
   beforeEach(function () {
     snapProvider.rpcStubs.snap_getEntropy
-      .onFirstCall().resolves(testEntropyHolder)
-      .onSecondCall().resolves(testEntropyEncrypt);
+      .onFirstCall()
+      .resolves(testEntropyHolder)
+      .onSecondCall()
+      .resolves(testEntropyEncrypt);
   });
 
   afterEach(function () {
@@ -175,8 +181,10 @@ describe('Test rpc handler function', function () {
       this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const expectedHolderCommitment = await calculateHolderCommitment(testEntropyHolder);
-      let zkKYC = { ...zkKYCToImportInUnitTest };
+      const expectedHolderCommitment = await calculateHolderCommitment(
+        testEntropyHolder,
+      );
+      const zkKYC = { ...zkKYCToImportInUnitTest };
       zkKYC.holderCommitment = expectedHolderCommitment;
 
       await processRpcRequest(
@@ -195,7 +203,9 @@ describe('Test rpc handler function', function () {
               eddsaKey: testEntropyHolder,
               holderCommitment: expectedHolderCommitment,
               encryptionPrivKey: testEntropyEncrypt.slice(2),
-              encryptionPubKey: getEncryptionPublicKey(testEntropyEncrypt.slice(2)),
+              encryptionPubKey: getEncryptionPublicKey(
+                testEntropyEncrypt.slice(2),
+              ),
             },
           ],
           zkCerts: [zkKYC],
@@ -577,13 +587,20 @@ describe('Test rpc handler function', function () {
         zkCertStandard: ZkCertStandard.ZkKYC,
       };
 
-      const result = await processRpcRequest(
+      const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.ExportZkCert, params),
         snapProvider,
-      );
+      )) as EthEncryptedData;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
-      expect(result).to.be.eq(zkCert);
+
+      const decrypted = JSON.parse(
+        decryptSafely({
+          encryptedData: result,
+          privateKey: testHolder.encryptionPrivKey,
+        }),
+      );
+      expect(decrypted).to.be.deep.eq(zkCert);
     });
   });
 

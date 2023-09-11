@@ -1,16 +1,16 @@
 import { RpcMethods } from './rpcEnums';
-import { ZkCertSelectionParams, ZkCertData } from './types';
+import { EthEncryptedData, ZkCertSelectionParams } from './types';
 import { invokeSnap } from '../utils/invoke-snap';
 
 /**
  * Exports a zkCertificate stored in the snap.
  *
  * @param params - Parameters with requirements to filter what kind of zkCert to export.
- * @returns ZkCert data or error.
+ * @returns Encrypted ZkCert data.
  * @throws RPCError on failure.
  */
 export const exportZkCert = async (params: ZkCertSelectionParams) => {
-  const response: ZkCertData = await invokeSnap({
+  const response: EthEncryptedData = await invokeSnap({
     method: RpcMethods.ExportZkCert,
     params,
   });

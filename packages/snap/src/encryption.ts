@@ -1,13 +1,20 @@
 // SPDX-License-Identifier: BUSL-1.1
 
+import { ZkCertData } from '@galactica-net/galactica-types';
 import { ZKCertificate } from '@galactica-net/zk-certificates';
-import { getEncryptionPublicKey, encryptSafely, decryptSafely, EthEncryptedData } from '@metamask/eth-sig-util';
+import {
+  getEncryptionPublicKey,
+  encryptSafely,
+  decryptSafely,
+  EthEncryptedData,
+} from '@metamask/eth-sig-util';
 import { SnapsGlobalObject } from '@metamask/rpc-methods';
 
 const encryptionVersion = 'x25519-xsalsa20-poly1305';
 
 /**
  * Create a new encryption key pair for the holder. It is used to encrypt personal details in ZK certificates, for example on the way from guardian to the holder.
+ *
  * @param snap - The snap for interaction with Metamask.
  * @returns The public and private key.
  */
@@ -25,29 +32,44 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
   const privKey = entropy.slice(2); // remove 0x prefix
   const publicKey = getEncryptionPublicKey(privKey);
 
-  return { pubKey: publicKey, privKey: privKey };
+  return { pubKey: publicKey, privKey };
 }
 
 /**
- * Encrypt a zkCert for exporting
- * @param zkCert - The zkCertificate to encrypt.
+ * Encrypt a zkCert for exporting.
+ *
+ * @param zkCert - The ZkCertData to encrypt.
  * @param pubKey - The public key for encryption.
- * @returns The encrypted ZKCertificate as EthEncryptedData.
+ * @returns The encrypted ZkCertData as EthEncryptedData.
  */
-export function encryptZkCert(zkCert: ZKCertificate, pubKey: string): EthEncryptedData {
+export function encryptZkCert(
+  zkCert: ZkCertData,
+  pubKey: string,
+): EthEncryptedData {
   const message = JSON.stringify(zkCert);
-  const encryptedZkCert = encryptSafely({ publicKey: pubKey, data: message, version: encryptionVersion });
+  const encryptedZkCert = encryptSafely({
+    publicKey: pubKey,
+    data: message,
+    version: encryptionVersion,
+  });
   return encryptedZkCert;
 }
 
 /**
- * Decrypt a zkCert. It takes the encrypted zkCert as given by the guardian or exported from the Snap.
+ * Decrypt a zkCert. It takes the encrypted ZkCertData as given by the guardian or exported from the Snap.
+ *
  * @param encryptedData - The encrypted zkCert as EthEncryptedData.
  * @param privKey - The private key for decryption.
- * @returns The decrypted ZKCertificate.
+ * @returns The decrypted ZkCertData.
  */
-export function decryptZkCert(encryptedData: EthEncryptedData, privKey: string): ZKCertificate {
-  const decryptedMessage = decryptSafely({ encryptedData: encryptedData, privateKey: privKey });
+export function decryptZkCert(
+  encryptedData: EthEncryptedData,
+  privKey: string,
+): ZkCertData {
+  const decryptedMessage = decryptSafely({
+    encryptedData,
+    privateKey: privKey,
+  });
   const zkCert = JSON.parse(decryptedMessage) as ZKCertificate;
   return zkCert;
 }
