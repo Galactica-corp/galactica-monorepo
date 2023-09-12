@@ -63,7 +63,7 @@ The libary functions only need to be compiled if you want to publish them to NPM
 To compile the library functions into a node module, you can run:
 
 ```shell
-yarn build
+yarn buildZK
 ```
 
 ## Test
@@ -114,7 +114,7 @@ yarn test
 Build code into js files and publish it on NPM
 
 ```shell
-yarn build
+yarn buildZK
 npm publish
 ```
 
