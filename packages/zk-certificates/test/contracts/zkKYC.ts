@@ -298,17 +298,12 @@ describe('zkKYC SC', () => {
     );
 
     // set the institution pub keys
+    const startIndexInvestigatable: number =
+      await investigatableZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS();
     for (let i = 0; i < amountInstitutions; i++) {
       const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-        publicSignals[
-          (await investigatableZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS()) +
-            2 * i
-        ],
-        publicSignals[
-          (await investigatableZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS()) +
-            2 * i +
-            1
-        ],
+        publicSignals[startIndexInvestigatable + 2 * i],
+        publicSignals[startIndexInvestigatable + 2 * i + 1],
       ];
       await mockGalacticaInstitutions[i].setInstitutionPubkey(
         galacticaInstitutionPubKey,
@@ -338,15 +333,11 @@ describe('zkKYC SC', () => {
 
     // also check that it correctly reverts if an institution key is wrong
     // set different institution pub key
+    const startIndexBasic: number =
+      await zkKYCContract.START_INDEX_INVESTIGATION_INSTITUTIONS();
     const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-      BigNumber.from(
-        publicSignals[
-          await zkKYCContract.START_INDEX_INVESTIGATION_INSTITUTIONS()
-        ],
-      ).add('1'),
-      publicSignals[
-        (await zkKYCContract.START_INDEX_INVESTIGATION_INSTITUTIONS()) + 1
-      ],
+      BigNumber.from(publicSignals[startIndexBasic]).add('1'),
+      publicSignals[startIndexBasic + 1],
     ];
     await mockGalacticaInstitutions[2].setInstitutionPubkey(
       galacticaInstitutionPubKey,

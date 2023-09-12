@@ -150,7 +150,8 @@ describe('BasicKYCExampleDApp', () => {
       basicExampleDApp.address,
     );
     const laterProofInput = { ...sampleInput };
-    laterProofInput.currentTime = sbt.expirationTime.toNumber() + 1;
+    const expirationTime: number = sbt.expirationTime.toNumber();
+    laterProofInput.currentTime = expirationTime + 1;
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
       laterProofInput.currentTime,
     ]);

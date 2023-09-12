@@ -30,7 +30,11 @@ async function main() {
     userAddress,
   );
 
-  console.log(`Encrypted data for user ${userAddress} is ${userEncryptedData}`);
+  console.log(
+    `Encrypted data for user ${userAddress} is ${JSON.stringify(
+      userEncryptedData,
+    )}`,
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

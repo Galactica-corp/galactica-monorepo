@@ -170,16 +170,12 @@ describe('Verification SBT Smart contract', () => {
 
     // set the galactica institution pub key
     // set the institution pub keys
+    const startIndex: number =
+      await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS();
     for (let i = 0; i < amountInstitutions; i++) {
       const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
-        publicSignals[
-          (await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS()) + 2 * i
-        ],
-        publicSignals[
-          (await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS()) +
-            2 * i +
-            1
-        ],
+        publicSignals[startIndex + 2 * i],
+        publicSignals[startIndex + 2 * i + 1],
       ];
       await mockGalacticaInstitutions[i].setInstitutionPubkey(
         galacticaInstitutionPubKey,

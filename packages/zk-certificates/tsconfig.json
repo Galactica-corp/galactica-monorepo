@@ -17,8 +17,8 @@
     "./types/*",
     "./scripts/*",
     "./tasks/*",
-    "./test/contracts/*",
-    "./test/circuits/*",
+    // "./test/contracts/*",
+    // "./test/circuits/*",
     "./test/lib/*",
     "index.ts"
   ]
