@@ -2,6 +2,7 @@ module.exports = {
   root: true,
   parserOptions: {
     sourceType: 'module',
+    allowImportExportEverywhere: true,
   },
 
   extends: ['@metamask/eslint-config'],
