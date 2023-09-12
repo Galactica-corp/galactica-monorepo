@@ -63,5 +63,11 @@ module.exports = {
     },
   ],
 
-  ignorePatterns: ['!.eslintrc.js', 'artifacts/', 'cache/', 'circuits/build/'],
+  ignorePatterns: [
+    '!.eslintrc.js',
+    'artifacts/',
+    'cache/',
+    'circuits/build/',
+    'dist/typechain-types/contracts',
+  ],
 };
