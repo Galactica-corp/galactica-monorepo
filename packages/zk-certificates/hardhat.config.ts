@@ -3,8 +3,8 @@ import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
-import { HardhatUserConfig } from 'hardhat/config';
 import { Wallet } from 'ethers';
+import { HardhatUserConfig } from 'hardhat/config';
 
 import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
@@ -156,31 +156,39 @@ const config: HardhatUserConfig = {
  * @returns Array of private keys.
  */
 function getAccounts(): string[] {
-  let accounts: string[] = [];
+  const accounts: string[] = [];
   // check if environment variables exist
-  if (!process.env.GalaTestnetDeployerPrivateKey) {
-    console.warn('GalaTestnetDeployerPrivateKey env var not set, using random private key');
-    accounts.push(Wallet.createRandom().privateKey);
-  } else {
+  if (process.env.GalaTestnetDeployerPrivateKey) {
     accounts.push(process.env.GalaTestnetDeployerPrivateKey);
-  }
-  if (!process.env.GalaTestnetInstitution1PrivateKey) {
-    console.warn('GalaTestnetInstitution1PrivateKey env var not set, using random private key');
-    accounts.push(Wallet.createRandom().privateKey);
   } else {
+    console.warn(
+      'GalaTestnetDeployerPrivateKey env var not set, using random private key',
+    );
+    accounts.push(Wallet.createRandom().privateKey);
+  }
+  if (process.env.GalaTestnetInstitution1PrivateKey) {
     accounts.push(process.env.GalaTestnetInstitution1PrivateKey);
-  }
-  if (!process.env.GalaTestnetInstitution2PrivateKey) {
-    console.warn('GalaTestnetInstitution2PrivateKey env var not set, using random private key');
-    accounts.push(Wallet.createRandom().privateKey);
   } else {
+    console.warn(
+      'GalaTestnetInstitution1PrivateKey env var not set, using random private key',
+    );
+    accounts.push(Wallet.createRandom().privateKey);
+  }
+  if (process.env.GalaTestnetInstitution2PrivateKey) {
     accounts.push(process.env.GalaTestnetInstitution2PrivateKey);
-  }
-  if (!process.env.GalaTestnetInstitution3PrivateKey) {
-    console.warn('GalaTestnetInstitution3PrivateKey env var not set, using random private key');
-    accounts.push(Wallet.createRandom().privateKey);
   } else {
+    console.warn(
+      'GalaTestnetInstitution2PrivateKey env var not set, using random private key',
+    );
+    accounts.push(Wallet.createRandom().privateKey);
+  }
+  if (process.env.GalaTestnetInstitution3PrivateKey) {
     accounts.push(process.env.GalaTestnetInstitution3PrivateKey);
+  } else {
+    console.warn(
+      'GalaTestnetInstitution3PrivateKey env var not set, using random private key',
+    );
+    accounts.push(Wallet.createRandom().privateKey);
   }
   return accounts;
 }

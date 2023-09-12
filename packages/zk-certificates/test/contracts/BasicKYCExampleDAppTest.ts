@@ -140,7 +140,9 @@ describe('BasicKYCExampleDApp', () => {
 
     await expect(
       basicExampleDApp.connect(user).registerKYC(piA, piB, piC, publicInputs),
-    ).to.be.revertedWith('The user already has a verification SBT. Please wait until it expires.');
+    ).to.be.revertedWith(
+      'The user already has a verification SBT. Please wait until it expires.',
+    );
 
     // wait until verification SBT expires to renew it
     const sbt = await verificationSBT.getVerificationSBTInfo(

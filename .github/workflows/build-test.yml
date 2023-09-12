@@ -36,7 +36,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./packages/zk-certificates/circuits/pot17_final.ptau
-          key: "trusted setup for testing" # can be static because it's not going to change
+          key: 'trusted setup for testing' # can be static because it's not going to change
       - if: ${{ steps.ptau-cache.outputs.cache-hit != 'true' }}
         name: Download ptau file
         run: wget https://galactica.com/trusted-setup/dev/pot17_final.ptau -O ./packages/zk-certificates/circuits/pot17_final.ptau
