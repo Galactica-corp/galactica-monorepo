@@ -26,7 +26,6 @@
     "build": "tsup --dts",
     "buildZK": "hardhat smartCircuitBuild --verbose && hardhat compile && tsc",
     "compile": "hardhat smartCircuitBuild --verbose",
-    "debug": "eslint --print-config .eslintrc.js | grep -i sourceType",
     "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose",
     "test": "hardhat smartCircuitBuild --verbose && hardhat test"
   },
