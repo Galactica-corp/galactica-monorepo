@@ -2536,6 +2536,7 @@ __metadata:
     circom2: ^0.2.13
     circomlib: ^2.0.5
     circomlibjs: ^0.1.7
+    eslint: ^8.38.0
     ethers: ^5.7.2
     ffjavascript: ^0.2.57
     hardhat: ^2.10.1

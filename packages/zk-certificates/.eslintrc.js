@@ -1,6 +1,11 @@
 module.exports = {
   extends: ['../../.eslintrc.js'],
 
+  parserOptions: {
+    sourceType: 'module',
+    allowImportExportEverywhere: true,
+  },
+
   overrides: [
     {
       files: ['hardhat.config.ts'],
@@ -63,5 +68,5 @@ module.exports = {
     },
   ],
 
-  ignorePatterns: ['!.eslintrc.js', 'artifacts/', 'cache/', 'circuits/build/'],
+  ignorePatterns: ['.eslintrc.js', 'artifacts/', 'cache/', 'circuits/build/'],
 };
