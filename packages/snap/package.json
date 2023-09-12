@@ -18,6 +18,7 @@
     "build:clean": "yarn clean && yarn build",
     "build:website": "node ./scripts/build-website.js",
     "clean": "rimraf dist",
+    "debug": "eslint --print-config .eslintrc.js | grep -i sourceType",
     "eval:snap": "mm-snap eval -b dist/bundle.js --verboseErrors",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,ts",
