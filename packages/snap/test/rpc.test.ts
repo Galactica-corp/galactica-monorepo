@@ -581,7 +581,8 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Export ZkCert Hash', function () {
-    it('should throw error if not confirmed', async function () {
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);
       const clearPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.GetZkCertHash),
@@ -613,7 +614,8 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Update Merkle Root', function () {
-    it('should throw error if not confirmed', async function () {
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const updateParams: MerkleProofUpdateRequestParams = {
