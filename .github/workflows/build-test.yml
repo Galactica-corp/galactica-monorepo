@@ -11,20 +11,13 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [18.x]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Use key for access of private repos
-        uses: shaunco/ssh-agent@git-repo-mapping # this action will configure git to use the right SSH key per each repository.
-        with:
-          ssh-private-key: |
-            ${{ secrets.ZKKYCKEY}}
-          repo-mappings: |
-            github.com/Galactica-corp/zkKYC
       - name: Get Yarn cache directory
         run: echo "::set-output name=YARN_CACHE_DIR::$(yarn cache dir)"
         id: yarn-cache-dir
@@ -32,11 +25,21 @@ jobs:
         run: echo "::set-output name=YARN_VERSION::$(yarn --version)"
         id: yarn-version
       - name: Cache yarn dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
           key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
       - run: yarn install --immutable
+      - name: cache ptau file trusted setup for testing
+        # using this action because the file is too large to be commited to the repo
+        id: ptau-cache
+        uses: actions/cache@v3
+        with:
+          path: ./packages/zk-certificates/circuits/pot17_final.ptau
+          key: 'trusted setup for testing' # can be static because it's not going to change
+      - if: ${{ steps.ptau-cache.outputs.cache-hit != 'true' }}
+        name: Download ptau file
+        run: wget https://galactica.com/trusted-setup/dev/pot17_final.ptau -O ./packages/zk-certificates/circuits/pot17_final.ptau
       - run: yarn build
       - run: yarn lint
       - run: yarn test

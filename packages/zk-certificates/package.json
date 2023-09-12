@@ -23,7 +23,8 @@
     "/contracts"
   ],
   "scripts": {
-    "build": "hardhat smartCircuitBuild --verbose && hardhat compile && tsc",
+    "build": "tsc",
+    "buildZK": "hardhat smartCircuitBuild --verbose && hardhat compile && tsc",
     "compile": "hardhat smartCircuitBuild --verbose",
     "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose",
     "test": "hardhat smartCircuitBuild --verbose && hardhat test"

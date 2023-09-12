@@ -63,5 +63,5 @@ module.exports = {
     },
   ],
 
-  ignorePatterns: ['!.eslintrc.js', 'build/', 'gatsby*'],
+  ignorePatterns: ['!.eslintrc.js', 'artifacts/', 'cache/', 'circuits/build/'],
 };
