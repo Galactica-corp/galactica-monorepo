@@ -11,10 +11,7 @@ import {
   EncryptedZkCert,
   ZkCertRegistered,
 } from '@galactica-net/snap-api';
-import {
-  decryptSafely,
-  getEncryptionPublicKey,
-} from '@metamask/eth-sig-util';
+import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { match } from 'sinon';
@@ -35,9 +32,9 @@ import zkCert2 from '../../../test/zkCert2.json';
 import zkKYCToImportInUnitTest from '../../../test/zkKYCToImportInUnitTest.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
+import { encryptZkCert } from '../src/encryption';
 import { RpcArgs } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
-import { encryptZkCert } from '../src/encryption';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -191,7 +188,11 @@ describe('Test rpc handler function', function () {
 
       await processRpcRequest(
         buildRPCRequest(RpcMethods.ImportZkCert, {
-          encryptedZkCert: encryptZkCert(zkKYC as ZkCertRegistered, testHolder.encryptionPubKey, expectedHolderCommitment),
+          encryptedZkCert: encryptZkCert(
+            zkKYC as ZkCertRegistered,
+            testHolder.encryptionPubKey,
+            expectedHolderCommitment,
+          ),
         }),
         snapProvider,
       );
@@ -227,7 +228,11 @@ describe('Test rpc handler function', function () {
           zkCerts: [],
         });
 
-      encryptedZkCert = encryptZkCert(zkCert as ZkCertRegistered, testHolder.encryptionPubKey, zkCert.holderCommitment);
+      encryptedZkCert = encryptZkCert(
+        zkCert as ZkCertRegistered,
+        testHolder.encryptionPubKey,
+        zkCert.holderCommitment,
+      );
     });
 
     it('should throw error if not confirmed', async function () {
@@ -250,23 +255,30 @@ describe('Test rpc handler function', function () {
         snapProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
-        "not in the EthEncryptedData format",
+        'not in the EthEncryptedData format',
       );
     });
 
     it('should throw if data is missing in zkCert', async function () {
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
-      let invalidZkCert: any = { ...zkCert };
+      const invalidZkCert: any = { ...zkCert };
       invalidZkCert.holderCommitment = undefined;
 
-      const encryptedZkCert = encryptZkCert(invalidZkCert as ZkCertRegistered, testHolder.encryptionPubKey, zkCert.holderCommitment);
+      const invalidEncryptedZkCert = encryptZkCert(
+        invalidZkCert as ZkCertRegistered,
+        testHolder.encryptionPubKey,
+        zkCert.holderCommitment,
+      );
+
       const callPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, {
+          encryptedZkCert: invalidEncryptedZkCert,
+        }),
         snapProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
-        "The decrypted zkCert is invalid. It is missing the filed holderCommitment.",
+        'The decrypted zkCert is invalid. It is missing the filed holderCommitment.',
       );
     });
 
@@ -324,7 +336,10 @@ describe('Test rpc handler function', function () {
         });
 
       const res: any = await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert, listZkCerts: true }),
+        buildRPCRequest(RpcMethods.ImportZkCert, {
+          encryptedZkCert,
+          listZkCerts: true,
+        }),
         snapProvider,
       );
 

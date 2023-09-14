@@ -15,7 +15,11 @@ import {
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
-import { checkEncryptedZkCertFormat, decryptZkCert, encryptZkCert } from './encryption';
+import {
+  checkEncryptedZkCertFormat,
+  decryptZkCert,
+  encryptZkCert,
+} from './encryption';
 import { generateZkKycProof } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import { HolderData, SnapRpcProcessor, PanelContent } from './types';
@@ -128,7 +132,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       );
       holder = getHolder(zkCert.holderCommitment, state.holders);
 
-      const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts)
+      const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts);
 
       const proof = generateZkKycProof(
         genParams,
@@ -168,9 +172,15 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const importParams = request.params as ImportZkCertParams;
       checkEncryptedZkCertFormat(importParams.encryptedZkCert);
 
-      holder = getHolder(importParams.encryptedZkCert.holderCommitment, state.holders);
+      holder = getHolder(
+        importParams.encryptedZkCert.holderCommitment,
+        state.holders,
+      );
 
-      const zkCert = decryptZkCert(importParams.encryptedZkCert, holder.encryptionPrivKey);
+      const zkCert = decryptZkCert(
+        importParams.encryptedZkCert,
+        holder.encryptionPrivKey,
+      );
 
       // prevent uploading the same zkCert again
       const searchedZkCert = state.zkCerts.find(
@@ -249,7 +259,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
         exportParams.expirationDate,
         exportParams.providerAx,
       );
-      const zkCertStorageData = getZkCert(zkCertForExport.leafHash, state.zkCerts);
+      const zkCertStorageData = getZkCert(
+        zkCertForExport.leafHash,
+        state.zkCerts,
+      );
       const encryptedZkCert = encryptZkCert(
         zkCertStorageData,
         state.holders[0].encryptionPubKey,
@@ -259,7 +272,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.GetHolderCommitment: {
-
       if (state.holders.length === 0) {
         throw new Error(RpcResponseErr.MissingHolder);
       }

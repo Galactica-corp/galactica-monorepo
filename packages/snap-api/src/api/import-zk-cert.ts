@@ -6,7 +6,7 @@ import { invokeSnap } from '../utils/invoke-snap';
 
 type ImportErrorName = 'HolderMissing' | 'FormatError';
 
-export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> { }
+export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> {}
 
 export type ImportZkCertParams = {
   // The encrypted zkCert to be imported (ZkCertRegistered encrypted with @metamask/eth-sig-util)

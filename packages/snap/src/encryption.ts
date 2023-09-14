@@ -1,15 +1,20 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-import { EncryptedZkCert, ImportZkCertError, ZkCertRegistered } from '@galactica-net/snap-api';
+import { ENCRYPTION_VERSION } from '@galactica-net/galactica-types';
+import {
+  EncryptedZkCert,
+  ImportZkCertError,
+  ZkCertRegistered,
+} from '@galactica-net/snap-api';
 import {
   getEncryptionPublicKey,
   encryptSafely,
   decryptSafely,
 } from '@metamask/eth-sig-util';
 import { SnapsGlobalObject } from '@metamask/rpc-methods';
-import { checkZkCert } from './zkCertHandler';
-import { ENCRYPTION_VERSION } from '@galactica-net/galactica-types';
 import { Buffer } from 'buffer';
+
+import { checkZkCert } from './zkCertHandler';
 
 /**
  * Create a new encryption key pair for the holder. It is used to encrypt personal details in ZK certificates, for example on the way from guardian to the holder.
@@ -82,16 +87,16 @@ export function decryptZkCert(
 
 /**
  * Checks if an imported EncryptedZkCert has the right format.
+ *
  * @param encryptedZkCert - The encrypted zkCert as EthEncryptedData.
  * @throws If the format is not correct.
  */
 export function checkEncryptedZkCertFormat(encryptedZkCert: EncryptedZkCert) {
   if (
-    !encryptedZkCert ||
-    !encryptedZkCert.version ||
-    !encryptedZkCert.nonce ||
-    !encryptedZkCert.ephemPublicKey ||
-    !encryptedZkCert.ciphertext
+    !encryptedZkCert?.version ||
+    !encryptedZkCert?.nonce ||
+    !encryptedZkCert?.ephemPublicKey ||
+    !encryptedZkCert?.ciphertext
   ) {
     throw new ImportZkCertError({
       name: 'FormatError',
@@ -110,5 +115,6 @@ export function checkEncryptedZkCertFormat(encryptedZkCert: EncryptedZkCert) {
  * Eth-sig-util expects a global Buffer object. I provide it here because I could not figure out how to provide it through the snap build process (webpack).
  */
 function prepareGlobalsForEthSigUtil() {
+  // eslint-disable-next-line no-restricted-globals
   global.Buffer = Buffer;
 }

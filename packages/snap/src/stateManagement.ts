@@ -85,7 +85,7 @@ export async function saveState(
 
 /**
  * Get holder matching a holder commitment from the holderData array.
- * 
+ *
  * @param holderCommitment - The holder commitment to search for.
  * @param holders - The holderData array to search in.
  * @returns The holderData.
@@ -99,14 +99,17 @@ export function getHolder(
     (holderData) => holderData.holderCommitment === holderCommitment,
   );
   if (holder === undefined) {
-    throw new GenericError({ name: 'MissingHolder', message: `No holder found for commitment ${holderCommitment} Please use Metamask with the same mnemonic as when you created this holder commitment.` });
+    throw new GenericError({
+      name: 'MissingHolder',
+      message: `No holder found for commitment ${holderCommitment} Please use Metamask with the same mnemonic as when you created this holder commitment.`,
+    });
   }
   return holder;
 }
 
 /**
  * Get zkCert matching a leafHash from the zkCert array.
- * 
+ *
  * @param leafHash - The holder commitment to search for.
  * @param zkCerts - The holderData array to search in.
  * @returns The holderData.
@@ -116,11 +119,12 @@ export function getZkCert(
   leafHash: string,
   zkCerts: ZkCertRegistered[],
 ): ZkCertRegistered {
-  const res = zkCerts.find(
-    (zkCert) => zkCert.leafHash === leafHash,
-  );
+  const res = zkCerts.find((zkCert) => zkCert.leafHash === leafHash);
   if (res === undefined) {
-    throw new GenericError({ name: 'MissingZkCert', message: `ZkCert ${leafHash} Could not be found. Please import it first.` });
+    throw new GenericError({
+      name: 'MissingZkCert',
+      message: `ZkCert ${leafHash} Could not be found. Please import it first.`,
+    });
   }
   return res;
-} 
+}

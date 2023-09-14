@@ -127,8 +127,11 @@ export class ZKCertificate implements ZkCertData {
    * @param merkleProof - Merkle proof to attach to the zkCert (optional).
    * @returns JSON string of the encrypted zkCert.
    */
-  public exportJson(encryptionPubKey: string, merkleProof?: MerkleProof): string {
-    let dataToExport = this.exportRaw() as any;
+  public exportJson(
+    encryptionPubKey: string,
+    merkleProof?: MerkleProof,
+  ): string {
+    const dataToExport = this.exportRaw() as any;
     if (merkleProof) {
       dataToExport.merkleProof = merkleProof;
     }
@@ -142,7 +145,7 @@ export class ZKCertificate implements ZkCertData {
     const encryptedZkCert: EncryptedZkCert = {
       ...encryptedData,
       holderCommitment: this.holderCommitment,
-    }
+    };
     return JSON.stringify(encryptedZkCert, null, 2);
   }
 

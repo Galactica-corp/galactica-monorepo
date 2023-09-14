@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { zkCertCommonFields } from '@galactica-net/galactica-types';
-import { ImportZkCertError, ZkCertRegistered, ZkCertStorageHashes } from '@galactica-net/snap-api';
+import {
+  ImportZkCertError,
+  ZkCertRegistered,
+  ZkCertStorageHashes,
+} from '@galactica-net/snap-api';
 import {
   createHolderCommitment,
   ZkCertStandard,
@@ -76,6 +79,7 @@ export function getZkCertStorageHashes(
 
 /**
  * Checks if an imported ZkCert has the right format.
+ *
  * @param zkCert - The zkCert to check.
  * @throws If the format is not correct.
  */
@@ -86,6 +90,11 @@ export function checkZkCert(zkCert: ZkCertRegistered) {
       message: 'The decrypted zkCert is invalid.',
     });
   }
+  /**
+   * Throws customized error for missing fields.
+   *
+   * @param field - The missing field.
+   */
   function complainMissingField(field: string) {
     throw new ImportZkCertError({
       name: 'FormatError',

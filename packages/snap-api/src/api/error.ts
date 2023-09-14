@@ -21,4 +21,4 @@ type GenericErrorName =
   | 'RejectedSignature'
   | 'RejectedSelect';
 
-export class GenericError extends GalacticaErrorBase<GenericErrorName> { }
+export class GenericError extends GalacticaErrorBase<GenericErrorName> {}

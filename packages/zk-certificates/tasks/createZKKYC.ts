@@ -1,6 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
-  ZkCertRegistered,
   ZkCertStandard,
   zkKYCContentFields,
 } from '@galactica-net/galactica-types';
@@ -80,9 +79,13 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const holderCommitmentFile = JSON.parse(
     fs.readFileSync(args.holderFile, 'utf-8'),
   );
-  if (!holderCommitmentFile.holderCommitment
-    || !holderCommitmentFile.encryptionPubKey) {
-    throw new Error('The holder commitment file does not contain the expected fields (holderCommitment, encryptionPubKey)');
+  if (
+    !holderCommitmentFile.holderCommitment ||
+    !holderCommitmentFile.encryptionPubKey
+  ) {
+    throw new Error(
+      'The holder commitment file does not contain the expected fields (holderCommitment, encryptionPubKey)',
+    );
   }
   console.log('holderCommitment', holderCommitmentFile.holderCommitment);
 
@@ -208,15 +211,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(chalk.green('This ZkKYC can be imported in a wallet'));
 
   // write encrypted zkKYC output to file
-  const output = zkKYC.exportJson(
-    holderCommitmentFile.encryptionPubKey,
-    {
-      root: merkleTree.root,
-      pathIndices: merkleProof.pathIndices,
-      pathElements: merkleProof.path,
-      leaf: zkKYC.leafHash,
-    },
-  );
+  const output = zkKYC.exportJson(holderCommitmentFile.encryptionPubKey, {
+    root: merkleTree.root,
+    pathIndices: merkleProof.pathIndices,
+    pathElements: merkleProof.path,
+    leaf: zkKYC.leafHash,
+  });
 
   const outputFileName: string =
     args.outputFile || `issuedZkKYCs/${zkKYC.leafHash}.json`;

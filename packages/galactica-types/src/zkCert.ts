@@ -74,10 +74,10 @@ export type ZkCertRegistered = {
 // Encryption used for zkCerts when being exported or passed form guardian to user
 export const ENCRYPTION_VERSION = 'x25519-xsalsa20-poly1305';
 
-export interface EncryptedZkCert extends EthEncryptedData {
+export type EncryptedZkCert = {
   // holder commitment to associate the zkCert with the holder who can decrypt it
   holderCommitment: string;
-}
+} & EthEncryptedData;
 
 /**
  * Encrypted data type consistent with the EthEncryptedData type from eth-sig-util.
