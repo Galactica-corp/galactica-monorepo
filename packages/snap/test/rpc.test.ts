@@ -218,7 +218,6 @@ describe('Test rpc handler function', function () {
 
   describe('Import zkCert method', function () {
     let encryptedZkCert: EncryptedZkCert;
-    let encryptedZkCert2: EncryptedZkCert;
 
     beforeEach(function () {
       snapProvider.rpcStubs.snap_manageState
@@ -229,7 +228,6 @@ describe('Test rpc handler function', function () {
         });
 
       encryptedZkCert = encryptZkCert(zkCert as ZkCertRegistered, testHolder.encryptionPubKey, zkCert.holderCommitment);
-      encryptedZkCert2 = encryptZkCert(zkCert as ZkCertRegistered, testHolder.encryptionPubKey, zkCert.holderCommitment);
     });
 
     it('should throw error if not confirmed', async function () {
@@ -241,6 +239,34 @@ describe('Test rpc handler function', function () {
       );
       await expect(callPromise).to.be.rejectedWith(
         RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    it('should throw if the zkCert is not encrypted', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        snapProvider,
+      );
+      await expect(callPromise).to.be.rejectedWith(
+        "not in the EthEncryptedData format",
+      );
+    });
+
+    it('should throw if data is missing in zkCert', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+
+      let invalidZkCert: any = { ...zkCert };
+      invalidZkCert.holderCommitment = undefined;
+
+      const encryptedZkCert = encryptZkCert(invalidZkCert as ZkCertRegistered, testHolder.encryptionPubKey, zkCert.holderCommitment);
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert }),
+        snapProvider,
+      );
+      await expect(callPromise).to.be.rejectedWith(
+        "The decrypted zkCert is invalid. It is missing the filed holderCommitment.",
       );
     });
 

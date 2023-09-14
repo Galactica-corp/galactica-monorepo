@@ -8,6 +8,7 @@ import {
   EthEncryptedData,
 } from '@metamask/eth-sig-util';
 import { SnapsGlobalObject } from '@metamask/rpc-methods';
+import { checkZkCert } from './zkCertHandler';
 
 const encryptionVersion = 'x25519-xsalsa20-poly1305';
 
@@ -63,6 +64,7 @@ export function encryptZkCert(
  * @param encryptedZkCert - The encrypted zkCert as EthEncryptedData.
  * @param privKey - The private key for decryption.
  * @returns The decrypted ZkCertRegistered.
+ * @throws If the zkCert is not in the right format or the decryption fails.
  */
 export function decryptZkCert(
   encryptedZkCert: EncryptedZkCert,
@@ -73,6 +75,7 @@ export function decryptZkCert(
     privateKey: privKey,
   });
   const zkCert = JSON.parse(decryptedMessage) as ZkCertRegistered;
+  checkZkCert(zkCert);
   return zkCert;
 }
 
