@@ -129,15 +129,16 @@ export class ZKCertificate implements ZkCertData {
   /**
    * Export the zkCert as object containing only the fields relevant for import in a wallet.
    *
-   * @returns ZkCert object.
+   * @returns ZkCertData object.
    */
-  public export(): any {
+  public export(): ZkCertData {
     const doc = {
       holderCommitment: this.holderCommitment,
       leafHash: this.leafHash,
       did: this.did,
       zkCertStandard: this.zkCertStandard,
       content: this.content,
+      contentHash: this.contentHash,
       providerData: this.providerData,
       randomSalt: this.randomSalt,
     };

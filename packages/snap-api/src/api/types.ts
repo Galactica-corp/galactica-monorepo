@@ -1,17 +1,12 @@
-import { MerkleProof, ZkCertData } from '@galactica-net/galactica-types';
+import { MerkleProof, ZkCertData, ZkCertRegistered } from '@galactica-net/galactica-types';
 
 export type {
   ProviderData,
   MerkleProof,
   ZkCertData,
+  ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 export { ZkCertStandard } from '@galactica-net/galactica-types';
-
-export type ZkCertRegistered = {
-  // Proof showing that the zkCert is part of the Merkle tree
-  // Updating it helps to prevent tracking through finding uses of the same merkle root
-  merkleProof: MerkleProof;
-} & ZkCertData;
 
 /**
  * Data defining a zk circuit prover
@@ -51,6 +46,11 @@ export type ZkCertSelectionParams = {
   expirationDate?: number;
   providerAx?: string;
 };
+
+export interface EncryptedZkCert extends EthEncryptedData {
+  // holder commitment to associate the zkCert with the holder who can decrypt it
+  holderCommitment: string;
+}
 
 /**
  * Encrypted data type consistent with the EthEncryptedData type from eth-sig-util.

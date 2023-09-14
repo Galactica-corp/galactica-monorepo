@@ -1,16 +1,16 @@
 import { GalacticaErrorBase } from './error';
 import { ZkCertMetadataList } from './list-zk-certs';
 import { RpcMethods } from './rpcEnums';
-import { ZkCertRegistered } from './types';
+import { EncryptedZkCert } from './types';
 import { invokeSnap } from '../utils/invoke-snap';
 
-type ImportErrorName = 'HolderMissing';
+type ImportErrorName = 'HolderMissing' | 'FormatError';
 
-export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> {}
+export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> { }
 
 export type ImportZkCertParams = {
-  // The zkCert to be imported
-  zkCert: ZkCertRegistered;
+  // The encrypted zkCert to be imported (ZkCertRegistered encrypted with @metamask/eth-sig-util)
+  encryptedZkCert: EncryptedZkCert;
   // Should the snap return the list of zkCerts after import (to have 1 less confirmation)
   listZkCerts?: boolean;
 };

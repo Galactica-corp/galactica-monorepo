@@ -16,9 +16,9 @@ import {
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
-import { encryptZkCert } from './encryption';
+import { checkEncryptedZkCertFormat, decryptZkCert, encryptZkCert } from './encryption';
 import { generateZkKycProof } from './proofGenerator';
-import { getState, saveState } from './stateManagement';
+import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import { HolderData, SnapRpcProcessor, PanelContent } from './types';
 import {
   getZkCertStorageHashes,
@@ -127,27 +127,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         state.zkCerts,
         genParams.requirements.zkCertStandard,
       );
+      holder = getHolder(zkCert.holderCommitment, state.holders);
 
-      const searchedHolder = state.holders.find(
-        (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
-      );
-      if (searchedHolder === undefined) {
-        throw new GenericError({
-          name: 'MissingHolder',
-          message: `Holder for commitment ${zkCert.holderCommitment} could not be found. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
-        });
-      }
-      holder = searchedHolder;
-
-      const searchedZkCert = state.zkCerts.find(
-        (cert) => cert.leafHash === zkCert.leafHash,
-      );
-
-      if (searchedZkCert === undefined) {
-        throw new Error(
-          `zkCert with leafHash ${zkCert.leafHash} could not be found.`,
-        );
-      }
+      const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts)
 
       const proof = generateZkKycProof(
         genParams,
@@ -185,24 +167,15 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
     case RpcMethods.ImportZkCert: {
       const importParams = request.params as ImportZkCertParams;
+      checkEncryptedZkCertFormat(importParams.encryptedZkCert);
 
-      // check that there is a holder setup for this zkCert
-      const searchedHolder = state.holders.find(
-        (candidate) =>
-          candidate.holderCommitment === importParams.zkCert.holderCommitment,
-      );
-      if (searchedHolder === undefined) {
-        throw new ImportZkCertError({
-          name: 'HolderMissing',
-          message: `Could not find Holder for commitment ${importParams.zkCert.holderCommitment}. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
-        });
-      }
+      holder = getHolder(importParams.encryptedZkCert.holderCommitment, state.holders);
 
-      const listZkCertsFlag = importParams.listZkCerts === true;
+      const zkCert = decryptZkCert(importParams.encryptedZkCert, holder.encryptionPrivKey);
 
       // prevent uploading the same zkCert again
       const searchedZkCert = state.zkCerts.find(
-        (candidate) => candidate.leafHash === importParams.zkCert.leafHash,
+        (candidate) => candidate.leafHash === zkCert.leafHash,
       );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };
@@ -215,7 +188,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
           `With this action you are importing your zkKYC in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
         ),
       ];
-      if (listZkCertsFlag) {
+      if (importParams.listZkCerts === true) {
         prompt.push(
           divider(),
           text(
@@ -237,10 +210,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
           message: RpcResponseErr.RejectedConfirm,
         });
       }
-      state.zkCerts.push(importParams.zkCert);
+      state.zkCerts.push(zkCert);
       await saveState(snap, state);
 
-      if (listZkCertsFlag) {
+      if (importParams.listZkCerts === true) {
         return getZkCertStorageOverview(state.zkCerts);
       }
       response = { message: RpcResponseMsg.ZkCertImported };
@@ -277,17 +250,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         exportParams.expirationDate,
         exportParams.providerAx,
       );
-      const zkCertStorageData = state.zkCerts.find(
-        (cert) => cert.leafHash === zkCertForExport.leafHash,
-      );
-      if (zkCertStorageData === undefined) {
-        throw new Error(
-          `Could not export ${zkCertForExport.leafHash} because it was not found in the wallet.`,
-        );
-      }
+      const zkCertStorageData = getZkCert(zkCertForExport.leafHash, state.zkCerts);
       const encryptedZkCert = encryptZkCert(
         zkCertStorageData,
         state.holders[0].encryptionPubKey,
+        state.holders[0].holderCommitment,
       );
       return encryptedZkCert;
     }

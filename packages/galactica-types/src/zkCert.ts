@@ -1,3 +1,4 @@
+import { MerkleProof } from './merkleProof';
 import { ZkCertStandard, ZkKYCContent } from './zkCertStandard';
 
 // / Data required for ZK ownership proofs
@@ -63,3 +64,9 @@ export type ZkCertData = {
   leafHash: string;
   did: string;
 };
+
+export type ZkCertRegistered = {
+  // Proof showing that the zkCert is part of the Merkle tree
+  // Updating it helps to prevent tracking through finding uses of the same merkle root
+  merkleProof: MerkleProof;
+} & ZkCertData;

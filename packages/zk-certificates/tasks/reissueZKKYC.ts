@@ -1,5 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
+  ZkCertRegistered,
   ZkCertStandard,
   zkKYCContentFields,
 } from '@galactica-net/galactica-types';
@@ -164,13 +165,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   if (merkleTree.retrieveLeaf(0, args.index) !== fromHexToDec(oldLeafBytes)) {
     console.log(
-      `the current leaf hash at index ${
-        args.index as number
+      `the current leaf hash at index ${args.index as number
       } does not correspond with the outdated zkKYC Cert we want to update`,
     );
     console.log(
-      `current leaf hash at index ${
-        args.index as number
+      `current leaf hash at index ${args.index as number
       }: ${merkleTree.retrieveLeaf(0, args.index)}`,
     );
     console.log(`outdated zkKYC Cert leaf hash: ${oldLeafBytes}`);
@@ -200,8 +199,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   await tx.wait();
   console.log(
     chalk.green(
-      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${
-        args.index as number
+      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${args.index as number
       } with new expiration date ${args.newExpirationDate as number}`,
     ),
   );
@@ -211,13 +209,16 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(chalk.green('This ZkKYC can be imported in a wallet'));
 
   // write output to file
-  const output = newZkKYC.export();
   merkleTree.insertLeaves([newZkKYC.leafHash], [args.index]);
   const newMerkleProof = merkleTree.createProof(args.index);
-  output.merkleProof = {
-    root: merkleTree.root,
-    pathIndices: newMerkleProof.pathIndices,
-    pathElements: newMerkleProof.path,
+  const output: ZkCertRegistered = {
+    ...newZkKYC.export(),
+    merkleProof: {
+      root: merkleTree.root,
+      pathIndices: newMerkleProof.pathIndices,
+      pathElements: newMerkleProof.path,
+      leaf: newZkKYC.leafHash,
+    },
   };
   const outputFileName: string =
     args.outputFile || `issuedZkKYCs/${newZkKYC.leafHash}.json`;

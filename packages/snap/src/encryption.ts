@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-import { ZkCertData } from '@galactica-net/galactica-types';
-import { ZKCertificate } from '@galactica-net/zk-certificates';
+import { EncryptedZkCert, ImportZkCertError, ZkCertRegistered } from '@galactica-net/snap-api';
 import {
   getEncryptionPublicKey,
   encryptSafely,
@@ -38,38 +37,67 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
 /**
  * Encrypt a zkCert for exporting.
  *
- * @param zkCert - The ZkCertData to encrypt.
+ * @param zkCert - The ZkCertRegistered to encrypt.
  * @param pubKey - The public key for encryption.
- * @returns The encrypted ZkCertData as EthEncryptedData.
+ * @param holderCommitment - The holder commitment to associate the zkCert with the holder who can decrypt it.
+ * @returns The encrypted ZkCertRegistered as EthEncryptedData.
  */
 export function encryptZkCert(
-  zkCert: ZkCertData,
+  zkCert: ZkCertRegistered,
   pubKey: string,
-): EthEncryptedData {
+  holderCommitment: string,
+): EncryptedZkCert {
   const message = JSON.stringify(zkCert);
   const encryptedZkCert = encryptSafely({
     publicKey: pubKey,
     data: message,
     version: encryptionVersion,
-  });
+  }) as EncryptedZkCert;
+  encryptedZkCert.holderCommitment = holderCommitment;
   return encryptedZkCert;
 }
 
 /**
- * Decrypt a zkCert. It takes the encrypted ZkCertData as given by the guardian or exported from the Snap.
+ * Decrypt a zkCert. It takes the encrypted ZkCertRegistered as given by the guardian or exported from the Snap.
  *
- * @param encryptedData - The encrypted zkCert as EthEncryptedData.
+ * @param encryptedZkCert - The encrypted zkCert as EthEncryptedData.
  * @param privKey - The private key for decryption.
- * @returns The decrypted ZkCertData.
+ * @returns The decrypted ZkCertRegistered.
  */
 export function decryptZkCert(
-  encryptedData: EthEncryptedData,
+  encryptedZkCert: EncryptedZkCert,
   privKey: string,
-): ZkCertData {
+): ZkCertRegistered {
   const decryptedMessage = decryptSafely({
-    encryptedData,
+    encryptedData: encryptedZkCert,
     privateKey: privKey,
   });
-  const zkCert = JSON.parse(decryptedMessage) as ZKCertificate;
+  const zkCert = JSON.parse(decryptedMessage) as ZkCertRegistered;
   return zkCert;
+}
+
+/**
+ * Checks if an imported EncryptedZkCert has the right format.
+ * @param encryptedZkCert - The encrypted zkCert as EthEncryptedData.
+ * @throws If the format is not correct.
+ */
+export function checkEncryptedZkCertFormat(encryptedZkCert: EncryptedZkCert) {
+  if (
+    !encryptedZkCert ||
+    !encryptedZkCert.version ||
+    !encryptedZkCert.nonce ||
+    !encryptedZkCert.ephemPublicKey ||
+    !encryptedZkCert.ciphertext
+  ) {
+    throw new ImportZkCertError({
+      name: 'FormatError',
+      message: 'The imported zkCert is not in the EthEncryptedData format.',
+    });
+  }
+  if (!encryptedZkCert.holderCommitment) {
+    throw new ImportZkCertError({
+      name: 'FormatError',
+      message: 'The imported zkCert does not contain a holder commitment.',
+    });
+  }
 }

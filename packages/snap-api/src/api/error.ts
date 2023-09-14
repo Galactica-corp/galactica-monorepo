@@ -16,8 +16,9 @@ type GenericErrorName =
   | 'RejectedConfirm'
   | 'UnknownMethod'
   | 'MissingHolder'
+  | 'MissingZkCert'
   | 'RejectedConnect'
   | 'RejectedSignature'
   | 'RejectedSelect';
 
-export class GenericError extends GalacticaErrorBase<GenericErrorName> {}
+export class GenericError extends GalacticaErrorBase<GenericErrorName> { }

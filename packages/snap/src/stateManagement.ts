@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { ZkCertRegistered } from '@galactica-net/snap-api';
+import { GenericError, ZkCertRegistered } from '@galactica-net/snap-api';
 import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
 
 import { createEncryptionKeyPair } from './encryption';
@@ -82,3 +82,45 @@ export async function saveState(
     params: { operation: 'update', newState: stateRecord },
   });
 }
+
+/**
+ * Get holder matching a holder commitment from the holderData array.
+ * 
+ * @param holderCommitment - The holder commitment to search for.
+ * @param holders - The holderData array to search in.
+ * @returns The holderData.
+ * @throws Error if no holder is found.
+ */
+export function getHolder(
+  holderCommitment: string,
+  holders: HolderData[],
+): HolderData {
+  const holder = holders.find(
+    (holderData) => holderData.holderCommitment === holderCommitment,
+  );
+  if (holder === undefined) {
+    throw new GenericError({ name: 'MissingHolder', message: `No holder found for commitment ${holderCommitment} Please use Metamask with the same mnemonic as when you created this holder commitment.` });
+  }
+  return holder;
+}
+
+/**
+ * Get zkCert matching a leafHash from the zkCert array.
+ * 
+ * @param leafHash - The holder commitment to search for.
+ * @param zkCerts - The holderData array to search in.
+ * @returns The holderData.
+ * @throws Error if no holder is found.
+ */
+export function getZkCert(
+  leafHash: string,
+  zkCerts: ZkCertRegistered[],
+): ZkCertRegistered {
+  const res = zkCerts.find(
+    (zkCert) => zkCert.leafHash === leafHash,
+  );
+  if (res === undefined) {
+    throw new GenericError({ name: 'MissingZkCert', message: `ZkCert ${leafHash} Could not be found. Please import it first.` });
+  }
+  return res;
+} 

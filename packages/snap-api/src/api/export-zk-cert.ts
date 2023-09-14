@@ -1,5 +1,5 @@
 import { RpcMethods } from './rpcEnums';
-import { EthEncryptedData, ZkCertSelectionParams } from './types';
+import { EncryptedZkCert, ZkCertSelectionParams } from './types';
 import { invokeSnap } from '../utils/invoke-snap';
 
 /**
@@ -10,7 +10,7 @@ import { invokeSnap } from '../utils/invoke-snap';
  * @throws RPCError on failure.
  */
 export const exportZkCert = async (params: ZkCertSelectionParams) => {
-  const response: EthEncryptedData = await invokeSnap({
+  const response: EncryptedZkCert = await invokeSnap({
     method: RpcMethods.ExportZkCert,
     params,
   });

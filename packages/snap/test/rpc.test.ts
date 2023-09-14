@@ -8,9 +8,10 @@ import {
   ZkCertStandard,
   MerkleProofUpdateRequestParams,
   ConfirmationResponse,
+  EncryptedZkCert,
+  ZkCertRegistered,
 } from '@galactica-net/snap-api';
 import {
-  EthEncryptedData,
   decryptSafely,
   getEncryptionPublicKey,
 } from '@metamask/eth-sig-util';
@@ -36,6 +37,7 @@ import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMock
 import { processRpcRequest } from '../src';
 import { RpcArgs } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
+import { encryptZkCert } from '../src/encryption';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -189,7 +191,7 @@ describe('Test rpc handler function', function () {
 
       await processRpcRequest(
         buildRPCRequest(RpcMethods.ImportZkCert, {
-          zkCert: zkKYC,
+          encryptedZkCert: encryptZkCert(zkKYC as ZkCertRegistered, testHolder.encryptionPubKey, expectedHolderCommitment),
         }),
         snapProvider,
       );
@@ -215,6 +217,9 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Import zkCert method', function () {
+    let encryptedZkCert: EncryptedZkCert;
+    let encryptedZkCert2: EncryptedZkCert;
+
     beforeEach(function () {
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -222,13 +227,16 @@ describe('Test rpc handler function', function () {
           holders: [testHolder],
           zkCerts: [],
         });
+
+      encryptedZkCert = encryptZkCert(zkCert as ZkCertRegistered, testHolder.encryptionPubKey, zkCert.holderCommitment);
+      encryptedZkCert2 = encryptZkCert(zkCert as ZkCertRegistered, testHolder.encryptionPubKey, zkCert.holderCommitment);
     });
 
     it('should throw error if not confirmed', async function () {
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const callPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert }),
         snapProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
@@ -240,7 +248,7 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert }),
         snapProvider,
       )) as ConfirmationResponse;
 
@@ -264,7 +272,7 @@ describe('Test rpc handler function', function () {
         });
 
       const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert }),
         snapProvider,
       )) as ConfirmationResponse;
 
@@ -290,7 +298,7 @@ describe('Test rpc handler function', function () {
         });
 
       const res: any = await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert, listZkCerts: true }),
+        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert, listZkCerts: true }),
         snapProvider,
       );
 
@@ -590,9 +598,10 @@ describe('Test rpc handler function', function () {
       const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.ExportZkCert, params),
         snapProvider,
-      )) as EthEncryptedData;
+      )) as EncryptedZkCert;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(result.holderCommitment).to.be.eq(testHolder.holderCommitment);
 
       const decrypted = JSON.parse(
         decryptSafely({
@@ -640,7 +649,7 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const updateParams: MerkleProofUpdateRequestParams = {
-        proofs: [{ leaf: zkCert.leafHash, ...zkCert.merkleProof }],
+        proofs: [zkCert.merkleProof],
       };
 
       const updatePromise = processRpcRequest(
@@ -662,7 +671,7 @@ describe('Test rpc handler function', function () {
         });
 
       const updateParams: MerkleProofUpdateRequestParams = {
-        proofs: [{ leaf: zkCert2.leafHash, ...zkCert2.merkleProof }],
+        proofs: [zkCert2.merkleProof],
       };
 
       const updatePromise = processRpcRequest(
