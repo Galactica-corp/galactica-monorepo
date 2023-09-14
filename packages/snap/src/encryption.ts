@@ -5,12 +5,11 @@ import {
   getEncryptionPublicKey,
   encryptSafely,
   decryptSafely,
-  EthEncryptedData,
 } from '@metamask/eth-sig-util';
 import { SnapsGlobalObject } from '@metamask/rpc-methods';
 import { checkZkCert } from './zkCertHandler';
-
-const encryptionVersion = 'x25519-xsalsa20-poly1305';
+import { ENCRYPTION_VERSION } from '@galactica-net/galactica-types';
+import { Buffer } from 'buffer';
 
 /**
  * Create a new encryption key pair for the holder. It is used to encrypt personal details in ZK certificates, for example on the way from guardian to the holder.
@@ -30,8 +29,8 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
     },
   });
   const privKey = entropy.slice(2); // remove 0x prefix
+  prepareGlobalsForEthSigUtil();
   const publicKey = getEncryptionPublicKey(privKey);
-
   return { pubKey: publicKey, privKey };
 }
 
@@ -49,10 +48,11 @@ export function encryptZkCert(
   holderCommitment: string,
 ): EncryptedZkCert {
   const message = JSON.stringify(zkCert);
+  prepareGlobalsForEthSigUtil();
   const encryptedZkCert = encryptSafely({
     publicKey: pubKey,
     data: message,
-    version: encryptionVersion,
+    version: ENCRYPTION_VERSION,
   }) as EncryptedZkCert;
   encryptedZkCert.holderCommitment = holderCommitment;
   return encryptedZkCert;
@@ -70,6 +70,7 @@ export function decryptZkCert(
   encryptedZkCert: EncryptedZkCert,
   privKey: string,
 ): ZkCertRegistered {
+  prepareGlobalsForEthSigUtil();
   const decryptedMessage = decryptSafely({
     encryptedData: encryptedZkCert,
     privateKey: privKey,
@@ -103,4 +104,11 @@ export function checkEncryptedZkCertFormat(encryptedZkCert: EncryptedZkCert) {
       message: 'The imported zkCert does not contain a holder commitment.',
     });
   }
+}
+
+/**
+ * Eth-sig-util expects a global Buffer object. I provide it here because I could not figure out how to provide it through the snap build process (webpack).
+ */
+function prepareGlobalsForEthSigUtil() {
+  global.Buffer = Buffer;
 }

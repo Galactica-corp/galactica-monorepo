@@ -49,6 +49,7 @@
     "snarkjs": "^0.5.0"
   },
   "devDependencies": {
+    "@metamask/eth-sig-util": "^6.0.0",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.4",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",

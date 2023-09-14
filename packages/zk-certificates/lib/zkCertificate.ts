@@ -10,7 +10,11 @@ import {
   ZkCertStandard,
   humanIDFieldOrder,
   zkKYCContentFields,
+  MerkleProof,
+  ENCRYPTION_VERSION,
+  EncryptedZkCert,
 } from '@galactica-net/galactica-types';
+import { encryptSafely } from '@metamask/eth-sig-util';
 import { buildEddsa } from 'circomlibjs';
 import { Scalar } from 'ffjavascript';
 
@@ -117,21 +121,37 @@ export class ZKCertificate implements ZkCertData {
   }
 
   /**
-   * Export the zkCert as a JSON string that can be imported in the Galactica Snap for Metamask.
-   * TODO: add encryption option.
+   * Export the encrypted zkCert as a JSON string that can be imported in the Galactica Snap for Metamask.
    *
-   * @returns JSON string of the zkCert.
+   * @param encryptionPubKey - Public key of the holder used for encryption.
+   * @param merkleProof - Merkle proof to attach to the zkCert (optional).
+   * @returns JSON string of the encrypted zkCert.
    */
-  public exportJson(): string {
-    return JSON.stringify(this.export(), null, 2);
+  public exportJson(encryptionPubKey: string, merkleProof?: MerkleProof): string {
+    let dataToExport = this.exportRaw() as any;
+    if (merkleProof) {
+      dataToExport.merkleProof = merkleProof;
+    }
+
+    const message = JSON.stringify(dataToExport);
+    const encryptedData = encryptSafely({
+      publicKey: encryptionPubKey,
+      data: message,
+      version: ENCRYPTION_VERSION,
+    });
+    const encryptedZkCert: EncryptedZkCert = {
+      ...encryptedData,
+      holderCommitment: this.holderCommitment,
+    }
+    return JSON.stringify(encryptedZkCert, null, 2);
   }
 
   /**
-   * Export the zkCert as object containing only the fields relevant for import in a wallet.
+   * Export the unencrypted zkCert as object containing only the fields relevant for import in a wallet.
    *
    * @returns ZkCertData object.
    */
-  public export(): ZkCertData {
+  public exportRaw(): ZkCertData {
     const doc = {
       holderCommitment: this.holderCommitment,
       leafHash: this.leafHash,

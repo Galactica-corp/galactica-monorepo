@@ -38,10 +38,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       provider.address.toString(),
     )} to sign the zkKYC certificate`,
   );
-
-  console.log('holderCommitment', args.holderCommitment);
   console.log('randomSalt', args.randomSalt);
-
   console.log(`reading KYC data from ${args.kycDataFile as string}`);
   const data = JSON.parse(fs.readFileSync(args.kycDataFile, 'utf-8'));
   console.log('input data', JSON.stringify(data, null, 2));
@@ -78,6 +75,16 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     }
   }
 
+  // read holder commitment file
+  const holderCommitmentFile = JSON.parse(
+    fs.readFileSync(args.holderFile, 'utf-8'),
+  );
+  if (!holderCommitmentFile.holderCommitment
+    || !holderCommitmentFile.encryptionPubKey) {
+    throw new Error('The holder commitment file does not contain the expected fields (holderCommitment, encryptionPubKey)');
+  }
+  console.log('holderCommitment', holderCommitmentFile.holderCommitment);
+
   console.log('Reissuing zkKYC...');
   const oldZkKYCFields = { ...zkKYCFields };
   oldZkKYCFields.expirationDate = args.oldExpirationDate;
@@ -85,14 +92,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   newZkKYCFields.expirationDate = args.newExpirationDate;
   // TODO: create ZkKYC subclass requiring all the other fields
   const oldZkKYC = new ZKCertificate(
-    args.holderCommitment,
+    holderCommitmentFile.holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
     args.randomSalt,
     oldZkKYCFields,
   );
   const newZkKYC = new ZKCertificate(
-    args.holderCommitment,
+    holderCommitmentFile.holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
     args.randomSalt,
@@ -132,7 +139,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const newLeafBytes = fromHexToBytes32(fromDecToHex(newZkKYC.leafHash));
 
   if (!args.merkleProof) {
-    console.log('zkKYC', newZkKYC.exportJson());
+    console.log('zkKYC', JSON.stringify(newZkKYC.exportRaw(), null, 2));
     console.log(
       chalk.yellow(
         'Merkle proof generation is disabled. Before using the zkKYC, you need to generate the merkle proof.',
@@ -205,25 +212,25 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(chalk.green('ZkKYC (reissued, including merkle proof)'));
 
-  console.log(newZkKYC.exportJson());
+  console.log(JSON.stringify(newZkKYC.exportRaw(), null, 2));
   console.log(chalk.green('This ZkKYC can be imported in a wallet'));
 
   // write output to file
   merkleTree.insertLeaves([newZkKYC.leafHash], [args.index]);
   const newMerkleProof = merkleTree.createProof(args.index);
-  const output: ZkCertRegistered = {
-    ...newZkKYC.export(),
-    merkleProof: {
+  const output = newZkKYC.exportJson(
+    holderCommitmentFile.encryptionPubKey,
+    {
       root: merkleTree.root,
       pathIndices: newMerkleProof.pathIndices,
       pathElements: newMerkleProof.path,
       leaf: newZkKYC.leafHash,
     },
-  };
+  );
   const outputFileName: string =
     args.outputFile || `issuedZkKYCs/${newZkKYC.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
-  fs.writeFileSync(outputFileName, JSON.stringify(output, null, 2));
+  fs.writeFileSync(outputFileName, output);
   console.log(chalk.green(`Written ZkKYC to output file ${outputFileName}`));
 
   console.log(chalk.green('done'));
@@ -243,8 +250,8 @@ task(
   .addParam('oldExpirationDate', 'old expiration date', 0, types.int, true)
   .addParam('newExpirationDate', 'new expiration date', 0, types.int, true)
   .addParam(
-    'holderCommitment',
-    'The holder commitment fixing the address of the holder without disclosing it to the provider',
+    'holderFile',
+    'Path to the file containing the encryption key and the holder commitment fixing the address of the holder without disclosing it to the provider',
     undefined,
     string,
     false,

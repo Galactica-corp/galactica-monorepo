@@ -2515,6 +2515,7 @@ __metadata:
   resolution: "@galactica-net/zk-certificates@workspace:packages/zk-certificates"
   dependencies:
     "@galactica-net/galactica-types": "workspace:^"
+    "@metamask/eth-sig-util": ^6.0.0
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.4
     "@nomicfoundation/hardhat-network-helpers": ^1.0.3
     "@nomicfoundation/hardhat-toolbox": ^1.0.2

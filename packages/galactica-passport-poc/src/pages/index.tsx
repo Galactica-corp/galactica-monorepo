@@ -220,7 +220,7 @@ const Index = () => {
       console.log('Response from snap', res);
       const holderCommitmentData = res as HolderCommitmentData;
 
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder data: ${JSON.stringify(holderCommitmentData, null, 2)}` });
 
       // save to file as placeholder
       // TODO: integrate some kind of provider API to submit the prepared zkCert to for signing and issuance on chain
@@ -242,7 +242,7 @@ const Index = () => {
       const parsedFile = JSON.parse(fileContent);
 
       console.log('sending request to snap...');
-      const res = await importZkCert({ zkCert: parsedFile });
+      const res = await importZkCert({ encryptedZkCert: parsedFile });
       console.log('Response from snap', res);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
     } catch (e) {

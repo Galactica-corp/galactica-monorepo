@@ -5,7 +5,6 @@ import {
   ConfirmationResponse,
   RpcResponseMsg,
   ImportZkCertParams,
-  ImportZkCertError,
   GenericError,
   GenZkProofParams,
   GenZKPError,
@@ -260,6 +259,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.GetHolderCommitment: {
+
       if (state.holders.length === 0) {
         throw new Error(RpcResponseErr.MissingHolder);
       }

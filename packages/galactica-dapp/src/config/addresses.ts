@@ -1,11 +1,11 @@
-export const mockDApp = '0xf28CFA74C8f1298aaE8231dD10D3594dFB0D6201';
-export const verificationSBT = '0xc1a96F7DD532fa4B774C41f9Eb853893314cB036';
+export const mockDApp = '0xAECF54175554D2777f1ca901fA7c7c2bE52Af79d';
+export const verificationSBT = '0x3E5217e4716FEf52040Af49F60E33c95fB2b9220';
 export const galacticaInstitutions = [
-  '0x9b48274258501C54E9ac7B165B391bf2b6E863EE',
-  '0x8d2a748ebC5EbD2F96BAb1De576CA70dbdFa336B',
-  '0x9d862c70a0e8726cce50308FE0194652Fb078739',
+  '0xc5c4e3B1F2315a25bb4b9d3B153B1719688D2d23',
+  '0xD6BfBe9AFD6DdD7bDbF84b5d2037D1B044dDEBBD',
+  '0x28677AfDeb30a9d096b8F58b0F45481358818fF2',
 ];
-export const repeatableZkKYCTest = '0x57ebf246fC38c59f48CE316381eEFF883C006Fa1';
+export const repeatableZkKYCTest = '0x8954a680Baff7eD6343505F746740ff43b059E58';
 
 const addresses = {
   mockDApp,

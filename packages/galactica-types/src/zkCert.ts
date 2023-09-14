@@ -70,3 +70,22 @@ export type ZkCertRegistered = {
   // Updating it helps to prevent tracking through finding uses of the same merkle root
   merkleProof: MerkleProof;
 } & ZkCertData;
+
+// Encryption used for zkCerts when being exported or passed form guardian to user
+export const ENCRYPTION_VERSION = 'x25519-xsalsa20-poly1305';
+
+export interface EncryptedZkCert extends EthEncryptedData {
+  // holder commitment to associate the zkCert with the holder who can decrypt it
+  holderCommitment: string;
+}
+
+/**
+ * Encrypted data type consistent with the EthEncryptedData type from eth-sig-util.
+ * We use it to encrypt zkCerts.
+ */
+export declare type EthEncryptedData = {
+  version: string;
+  nonce: string;
+  ephemPublicKey: string;
+  ciphertext: string;
+};
