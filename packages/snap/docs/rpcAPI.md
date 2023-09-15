@@ -64,7 +64,8 @@ These methods are restricted, meaning that you first need to aquire permission u
 
 #### Description
 
-Asks the Snap to return the holder commitment needed for issuing new zkCertificates.
+Asks the Snap to return the holder commitment needed for issuing new zkCertificates. It is used to provide the guardian of a zkCert with the field that links the zkCert to the holder. This link is hidden in a commitment so that the guardian can not associate it with any on-chain address.
+This method also returns the public key for encrypting the zkCert. The private decryption key is secured inside the snap.
 
 #### Parameters
 
@@ -74,6 +75,7 @@ None
 
 - `object`
   - `holderCommitment` - The holder commitment as decimal `string`.
+  - `encryptionPubKey` - Public encryption key `string` to encrypt the zkCert with.
 
 Throws error if the user rejects the confirmation.
 
@@ -225,14 +227,14 @@ await clearStorage();
 
 #### Description
 
-Imports a zkCertificate from a file into the Snap. The file is created and signed by the provider and given to the user for being imported in the wallet.
+Imports a zkCertificate from a file into the Snap. The file is created, signed and encrypted by the provider and given to the user for being imported in the wallet.
 
 Asks user for confirmation
 
 #### Parameters
 
 - `object`
-  - `zkCert` - JSON `object`, containing the zkCertificate data according to the standart it is using.
+  - `encryptedZkCert` - `[EncryptedZkCert](https://github.com/Galactica-corp/galactica-monorepo/blob/20e3435e2b9e7deeb05dd5358687f7380ff8d25b/packages/galactica-types/src/zkCert.ts#L77) object`, containing the zkCertificate encrypted using [eth-sig-util](https://github.com/MetaMask/eth-sig-util) and containing the holderCommitment to associate it.
   - `listZkCerts` - `boolean`, (optional) flag if the Snap should return an overview after the import, same as in the `listZkCerts` method.
 
 #### Returns
@@ -246,14 +248,14 @@ Asks user for confirmation
 
 ```javascript
 import { importZkCert } from '@galactica-net/snap-api';
-await importZkCert({ zkCert: JSON.parse(fileContent) });
+await importZkCert({ encryptedZkCert: JSON.parse(fileContent) });
 ```
 
 ### `exportZkCert`
 
 #### Description
 
-Exports a zkCertificate stored in the snap.
+Exports a zkCertificate stored in the snap in encrypted form.
 
 Asks the user for confirmation and selection of the zkCertificate to be exported
 
@@ -266,7 +268,7 @@ Asks the user for confirmation and selection of the zkCertificate to be exported
 
 #### Returns
 
-- JSON `object` of the zkCertificate according to the standard.
+- JSON `object` of the encrypted zkCertificate according to the standard.
 
 #### Example
 
