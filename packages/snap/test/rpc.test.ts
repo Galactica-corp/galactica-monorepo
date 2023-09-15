@@ -290,6 +290,37 @@ describe('Test rpc handler function', function () {
         'testing expiration date of 0',
       ).to.equal(zkCert.content.expirationDate);
     });
+
+    it('should update a zkCert if a renewed version is imported at the same position in the Merkle tree', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const renewedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
+      // some made up content analog to a renewed zkCert
+      renewedZkCert.content.expirationDate += 20;
+      renewedZkCert.leafHash = zkCert2.leafHash;
+      // note that the merkle path indices and registry address stay the same
+
+      const result = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert: renewedZkCert }),
+        snapProvider,
+      );
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice; // once for the import, once for the update
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [renewedZkCert],
+        },
+      });
+      expect(result).to.be.eq(RpcResponseMsg.ZkCertImported);
+    });
   });
 
   describe('Generate ZKP method', function () {
