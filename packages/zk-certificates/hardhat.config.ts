@@ -27,13 +27,13 @@ const config: HardhatUserConfig = {
   },
   networks: {
     galaTestnet: {
-      url: 'https://evm-rpc-http-devnet-41233.galactica.com/', // requires gala dev wireguard connection
+      url: 'https://evm-rpc-http-devnet-41233.galactica.com/',
       accounts: getAccounts(),
     },
   },
   etherscan: {
     apiKey: {
-      galaTestnet: 'something', // not needed for now, I guess
+      galaTestnet: 'something', // not needed for now
     },
     customChains: [
       {

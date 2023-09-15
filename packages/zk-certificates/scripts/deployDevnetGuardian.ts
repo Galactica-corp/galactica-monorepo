@@ -11,8 +11,8 @@ const { log } = console;
  */
 async function main() {
   // parameters
-  const centerRegistryAddr = '0x4De49e2047eE726B833fa815bf7392958245832d';
-  const recordRegistryAddr = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';
+  const centerRegistryAddr = '0x3D8AAba820817254719BD6f997835B6f9F3485e2';
+  const recordRegistryAddr = '0xAbb654092b5BCaeca2E854550c5C972602eF7dA8';
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
