@@ -224,7 +224,7 @@ describe('zkKYC SC', () => {
     );
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
-      publicTime + 200,
+      publicTime + 200 + 30 * 60,
     ]);
 
     await hre.network.provider.send('evm_mine');
