@@ -65,11 +65,22 @@ export type ZkCertData = {
   did: string;
 };
 
-export type ZkCertRegistered = {
+/**
+ * Data about the registry the zkCert is issued on.
+ */
+export interface ZkCertRegistration {
+  address: string;
+  revocable: boolean;
+  leafIndex: number;
+}
+
+export type ZkCertRegistered = ZkCertData & {
+  registration: ZkCertRegistration;
+
   // Proof showing that the zkCert is part of the Merkle tree
   // Updating it helps to prevent tracking through finding uses of the same merkle root
   merkleProof: MerkleProof;
-} & ZkCertData;
+};
 
 // Encryption used for zkCerts when being exported or passed form guardian to user
 export const ENCRYPTION_VERSION = 'x25519-xsalsa20-poly1305';

@@ -211,12 +211,20 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(chalk.green('This ZkKYC can be imported in a wallet'));
 
   // write encrypted zkKYC output to file
-  const output = zkKYC.exportJson(holderCommitmentFile.encryptionPubKey, {
-    root: merkleTree.root,
-    pathIndices: merkleProof.pathIndices,
-    pathElements: merkleProof.path,
-    leaf: zkKYC.leafHash,
-  });
+  const output = zkKYC.exportJson(
+    holderCommitmentFile.encryptionPubKey,
+    {
+      root: merkleTree.root,
+      pathIndices: merkleProof.pathIndices,
+      pathElements: merkleProof.path,
+      leaf: zkKYC.leafHash,
+    },
+    {
+      address: recordRegistry.address,
+      revocable: true,
+      leafIndex: index,
+    }
+  );
 
   const outputFileName: string =
     args.outputFile || `issuedZkKYCs/${zkKYC.leafHash}.json`;

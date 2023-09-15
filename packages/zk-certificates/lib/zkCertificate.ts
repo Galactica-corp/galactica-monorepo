@@ -13,6 +13,7 @@ import {
   MerkleProof,
   ENCRYPTION_VERSION,
   EncryptedZkCert,
+  ZkCertRegistration,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
 import { buildEddsa } from 'circomlibjs';
@@ -130,10 +131,14 @@ export class ZKCertificate implements ZkCertData {
   public exportJson(
     encryptionPubKey: string,
     merkleProof?: MerkleProof,
+    registration?: ZkCertRegistration,
   ): string {
     const dataToExport = this.exportRaw() as any;
     if (merkleProof) {
       dataToExport.merkleProof = merkleProof;
+    }
+    if (registration) {
+      dataToExport.registration = registration;
     }
 
     const message = JSON.stringify(dataToExport);
