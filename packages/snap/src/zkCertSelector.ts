@@ -11,6 +11,7 @@ import { buildEddsa } from 'circomlibjs';
  * @param snap - The snap for interaction with Metamask.
  * @param availableCerts - The available ZkCerts to select from.
  * @param zkCertStandard - The zkCertStandard of the ZkCert to select (optional).
+ * @param registryAddress - The registry address to filter for (optional).
  * @param expirationDate - The expiration date to filter for (optional).
  * @param providerAx - The provider pubkey to filter for (optional).
  */
@@ -18,6 +19,7 @@ export async function selectZkCert(
   snap: SnapsGlobalObject,
   availableCerts: ZkCertRegistered[],
   zkCertStandard?: string,
+  registryAddress?: string,
   expirationDate?: number,
   providerAx?: string,
 ): Promise<ZKCertificate> {
@@ -36,7 +38,9 @@ export async function selectZkCert(
           expirationDate === undefined) ||
         value.content.expirationDate === expirationDate) &&
       // same provider, if defined as filter
-      (providerAx === undefined || value.providerData.ax === providerAx)
+      (providerAx === undefined || value.providerData.ax === providerAx) &&
+      (registryAddress === undefined ||
+        value.registration.address === registryAddress)
     );
   });
 

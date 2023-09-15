@@ -68,11 +68,11 @@ export type ZkCertData = {
 /**
  * Data about the registry the zkCert is issued on.
  */
-export interface ZkCertRegistration {
+export type ZkCertRegistration = {
   address: string;
   revocable: boolean;
   leafIndex: number;
-}
+};
 
 export type ZkCertRegistered = ZkCertData & {
   // Data about the registry the zkCert is issued on.

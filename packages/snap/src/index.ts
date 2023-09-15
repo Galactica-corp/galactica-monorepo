@@ -7,7 +7,6 @@ import {
   ImportZkCertParams,
   GenericError,
   GenZkProofParams,
-  GenZKPError,
   HolderCommitmentData,
   MerkleProofUpdateRequestParams,
   ZkCertSelectionParams,
@@ -20,7 +19,7 @@ import {
   decryptZkCert,
   encryptZkCert,
 } from './encryption';
-import { generateZkKycProof } from './proofGenerator';
+import { checkZkKycProofRequest, generateZkKycProof } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import { HolderData, SnapRpcProcessor, PanelContent } from './types';
 import {
@@ -54,19 +53,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
       const genParams = request.params as unknown as GenZkProofParams<any>;
-      // check some input validity
-      if (genParams.userAddress === undefined) {
-        throw new GenZKPError({
-          name: 'MissingInputParams',
-          message: `userAddress missing in request parameters.`,
-        });
-      }
-      if (genParams.requirements.zkCertStandard === undefined) {
-        throw new GenZKPError({
-          name: 'MissingInputParams',
-          message: `ZkCert standard missing in request parameters.`,
-        });
-      }
+      checkZkKycProofRequest(genParams);
 
       const proofConfirmDialog = [
         heading('Generating zkCertificate Proof'),
@@ -129,6 +116,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         snap,
         state.zkCerts,
         genParams.requirements.zkCertStandard,
+        genParams.requirements.registryAddress,
       );
       holder = getHolder(zkCert.holderCommitment, state.holders);
 
@@ -185,8 +173,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
       // prevent uploading the same zkCert again (it is fine on different registries though)
       const searchedZkCert = state.zkCerts.find(
         (candidate) =>
-          candidate.leafHash === zkCert.leafHash
-          && candidate.registration.address === zkCert.registration.address,
+          candidate.leafHash === zkCert.leafHash &&
+          candidate.registration.address === zkCert.registration.address,
       );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };
@@ -258,6 +246,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         snap,
         state.zkCerts,
         exportParams.zkCertStandard,
+        exportParams.registryAddress,
         exportParams.expirationDate,
         exportParams.providerAx,
       );
@@ -415,6 +404,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         snap,
         state.zkCerts,
         deleteParams.zkCertStandard,
+        deleteParams.registryAddress,
         deleteParams.expirationDate,
         deleteParams.providerAx,
       );

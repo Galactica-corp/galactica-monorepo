@@ -100,6 +100,7 @@ Shows the user what is going to be proven and asks for confirmation.
   - `input` - An `object`, containing public ZKP input for the statements to be shown by the generated proof.
   - `requirements` - `object`
     - `zkCertStandard`: `string` for the standard of the zkCertificate that should be used for the proof.
+    - `registryAddress`: `string` EVM address where the zkCertificate is registered.
   - `prover` - `object` containing
     - `wasm` - `string` base64 encoded wasm binary of the prover. The wasm can be generated using circom and encoded with the script in `src/scripts/proofGenerationPrep.ts`.
     - `zkeyHeader` - `object` of zkey headers used by snarkjs. The binary fields are base64 encoded.

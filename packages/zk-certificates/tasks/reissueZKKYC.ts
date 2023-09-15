@@ -175,11 +175,13 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   if (merkleTree.retrieveLeaf(0, args.index) !== fromHexToDec(oldLeafBytes)) {
     console.log(
-      `the current leaf hash at index ${args.index as number
+      `the current leaf hash at index ${
+        args.index as number
       } does not correspond with the outdated zkKYC Cert we want to update`,
     );
     console.log(
-      `current leaf hash at index ${args.index as number
+      `current leaf hash at index ${
+        args.index as number
       }: ${merkleTree.retrieveLeaf(0, args.index)}`,
     );
     console.log(`outdated zkKYC Cert leaf hash: ${oldLeafBytes}`);
@@ -209,7 +211,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   await tx.wait();
   console.log(
     chalk.green(
-      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${args.index as number
+      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${
+        args.index as number
       } with new expiration date ${args.newExpirationDate as number}`,
     ),
   );
@@ -233,7 +236,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       address: recordRegistry.address,
       revocable: true,
       leafIndex: args.index,
-    }
+    },
   );
   const outputFileName: string =
     args.outputFile || `issuedZkKYCs/${newZkKYC.leafHash}.json`;

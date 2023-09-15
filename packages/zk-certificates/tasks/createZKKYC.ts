@@ -223,7 +223,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       address: recordRegistry.address,
       revocable: true,
       leafIndex: index,
-    }
+    },
   );
 
   const outputFileName: string =

@@ -42,6 +42,7 @@ export type ZkCertProof = {
  */
 export type ZkCertSelectionParams = {
   zkCertStandard?: string;
+  registryAddress?: string;
   expirationDate?: number;
   providerAx?: string;
 };

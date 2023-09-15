@@ -1,3 +1,4 @@
+export const zkKYCRegistry = '0xAbb654092b5BCaeca2E854550c5C972602eF7dA8';
 export const mockDApp = '0xdfb862fce7195A0636c8Db55773a5bE37E7d52AB';
 export const verificationSBT = '0x7d1A6e0FC5ad5B20250B02fb735B640a4232a061';
 export const galacticaInstitutions = [
@@ -12,6 +13,7 @@ const addresses = {
   verificationSBT,
   galacticaInstitutions,
   repeatableZkKYCTest,
+  zkKYCRegistry,
 };
 
 export default addresses;

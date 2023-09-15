@@ -143,10 +143,10 @@ export function checkZkCert(zkCert: ZkCertRegistered) {
   if (!zkCert.registration.address) {
     complainMissingField('registration.address');
   }
-  if (!zkCert.registration.revocable) {
+  if (zkCert.registration.revocable === undefined) {
     complainMissingField('registration.revocable');
   }
-  if (!zkCert.registration.leafIndex) {
+  if (zkCert.registration.leafIndex === undefined) {
     complainMissingField('registration.leafIndex');
   }
 }

@@ -126,6 +126,7 @@ export class ZKCertificate implements ZkCertData {
    *
    * @param encryptionPubKey - Public key of the holder used for encryption.
    * @param merkleProof - Merkle proof to attach to the zkCert (optional).
+   * @param registration - Registration data to attach to the zkCert (optional).
    * @returns JSON string of the encrypted zkCert.
    */
   public exportJson(
