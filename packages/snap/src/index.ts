@@ -182,9 +182,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         holder.encryptionPrivKey,
       );
 
-      // prevent uploading the same zkCert again
+      // prevent uploading the same zkCert again (it is fine on different registries though)
       const searchedZkCert = state.zkCerts.find(
-        (candidate) => candidate.leafHash === zkCert.leafHash,
+        (candidate) =>
+          candidate.leafHash === zkCert.leafHash
+          && candidate.registration.address === zkCert.registration.address,
       );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };

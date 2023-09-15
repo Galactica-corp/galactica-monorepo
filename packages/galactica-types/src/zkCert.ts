@@ -75,6 +75,8 @@ export interface ZkCertRegistration {
 }
 
 export type ZkCertRegistered = ZkCertData & {
+  // Data about the registry the zkCert is issued on.
+  // Maybe we want to make this a list later if registering a zkCert on multiple registries becomes a thing (e.g. for multiple jurisdictions)
   registration: ZkCertRegistration;
 
   // Proof showing that the zkCert is part of the Merkle tree

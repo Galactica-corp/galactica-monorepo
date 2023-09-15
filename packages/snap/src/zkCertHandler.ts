@@ -137,4 +137,16 @@ export function checkZkCert(zkCert: ZkCertRegistered) {
   if (!zkCert.content) {
     complainMissingField('content');
   }
+  if (!zkCert.registration) {
+    complainMissingField('registration');
+  }
+  if (!zkCert.registration.address) {
+    complainMissingField('registration.address');
+  }
+  if (!zkCert.registration.revocable) {
+    complainMissingField('registration.revocable');
+  }
+  if (!zkCert.registration.leafIndex) {
+    complainMissingField('registration.leafIndex');
+  }
 }
