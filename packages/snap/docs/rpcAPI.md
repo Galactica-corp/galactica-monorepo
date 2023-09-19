@@ -106,7 +106,8 @@ Shows the user what is going to be proven and asks for confirmation.
     - `zkeyHeader` - `object` of zkey headers used by snarkjs. The binary fields are base64 encoded.
     - `zkeySections` - `array` of base64 encoded zkey sections used by snarkjs.
   - `userAddress` - `string` with the account address the user is going to use to submit the proof.
-  - `disclosureDescription` - `string` (optional) Description of disclosures made by the proof.
+  - `description` - `string` Description of what the proof if for. The user will see this as description when being asked for confirmation by the Snap.
+  - `publicInputDescriptions` - `string[]` List of short descriptions what each field disclosed in the resulting proof input is needed for.
 
 #### Returns
 

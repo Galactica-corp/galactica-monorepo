@@ -21,6 +21,7 @@ import { ethers } from 'ethers';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
 
 import addresses from '../config/addresses';
+import { zkKYCAgeProofPublicInputDescriptions, zkKYCPublicInputDescriptions } from '../config/snap';
 import mockDAppABI from '../config/abi/MockDApp.json';
 import repeatableZKPTestABI from '../config/abi/RepeatableZKPTest.json';
 import { getProver, prepareProofInput } from '../utils/zkp';
@@ -196,7 +197,8 @@ const Index = () => {
           registryAddress: addresses.zkKYCRegistry,
         },
         userAddress: getUserAddress(),
-        disclosureDescription: "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
+        description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
+        publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
       });
       console.log('Response from snap', res);
       const zkp = res as ZkCertProof;
@@ -243,7 +245,8 @@ const Index = () => {
           registryAddress: addresses.zkKYCRegistry,
         },
         userAddress: getUserAddress(),
-        disclosureDescription: "This ZKP discloses that you hold a valid zkKYC. It has no other disclosures.",
+        description: "This ZKP discloses that you hold a valid zkKYC. It has no other disclosures.",
+        publicInputDescriptions: zkKYCPublicInputDescriptions,
       });
 
       console.log('Response from snap', res);

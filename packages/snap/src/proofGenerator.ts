@@ -10,12 +10,13 @@ import {
   ZKCertificate,
   formatPrivKeyForBabyJub,
 } from '@galactica-net/zk-certificates';
+import { text, heading, divider } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { buildBn128, buildBls12381 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
 
-import { HolderData } from './types';
+import { HolderData, PanelContent } from './types';
 
 /**
  * GenerateZkKycProof constructs and checks the zkKYC proof.
@@ -99,6 +100,59 @@ export const generateZkKycProof = async (
     throw error;
   }
 };
+
+/**
+ * Generate proof confirmation prompt for the user.
+ *
+ * @param params - Parameters defining the proof to be generated.
+ * @param proof - Proof to be confirmed.
+ * @param origin - Origin of the request.
+ * @returns PanelContent for the proof confirmation prompt.
+ */
+export function createProofConfirmationPrompt(
+  params: GenZkProofParams<any>,
+  proof: ZkCertProof,
+  origin: string,
+): PanelContent {
+  const proofConfirmDialog = [
+    heading('Disclosing zkCertificate Proof'),
+    text(
+      `With this action you will create a ${params.requirements.zkCertStandard.toUpperCase()} proof for ${origin}.
+       This action tests whether your personal data fulfills the requirements of the proof.`,
+    ),
+    divider(),
+  ];
+
+  // Description of disclosures made by the proof have to be provided by the front-end because the snap can not analyze what the prover will do.
+  if (params.description) {
+    proofConfirmDialog.push(
+      text(`Description of the proof (provided by ${origin}):`),
+      text(params.description),
+    );
+  } else {
+    throw new Error('Description of ZKP is missing');
+  }
+
+  // Generalize disclosure of inputs to any kind of inputs
+  proofConfirmDialog.push(
+    divider(),
+    text(`The following proof parameters will be publicly visible:`),
+  );
+
+  if (params.publicInputDescriptions.length !== proof.publicSignals.length) {
+    throw new Error(
+      `Number of public input descriptions (${params.publicInputDescriptions.length}) does not match number of public inputs (${proof.publicSignals.length})`,
+    );
+  }
+  proof.publicSignals.forEach((signal: any, index: number) => {
+    proofConfirmDialog.push(
+      text(
+        `${params.publicInputDescriptions[index]}: ${JSON.stringify(signal)}`,
+      ),
+    );
+  });
+  return proofConfirmDialog;
+}
 
 /**
  * Prepare data from RPC request for snarkjs by converting it to the correct data types.

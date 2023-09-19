@@ -1,6 +1,6 @@
 {
   "name": "@galactica-net/snap-beta",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
   "repository": {
     "type": "git",

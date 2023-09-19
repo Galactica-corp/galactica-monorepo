@@ -35,6 +35,7 @@ import {
   ZkCertProof,
   HolderCommitmentData,
 } from '@galactica-net/snap-api';
+import { zkKYCAgeProofPublicInputDescriptions, zkKYCPublicInputDescriptions } from '../../../galactica-dapp/src/config/snap';
 
 const Container = styled.div`
   display: flex;
@@ -219,8 +220,7 @@ const Index = () => {
       const res = await getHolderCommitment();
       console.log('Response from snap', res);
       const holderCommitmentData = res as HolderCommitmentData;
-
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder data: ${JSON.stringify(holderCommitmentData, null, 2)}` });
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
 
       // save to file as placeholder
       // TODO: integrate some kind of provider API to submit the prepared zkCert to for signing and issuance on chain
@@ -273,7 +273,8 @@ const Index = () => {
           registryAddress: addresses.zkKYCRegistry,
         },
         userAddress: getUserAddress(),
-        disclosureDescription: "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
+        description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
+        publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
       });
       console.log('Response from snap', res);
       const zkp = res as ZkCertProof;
