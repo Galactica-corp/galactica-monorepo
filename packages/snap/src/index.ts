@@ -27,6 +27,7 @@ import {
   getZkCertStorageOverview,
 } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
+import { getMerkleProof } from './merkleProofSelection';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
@@ -43,6 +44,7 @@ import { selectZkCert } from './zkCertSelector';
 export const processRpcRequest: SnapRpcProcessor = async (
   { origin, request },
   snap,
+  ethereum,
 ) => {
   const state = await getState(snap);
   let confirm: any;
@@ -122,11 +124,16 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts);
 
+      const merkleProof = getMerkleProof(searchedZkCert, searchedZkCert.registration.address, ethereum);
+      // save merkle proof in zkCert for later use
+      searchedZkCert.merkleProof = merkleProof;
+      await saveState(snap, state);
+
       const proof = generateZkKycProof(
         genParams,
         zkCert,
         holder,
-        searchedZkCert.merkleProof,
+        merkleProof,
       );
       return proof;
     }
@@ -461,5 +468,5 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
   // forward to common function shared with unit tests
   // passing global objects object from snap environment
-  return await processRpcRequest({ origin, request }, snap);
+  return await processRpcRequest({ origin, request }, snap, ethereum);
 };

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 import { ZkCertRegistered } from '@galactica-net/snap-api';
+import { BaseProvider } from '@metamask/providers';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { NodeType } from '@metamask/snaps-ui';
 import { JsonRpcRequest } from '@metamask/types';
@@ -12,6 +13,7 @@ export type RpcArgs = {
 export type SnapRpcProcessor = (
   args: RpcArgs,
   snap: SnapsGlobalObject,
+  ethereum: BaseProvider
 ) => Promise<unknown>;
 
 export type HolderData = {
@@ -30,14 +32,14 @@ export type StorageState = {
 
 export type PanelContent = (
   | {
-      value: string;
-      type: NodeType.Heading;
-    }
+    value: string;
+    type: NodeType.Heading;
+  }
   | {
-      value: string;
-      type: NodeType.Text;
-    }
+    value: string;
+    type: NodeType.Text;
+  }
   | {
-      type: NodeType.Divider;
-    }
+    type: NodeType.Divider;
+  }
 )[];
