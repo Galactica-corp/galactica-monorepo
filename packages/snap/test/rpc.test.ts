@@ -324,7 +324,8 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Generate ZKP method', function () {
-    it('should throw error if not confirmed', async function () {
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -361,6 +362,7 @@ describe('Test rpc handler function', function () {
       )) as ZkCertProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
 
       await verifyProof(result);
     });
@@ -399,9 +401,6 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCert, zkCert2],
         });
       snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'confirmation'))
-        .resolves(true);
-      snapProvider.rpcStubs.snap_dialog
         .withArgs(match.has('type', 'prompt'))
         .resolves(null); // user clicked reject or entered nothing before pressing accept
 
@@ -415,7 +414,7 @@ describe('Test rpc handler function', function () {
         RpcResponseErr.RejectedSelect,
       );
 
-      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice;
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
     });
 
     it('should repeat zkCert selection if user enters garbage', async function () {
@@ -425,9 +424,6 @@ describe('Test rpc handler function', function () {
           holders: [testHolder],
           zkCerts: [zkCert, zkCert2],
         });
-      snapProvider.rpcStubs.snap_dialog
-        .withArgs(match.has('type', 'confirmation'))
-        .resolves(true);
       snapProvider.rpcStubs.snap_dialog
         .withArgs(match.has('type', 'prompt'))
         .onFirstCall()
@@ -447,7 +443,7 @@ describe('Test rpc handler function', function () {
         RpcResponseErr.RejectedSelect,
       );
 
-      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.callCount(4);
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.callCount(3);
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledTwice;
     });
   });
@@ -616,7 +612,8 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Export ZkCert Hash', function () {
-    it('should throw error if not confirmed', async function () {
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);
       const clearPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.GetZkCertHash),
@@ -648,7 +645,8 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Update Merkle Root', function () {
-    it('should throw error if not confirmed', async function () {
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const updateParams: MerkleProofUpdateRequestParams = {

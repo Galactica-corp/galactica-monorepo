@@ -29,6 +29,7 @@ import { processProof, processPublicSignals } from '../../../galactica-dapp/src/
 import addresses from '../../../galactica-dapp/src/config/addresses';
 import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
 import { getProver, prepareProofInput } from '../../../galactica-dapp/src/utils/zkp';
+import { zkKYCAgeProofPublicInputDescriptions, zkKYCPublicInputDescriptions } from '../../../galactica-dapp/src/config/snap';
 
 const Container = styled.div`
   display: flex;
@@ -268,7 +269,8 @@ const Index = () => {
       const zkp: any = await generateProof(
         await getProver("/provers/exampleMockDApp.json"),
         proofInput,
-        "This proof discloses that you hold a valid zkKYC and that your age is at least 18. The proof includes 3 encrypted fragments for test institutions. 2 are needed to decrypt your zkKYC DID for fraud investigation.",
+        "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
+        zkKYCAgeProofPublicInputDescriptions,
       );
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
