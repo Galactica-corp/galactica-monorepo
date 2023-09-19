@@ -381,18 +381,18 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
       }
 
-      for (const merkleProof of merkleUpdateParams.proofs) {
+      for (const update of merkleUpdateParams.updates) {
         let foundZkCert = false;
         for (const zkCert of state.zkCerts) {
-          if (zkCert.leafHash === merkleProof.leaf) {
-            zkCert.merkleProof = merkleProof;
+          if (zkCert.leafHash === update.proof.leaf && zkCert.registration.address === update.registryAddr) {
+            zkCert.merkleProof = update.proof;
             foundZkCert = true;
             break;
           }
         }
         if (!foundZkCert) {
           throw new Error(
-            `The zkCert with leaf hash ${merkleProof.leaf} was not found in the wallet. Please import it before updating the Merkle proof.`,
+            `The zkCert with leaf hash ${update.proof.leaf} was not found in the wallet. Please import it before updating the Merkle proof.`,
           );
         }
       }
