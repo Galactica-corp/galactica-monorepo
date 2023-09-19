@@ -22,8 +22,12 @@ export type GenZkProofParams<ProofInputType> = {
   // String with the account address the user is going to use to submit the proof.
   userAddress: string;
 
-  // Description of disclosures made by the proof.
-  disclosureDescription?: string;
+  // Description of disclosures made by the proof
+  // This is provided by the front-end. The snap can not verify if the prover matches this description.
+  // General description of the ZKP
+  description: string;
+  // Short description of each public input the proof is disclosing
+  publicInputDescriptions: string[];
 };
 
 type GenZKPErrorName = 'MissingInputParams';
