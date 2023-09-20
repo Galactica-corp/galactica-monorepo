@@ -18,6 +18,7 @@
     "build:clean": "yarn clean && yarn build",
     "build:website": "node ./scripts/build-website.js",
     "clean": "rimraf dist",
+    "dev": "mm-snap watch",
     "eval:snap": "mm-snap eval -b dist/bundle.js --verboseErrors",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,ts",
@@ -25,7 +26,6 @@
     "lint:misc": "prettier '**/*.json' '**/*.md' '!CHANGELOG.md' --ignore-path .gitignore",
     "proofPrep": "ts-node src/scripts/proofGenerationPrep.ts \"$@\"",
     "serve": "mm-snap serve",
-    "start": "mm-snap watch",
     "test": "yarn run test:unit",
     "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\""
   },
