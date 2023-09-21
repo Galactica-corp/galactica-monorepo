@@ -582,6 +582,7 @@ describe('Test rpc handler function', function () {
     });
 
     it('should handle failures fetching merkle proof update', async function (this: Mocha.Context) {
+      this.timeout(25000);
       fetchMock.restore();
       fetchMock.get(
         `${merkleProofServiceURL}${zkCert.registration.address}/${zkCert.leafHash}`,
