@@ -1,6 +1,6 @@
 {
   "name": "@galactica-net/snap-api",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "API methods, types and errors for working with the Galactica Snap",
   "keywords": [],
   "repository": {

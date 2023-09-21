@@ -1,6 +1,6 @@
 {
   "name": "@galactica-net/snap-beta",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
   "repository": {
     "type": "git",
@@ -19,6 +19,7 @@
     "build:website": "node ./scripts/build-website.js",
     "clean": "rimraf dist",
     "dev": "mm-snap watch",
+    "start": "mm-snap watch",
     "eval:snap": "mm-snap eval -b dist/bundle.js --verboseErrors",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,ts",
