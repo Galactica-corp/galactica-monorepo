@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 import { MerkleProof, ZkCertRegistered } from '@galactica-net/galactica-types';
 import { GenericError } from '@galactica-net/snap-api';
+import { fromHexToDec } from '@galactica-net/zk-certificates';
 import { BaseProvider } from '@metamask/providers';
 import { Contract, providers } from 'ethers';
 
@@ -31,7 +32,12 @@ export async function getMerkleProof(
     ['function merkleRoot() external view returns (bytes32)'],
     provider,
   );
-  if (registry.merkleRoot() === zkCert.merkleProof.root) {
+  console.log(
+    'registry',
+    fromHexToDec(await registry.merkleRoot()),
+    zkCert.merkleProof.root,
+  );
+  if (fromHexToDec(await registry.merkleRoot()) === zkCert.merkleProof.root) {
     // The merkle root is the same as the one in the zkCert, so we can just use the old one
     return zkCert.merkleProof;
   }
@@ -43,7 +49,6 @@ export async function getMerkleProof(
     MERKLE_PROOF_SERVICE_PATH +
     zkCert.registration.address
   }/${zkCert.leafHash}`;
-  console.log('getting Merkle proof from', JSON.stringify(merkleProofFetchURL));
   const response = await fetch(merkleProofFetchURL);
 
   if (!response.ok) {

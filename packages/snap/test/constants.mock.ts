@@ -93,3 +93,6 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeProofInput> = {
     'institution 3 pubkey Ay',
   ],
 };
+
+export const merkleProofServiceURL =
+  'https://test-node.galactica.network:1317/merkle/proof/';

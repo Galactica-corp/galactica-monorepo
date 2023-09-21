@@ -66,6 +66,8 @@ class EthereumMock extends ProviderMock {
     eth_requestAccounts: stub(),
     personal_sign: stub(),
     web3_clientVersion: stub(),
+    eth_chainId: stub(),
+    eth_call: stub(),
   };
   /* eslint-enable @typescript-eslint/naming-convention */
 

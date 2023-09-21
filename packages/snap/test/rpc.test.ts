@@ -12,6 +12,7 @@ import {
   ZkCertRegistered,
   MerkleProof,
 } from '@galactica-net/snap-api';
+import { fromDecToHex } from '@galactica-net/zk-certificates';
 import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -23,6 +24,7 @@ import { groth16 } from 'snarkjs';
 
 import {
   defaultRPCRequest,
+  merkleProofServiceURL,
   testEntropyEncrypt,
   testEntropyHolder,
   testHolder,
@@ -105,14 +107,18 @@ describe('Test rpc handler function', function () {
       .resolves(testEntropyHolder)
       .onSecondCall()
       .resolves(testEntropyEncrypt);
+    ethereumProvider.rpcStubs.eth_chainId.resolves('41233');
+    ethereumProvider.rpcStubs.eth_call.resolves(
+      fromDecToHex(zkCert.merkleProof.root, true),
+    );
 
     // setting up merkle proof service for testing
     fetchMock.get(
-      `https://test-node.galactica.network:1317/merkle/proof/${zkCert.registration.address}/${zkCert.leafHash}`,
+      `${merkleProofServiceURL}${zkCert.registration.address}/${zkCert.leafHash}`,
       merkleProofToServiceResponse(zkCert.merkleProof),
     );
     fetchMock.get(
-      `https://test-node.galactica.network:1317/merkle/proof/${zkCert2.registration.address}/${zkCert2.leafHash}`,
+      `${merkleProofServiceURL}${zkCert2.registration.address}/${zkCert2.leafHash}`,
       merkleProofToServiceResponse(zkCert2.merkleProof),
     );
   });
@@ -482,6 +488,8 @@ describe('Test rpc handler function', function () {
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
+      // Merkle proof should be up to date and therefore not be fetched
+      expect(fetchMock.calls()).to.be.empty;
 
       await verifyProof(result);
     });
@@ -567,6 +575,71 @@ describe('Test rpc handler function', function () {
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.callCount(3);
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledTwice;
+    });
+
+    it('should handle failures fetching merkle proof update', async function (this: Mocha.Context) {
+      fetchMock.restore();
+      fetchMock.get(
+        `${merkleProofServiceURL}${zkCert.registration.address}/${zkCert.leafHash}`,
+        404,
+      );
+
+      const outdatedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
+      outdatedZkCert.merkleProof.root = '01234';
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [outdatedZkCert],
+        });
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      await expect(callPromise).to.be.rejectedWith(
+        'Merkle proof fetch failed with status 404: Not Found',
+      );
+      expect(fetchMock.calls().length).to.equal(1);
+    });
+
+    it('should automatically fetch new merkle proof from node', async function (this: Mocha.Context) {
+      this.timeout(25000);
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+
+      const outdatedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
+      outdatedZkCert.merkleProof.root = '01234';
+
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [outdatedZkCert],
+        });
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        snapProvider,
+        ethereumProvider,
+      )) as ZkCertProof;
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
+
+      await verifyProof(result);
+
+      // Merkle proof should have been updated and stored
+      expect(fetchMock.calls().length).to.equal(1);
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        },
+      });
     });
   });
 
