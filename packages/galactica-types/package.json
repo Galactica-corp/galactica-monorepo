@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsc",
     "debug": "eslint --print-config .eslintrc.js | grep -i sourceType",
-    "dev": "tsc --watch",
+    "start": "tsc --watch",
     "test": "echo \"No test specified\""
   },
   "devDependencies": {

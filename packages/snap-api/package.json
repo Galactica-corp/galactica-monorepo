@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "build": "tsup --dts",
-    "dev": "tsup --watch",
+    "start": "tsup --watch",
     "test": "echo \"No test specified\""
   },
   "dependencies": {
