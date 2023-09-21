@@ -18,12 +18,12 @@
   ],
   "scripts": {
     "build": "yarn workspaces foreach --parallel --topological --verbose run build",
-    "dev:snap": "turbo run dev --filter=snap-beta...",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,ts",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
     "lint:misc": "prettier '**/*.json' '**/*.md' '!**/CHANGELOG.md' '!test/**' '**/*.yml' --ignore-path .gitignore",
     "start": "yarn workspaces foreach --parallel --interlaced --verbose run start",
+    "start:snap": "turbo run start --filter=snap-beta...",
     "test": "yarn workspaces foreach --exclude @galactica-net/zk-certificates -vp run test"
   },
   "resolutions": {
