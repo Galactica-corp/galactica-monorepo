@@ -115,7 +115,8 @@ Build code into js files and publish it on NPM
 
 ```shell
 yarn buildZK
-npm publish
+yarn npm login
+yarn npm publish
 ```
 
 Create a new release version on GitHub [here](https://github.com/Galactica-corp/zkKYC/releases/new).

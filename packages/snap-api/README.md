@@ -21,5 +21,6 @@ yarn build
 Afterwards it can be published to NPM.
 
 ```
-npm publish
+yarn npm login
+yarn npm publish
 ```

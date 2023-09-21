@@ -23,6 +23,7 @@
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
     "lint:misc": "prettier '**/*.json' '**/*.md' '!**/CHANGELOG.md' '!test/**' '**/*.yml' --ignore-path .gitignore",
     "start": "yarn workspaces foreach --parallel --interlaced --verbose run start",
+    "start:snap": "turbo run start --filter=snap-beta...",
     "test": "yarn workspaces foreach --exclude @galactica-net/zk-certificates -vp run test"
   },
   "resolutions": {

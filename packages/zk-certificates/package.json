@@ -1,6 +1,6 @@
 {
   "name": "@galactica-net/zk-certificates",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "Galactica Network's Zero-Knowledge Certificates library containing ZK circuits and blockchain library, including zkKYC",
   "homepage": "https://galactica.com",
   "bugs": {
@@ -27,6 +27,7 @@
     "buildZK": "hardhat smartCircuitBuild --verbose && hardhat compile && tsc",
     "compile": "hardhat smartCircuitBuild --verbose",
     "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose",
+    "start": "tsup --watch",
     "test": "hardhat smartCircuitBuild --verbose && hardhat test"
   },
   "dependencies": {

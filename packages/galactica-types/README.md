@@ -9,8 +9,9 @@ For example, these types are used for zkCertificates and the Galactica ZK Vault 
 Build code into js files and publish it on NPM
 
 ```shell
-npm run build
-npm publish
+yarn build
+yarn npm login
+yarn npm publish
 ```
 
 Create a new release version on GitHub [here](https://github.com/Galactica-corp/galactica-types/releases/new).
