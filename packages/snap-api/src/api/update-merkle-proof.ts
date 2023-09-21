@@ -7,8 +7,8 @@ import { invokeSnap } from '../utils/invoke-snap';
  */
 export type MerkleProofUpdateRequestParams = {
   updates: {
-    registryAddr: string
-    proof: MerkleProof
+    registryAddr: string;
+    proof: MerkleProof;
   }[];
 };
 

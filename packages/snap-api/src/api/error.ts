@@ -17,6 +17,7 @@ type GenericErrorName =
   | 'UnknownMethod'
   | 'MissingHolder'
   | 'MissingZkCert'
+  | 'MerkleProofUpdateFailed'
   | 'RejectedConnect'
   | 'RejectedSignature'
   | 'RejectedSelect';

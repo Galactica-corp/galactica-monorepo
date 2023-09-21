@@ -10,10 +10,13 @@ import {
   ConfirmationResponse,
   EncryptedZkCert,
   ZkCertRegistered,
+  MerkleProof,
 } from '@galactica-net/snap-api';
 import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import chaiFetchMock from 'chai-fetch-mock';
+import fetchMock from 'fetch-mock';
 import { match } from 'sinon';
 import sinonChai from 'sinon-chai';
 import { groth16 } from 'snarkjs';
@@ -38,6 +41,7 @@ import { calculateHolderCommitment } from '../src/zkCertHandler';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
+chai.use(chaiFetchMock);
 
 /**
  * Helper to build RPC requests for testing.
@@ -77,6 +81,20 @@ async function verifyProof(result: ZkCertProof) {
   expect(verification).to.be.true;
 }
 
+/**
+ * Helper for formatting a merkle proof to the format expected by the service.
+ *
+ * @param merkleProof - The merkle proof to be formatted.
+ * @returns The formatted merkle proof as returned by the service.
+ */
+function merkleProofToServiceResponse(merkleProof: MerkleProof): any {
+  return {
+    root: merkleProof.root,
+    indices: merkleProof.pathIndices,
+    path: merkleProof.pathElements,
+  };
+}
+
 describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
   const ethereumProvider = mockEthereumProvider();
@@ -87,6 +105,16 @@ describe('Test rpc handler function', function () {
       .resolves(testEntropyHolder)
       .onSecondCall()
       .resolves(testEntropyEncrypt);
+
+    // setting up merkle proof service for testing
+    fetchMock.get(
+      `https://test-node.galactica.network:1317/merkle/proof/${zkCert.registration.address}/${zkCert.leafHash}`,
+      merkleProofToServiceResponse(zkCert.merkleProof),
+    );
+    fetchMock.get(
+      `https://test-node.galactica.network:1317/merkle/proof/${zkCert2.registration.address}/${zkCert2.leafHash}`,
+      merkleProofToServiceResponse(zkCert2.merkleProof),
+    );
   });
 
   afterEach(function () {
@@ -95,6 +123,7 @@ describe('Test rpc handler function', function () {
     });
     snapProvider.reset();
     ethereumProvider.reset();
+    fetchMock.restore();
   });
 
   describe('Clear Storage method', function () {
@@ -387,9 +416,18 @@ describe('Test rpc handler function', function () {
       renewedZkCert.leafHash = zkCert2.leafHash;
       // note that the merkle path indices and registry address stay the same
 
+      const encryptedRenewedZkCert = encryptZkCert(
+        renewedZkCert as ZkCertRegistered,
+        testHolder.encryptionPubKey,
+        zkCert.holderCommitment,
+      );
+
       const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert: renewedZkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, {
+          encryptedZkCert: encryptedRenewedZkCert,
+        }),
         snapProvider,
+        ethereumProvider,
       )) as any;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice; // once for the import, once for the update
@@ -747,10 +785,12 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const updateParams: MerkleProofUpdateRequestParams = {
-        updates: [{
-          proof: zkCert2.merkleProof,
-          registryAddr: zkCert.registration.address,
-        }],
+        updates: [
+          {
+            proof: zkCert2.merkleProof,
+            registryAddr: zkCert.registration.address,
+          },
+        ],
       };
 
       const updatePromise = processRpcRequest(
@@ -773,10 +813,12 @@ describe('Test rpc handler function', function () {
         });
 
       const updateParams: MerkleProofUpdateRequestParams = {
-        updates: [{
-          proof: zkCert2.merkleProof,
-          registryAddr: zkCert.registration.address,
-        }],
+        updates: [
+          {
+            proof: zkCert2.merkleProof,
+            registryAddr: zkCert.registration.address,
+          },
+        ],
       };
 
       const updatePromise = processRpcRequest(
@@ -801,10 +843,12 @@ describe('Test rpc handler function', function () {
         });
 
       const updateParams: MerkleProofUpdateRequestParams = {
-        updates: [{
-          proof: updatedMerkleProof,
-          registryAddr: zkCert.registration.address,
-        }],
+        updates: [
+          {
+            proof: updatedMerkleProof,
+            registryAddr: zkCert.registration.address,
+          },
+        ],
       };
 
       const result = (await processRpcRequest(

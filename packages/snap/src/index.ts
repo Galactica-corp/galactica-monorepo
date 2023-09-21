@@ -19,10 +19,11 @@ import {
   decryptZkCert,
   encryptZkCert,
 } from './encryption';
+import { getMerkleProof } from './merkleProofSelection';
 import {
   checkZkKycProofRequest,
   createProofConfirmationPrompt,
-  generateZkKycProof
+  generateZkKycProof,
 } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import { HolderData, SnapRpcProcessor, PanelContent } from './types';
@@ -31,7 +32,6 @@ import {
   getZkCertStorageOverview,
 } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
-import { getMerkleProof } from './merkleProofSelection';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
@@ -41,6 +41,7 @@ import { getMerkleProof } from './merkleProofSelection';
  * @param args.origin - The origin of the request, e.g., the website that invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
  * @param snap - The SnapProvider (snap).
+ * @param ethereum - The Ethereum provider that is available as global in the snap.
  * @returns `null` if the request succeeded.
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_dialog` call failed.
@@ -71,7 +72,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts);
 
-      const merkleProof = getMerkleProof(searchedZkCert, searchedZkCert.registration.address, ethereum);
+      const merkleProof = await getMerkleProof(
+        searchedZkCert,
+        searchedZkCert.registration.address,
+        ethereum,
+      );
       // save merkle proof in zkCert for later use
       searchedZkCert.merkleProof = merkleProof;
       await saveState(snap, state);
@@ -195,7 +200,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) =>
           candidate.holderCommitment === zkCert.holderCommitment &&
           candidate.merkleProof.pathIndices ===
-          zkCert.merkleProof.pathIndices &&
+            zkCert.merkleProof.pathIndices &&
           candidate.registration.address === zkCert.registration.address,
       );
       if (oldVersion) {
@@ -386,7 +391,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
       for (const update of merkleUpdateParams.updates) {
         let foundZkCert = false;
         for (const zkCert of state.zkCerts) {
-          if (zkCert.leafHash === update.proof.leaf && zkCert.registration.address === update.registryAddr) {
+          if (
+            zkCert.leafHash === update.proof.leaf &&
+            zkCert.registration.address === update.registryAddr
+          ) {
             zkCert.merkleProof = update.proof;
             foundZkCert = true;
             break;
