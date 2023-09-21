@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
+import { ZkCertRegistered } from '@galactica-net/snap-api';
 import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
 
-import { HolderData, StorageState, ZkCert } from './types';
+import { HolderData, StorageState } from './types';
 import { calculateHolderCommitment } from './zkCertHandler';
 
 /**
@@ -26,7 +27,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
   } else {
     state = {
       holders: stateRecord.holders?.valueOf() as HolderData[],
-      zkCerts: stateRecord.zkCerts?.valueOf() as ZkCert[],
+      zkCerts: stateRecord.zkCerts?.valueOf() as ZkCertRegistered[],
     };
   }
 

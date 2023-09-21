@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { createHolderCommitment, ZkCertStandard } from '@galactica-net/zkkyc';
+import { ZkCertRegistered, ZkCertStorageHashes } from '@galactica-net/snap-api';
+import {
+  createHolderCommitment,
+  ZkCertStandard,
+} from '@galactica-net/zk-certificates';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
-
-import { ZkCert } from './types';
 
 /**
  * Calculates the holder commitment from the eddsa key. It is used to link a ZkCert to a holder without revealing the holder's identity to the provider.
@@ -24,7 +26,9 @@ export async function calculateHolderCommitment(
  * @param zkCertStorage - The list of zkCerts stored.
  * @returns ZkCerts metadata listed for each zkCertStandard.
  */
-export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
+export function getZkCertStorageOverview(
+  zkCertStorage: ZkCertRegistered[],
+): any {
   const sharedZkCerts: any = {};
   for (const zkCert of zkCertStorage) {
     if (sharedZkCerts[zkCert.zkCertStandard] === undefined) {
@@ -33,11 +37,11 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
 
     const disclosureData: any = {
       providerPubKey: {
-        Ax: zkCert.providerData.Ax,
-        Ay: zkCert.providerData.Ay,
+        ax: zkCert.providerData.ax,
+        ay: zkCert.providerData.ay,
       },
     };
-    if (zkCert.zkCertStandard === ZkCertStandard.zkKYC) {
+    if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
       disclosureData.expirationDate = zkCert.content.expirationDate;
       disclosureData.verificationLevel = zkCert.content.verificationLevel;
     }
@@ -54,10 +58,10 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCert[]): any {
  * @returns Storage hash for each zkCertStandard.
  */
 export function getZkCertStorageHashes(
-  zkCertStorage: ZkCert[],
+  zkCertStorage: ZkCertRegistered[],
   origin: string,
 ): any {
-  const storageHashes: any = {};
+  const storageHashes: ZkCertStorageHashes = {};
   for (const zkCert of zkCertStorage) {
     if (storageHashes[zkCert.zkCertStandard] === undefined) {
       storageHashes[zkCert.zkCertStandard] = keccak256(origin);

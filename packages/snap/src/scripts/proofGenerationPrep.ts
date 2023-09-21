@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
+import { GenZkProofParams, ZkCertStandard } from '@galactica-net/snap-api';
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
 import * as fs from 'fs';
 import path from 'path';
 import { groth16, zKey } from 'snarkjs';
 import { parse } from 'ts-command-line-args';
-
-import { GenZkKycRequestParams } from '../types';
 
 // Tell JSON how to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -23,13 +22,13 @@ import { GenZkKycRequestParams } from '../types';
 async function testModified(
   circuitName: string,
   circuitDir: string,
-  params: GenZkKycRequestParams<any>,
+  params: GenZkProofParams<any>,
 ) {
   const { proof, publicSignals } = await groth16.fullProveMemory(
     params.input,
-    params.wasm,
-    params.zkeyHeader,
-    params.zkeySections,
+    params.prover.wasm,
+    params.prover.zkeyHeader,
+    params.prover.zkeySections,
   );
 
   console.log('Proof: ');
@@ -57,7 +56,7 @@ async function createCircuitData(
   circuitName: string,
   circuitDir: string,
   input: any,
-): Promise<GenZkKycRequestParams<any>> {
+): Promise<GenZkProofParams<any>> {
   // read the wasm file asa array.
   // It becomes a Uint8Array later, but is passed as ordinary number array through the RPC
   const wasm = Uint8Array.from(
@@ -78,14 +77,16 @@ async function createCircuitData(
     zkeySections.push(await readSection(fdZKey, sectionsZKey, i));
   }
 
-  const params: GenZkKycRequestParams<any> = {
+  const params: GenZkProofParams<any> = {
     input,
     // dummy values
-    wasm,
-    zkeyHeader,
-    zkeySections,
+    prover: {
+      wasm,
+      zkeyHeader,
+      zkeySections,
+    },
     requirements: {
-      zkCertStandard: 'gip69',
+      zkCertStandard: ZkCertStandard.ZkKYC,
     },
     userAddress: '0x0',
   };
@@ -101,44 +102,48 @@ async function createCircuitData(
  */
 async function writeCircuitDataToJSON(
   filePath: string,
-  data: GenZkKycRequestParams<any>,
+  data: GenZkProofParams<any>,
 ) {
   // format data for writing to file (othewise arrays look like objects)
   // using base64 encoding for Uint8Arrays to minimize file size while still being able to send it though the RPC in JSON format
-  data.zkeyHeader.q = data.zkeyHeader.q.toString();
-  data.zkeyHeader.r = data.zkeyHeader.r.toString();
+  data.prover.zkeyHeader.q = data.prover.zkeyHeader.q.toString();
+  data.prover.zkeyHeader.r = data.prover.zkeyHeader.r.toString();
 
-  for (let i = 0; i < data.zkeySections.length; i++) {
-    data.zkeySections[i] = Buffer.from(data.zkeySections[i]).toString('base64');
+  for (let i = 0; i < data.prover.zkeySections.length; i++) {
+    data.prover.zkeySections[i] = Buffer.from(
+      data.prover.zkeySections[i],
+    ).toString('base64');
   }
-  data.zkeyHeader.vk_alpha_1 = Buffer.from(data.zkeyHeader.vk_alpha_1).toString(
-    'base64',
-  );
-  data.zkeyHeader.vk_beta_1 = Buffer.from(data.zkeyHeader.vk_beta_1).toString(
-    'base64',
-  );
-  data.zkeyHeader.vk_beta_2 = Buffer.from(data.zkeyHeader.vk_beta_2).toString(
-    'base64',
-  );
-  data.zkeyHeader.vk_gamma_2 = Buffer.from(data.zkeyHeader.vk_gamma_2).toString(
-    'base64',
-  );
-  data.zkeyHeader.vk_delta_1 = Buffer.from(data.zkeyHeader.vk_delta_1).toString(
-    'base64',
-  );
-  data.zkeyHeader.vk_delta_2 = Buffer.from(data.zkeyHeader.vk_delta_2).toString(
-    'base64',
-  );
+  data.prover.zkeyHeader.vk_alpha_1 = Buffer.from(
+    data.prover.zkeyHeader.vk_alpha_1,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_beta_1 = Buffer.from(
+    data.prover.zkeyHeader.vk_beta_1,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_beta_2 = Buffer.from(
+    data.prover.zkeyHeader.vk_beta_2,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_gamma_2 = Buffer.from(
+    data.prover.zkeyHeader.vk_gamma_2,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_delta_1 = Buffer.from(
+    data.prover.zkeyHeader.vk_delta_1,
+  ).toString('base64');
+  data.prover.zkeyHeader.vk_delta_2 = Buffer.from(
+    data.prover.zkeyHeader.vk_delta_2,
+  ).toString('base64');
 
-  console.log(`curve name: ${JSON.stringify(data.zkeyHeader.curve.name)}`);
+  console.log(
+    `curve name: ${JSON.stringify(data.prover.zkeyHeader.curve.name)}`,
+  );
   // removing curve data because it would increase the transmission size dramatically and it can be reconstructed from the curve name
-  data.zkeyHeader.curveName = data.zkeyHeader.curve.name;
-  delete data.zkeyHeader.curve;
+  data.prover.zkeyHeader.curveName = data.prover.zkeyHeader.curve.name;
+  delete data.prover.zkeyHeader.curve;
 
   const jsContent = {
-    wasm: Buffer.from(data.wasm).toString('base64'),
-    zkeyHeader: data.zkeyHeader,
-    zkeySections: data.zkeySections,
+    wasm: Buffer.from(data.prover.wasm).toString('base64'),
+    zkeyHeader: data.prover.zkeyHeader,
+    zkeySections: data.prover.zkeySections,
   };
   console.log(
     `resulting JSON has size: ${
@@ -228,16 +233,19 @@ async function main() {
   if (!fs.existsSync(args.testInput)) {
     throw new Error(`Test input file ${args.testInput} does not exist.`);
   }
+  if (fs.lstatSync(args.testInput).isDirectory()) {
+    throw new Error(
+      `Test input ${args.testInput} must be a file, not a directory.`,
+    );
+  }
   if (!fs.existsSync(args.circuitsDir)) {
     throw new Error(`Circuit dir ${args.circuitsDir} does not exist.`);
-  }
-  if (!fs.existsSync(args.testInput)) {
-    throw new Error(`Test input ${args.testInput} does not exist.`);
   }
   if (!fs.existsSync(path.dirname(args.output))) {
     throw new Error(`Target dir for ${args.output} does not exist.`);
   }
 
+  console.warn(`Test ${args.testInput}`);
   const input = JSON.parse(fs.readFileSync(args.testInput).toString());
 
   // extract needed circuit data

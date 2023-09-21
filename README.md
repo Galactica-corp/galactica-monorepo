@@ -1,6 +1,12 @@
-# Galactica Snap
+# Galactica Monorepo
 
-This repository provides a Metamaks Snap for Galactica Network.
+Galactica Network monorepo including zero-knowledge certificates, the Galactica ZK Vault Snap for Metamask and front-end examples.
+
+## Galactica ZK Vault Snap
+
+The the README in `pagages/snap` for more details.
+
+This package provides a Metamaks Snap for Galactica Network.
 It adds Galactica specific features, such as
 
 - Self custody wallet for zero knowledge certificates (zkCerts) providing self sovereign identity
@@ -14,7 +20,7 @@ Furthermore the repository includes front-ends demonstrating how to interact wit
 
 For more information, visit https://galactica.com/
 
-## Snaps is pre-release software
+### Snaps is pre-release software
 
 To interact with the Galactica Snap, you will need to install [MetaMask Flask](https://metamask.io/flask/), a canary distribution for developers that provides access to upcoming features.
 

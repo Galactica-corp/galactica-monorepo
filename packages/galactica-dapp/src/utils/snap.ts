@@ -1,4 +1,3 @@
-import { RpcMethods } from '../../../snap/src/rpcEnums';
 import { defaultSnapOrigin } from '../config';
 import { GetSnapsResponse, Snap } from '../types';
 
@@ -53,63 +52,6 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
     console.log('Failed to obtain installed snap', error);
     return undefined;
   }
-};
-
-/**
- * GenerateProof prepares and executes the call to generate a ZKP in the Galactica snap.
- * You can use it to generate various kinds of proofs, depending on the input you pass.
- *
- * @param proverData - Prover data passed to the snap (including wasm and zkey).
- * @param proofInput - Input for the proof.
- * @param description - Description of the disclosures made by the proof. It should include all output signals of the ZK circuit and what checks are verified by the proof. It informs the user about what he is disclosing on-chain.
- * @param publicInputDescriptions - Short description of each public input the proof is disclosing. This includes proofInputs and fields computed and disclosed within the zk circuit.
- * @returns Request result that should contain the ZKP.
- */
-export const generateProof = async (
-  proverData: any,
-  proofInput: any,
-  description: string,
-  publicInputDescriptions: string[],
-) => {
-  console.log(
-    'sending generateProof request to snap with publicInput:',
-    JSON.stringify(proofInput, null, 2),
-  );
-
-  const userAddress = window.ethereum.selectedAddress;
-  if (userAddress === null) {
-    throw new Error('Please connect a metamask account first.');
-  }
-
-  const res = await window.ethereum.request({
-    method: 'wallet_invokeSnap',
-    params: {
-      snapId: defaultSnapOrigin,
-      request: {
-        method: RpcMethods.GenZkKycProof,
-        params: {
-          input: proofInput,
-          requirements: {
-            zkCertStandard: 'gip69',
-          },
-          userAddress,
-          wasm: proverData.wasm,
-          zkeyHeader: proverData.zkeyHeader,
-          zkeySections: proverData.zkeySections,
-          description,
-          publicInputDescriptions,
-        },
-      },
-    },
-  });
-
-  console.log('Received ZKP response', JSON.stringify(res, null, 2));
-
-  if (res === undefined || res === null) {
-    throw new Error('Proof generation failed: empty response');
-  }
-
-  return res;
 };
 
 export const isLocalSnap = (snapId: string) => snapId.startsWith('local:');

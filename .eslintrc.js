@@ -1,10 +1,11 @@
 module.exports = {
   root: true,
+  extends: ['@metamask/eslint-config'],
+
   parserOptions: {
     sourceType: 'module',
+    allowImportExportEverywhere: true,
   },
-
-  extends: ['@metamask/eslint-config'],
 
   overrides: [
     {
@@ -23,7 +24,7 @@ module.exports = {
     },
 
     {
-      files: ['**/*.test.ts', '**/*.test.js'],
+      files: ['**/*.test.ts', '**/*.test.js', '**/test/**/**.ts'],
       extends: ['@metamask/eslint-config-jest'],
       rules: {
         '@typescript-eslint/no-shadow': [

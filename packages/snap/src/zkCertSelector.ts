@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { ZKCertificate } from '@galactica-net/zkkyc';
+import { RpcResponseErr, ZkCertRegistered } from '@galactica-net/snap-api';
+import { ZKCertificate } from '@galactica-net/zk-certificates';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
-
-import { RpcResponseErr } from './rpcEnums';
-import { ZkCert } from './types';
 
 /**
  * Selects a ZkCert from the available ones.
@@ -18,7 +16,7 @@ import { ZkCert } from './types';
  */
 export async function selectZkCert(
   snap: SnapsGlobalObject,
-  availableCerts: ZkCert[],
+  availableCerts: ZkCertRegistered[],
   zkCertStandard?: string,
   expirationDate?: number,
   providerAx?: string,
@@ -38,7 +36,7 @@ export async function selectZkCert(
           expirationDate === undefined) ||
         value.content.expirationDate === expirationDate) &&
       // same provider, if defined as filter
-      (providerAx === undefined || value.providerData.Ax === providerAx)
+      (providerAx === undefined || value.providerData.ax === providerAx)
     );
   });
 
@@ -52,7 +50,7 @@ export async function selectZkCert(
     );
   }
 
-  let selected: ZkCert;
+  let selected: ZkCertRegistered;
 
   if (filteredCerts.length === 1) {
     selected = filteredCerts[0];

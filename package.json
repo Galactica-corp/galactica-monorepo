@@ -1,15 +1,15 @@
 {
-  "name": "@metamask/template-snap-monorepo",
-  "version": "0.1.0",
+  "name": "@galactica-net/galactica-monorepo",
+  "version": "0.2.0",
   "private": true,
-  "description": "",
-  "homepage": "https://github.com/MetaMask/template-snap-monorepo#readme",
+  "description": "Galactica Network monorepo including zero-knowledge certificates, the Galactica ZK Vault Snap for Metamask and front-end examples.",
+  "homepage": "https://galactica.com",
   "bugs": {
-    "url": "https://github.com/MetaMask/template-snap-monorepo/issues"
+    "url": "https://github.com/Galactica-corp/galactica-monorepo/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MetaMask/template-snap-monorepo.git"
+    "url": "git+https://github.com/Galactica-corp/galactica-monorepo.git"
   },
   "license": "(MIT-0 OR Apache-2.0 OR BUSL-1.1)",
   "author": "",
@@ -23,7 +23,8 @@
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
     "lint:misc": "prettier '**/*.json' '**/*.md' '!**/CHANGELOG.md' '!test/**' '**/*.yml' --ignore-path .gitignore",
     "start": "yarn workspaces foreach --parallel --interlaced --verbose run start",
-    "test": "yarn workspaces foreach -vp run test"
+    "start:snap": "turbo run start --filter=snap-beta...",
+    "test": "yarn workspaces foreach --exclude @galactica-net/zk-certificates -vp run test"
   },
   "resolutions": {
     "blake-hash": "patch:blake-hash@npm:2.0.0#.yarn/patches/blake-hash-npm-2.0.0-c63b9a2c2d.patch",
@@ -45,6 +46,7 @@
     "eslint-plugin-jsdoc": "^39.2.9",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "hardhat": "^2.10.1",
     "prettier": "^2.2.1",
     "prettier-plugin-packagejson": "^2.2.18",
     "typescript": "^5.0.4"

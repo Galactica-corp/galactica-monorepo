@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: BUSL-1.1
+import { MerkleProof } from '@galactica-net/galactica-types';
 import {
-  MerkleProof,
+  GenZkProofParams,
+  ZkCertInputType,
+  ZkCertProof,
+} from '@galactica-net/snap-api';
+import {
   ZKCertificate,
   formatPrivKeyForBabyJub,
-} from '@galactica-net/zkkyc';
+} from '@galactica-net/zk-certificates';
 import { text, heading, divider } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { buildBn128, buildBls12381 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
 
-import {
-  GenZkKycRequestParams,
-  ZkCertProof,
-  HolderData,
-  PanelContent,
-} from './types';
+import { HolderData, PanelContent } from './types';
 
 /**
  * GenerateZkKycProof constructs and checks the zkKYC proof.
@@ -26,7 +26,7 @@ import {
  * @param merkleProof - Merkle proof of the zkCert in the zkCert registry.
  */
 export const generateZkKycProof = async (
-  params: GenZkKycRequestParams<any>,
+  params: GenZkProofParams<ZkCertInputType>,
   zkCert: ZKCertificate,
   holder: HolderData,
   merkleProof: MerkleProof,
@@ -53,21 +53,21 @@ export const generateZkKycProof = async (
   const inputs: any = {
     ...processedParams.input,
 
-    ...zkCert.fields,
+    ...zkCert.content,
     randomSalt: zkCert.randomSalt,
 
     ...zkCert.getOwnershipProofInput(holder.eddsaKey),
 
     userAddress: authorizationProof.userAddress,
-    S2: authorizationProof.S,
-    R8x2: authorizationProof.R8x,
-    R8y2: authorizationProof.R8y,
+    s2: authorizationProof.s,
+    r8x2: authorizationProof.r8x,
+    r8y2: authorizationProof.r8y,
 
-    providerAx: zkCert.providerData.Ax,
-    providerAy: zkCert.providerData.Ay,
-    providerS: zkCert.providerData.S,
-    providerR8x: zkCert.providerData.R8x,
-    providerR8y: zkCert.providerData.R8y,
+    providerAx: zkCert.providerData.ax,
+    providerAy: zkCert.providerData.ay,
+    providerS: zkCert.providerData.s,
+    providerR8x: zkCert.providerData.r8x,
+    providerR8y: zkCert.providerData.r8y,
 
     root: merkleProof.root,
     pathElements: merkleProof.pathElements,
@@ -84,9 +84,9 @@ export const generateZkKycProof = async (
   try {
     const { proof, publicSignals } = await groth16.fullProveMemory(
       inputs,
-      processedParams.wasm,
-      processedParams.zkeyHeader,
-      processedParams.zkeySections,
+      processedParams.prover.wasm,
+      processedParams.prover.zkeyHeader,
+      processedParams.prover.zkeySections,
     );
 
     // console.log('Calculated proof: ');
@@ -109,7 +109,7 @@ export const generateZkKycProof = async (
  * @returns PanelContent for the proof confirmation prompt.
  */
 export function createProofConfirmationPrompt(
-  params: GenZkKycRequestParams<any>,
+  params: GenZkProofParams<any>,
   proof: ZkCertProof,
   origin: string,
 ): PanelContent {
@@ -161,40 +161,42 @@ export function createProofConfirmationPrompt(
  * @returns Prepared GenZkKycRequestParams.
  */
 async function preprocessInput(
-  params: GenZkKycRequestParams<any>,
-): Promise<GenZkKycRequestParams<any>> {
+  params: GenZkProofParams<ZkCertInputType>,
+): Promise<GenZkProofParams<ZkCertInputType>> {
   // Somehow we need to convert them to Uint8Array to avoid an error inside snarkjs.
-  params.wasm = Uint8Array.from(Buffer.from(params.wasm, 'base64'));
+  params.prover.wasm = Uint8Array.from(
+    Buffer.from(params.prover.wasm, 'base64'),
+  );
 
-  params.zkeyHeader.q = BigInt(params.zkeyHeader.q);
-  params.zkeyHeader.r = BigInt(params.zkeyHeader.r);
-  for (let i = 0; i < params.zkeySections.length; i++) {
-    params.zkeySections[i] = Uint8Array.from(
-      Buffer.from(params.zkeySections[i], 'base64'),
+  params.prover.zkeyHeader.q = BigInt(params.prover.zkeyHeader.q);
+  params.prover.zkeyHeader.r = BigInt(params.prover.zkeyHeader.r);
+  for (let i = 0; i < params.prover.zkeySections.length; i++) {
+    params.prover.zkeySections[i] = Uint8Array.from(
+      Buffer.from(params.prover.zkeySections[i], 'base64'),
     );
   }
-  params.zkeyHeader.vk_alpha_1 = Uint8Array.from(
-    Buffer.from(params.zkeyHeader.vk_alpha_1, 'base64'),
+  params.prover.zkeyHeader.vk_alpha_1 = Uint8Array.from(
+    Buffer.from(params.prover.zkeyHeader.vk_alpha_1, 'base64'),
   );
-  params.zkeyHeader.vk_beta_1 = Uint8Array.from(
-    Buffer.from(params.zkeyHeader.vk_beta_1, 'base64'),
+  params.prover.zkeyHeader.vk_beta_1 = Uint8Array.from(
+    Buffer.from(params.prover.zkeyHeader.vk_beta_1, 'base64'),
   );
-  params.zkeyHeader.vk_beta_2 = Uint8Array.from(
-    Buffer.from(params.zkeyHeader.vk_beta_2, 'base64'),
+  params.prover.zkeyHeader.vk_beta_2 = Uint8Array.from(
+    Buffer.from(params.prover.zkeyHeader.vk_beta_2, 'base64'),
   );
-  params.zkeyHeader.vk_gamma_2 = Uint8Array.from(
-    Buffer.from(params.zkeyHeader.vk_gamma_2, 'base64'),
+  params.prover.zkeyHeader.vk_gamma_2 = Uint8Array.from(
+    Buffer.from(params.prover.zkeyHeader.vk_gamma_2, 'base64'),
   );
-  params.zkeyHeader.vk_delta_1 = Uint8Array.from(
-    Buffer.from(params.zkeyHeader.vk_delta_1, 'base64'),
+  params.prover.zkeyHeader.vk_delta_1 = Uint8Array.from(
+    Buffer.from(params.prover.zkeyHeader.vk_delta_1, 'base64'),
   );
-  params.zkeyHeader.vk_delta_2 = Uint8Array.from(
-    Buffer.from(params.zkeyHeader.vk_delta_2, 'base64'),
+  params.prover.zkeyHeader.vk_delta_2 = Uint8Array.from(
+    Buffer.from(params.prover.zkeyHeader.vk_delta_2, 'base64'),
   );
 
   /* eslint-disable-next-line require-atomic-updates */
-  params.zkeyHeader.curve = await getCurveForSnarkJS(
-    params.zkeyHeader.curveName,
+  params.prover.zkeyHeader.curve = await getCurveForSnarkJS(
+    params.prover.zkeyHeader.curveName,
   );
 
   return params;

@@ -1,4 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
+import {
+  RpcResponseErr,
+  RpcMethods,
+  ConfirmationResponse,
+  RpcResponseMsg,
+  ImportZkCertParams,
+  ImportZkCertError,
+  GenericError,
+  GenZkProofParams,
+  GenZKPError,
+  HolderCommitmentData,
+  MerkleProofUpdateRequestParams,
+  ZkCertSelectionParams,
+} from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
@@ -6,18 +20,8 @@ import {
   createProofConfirmationPrompt,
   generateZkKycProof,
 } from './proofGenerator';
-import { RpcResponseErr, RpcMethods, RpcResponseMsg } from './rpcEnums';
 import { getState, saveState } from './stateManagement';
-import {
-  ExportRequestParams,
-  GenZkKycRequestParams,
-  HolderData,
-  ImportRequestParams,
-  MerkleProofUpdateRequestParams,
-  SnapRpcProcessor,
-  PanelContent,
-  DeleteRequestParams,
-} from './types';
+import { HolderData, SnapRpcProcessor, PanelContent } from './types';
 import {
   getZkCertStorageHashes,
   getZkCertStorageOverview,
@@ -43,17 +47,24 @@ export const processRpcRequest: SnapRpcProcessor = async (
   const state = await getState(snap);
   let confirm: any;
   let holder: HolderData;
+  let response: ConfirmationResponse;
 
   switch (request.method) {
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
-      const genParams = request.params as GenZkKycRequestParams<any>;
-      // TODO: check input validity
+      const genParams = request.params as unknown as GenZkProofParams<any>;
+      // check some input validity
       if (genParams.userAddress === undefined) {
-        throw new Error(`userAddress missing in request parameters.`);
+        throw new GenZKPError({
+          name: 'MissingInputParams',
+          message: `userAddress missing in request parameters.`,
+        });
       }
       if (genParams.requirements.zkCertStandard === undefined) {
-        throw new Error(`ZkCert standard missing in request parameters.`);
+        throw new GenZKPError({
+          name: 'MissingInputParams',
+          message: `ZkCert standard missing in request parameters.`,
+        });
       }
 
       const zkCert = await selectZkCert(
@@ -66,12 +77,12 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) => candidate.holderCommitment === zkCert.holderCommitment,
       );
       if (searchedHolder === undefined) {
-        throw new Error(
-          `Holder for commitment ${zkCert.holderCommitment} could not be found. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
-        );
-      } else {
-        holder = searchedHolder;
+        throw new GenericError({
+          name: 'MissingHolder',
+          message: `Holder for commitment ${zkCert.holderCommitment} could not be found. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
+        });
       }
+      holder = searchedHolder;
 
       const searchedZkCert = state.zkCerts.find(
         (cert) => cert.leafHash === zkCert.leafHash,
@@ -132,15 +143,19 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        throw new GenericError({
+          name: 'RejectedConfirm',
+          message: RpcResponseErr.RejectedConfirm,
+        });
       }
 
       await saveState(snap, { holders: [], zkCerts: [] });
-      return RpcResponseMsg.StorageCleared;
+      response = { message: RpcResponseMsg.StorageCleared };
+      return response;
     }
 
     case RpcMethods.ImportZkCert: {
-      const importParams = request.params as ImportRequestParams;
+      const importParams = request.params as ImportZkCertParams;
 
       // check that there is a holder setup for this zkCert
       const searchedHolder = state.holders.find(
@@ -148,9 +163,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
           candidate.holderCommitment === importParams.zkCert.holderCommitment,
       );
       if (searchedHolder === undefined) {
-        throw new Error(
-          `Could not find Holder for commitment ${importParams.zkCert.holderCommitment}. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
-        );
+        throw new ImportZkCertError({
+          name: 'HolderMissing',
+          message: `Could not find Holder for commitment ${importParams.zkCert.holderCommitment}. Please use Metamask with the same mnemonic as when you created this holder commitment.`,
+        });
       }
 
       const listZkCertsFlag = importParams.listZkCerts === true;
@@ -160,7 +176,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) => candidate.leafHash === importParams.zkCert.leafHash,
       );
       if (searchedZkCert) {
-        return RpcResponseMsg.ZkCertAlreadyImported;
+        response = { message: RpcResponseMsg.ZkCertAlreadyImported };
+        return response;
       }
 
       const prompt: PanelContent = [
@@ -186,7 +203,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        throw new GenericError({
+          name: 'RejectedConfirm',
+          message: RpcResponseErr.RejectedConfirm,
+        });
       }
 
       // check if the imported zkCert is a renewal of an existing one
@@ -194,8 +214,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) =>
           candidate.holderCommitment === importParams.zkCert.holderCommitment &&
           candidate.merkleProof.pathIndices ===
-            importParams.zkCert.merkleProof.pathIndices &&
-          candidate.registryAddr === importParams.zkCert.registryAddr,
+            importParams.zkCert.merkleProof.pathIndices,
       );
       if (oldVersion) {
         const confirmRenewal = await snap.request({
@@ -223,11 +242,12 @@ export const processRpcRequest: SnapRpcProcessor = async (
       if (listZkCertsFlag) {
         return getZkCertStorageOverview(state.zkCerts);
       }
-      return RpcResponseMsg.ZkCertImported;
+      response = { message: RpcResponseMsg.ZkCertImported };
+      return response;
     }
 
     case RpcMethods.ExportZkCert: {
-      const exportParams = request.params as ExportRequestParams;
+      const exportParams = request.params as ZkCertSelectionParams;
 
       confirm = await snap.request({
         method: 'snap_dialog',
@@ -242,13 +262,19 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        throw new GenericError({
+          name: 'RejectedConfirm',
+          message: RpcResponseErr.RejectedConfirm,
+        });
       }
 
+      // get existing zkCerts according to the selection filter
       const zkCertForExport = await selectZkCert(
         snap,
         state.zkCerts,
         exportParams.zkCertStandard,
+        exportParams.expirationDate,
+        exportParams.providerAx,
       );
       const zkCertStorageData = state.zkCerts.find(
         (cert) => cert.leafHash === zkCertForExport.leafHash,
@@ -276,10 +302,16 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        throw new GenericError({
+          name: 'RejectedConfirm',
+          message: RpcResponseErr.RejectedConfirm,
+        });
       }
 
-      return holder.holderCommitment;
+      const holderCommitmentData: HolderCommitmentData = {
+        holderCommitment: holder.holderCommitment,
+      };
+      return holderCommitmentData;
     }
 
     case RpcMethods.ListZkCerts: {
@@ -298,7 +330,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        throw new GenericError({
+          name: 'RejectedConfirm',
+          message: RpcResponseErr.RejectedConfirm,
+        });
       }
 
       return getZkCertStorageOverview(state.zkCerts);
@@ -326,7 +361,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        throw new GenericError({
+          name: 'RejectedConfirm',
+          message: RpcResponseErr.RejectedConfirm,
+        });
       }
 
       return state.zkCerts.map((zkCert) => zkCert.leafHash);
@@ -350,7 +388,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        throw new GenericError({
+          name: 'RejectedConfirm',
+          message: RpcResponseErr.RejectedConfirm,
+        });
       }
 
       for (const merkleProof of merkleUpdateParams.proofs) {
@@ -370,13 +411,15 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       await saveState(snap, state);
-      return RpcResponseMsg.MerkleProofsUpdated;
+
+      response = { message: RpcResponseMsg.MerkleProofsUpdated };
+      return response;
     }
 
     case RpcMethods.DeleteZkCert: {
-      const deleteParams = request.params as DeleteRequestParams;
+      const deleteParams = request.params as ZkCertSelectionParams;
 
-      // get existing zkCerts that the fit to the delete filter
+      // get existing zkCerts that fit to the delete filter
       const zkCertToDelete = await selectZkCert(
         snap,
         state.zkCerts,
@@ -397,14 +440,19 @@ export const processRpcRequest: SnapRpcProcessor = async (
         },
       });
       if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
+        throw new GenericError({
+          name: 'RejectedConfirm',
+          message: RpcResponseErr.RejectedConfirm,
+        });
       }
 
       state.zkCerts = state.zkCerts.filter(
         (zkCert) => zkCert.leafHash !== zkCertToDelete.leafHash,
       );
       await saveState(snap, state);
-      return RpcResponseMsg.ZkCertDeleted;
+
+      response = { message: RpcResponseMsg.ZkCertDeleted };
+      return response;
     }
 
     default: {
@@ -420,7 +468,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
  * @param args.origin - The origin of the request, e.g., the website that
  * invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
- * @returns The result of the request as string. TODO: Use more strict type.
+ * @returns The result of the request.
  * @throws If the request method is not valid for this snap.
  * @throws If the `snap_dialog` call failed.
  */

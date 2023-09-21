@@ -1,0 +1,77 @@
+{
+  "name": "@galactica-net/zk-certificates",
+  "version": "0.8.4",
+  "description": "Galactica Network's Zero-Knowledge Certificates library containing ZK circuits and blockchain library, including zkKYC",
+  "homepage": "https://galactica.com",
+  "bugs": {
+    "url": "https://github.com/Galactica-corp/galactica-snap/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Galactica-corp/galactica-snap.git"
+  },
+  "license": "GPLv3",
+  "author": "Galactica Network",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist",
+    "!/dist/hardhat.config.*",
+    "/circuits",
+    "!/circuits/*.ptau",
+    "!/circuits/build",
+    "/contracts"
+  ],
+  "scripts": {
+    "build": "tsup --dts",
+    "buildZK": "hardhat smartCircuitBuild --verbose && hardhat compile && tsc",
+    "compile": "hardhat smartCircuitBuild --verbose",
+    "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose",
+    "start": "tsup --watch",
+    "test": "hardhat smartCircuitBuild --verbose && hardhat test"
+  },
+  "dependencies": {
+    "@galactica-net/galactica-types": "workspace:^",
+    "@openzeppelin/contracts": "^4.0.0",
+    "@openzeppelin/contracts-upgradeable": "^4.7.3",
+    "@typechain/ethers-v5": "^10.1.1",
+    "@typechain/truffle-v5": "^8.0.2",
+    "@typechain/web3-v1": "^6.0.2",
+    "bignumber.js": "^9.0.1",
+    "blake-hash": "^2.0.0",
+    "buffer": "^6.0.3",
+    "circom2": "^0.2.13",
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "ethers": "^5.7.2",
+    "ffjavascript": "^0.2.57",
+    "hardhat-circom": "^3.3.2",
+    "keccak256": "^1.0.6",
+    "snarkjs": "^0.5.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.4",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.3",
+    "@nomicfoundation/hardhat-toolbox": "^1.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.2.1",
+    "@nomiclabs/hardhat-etherscan": "^3.1.0",
+    "@typechain/hardhat": "^6.1.2",
+    "@types/mocha": "^9.1.0",
+    "camelcase": "^6.3.0",
+    "chai": "^4.3.8",
+    "chai-as-promised": "^7.1.1",
+    "chalk": "^4",
+    "eslint": "^8.38.0",
+    "hardhat": "^2.10.1",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solidity-coverage": "^0.7.21",
+    "ts-node": "^10.9.1",
+    "tsup": "^7.2.0",
+    "typechain": "^8.1.0",
+    "typescript": "^4.7.4"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
