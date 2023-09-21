@@ -2609,9 +2609,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galactica-net/snap-beta@workspace:packages/snap":
+"@galactica-net/snap@workspace:packages/snap":
   version: 0.0.0-use.local
-  resolution: "@galactica-net/snap-beta@workspace:packages/snap"
+  resolution: "@galactica-net/snap@workspace:packages/snap"
   dependencies:
     "@galactica-net/galactica-types": "workspace:^"
     "@galactica-net/snap-api": "workspace:^"
