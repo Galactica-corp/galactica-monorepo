@@ -5,6 +5,8 @@ import { fromHexToDec } from '@galactica-net/zk-certificates';
 import { BaseProvider } from '@metamask/providers';
 import { Contract, providers } from 'ethers';
 
+import { fetchWithTimeout } from './utils';
+
 const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 
 /**
@@ -32,11 +34,6 @@ export async function getMerkleProof(
     ['function merkleRoot() external view returns (bytes32)'],
     provider,
   );
-  console.log(
-    'registry',
-    fromHexToDec(await registry.merkleRoot()),
-    zkCert.merkleProof.root,
-  );
   if (fromHexToDec(await registry.merkleRoot()) === zkCert.merkleProof.root) {
     // The merkle root is the same as the one in the zkCert, so we can just use the old one
     return zkCert.merkleProof;
@@ -49,39 +46,46 @@ export async function getMerkleProof(
     MERKLE_PROOF_SERVICE_PATH +
     zkCert.registration.address
   }/${zkCert.leafHash}`;
-  const response = await fetch(merkleProofFetchURL);
+  try {
+    const response = await fetchWithTimeout(merkleProofFetchURL);
 
-  if (!response.ok) {
+    if (!response.ok) {
+      throw new GenericError({
+        name: 'MerkleProofUpdateFailed',
+        message: `Merkle proof fetch failed with status ${response.status}: ${response.statusText}`,
+      });
+    }
+
+    const resJson = await response.json();
+    if (
+      resJson.root === undefined ||
+      resJson.indices === undefined ||
+      resJson.path === undefined
+    ) {
+      throw new GenericError({
+        name: 'MerkleProofUpdateFailed',
+        message: `MerkleUpdate response is missing required fields: ${JSON.stringify(
+          resJson,
+        )}`,
+      });
+    }
+
+    // Format into MerkleProof object
+    const merkleProof: MerkleProof = {
+      root: resJson.root,
+      leaf: zkCert.leafHash,
+      pathElements: resJson.path,
+      pathIndices: resJson.indices,
+    };
+    return merkleProof;
+  } catch (error) {
     throw new GenericError({
       name: 'MerkleProofUpdateFailed',
-      message: `Merkle proof fetch failed with status ${response.status}: ${response.statusText}`,
+      message: `Merkle proof fetch failed with error "${
+        error.message as string
+      }"`,
     });
   }
-
-  const resJson = await response.json();
-
-  if (
-    resJson.root === undefined ||
-    resJson.indices === undefined ||
-    resJson.path === undefined
-  ) {
-    throw new GenericError({
-      name: 'MerkleProofUpdateFailed',
-      message: `MerkleUpdate response is missing required fields: ${JSON.stringify(
-        resJson,
-      )}`,
-    });
-  }
-
-  // Format into MerkleProof object
-  const merkleProof: MerkleProof = {
-    root: resJson.root,
-    leaf: zkCert.leafHash,
-    pathElements: resJson.path,
-    pathIndices: resJson.indices,
-  };
-
-  return merkleProof;
 }
 
 /**
@@ -92,5 +96,5 @@ export async function getMerkleProof(
 function getMerkleServiceURL(): string {
   // Placeholder for more decentralized and customizable solution
   // The problem is that Metamask does not disclose the URL used for the RPC calls, so we need to find another way to get it or let the user customize it.
-  return 'https://test-node.galactica.network:1317/';
+  return 'https://test-node.galactica.com:1317/';
 }

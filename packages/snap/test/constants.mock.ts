@@ -95,4 +95,4 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeProofInput> = {
 };
 
 export const merkleProofServiceURL =
-  'https://test-node.galactica.network:1317/merkle/proof/';
+  'https://test-node.galactica.com:1317/merkle/proof/';
