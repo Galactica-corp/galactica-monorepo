@@ -16,12 +16,14 @@ const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
  * @param zkCert - ZkCert to get the merkle proof for.
  * @param registryAddr - Address of the registry the zkCert is registered in.
  * @param ethereum - Ethereum provider to read from the blockchain.
+ * @param merkleServiceURL - URL of the node to fetch the merkle proof from (optional).
  * @returns Merkle proof for the zkCert.
  */
 export async function getMerkleProof(
   zkCert: ZkCertRegistered,
   registryAddr: string,
   ethereum: BaseProvider,
+  merkleServiceURL?: string,
 ): Promise<MerkleProof> {
   if (!zkCert.registration.revocable) {
     // non-revocable registries, can also accept proofs for previous roots, so we can just use the old one
@@ -41,11 +43,11 @@ export async function getMerkleProof(
 
   // Because the registry is revocable, the merkle tree has probably changed since last time the zkCert was issued/used.
   // Therefore, we need to fetch the merkle proof from the node or regenerate the tree to calculate it.
-  const merkleProofFetchURL = `${
-    getMerkleServiceURL() +
-    MERKLE_PROOF_SERVICE_PATH +
-    zkCert.registration.address
+  let merkleProofFetchURL = merkleServiceURL || getDefaultMerkleServiceURL();
+  merkleProofFetchURL += `/${
+    MERKLE_PROOF_SERVICE_PATH + zkCert.registration.address
   }/${zkCert.leafHash}`;
+
   try {
     const response = await fetchWithTimeout(merkleProofFetchURL);
 
@@ -93,8 +95,8 @@ export async function getMerkleProof(
  *
  * @returns URL as string.
  */
-function getMerkleServiceURL(): string {
+function getDefaultMerkleServiceURL(): string {
   // Placeholder for more decentralized and customizable solution
   // The problem is that Metamask does not disclose the URL used for the RPC calls, so we need to find another way to get it or let the user customize it.
-  return 'https://test-node.galactica.com:1317/';
+  return 'https://test-node.galactica.com:1317';
 }

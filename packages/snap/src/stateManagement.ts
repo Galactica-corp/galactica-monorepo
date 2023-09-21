@@ -30,6 +30,13 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
       holders: stateRecord.holders?.valueOf() as HolderData[],
       zkCerts: stateRecord.zkCerts?.valueOf() as ZkCertRegistered[],
     };
+    if (
+      stateRecord.merkleServiceURL !== undefined &&
+      stateRecord.merkleServiceURL?.valueOf() !== ''
+    ) {
+      state.merkleServiceURL =
+        stateRecord.merkleServiceURL?.valueOf() as string;
+    }
   }
 
   // Check that the EdDSA holder key is set up.
@@ -75,6 +82,9 @@ export async function saveState(
     holders: newState.holders,
     // using unknown to avoid ts error converting ZkCert[] to Json[]
     zkCerts: newState.zkCerts as unknown as Json[],
+    merkleServiceURL: newState.merkleServiceURL
+      ? newState.merkleServiceURL
+      : '',
   };
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys
   await snap.request({

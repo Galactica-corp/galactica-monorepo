@@ -10,6 +10,7 @@ import {
   HolderCommitmentData,
   MerkleProofUpdateRequestParams,
   ZkCertSelectionParams,
+  MerkleProofURLUpdateParams,
 } from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
@@ -76,6 +77,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         searchedZkCert,
         searchedZkCert.registration.address,
         ethereum,
+        state.merkleServiceURL,
       );
       // save merkle proof in zkCert for later use
       searchedZkCert.merkleProof = merkleProof;
@@ -450,6 +452,34 @@ export const processRpcRequest: SnapRpcProcessor = async (
       await saveState(snap, state);
 
       response = { message: RpcResponseMsg.ZkCertDeleted };
+      return response;
+    }
+
+    case RpcMethods.UpdateMerkleProofURL: {
+      const urlUpdateParams = request.params as MerkleProofURLUpdateParams;
+
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'confirmation',
+          content: panel([
+            heading('Update Merkle Proof Service?'),
+            text(
+              `Do you want to update the URL to get Merkle Proofs from to '${urlUpdateParams.url}'?`,
+            ),
+          ]),
+        },
+      });
+      if (!confirm) {
+        throw new GenericError({
+          name: 'RejectedConfirm',
+          message: RpcResponseErr.RejectedConfirm,
+        });
+      }
+
+      state.merkleServiceURL = urlUpdateParams.url;
+      await saveState(snap, state);
+      response = { message: RpcResponseMsg.MerkleProofsUpdated };
       return response;
     }
 

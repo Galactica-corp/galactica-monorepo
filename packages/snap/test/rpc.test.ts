@@ -167,7 +167,7 @@ describe('Test rpc handler function', function () {
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
         operation: 'update',
-        newState: { holders: [], zkCerts: [] },
+        newState: { holders: [], zkCerts: [], merkleServiceURL: '' },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.StorageCleared);
     });
@@ -254,6 +254,7 @@ describe('Test rpc handler function', function () {
             },
           ],
           zkCerts: [zkKYC],
+          merkleServiceURL: '',
         },
       });
     });
@@ -341,6 +342,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [zkCert],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.ZkCertImported);
@@ -369,6 +371,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [zkCert, zkCert],
+          merkleServiceURL: '',
         },
       });
     });
@@ -442,6 +445,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [renewedZkCert],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.ZkCertImported);
@@ -638,6 +642,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [zkCert],
+          merkleServiceURL: '',
         },
       });
     });
@@ -939,6 +944,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [expectedUpdatedZkCert, zkCert2],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
@@ -988,6 +994,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [zkCert2],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.ZkCertDeleted);
@@ -1014,9 +1021,59 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [zkCert],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.ZkCertDeleted);
+    });
+  });
+
+  describe('Update merkle proof URL', function () {
+    beforeEach(function () {
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+    });
+
+    it('should throw error if not confirmed', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(null);
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.UpdateMerkleProofURL, {
+          url: 'http://test',
+        }),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      await expect(callPromise).to.be.rejectedWith(
+        Error,
+        RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    it('should update url in state', async function (this: Mocha.Context) {
+      const urlUpdate = { url: 'http://test' };
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.UpdateMerkleProofURL, urlUpdate),
+        snapProvider,
+        ethereumProvider,
+      )) as ConfirmationResponse;
+
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert],
+          merkleServiceURL: urlUpdate.url,
+        },
+      });
+      expect(result.message).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
     });
   });
 });

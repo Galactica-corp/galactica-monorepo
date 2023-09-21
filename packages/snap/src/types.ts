@@ -28,6 +28,7 @@ export type HolderData = {
 export type StorageState = {
   holders: HolderData[];
   zkCerts: ZkCertRegistered[];
+  merkleServiceURL?: string;
 };
 
 export type PanelContent = (

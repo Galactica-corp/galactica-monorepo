@@ -454,3 +454,23 @@ await updateMerkleProof({
   ],
 });
 ```
+
+### `updateMerkleProofURL`
+
+#### Description
+
+This method updates the URL used to fetch Merkle proofs from. Regenerating the Merkle proof is needed if a zkCert registry with revocable entries changes it's root.
+With this method, the user can control the URL. It is only a fallback if the official URL is down during the testnet.
+Before mainnet, we want to upgrade to an decentralized solution that figures out the URL from which node to query the Merkle proof from automatically.
+
+#### Parameters
+
+- `object`
+  - `url: string` URL to upgrade to.
+
+#### Returns
+
+- `object`
+  - `string` - Success message.
+
+Throws error on failure.

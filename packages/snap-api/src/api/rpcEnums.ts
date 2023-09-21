@@ -12,6 +12,7 @@ export enum RpcMethods {
   GetZkCertStorageHashes = 'getZkCertStorageHashes',
   GetZkCertHash = 'getZkCertHashes',
   UpdateMerkleProof = 'updateMerkleProof',
+  UpdateMerkleProofURL = 'updateMerkleProofURL',
   DeleteZkCert = 'deleteZkCert',
 }
 
