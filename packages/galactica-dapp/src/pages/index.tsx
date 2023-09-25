@@ -2,8 +2,6 @@ import { useContext } from 'react';
 import styled from 'styled-components';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
-  connectSnap,
-  getSnap,
   shouldDisplayReconnectButton,
   queryVerificationSBTs,
   formatVerificationSBTs,
@@ -30,6 +28,8 @@ import {
   generateZKProof,
   ZkCertProof,
   ZkCertStandard,
+  connectSnap,
+  getSnap,
 } from '@galactica-net/snap-api';
 
 const Container = styled.div`
