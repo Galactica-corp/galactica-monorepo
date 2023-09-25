@@ -206,7 +206,6 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
 
-      // send proof directly on chain
       let [a, b, c] = processProof(zkp.proof);
       let publicInputs = processPublicSignals(zkp.publicSignals);
 
