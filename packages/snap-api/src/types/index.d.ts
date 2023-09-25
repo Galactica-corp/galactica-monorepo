@@ -1,10 +1,10 @@
-export {};
+export { };
 
 /*
  * Window type extension to support ethereum
  */
 declare global {
-  type Window = typeof window & {
+  interface Window {
     ethereum: any;
   };
 }
