@@ -10,6 +10,7 @@ import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
 import './tasks/revokeZKKYC';
 import './tasks/reissueZKKYC';
+import './tasks/circomTemplate';
 
 const config: HardhatUserConfig = {
   mocha: {
@@ -54,6 +55,7 @@ const config: HardhatUserConfig = {
     // The final ptau file, relative to inputBasePath, from a Phase 1 ceremony
     ptau: 'pot17_final.ptau',
     // Each object in this array refers to a separate circuit
+
     circuits: [
       {
         name: 'zkKYC',

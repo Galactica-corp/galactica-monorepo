@@ -37,7 +37,7 @@ async function smartCircuitBuild(
     });
     const verifierPath = path.join(
       rootPath,
-      'contracts',
+      'contracts/zkpVerifiers',
       `${verifierName}Verifier.sol`,
     );
     const buildConfigPath = path.join(
