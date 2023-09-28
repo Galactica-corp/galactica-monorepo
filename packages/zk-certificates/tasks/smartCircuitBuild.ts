@@ -1,10 +1,10 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import camelcase from 'camelcase';
+import cryptoLib from 'crypto';
 import fs from 'fs';
 import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
-import crypto from 'crypto';
 
 /**
  * Script (re)building circom circuits when needed.
@@ -70,10 +70,10 @@ async function smartCircuitBuild(
     }
 
     // check content hash of source files
-    let sourceHashes: Record<string, string> = {};
+    const sourceHashes: Record<string, string> = {};
     for (const file of sourceFiles) {
       const fileBuffer = fs.readFileSync(file, 'utf8');
-      const hashSum = crypto.createHash('sha256');
+      const hashSum = cryptoLib.createHash('sha256');
       hashSum.update(fileBuffer);
       sourceHashes[file] = hashSum.digest('hex');
     }
@@ -83,24 +83,21 @@ async function smartCircuitBuild(
       const previousConfig = JSON.parse(
         fs.readFileSync(buildConfigPath, 'utf8'),
       );
-      if (!previousConfig.sourceHashes) {
-        buildNeeded = true;
-        console.log(
-          `Rebuilding ${circuit.name} because build config does not contain source hashes`,
-        );
-      } else {
+      if (previousConfig.sourceHashes) {
         for (const file of sourceFiles) {
           if (previousConfig.sourceHashes[file] !== sourceHashes[file]) {
             buildNeeded = true;
             console.log(
               `Rebuilding ${circuit.name} because ${file} changed since last build`,
             );
-            console.log(
-              `${previousConfig.sourceHashes[file]} !== ${sourceHashes[file]}`,
-            );
             break;
           }
         }
+      } else {
+        buildNeeded = true;
+        console.log(
+          `Rebuilding ${circuit.name} because build config does not contain source hashes`,
+        );
       }
     }
     if (!buildNeeded) {
@@ -137,8 +134,8 @@ async function smartCircuitBuild(
 
       // Write JSON of build config for that circuit to detect changes
       const buildConfig = {
-        circuit: circuit,
-        sourceHashes: sourceHashes,
+        circuit,
+        sourceHashes,
       };
       fs.writeFileSync(
         buildConfigPath,
