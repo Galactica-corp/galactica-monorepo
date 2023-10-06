@@ -12,7 +12,7 @@ const { log } = console;
  * Script to deploy the infrastructure for zkKYC.
  * Including:
  * - PoseidonT3 hash function
- * - KYCCenterRegistry
+ * - GuardianRegistry
  * - KYCRecordRegistry
  * - ExampleMockDAppVerifier
  * - 3 example institutions for fraud investigation
@@ -36,7 +36,7 @@ async function main() {
 
   // deploying everything
   const poseidonT3 = await deploySC('PoseidonT3', false);
-  const centerRegistry = await deploySC('KYCCenterRegistry', true);
+  const guardianRegistry = await deploySC('GuardianRegistry', true);
   const recordRegistry = await deploySC(
     'KYCRecordRegistryTest',
     true,
@@ -45,7 +45,7 @@ async function main() {
         PoseidonT3: poseidonT3.address,
       },
     },
-    [centerRegistry.address],
+    [guardianRegistry.address],
   );
   const zkpVerifier = await deploySC('ExampleMockDAppVerifier', true);
 

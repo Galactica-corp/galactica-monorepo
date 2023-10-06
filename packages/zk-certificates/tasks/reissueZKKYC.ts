@@ -129,11 +129,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.registryAddress,
   );
   const guardianRegistry = await hre.ethers.getContractAt(
-    'KYCCenterRegistry',
-    await recordRegistry._KYCCenterRegistry(),
+    'GuardianRegistry',
+    await recordRegistry._GuardianRegistry(),
   );
 
-  if (!(await guardianRegistry.KYCCenters(provider.address))) {
+  if (!(await guardianRegistry.guardians(provider.address))) {
     throw new Error(
       `Provider ${provider.address} is not a guardian yet. Please register it first using the script .`,
     );

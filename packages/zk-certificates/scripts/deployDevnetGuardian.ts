@@ -25,12 +25,17 @@ async function main() {
   ]);
   log(`DevnetGuardian deployed to: ${devnetGuardian.address}`);
 
-  const centerRegistry = await hre.ethers.getContractAt(
-    'KYCCenterRegistry',
+  const guardianRegistry = await hre.ethers.getContractAt(
+    'GuardianRegistry',
     centerRegistryAddr,
   );
-  await centerRegistry.grantKYCCenterRole(devnetGuardian.address);
-  log(`DevnetGuardian whitelisted as KYC Guardian in KYCCenterRegistry`);
+  const pubkey = [0, 0]; // the devnet guardian has no unique EdDSA pubkey because it is meant to be a proxy for testing
+  await guardianRegistry.grantGuardianRole(
+    devnetGuardian.address,
+    pubkey,
+    'DevnetGuardianProxy',
+  );
+  log(`DevnetGuardian whitelisted as KYC Guardian in GuardianRegistry`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
