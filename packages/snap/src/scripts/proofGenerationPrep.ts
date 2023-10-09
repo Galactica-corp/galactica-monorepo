@@ -149,7 +149,8 @@ async function writeCircuitDataToJSON(
     zkeySections: data.prover.zkeySections,
   };
   console.log(
-    `resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)
+    `resulting JSON has size: ${
+      JSON.stringify(jsContent).length / (1024 * 1024)
     } MB`,
   );
 
