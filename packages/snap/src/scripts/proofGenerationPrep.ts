@@ -87,8 +87,11 @@ async function createCircuitData(
     },
     requirements: {
       zkCertStandard: ZkCertStandard.ZkKYC,
+      registryAddress: '0x0',
     },
     userAddress: '0x0',
+    description: 'test',
+    publicInputDescriptions: [],
   };
   return params;
 }
@@ -146,8 +149,7 @@ async function writeCircuitDataToJSON(
     zkeySections: data.prover.zkeySections,
   };
   console.log(
-    `resulting JSON has size: ${
-      JSON.stringify(jsContent).length / (1024 * 1024)
+    `resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)
     } MB`,
   );
 
