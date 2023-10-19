@@ -1,24 +1,29 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
+import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 
 /**
- * Script for adding a KYC center to the KYC center registry.
+ * Whitelists a guardian in the guardian registry.
+ *
+ * @param authorizer - The signer to submit the whitelist tx.
+ * @param guardianRegistryAddr - The address of the guardian registry.
+ * @param guardian - The signer of the guardian to whitelist (needed to generate EdDSA keys).
+ * @param guardianName - The name of the guardian.
  */
-async function main() {
-  // wallets
-  const [deployer] = await ethers.getSigners();
-  console.log(`Using account ${deployer.address} for controlling whitelist`);
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+export async function whitelistGuardian(
+  authorizer: SignerWithAddress,
+  guardianRegistryAddr: string,
+  guardian: SignerWithAddress,
+  guardianName: string,
+) {
+  console.log(`Using account ${authorizer.address} for controlling whitelist`);
+  console.log(`Account balance: ${(await authorizer.getBalance()).toString()}`);
   console.log();
 
-  // parameters
-  const centerRegistryAddr = '0x3D8AAba820817254719BD6f997835B6f9F3485e2';
-  const guardian = deployer;
   const guardianAddr = guardian.address;
-  const guardianName = 'Galactica Test Guardian';
   // get pubkey of guardian, if we have the private key, we can derive it here, otherwise just enter the pubkey
   const eddsa = await buildEddsa();
   const privKey = await getEddsaKeyFromEthSigner(guardian);
@@ -33,12 +38,12 @@ async function main() {
   // get contract
   const guardianRegistry = await ethers.getContractAt(
     'GuardianRegistry',
-    centerRegistryAddr,
+    guardianRegistryAddr,
   );
 
   console.log(`Adding ${guardianAddr} as guardian...`);
   const tx = await guardianRegistry.grantGuardianRole(
-    deployer.address,
+    guardian.address,
     guardianPubKey,
     guardianName,
   );
@@ -46,10 +51,3 @@ async function main() {
 
   console.log(`Done`);
 }
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
