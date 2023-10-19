@@ -34,3 +34,5 @@ dist
 
 # ignore created zkKYC files
 issuedZkKYCs/*.json
+# and files with deployed smart contract addresses
+deployments/*.txt
