@@ -55,9 +55,7 @@ async function main() {
   const deploymentSummary = `Deployment summary:
 PoseidonT3: ${JSON.stringify(infrastructure.poseidonT3.address)}
 
-KYCGuardianRegistry: ${JSON.stringify(
-    infrastructure.guardianRegistry.address,
-  )}
+KYCGuardianRegistry: ${JSON.stringify(infrastructure.guardianRegistry.address)}
 KYCRecordRegistry: ${JSON.stringify(infrastructure.recordRegistry.address)}
 VerificationSBT: ${JSON.stringify(infrastructure.verificationSBT.address)}
 
@@ -78,10 +76,8 @@ ExampleMockDAppVerifier: ${JSON.stringify(infrastructure.zkpVerifier.address)}
 AgeProofZkKYC: ${JSON.stringify(infrastructure.ageProofZkKYC.address)}
 MockDApp: ${JSON.stringify(exampleDApp.mockDApp.address)}
 
-BasicKYCExampleDApp: ${JSON.stringify(
-    basicKYCExample.address,
-  )}
-RepeatableZKPTest: ${JSON.stringify(repeatableZkKYC.zkKYCSC.address)}
+BasicKYCExampleDApp: ${JSON.stringify(basicKYCExample.address)}
+RepeatableZKPTest: ${JSON.stringify(repeatableZkKYC.repeatableZKPTest.address)}
 
 DevnetGuardian: ${JSON.stringify(devnetGuardian.address)}
   `;

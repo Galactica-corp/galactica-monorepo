@@ -27,10 +27,13 @@ export async function whitelistGuardian(
   // get pubkey of guardian, if we have the private key, we can derive it here, otherwise just enter the pubkey
   const eddsa = await buildEddsa();
   const privKey = await getEddsaKeyFromEthSigner(guardian);
-  const guardianPubKey = eddsa.prv2pub(privKey).map((x: any) => eddsa.poseidon.F.toObject(x).toString());
+  const guardianPubKey = eddsa
+    .prv2pub(privKey)
+    .map((component: any) => eddsa.poseidon.F.toObject(component).toString());
 
   console.log(
-    `Whitelisting guardian ${guardian.address
+    `Whitelisting guardian ${
+      guardian.address
     } with name ${guardianName} and pubkey ${JSON.stringify(guardianPubKey)}`,
   );
 
