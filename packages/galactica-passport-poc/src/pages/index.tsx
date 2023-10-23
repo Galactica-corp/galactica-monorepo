@@ -158,6 +158,18 @@ const Index = () => {
     }
   };
 
+  /**
+   * Converts response object from Snap to string to show to the user.
+   * 
+   * @param res - Object returned by Snap.
+   */
+  const communicateResponse = (res: any) => {
+    const msg = res.message || JSON.stringify(res);
+
+    console.log('Response from snap', msg);
+    dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${msg} ` });
+  }
+
   const handleMMConnectClick = async () => {
     try {
       //@ts-ignore https://github.com/metamask/providers/issues/200
@@ -184,8 +196,7 @@ const Index = () => {
     try {
       console.log('sending request to snap...');
       const res = await method(defaultSnapOrigin);
-      console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
+      communicateResponse(res);
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -196,7 +207,7 @@ const Index = () => {
     try {
       console.log('sending request to snap...');
       const res = await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin);
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       dispatch({ type: MetamaskActions.SetInfo, payload: `Downloading zkCert...` });
 
       // save to file
@@ -218,7 +229,7 @@ const Index = () => {
     try {
       console.log('sending request to snap...');
       const res = await getHolderCommitment(defaultSnapOrigin);
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       const holderCommitmentData = res as HolderCommitmentData;
       dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
 
@@ -243,8 +254,7 @@ const Index = () => {
 
       console.log('sending request to snap...');
       const res = await importZkCert({ encryptedZkCert: parsedFile }, defaultSnapOrigin);
-      console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
+      communicateResponse(res);
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -276,7 +286,7 @@ const Index = () => {
         description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
         publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
       }, defaultSnapOrigin);
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });

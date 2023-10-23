@@ -175,6 +175,18 @@ const Index = () => {
     }
   };
 
+  /**
+   * Converts response object from Snap to string to show to the user.
+   * 
+   * @param res - Object returned by Snap.
+   */
+  const communicateResponse = (res: any) => {
+    const msg = res.message || JSON.stringify(res);
+
+    console.log('Response from snap', msg);
+    dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${msg} ` });
+  }
+
   const ageProofZKPClick = async () => {
     try {
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
@@ -200,7 +212,7 @@ const Index = () => {
         description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
         publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
       }, defaultSnapOrigin);
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
@@ -249,7 +261,7 @@ const Index = () => {
         publicInputDescriptions: zkKYCPublicInputDescriptions,
       }, defaultSnapOrigin);
 
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
