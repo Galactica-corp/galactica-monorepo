@@ -125,7 +125,7 @@ export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
     setFile(e.target.files[0]);
 
     // call snap method with file contents
-    props.onFileSelected(await e.target.files[0]?.text());
+    props.fileSelectAction(await e.target.files[0]?.text());
   };
 
   // Redirect the click event onto the hidden input element to open the file selector dialog

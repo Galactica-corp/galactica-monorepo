@@ -485,7 +485,7 @@ const Index = () => {
               'Uploads a zkCert file into the Metamask snap storage.',
             button: (
               <SelectAndImportButton
-                onFileSelected={handleOnImportSelect}
+                fileSelectAction={handleOnImportSelect}
                 disabled={false}
                 text="Select & Import"
               />
