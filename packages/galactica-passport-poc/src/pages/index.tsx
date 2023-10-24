@@ -34,6 +34,8 @@ import {
   ZkCertStandard,
   ZkCertProof,
   HolderCommitmentData,
+  updateMerkleProof,
+  MerkleProofUpdateRequestParams,
 } from '@galactica-net/snap-api';
 import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions } from '../../../galactica-dapp/src/config/snap';
 
@@ -248,12 +250,31 @@ const Index = () => {
     }
   };
 
-  const handleOnImportSelect = async (fileContent: string) => {
+  const importSelectedZkCert = async (fileContent: string) => {
     try {
       const parsedFile = JSON.parse(fileContent);
 
       console.log('sending request to snap...');
       const res = await importZkCert({ encryptedZkCert: parsedFile }, defaultSnapOrigin);
+      communicateResponse(res);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const updateSelectedMerkleProof = async (fileContent: string) => {
+    try {
+      const parsedFile = JSON.parse(fileContent);
+      const merkleUpdates: MerkleProofUpdateRequestParams = {
+        updates: [{
+          registryAddr: addresses.zkKYCRegistry,
+          proof: parsedFile,
+        }]
+      };
+
+      console.log('sending request to snap...');
+      const res = await updateMerkleProof(merkleUpdates, defaultSnapOrigin);
       communicateResponse(res);
     } catch (e) {
       console.error(e);
@@ -495,7 +516,7 @@ const Index = () => {
               'Uploads a zkCert file into the Metamask snap storage.',
             button: (
               <SelectAndImportButton
-                fileSelectAction={handleOnImportSelect}
+                fileSelectAction={importSelectedZkCert}
                 disabled={false}
                 text="Select & Import"
               />
@@ -530,6 +551,22 @@ const Index = () => {
                 onClick={() => handleSnapCallClick(() => deleteZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin))}
                 disabled={false}
                 text="Export"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Update Merkle Proof',
+            description:
+              'Uploads a new Merkle Proof for a zkCert.',
+            button: (
+              <SelectAndImportButton
+                fileSelectAction={updateSelectedMerkleProof}
+                disabled={false}
+                text="Select & Import"
               />
             ),
           }}
