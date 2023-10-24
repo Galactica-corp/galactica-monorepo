@@ -6,7 +6,7 @@ export const galacticaInstitutions = [
   '0xce9f4744AAF79489D0AA9aB95112795Ba5Ad8BC4',
   '0x6842c01163c738782E24Af3BF0A76356eA4997BB',
 ];
-export const repeatableZkKYCTest = '0x528d2480ce1E5af8eaAac1a9aFBD6A2f96bE900A';
+export const repeatableZkKYCTest = '0x99E45B078008062932255ab00Adcf51bf6B0011E';
 
 const addresses = {
   mockDApp,
