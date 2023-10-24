@@ -34,3 +34,4 @@ dist
 
 # ignore created zkKYC files
 issuedZkKYCs/*.json
+merkleProofs/*.json

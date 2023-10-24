@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { buildPoseidon } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
@@ -8,9 +10,9 @@ import { SparseMerkleTree } from '../lib/sparseMerkleTree';
  * Script for creating a merkle tree for testing from a list of UTXOs, benchmark version.
  */
 async function main() {
-  const registryAddress = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';
+  const registryAddress = '0xAbb654092b5BCaeca2E854550c5C972602eF7dA8';
   const leavesToProve = [
-    '1722999490154515264044226908745492848723838509493895212716723397473228533371',
+    '9692421774444060561729589394553086451412517656073381178772613649069837222874',
   ];
 
   // Create a new poseidon instance for hashing
@@ -47,6 +49,11 @@ async function main() {
     };
 
     console.log(`Merkle proof for ${leaf}:\n`, JSON.stringify(output, null, 2));
+
+    // write proof to file for later upload in front-end
+    const proofPath = `merkleProofs/${leaf}.json`;
+    fs.mkdirSync(path.dirname(proofPath), { recursive: true });
+    fs.writeFileSync(proofPath, JSON.stringify(output, null, 2));
   }
 }
 
