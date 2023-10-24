@@ -83,13 +83,23 @@ export const processRpcRequest: SnapRpcProcessor = async (
       searchedZkCert.merkleProof = merkleProof;
       await saveState(snap, state);
 
-      await snap.request({
-        method: 'snap_notify',
-        params: {
-          type: 'native',
-          message: `ZK proof generation running...`,
-        },
-      });
+      try {
+        await snap.request({
+          method: 'snap_notify',
+          params: {
+            type: 'native',
+            message: `ZK proof generation running...`,
+          },
+        });
+      }
+      catch (e) {
+        // Ignore errors due to rate limiting, the notification is not essential
+        if (e.message.includes('currently rate-limited')) {
+          console.log('snap_notify failed due to rate limit');
+        } else {
+          throw e;
+        }
+      }
 
       const proof = await generateZkKycProof(
         genParams,
@@ -202,7 +212,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) =>
           candidate.holderCommitment === zkCert.holderCommitment &&
           candidate.merkleProof.pathIndices ===
-            zkCert.merkleProof.pathIndices &&
+          zkCert.merkleProof.pathIndices &&
           candidate.registration.address === zkCert.registration.address,
       );
       if (oldVersion) {
