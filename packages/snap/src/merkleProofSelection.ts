@@ -96,7 +96,8 @@ export async function getMerkleProof(
  * @returns URL as string.
  */
 function getDefaultMerkleServiceURL(): string {
-  // Placeholder for more decentralized and customizable solution
-  // The problem is that Metamask does not disclose the URL used for the RPC calls, so we need to find another way to get it or let the user customize it.
+  // Placeholder until more decentralized and customizable solution is in place.
+  // In principle every Galactica node could be addressed.
+  // We provide a default here because Metamask does not disclose the URL used for the RPC calls.
   return 'https://test-node.galactica.com:1317';
 }

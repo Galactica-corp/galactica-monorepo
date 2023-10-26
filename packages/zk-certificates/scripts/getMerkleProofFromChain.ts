@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
 import { buildPoseidon } from 'circomlibjs';
+import fs from 'fs';
 import { ethers } from 'hardhat';
+import path from 'path';
 
 import { queryOnChainLeaves } from '../lib/queryMerkleTree';
 import { SparseMerkleTree } from '../lib/sparseMerkleTree';

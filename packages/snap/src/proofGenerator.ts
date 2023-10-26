@@ -79,9 +79,6 @@ export const generateZkKycProof = async (
     humanID: zkCert.getHumanID(processedParams.input.dAppAddress),
   };
 
-  // console.log('proof inputs: TODO: remove this debug output');
-  // console.log(JSON.stringify(inputs, null, 1));
-
   try {
     const { proof, publicSignals } = await groth16.fullProveMemory(
       inputs,
