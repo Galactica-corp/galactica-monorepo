@@ -91,13 +91,12 @@ export const processRpcRequest: SnapRpcProcessor = async (
             message: `ZK proof generation running...`,
           },
         });
-      }
-      catch (e) {
+      } catch (error) {
         // Ignore errors due to rate limiting, the notification is not essential
-        if (e.message.includes('currently rate-limited')) {
+        if (error.message.includes('currently rate-limited')) {
           console.log('snap_notify failed due to rate limit');
         } else {
-          throw e;
+          throw error;
         }
       }
 
@@ -212,7 +211,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) =>
           candidate.holderCommitment === zkCert.holderCommitment &&
           candidate.merkleProof.pathIndices ===
-          zkCert.merkleProof.pathIndices &&
+            zkCert.merkleProof.pathIndices &&
           candidate.registration.address === zkCert.registration.address,
       );
       if (oldVersion) {
