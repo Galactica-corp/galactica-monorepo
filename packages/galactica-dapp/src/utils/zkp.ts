@@ -16,7 +16,6 @@ export async function prepareProofInput(
   institutionAddresses: string[],
   additionalProofInput: any,
 ) {
-  // TODO: move this function to a logic file
   // expected time for between pressing the generation button and the verification happening on-chain
   const estimatedProofCreationDuration = 20;
 

@@ -159,7 +159,7 @@ const Index = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
 
       // Will open the MetaMask UI
-      window.ethereum.request({ method: 'eth_requestAccounts' });
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
       // TODO: You should disable this button while the request is pending!
       const signer = provider.getSigner();
       console.log('Connected with Metamask to', await signer.getAddress());

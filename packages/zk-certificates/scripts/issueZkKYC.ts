@@ -32,7 +32,6 @@ async function main() {
   );
 
   console.log(`Adding ${deployer.address} as KYC provider...`);
-  // TODO: skip when already added
   let tx = await centerRegistry.grantKYCCenterRole(deployer.address);
   await tx.wait();
 

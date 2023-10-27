@@ -213,7 +213,6 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Downloading zkCert...` });
 
       // save to file
-      // TODO: add a saveAs dialog to let the user choose file name and location
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
         JSON.stringify(res, null, 2)
       )}`;
@@ -236,7 +235,7 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
 
       // save to file as placeholder
-      // TODO: integrate some kind of provider API to submit the prepared zkCert to for signing and issuance on chain
+      // In a non-test environment, the holder commitment would be passed to the guardian directly
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
         JSON.stringify(holderCommitmentData, null, 2)
       )}`;

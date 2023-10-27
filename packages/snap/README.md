@@ -19,16 +19,16 @@ More context on Galactica can be found here: https://galactica.com/
 
 1. Install the Metamask Flask browser extension (Development version of Metamask): https://metamask.io/flask/
 2. Import the wallets you are going to use in Metamask.
-3. Go to any website that provides Galactica services, such as [passport.galactica.com](https://passport.galactica.com). TODO: confirm URL
+3. Go to any website that provides Galactica services, such as [galactica.com](https://www.galactica.com/).
 4. Connect to Metamask. This will check that you have the current Galactica Snap installed. It is identified with the name of this package on NPM [npm:@galactica-net/snap](https://www.npmjs.com/package/@galactica-net/snap).
 5. If the Galactica Snap needs to be (re-)installed, Metamask will ask you to accept the permissions used by the Snap, similar to how app permissions work on Android and iOS.
-6. If it was not done by the website automatically, add the Galactica Network in Metamask with the following parameters: TODO
+6. If it was not done by the website automatically, add the Galactica Network in Metamask with the parameters listed in the [docs](https://docs.galactica.com/galactica-developer-documentation/devnet).
 
 ## Getting started
 
 ### As a user
 
-Visit the [Galactica Passport site](https://passport.galactica.com) TODO: confirm URL
+Visit the [Galactica Passport site](https://app-devnet-v1.galactica.com/).
 
 It will guide you through the process of creating your first zkKYC. With it, you can prove and claim your Galactica citizenship on-chain.
 

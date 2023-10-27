@@ -146,7 +146,7 @@ export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
       <HiddenInput
         type="file"
         ref={inputRef}
-        onChange={handleFileChange} // TODO: use different event to trigger also on reselecting the same file
+        onChange={handleFileChange}
       />
       <Button {...props} onClick={handleClick}>{props.text}</Button>
     </div>
