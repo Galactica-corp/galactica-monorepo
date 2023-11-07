@@ -7,6 +7,10 @@ module.exports = {
     allowImportExportEverywhere: true,
   },
 
+  rules: {
+    '@typescript-eslint/no-parameter-properties': 'off'
+  },
+
   overrides: [
     {
       files: ['**/*.js'],
@@ -29,7 +33,7 @@ module.exports = {
       rules: {
         '@typescript-eslint/no-shadow': [
           'error',
-          { allow: ['describe', 'expect', 'it'] },
+          {allow: ['describe', 'expect', 'it']},
         ],
         '@typescript-eslint/no-unused-expressions': 'off', // allow expect() expressions without assignment
       },

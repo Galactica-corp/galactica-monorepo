@@ -8,7 +8,6 @@ module.exports = {
         'jsdoc/require-jsdoc': 0,
         'no-restricted-globals': 0, // using window is ok in the browser, not sure how to disable the rule only for window.
         '@typescript-eslint/naming-convention': 0, // required for metamask params such as `wallet_snap`
-        '@typescript-eslint/no-parameter-properties': 0, // This is can be much more readable like this.
       },
     },
     {
