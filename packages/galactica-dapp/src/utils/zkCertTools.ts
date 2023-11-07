@@ -1,4 +1,5 @@
-import { ethers, BigNumber, EventFilter } from 'ethers';
+import type { EventFilter } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 
 import { getLocalStorage, setLocalStorage } from './localStorage';
 import GuardianRegistryABI from '../config/abi/GuardianRegistry.json';
@@ -19,7 +20,7 @@ export class SBT {
     public userPubKey: string[2],
     public humanID: string,
     public providerPubKey: string[2],
-  ) {}
+  ) {} // eslint-disable-line no-empty-function
 }
 
 /**
@@ -49,7 +50,6 @@ const LOCAL_STORAGE_KEY_SBT = 'cachedVerificationSBTs';
  * Finds verification SBTs for a user. Searches through logs of created verificationSBTs
  * and filters according to the userAddr (and optionally dAppAddr and humanID) provided.
  * Modifies the local storage to speedup future calls by caching results.
- *
  * @param sbtContractAddr - Address of the verification SBT contract holding the mapping of completed verifications.
  * @param provider - Provider to use to query logs.
  * @param userAddr - Address of the user to find verification SBTs for.
@@ -201,7 +201,6 @@ export function formatVerificationSBTs(
 
 /**
  * Query guardian name string from on-chain registry for being able to display a nice name.
- *
  * @param pubKey - PubKey of the guardian pubKey in form [Ax, Ay].
  * @param registryAddr - Address of the registry contract where the zkCert is registered.
  * @param provider - Ethereum provider to use to query the registry.
@@ -233,7 +232,6 @@ export async function getGuardianName(
 
 /**
  * Constructs a map of guardian pubKey->name for a list of SBTs.
- *
  * @param sbts - List of SBTs to get the guardian name for.
  * @param registryAddr - Address of the registry contract where the zkCert is registered.
  * @param provider - Ethereum provider to use to query the registry.

@@ -3,11 +3,11 @@ import { assert } from 'chai';
 import { buildEddsa } from 'circomlibjs';
 import { readFileSync } from 'fs';
 import hre, { ethers } from 'hardhat';
-import { CircuitTestUtils } from 'hardhat-circom';
+import type { CircuitTestUtils } from 'hardhat-circom';
 
 import {
-  getEddsaKeyFromEthSigner,
   formatPrivKeyForBabyJub,
+  getEddsaKeyFromEthSigner,
 } from '../../lib/keyManagement';
 
 describe('Private to public key derivation', () => {

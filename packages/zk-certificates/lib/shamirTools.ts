@@ -3,7 +3,6 @@
 /**
  * Reconstruct a secret from Shamir's secret sharing.
  * All shares must be in decrypted form.
- *
  * @param field - The finite field to use.
  * @param k - The minimum number of shares required to reconstruct the secret (defines degree of polynomial).
  * @param shares - Shares of the participants to reconstruct the secret. Each is a 2-tuple containing the share index =x and the value =y.

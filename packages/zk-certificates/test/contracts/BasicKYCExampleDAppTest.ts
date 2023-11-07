@@ -1,25 +1,25 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
 import {
   fromDecToHex,
+  fromHexToBytes32,
   processProof,
   processPublicSignals,
-  fromHexToBytes32,
 } from '../../lib/helpers';
-import { ZKCertificate } from '../../lib/zkCertificate';
+import type { ZKCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZKKYCInput';
-import { BasicKYCExampleDApp } from '../../typechain-types/contracts/BasicKYCExampleDApp';
-import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
-import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
-import { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
-import { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
+import type { BasicKYCExampleDApp } from '../../typechain-types/contracts/BasicKYCExampleDApp';
+import type { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
+import type { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
 
 chai.config.includeStack = true;
 const { expect } = chai;

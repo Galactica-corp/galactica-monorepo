@@ -1,11 +1,11 @@
-export class GalacticaErrorBase<T extends string> extends Error {
-  name: T;
+export class GalacticaErrorBase<TName extends string> extends Error {
+  name: TName;
 
   message: string;
 
   cause: any;
 
-  constructor({ name, message }: { name: T; message: string }) {
+  constructor({ name, message }: { name: TName; message: string }) {
     super();
     this.name = name;
     this.message = message;

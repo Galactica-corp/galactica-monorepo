@@ -1,30 +1,28 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { MerkleProof } from '@galactica-net/galactica-types';
-import {
-  GenZKPError,
+import type { MerkleProof } from '@galactica-net/galactica-types';
+import type {
   GenZkProofParams,
   ZkCertInputType,
   ZkCertProof,
 } from '@galactica-net/snap-api';
-import {
-  ZKCertificate,
-  formatPrivKeyForBabyJub,
-} from '@galactica-net/zk-certificates';
-import { text, heading, divider } from '@metamask/snaps-ui';
+import { GenZKPError } from '@galactica-net/snap-api';
+import type { ZKCertificate } from '@galactica-net/zk-certificates';
+import { formatPrivKeyForBabyJub } from '@galactica-net/zk-certificates';
+import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
-import { buildBn128, buildBls12381 } from 'ffjavascript';
+import { buildBls12381, buildBn128 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
 
-import { HolderData, PanelContent } from './types';
+import type { HolderData, PanelContent } from './types';
 
 /**
  * GenerateZkKycProof constructs and checks the zkKYC proof.
- *
  * @param params - Parameters defining the proof to be generated.
  * @param zkCert - ZkCert to be used for the proof.
  * @param holder - Holder data needed to derive private proof inputs.
  * @param merkleProof - Merkle proof of the zkCert in the zkCert registry.
+ * @returns Generated ZKKYC proof.
  */
 export const generateZkKycProof = async (
   params: GenZkProofParams<ZkCertInputType>,
@@ -103,7 +101,6 @@ export const generateZkKycProof = async (
 
 /**
  * Generate proof confirmation prompt for the user.
- *
  * @param params - Parameters defining the proof to be generated.
  * @param proof - Proof to be confirmed.
  * @param origin - Origin of the request.
@@ -157,7 +154,6 @@ export function createProofConfirmationPrompt(
 /**
  * Prepare data from RPC request for snarkjs by converting it to the correct data types.
  * In the JSON message, arrays are base64 encoded.
- *
  * @param params - GenZkKycRequestParams.
  * @returns Prepared GenZkKycRequestParams.
  */
@@ -205,7 +201,6 @@ async function preprocessInput(
 
 /**
  * Reconstruct curve from name for the snarkjs zkey header.
- *
  * @param name - Name of the curve used for the ZKP.
  * @returns Curve object.
  */
@@ -229,7 +224,6 @@ async function getCurveForSnarkJS(name: string): Promise<any> {
 
 /**
  * Check validity of the ZKP generation request.
- *
  * @param params - Parameters defining the proof to be generated.
  * @throws an error if the request is invalid.
  */

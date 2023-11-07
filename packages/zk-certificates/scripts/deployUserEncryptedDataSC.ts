@@ -13,9 +13,8 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const UserEncryptedDataFactory = await ethers.getContractFactory(
-    'UserEncryptedData',
-  );
+  const UserEncryptedDataFactory =
+    await ethers.getContractFactory('UserEncryptedData');
   const UserEncryptedDataInstance = await UserEncryptedDataFactory.deploy();
 
   console.log(
