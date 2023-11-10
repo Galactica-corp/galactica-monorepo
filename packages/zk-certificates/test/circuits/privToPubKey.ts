@@ -34,10 +34,9 @@ describe('Private to public key derivation', () => {
     const [alice] = await ethers.getSigners();
 
     const privKey = await getEddsaKeyFromEthSigner(alice);
-    const privKeyConverted = BigInt(privKey).toString();
-    const privKeyField = formatPrivKeyForBabyJub(privKeyConverted, eddsa);
+    const privKeyField = formatPrivKeyForBabyJub(privKey, eddsa);
 
-    const pubKey = eddsa.prv2pub(privKeyConverted);
+    const pubKey = eddsa.prv2pub(privKey);
 
     const witness = await circuit.calculateLabeledWitness(
       { privKey: privKeyField },

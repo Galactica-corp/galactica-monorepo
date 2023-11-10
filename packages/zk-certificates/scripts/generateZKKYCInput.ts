@@ -111,9 +111,7 @@ export async function generateZkKYCProofInput(
   // calculate zkKYC leaf hash
   const { leafHash } = zkKYC;
 
-  const encryptionPrivKey = BigInt(
-    await getEddsaKeyFromEthSigner(encryptionAccount),
-  ).toString();
+  const encryptionPrivKey = await getEddsaKeyFromEthSigner(encryptionAccount);
 
   const humanIDProofInput = zkKYC.getHumanIDProofInput(
     dAppAddress,
@@ -159,9 +157,7 @@ export async function generateZkKYCProofInput(
   ).toString();
   zkKYCInput.investigationInstitutionPubKey = [];
   for (const inst of institutions) {
-    const institutionPrivKey = BigInt(
-      await getEddsaKeyFromEthSigner(inst),
-    ).toString();
+    const institutionPrivKey = await getEddsaKeyFromEthSigner(inst);
     const institutionPub = eddsa.prv2pub(institutionPrivKey);
 
     const fraudInvestigationDataEncryptionProofInput =

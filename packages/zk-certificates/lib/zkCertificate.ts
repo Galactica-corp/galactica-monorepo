@@ -16,6 +16,7 @@ import {
   ZkCertRegistration,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
+import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { Scalar } from 'ffjavascript';
 
@@ -180,7 +181,7 @@ export class ZKCertificate implements ZkCertData {
    * @param holderKey - EdDSA Private key of the holder.
    * @returns OwnershipProofInput struct.
    */
-  public getOwnershipProofInput(holderKey: string): OwnershipProofInput {
+  public getOwnershipProofInput(holderKey: Buffer): OwnershipProofInput {
     const holderPubKeyEddsa = this.eddsa.prv2pub(holderKey);
     const hashPubkey: bigint = this.fieldPoseidon.toObject(
       this.poseidon([holderPubKeyEddsa[0], holderPubKeyEddsa[1]]),
@@ -216,7 +217,7 @@ export class ZKCertificate implements ZkCertData {
    * @param providerKey - EdDSA Private key of the KYC provider.
    * @returns ProviderData struct.
    */
-  public signWithProvider(providerKey: string): ProviderData {
+  public signWithProvider(providerKey: Buffer): ProviderData {
     const providerPubKeyEddsa = this.eddsa.prv2pub(providerKey);
     const message: bigint = this.fieldPoseidon.toObject(
       this.poseidon([this.contentHash, this.holderCommitment]),
@@ -254,7 +255,7 @@ export class ZKCertificate implements ZkCertData {
    * @returns AuthorizationProofInput struct.
    */
   public getAuthorizationProofInput(
-    holderKey: string,
+    holderKey: Buffer,
     userAddress: string,
   ): AuthorizationProofInput {
     // we include the 0x prefix so the address has length 42 in hexadecimal
@@ -292,8 +293,8 @@ export class ZKCertificate implements ZkCertData {
    * @returns Input for FraudInvestigationProof.
    */
   public async getFraudInvestigationDataEncryptionProofInput(
-    institutionPub: string[],
-    userPrivKey: string,
+    institutionPub: [Uint8Array, Uint8Array],
+    userPrivKey: Buffer,
   ): Promise<FraudInvestigationDataEncryptionProofInput> {
     const eddsa = await buildEddsa();
     const userPub = eddsa.prv2pub(userPrivKey);
