@@ -8,9 +8,9 @@ import { SparseMerkleTree } from '../lib/sparseMerkleTree';
  * Script for creating a merkle tree for testing from a list of UTXOs, benchmark version.
  */
 async function main() {
-  const registryAddress = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';
+  const registryAddress = '0xAbb654092b5BCaeca2E854550c5C972602eF7dA8';
   const leavesToProve = [
-    '1722999490154515264044226908745492848723838509493895212716723397473228533371',
+    '14819641478620320272734472789651657182437409791754207519120878599783574887242',
   ];
 
   // Create a new poseidon instance for hashing

@@ -25,6 +25,7 @@ import { groth16 } from 'snarkjs';
 import {
   defaultRPCRequest,
   merkleProofServiceURL,
+  testEdDSAKey,
   testEntropyEncrypt,
   testEntropyHolder,
   testHolder,
@@ -182,7 +183,10 @@ describe('Test rpc handler function', function () {
             {
               address: '0x1234',
               holderCommitment: '0x2345',
-              eddsaKey: '0x3456',
+              eddsaKeyHex:
+                '0001020304050607080900010203040506070809000102030405060708090001',
+              encryptionPrivKey: '0x1234',
+              encryptionPubKey: '0x1234',
             },
           ],
           zkCerts: [],
@@ -222,7 +226,7 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const expectedHolderCommitment = await calculateHolderCommitment(
-        testEntropyHolder,
+        testEdDSAKey,
       );
       const zkKYC = { ...zkKYCToImportInUnitTest };
       zkKYC.holderCommitment = expectedHolderCommitment;
@@ -245,7 +249,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [
             {
-              eddsaKey: testEntropyHolder,
+              eddsaKeyHex: testEdDSAKey.toString('hex'),
               holderCommitment: expectedHolderCommitment,
               encryptionPrivKey: testEntropyEncrypt.slice(2),
               encryptionPubKey: getEncryptionPublicKey(

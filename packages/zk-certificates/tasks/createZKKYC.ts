@@ -207,7 +207,21 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   merkleProof = merkleTree.createProof(index);
 
   console.log(chalk.green('ZkKYC (created, issued, including merkle proof)'));
-  console.log(JSON.stringify(zkKYC.exportRaw(), null, 2));
+  const rawJSON = {
+    ...zkKYC.exportRaw(),
+    merkleProof: {
+      root: merkleTree.root,
+      pathIndices: merkleProof.pathIndices,
+      pathElements: merkleProof.path,
+      leaf: zkKYC.leafHash,
+    },
+    registration: {
+      address: recordRegistry.address,
+      revocable: true,
+      leafIndex: index,
+    },
+  };
+  console.log(JSON.stringify(rawJSON, null, 2));
   console.log(chalk.green('This ZkKYC can be imported in a wallet'));
 
   // write encrypted zkKYC output to file

@@ -34,7 +34,7 @@ export function getEddsaKeyFromEntropy(entropy: string): Buffer {
   if (entropy.startsWith('0x')) {
     source = entropy.slice(2);
   }
-  if (source.length <= 64) {
+  if (source.length < 64) {
     throw new Error('Entropy must be at least 32 bytes long');
   }
   if (!isHex(source)) {

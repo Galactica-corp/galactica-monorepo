@@ -28,12 +28,20 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
   ) {
     state = { holders: [], zkCerts: [] };
   } else {
-    const holderJSONData = stateRecord.holders?.valueOf() as {
+    let holderJSONData = stateRecord.holders?.valueOf() as {
       holderCommitment: string;
       eddsaKeyHex: string;
       encryptionPubKey: string;
       encryptionPrivKey: string;
     }[];
+    // check for outdated state formats and discard them
+    holderJSONData = holderJSONData.filter(
+      (holder) =>
+        holder.encryptionPubKey !== undefined &&
+        holder.encryptionPrivKey !== undefined &&
+        holder.eddsaKeyHex !== undefined &&
+        holder.holderCommitment !== undefined,
+    );
 
     state = {
       holders: holderJSONData.map((holder) => ({
@@ -96,7 +104,9 @@ export async function saveState(
   const stateRecord: Record<string, Json> = {
     holders: newState.holders.map((holder) => ({
       holderCommitment: holder.holderCommitment,
-      eddsaKey: holder.eddsaKey.toString('hex'),
+      eddsaKeyHex: holder.eddsaKey.toString('hex'),
+      encryptionPubKey: holder.encryptionPubKey,
+      encryptionPrivKey: holder.encryptionPrivKey,
     })),
     // using unknown to avoid ts error converting ZkCert[] to Json[]
     zkCerts: newState.zkCerts as unknown as Json[],
