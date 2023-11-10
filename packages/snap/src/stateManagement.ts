@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 import { GenericError, ZkCertRegistered } from '@galactica-net/snap-api';
+import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
+import { Buffer } from 'buffer';
 
 import { createEncryptionKeyPair } from './encryption';
 import { HolderData, StorageState } from './types';
@@ -26,8 +28,20 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
   ) {
     state = { holders: [], zkCerts: [] };
   } else {
+    const holderJSONData = stateRecord.holders?.valueOf() as {
+      holderCommitment: string;
+      eddsaKeyHex: string;
+      encryptionPubKey: string;
+      encryptionPrivKey: string;
+    }[];
+
     state = {
-      holders: stateRecord.holders?.valueOf() as HolderData[],
+      holders: holderJSONData.map((holder) => ({
+        holderCommitment: holder.holderCommitment,
+        eddsaKey: Buffer.from(holder.eddsaKeyHex, 'hex'),
+        encryptionPubKey: holder.encryptionPubKey,
+        encryptionPrivKey: holder.encryptionPrivKey,
+      })),
       zkCerts: stateRecord.zkCerts?.valueOf() as ZkCertRegistered[],
     };
     if (
@@ -44,7 +58,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
     // It is derived from the user's private key handled by Metamask. Meaning that HW wallets are not supported.
     // The plan to support HW wallets is to use the `eth_sign` method to derive the key from a signature.
     // However this plan is currently not supported anymore as discussed here: https://github.com/MetaMask/snaps/discussions/1364#discussioncomment-5719039
-    const holderEdDSAKey = await snap.request({
+    const entropy = await snap.request({
       method: 'snap_getEntropy',
       params: {
         version: 1,
@@ -52,6 +66,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
       },
     });
     const encryptionKeyPair = await createEncryptionKeyPair(snap);
+    const holderEdDSAKey = await getEddsaKeyFromEntropy(entropy);
     state.holders.push({
       holderCommitment: await calculateHolderCommitment(holderEdDSAKey),
       eddsaKey: holderEdDSAKey,
@@ -79,7 +94,10 @@ export async function saveState(
   newState: StorageState,
 ): Promise<void> {
   const stateRecord: Record<string, Json> = {
-    holders: newState.holders,
+    holders: newState.holders.map((holder) => ({
+      holderCommitment: holder.holderCommitment,
+      eddsaKey: holder.eddsaKey.toString('hex'),
+    })),
     // using unknown to avoid ts error converting ZkCert[] to Json[]
     zkCerts: newState.zkCerts as unknown as Json[],
     merkleServiceURL: newState.merkleServiceURL
