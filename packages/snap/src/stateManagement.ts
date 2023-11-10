@@ -66,7 +66,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
       },
     });
     const encryptionKeyPair = await createEncryptionKeyPair(snap);
-    const holderEdDSAKey = await getEddsaKeyFromEntropy(entropy);
+    const holderEdDSAKey = getEddsaKeyFromEntropy(entropy);
     state.holders.push({
       holderCommitment: await calculateHolderCommitment(holderEdDSAKey),
       eddsaKey: holderEdDSAKey,
