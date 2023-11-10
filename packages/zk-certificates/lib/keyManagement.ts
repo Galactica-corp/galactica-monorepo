@@ -5,6 +5,7 @@ import {
 } from '@galactica-net/galactica-types';
 import createBlakeHash from 'blake-hash';
 import { Buffer } from 'buffer';
+import { createHash } from 'crypto';
 import { Signer } from 'ethers';
 import { Scalar, utils } from 'ffjavascript';
 
@@ -12,12 +13,49 @@ import { Scalar, utils } from 'ffjavascript';
  * Generates the eddsa private key from the ethereum private key signing a fixed message.
  *
  * @param signer - Ethers signer.
- * @returns The eddsa private key.
+ * @returns The eddsa private key as buffer.
  */
 export async function getEddsaKeyFromEthSigner(
   signer: Signer,
-): Promise<string> {
-  return signer.signMessage(eddsaKeyGenerationMessage);
+): Promise<Buffer> {
+  // use signature as entropy input so that the EdDSA key can be derived from the Ethereum private key
+  const signature = await signer.signMessage(eddsaKeyGenerationMessage);
+  return getEddsaKeyFromEntropy(signature.slice(2));
+}
+
+/**
+ * Generates the eddsa private key following the EdDSA key generation process defined in https://www.rfc-editor.org/rfc/rfc8032#section-5.1.5 .
+ *
+ * @param entropy - Random entropy to generate key from as hex string.
+ * @returns The eddsa private key as buffer.
+ */
+export function getEddsaKeyFromEntropy(entropy: string): Buffer {
+  let source = entropy;
+  if (entropy.startsWith('0x')) {
+    source = entropy.slice(2);
+  }
+  if (source.length <= 64) {
+    throw new Error('Entropy must be at least 32 bytes long');
+  }
+  if (!isHex(source)) {
+    throw new Error('Entropy must be a hex string');
+  }
+
+  const hashed = createHash('sha512').update(source, 'hex').digest('hex');
+  const sliceForGeneration = hashed.slice(64, 128);
+
+  // prune buffer according to https://www.rfc-editor.org/rfc/rfc8032#section-5.1.5
+  // Because they use little-endian integers and we use big-endian ones, we need to change the other side of the buffer
+  const workingBuffer = Buffer.from(sliceForGeneration, 'hex');
+
+  // The lowest three bits of the first octet are cleared
+  workingBuffer[31] &= 0b11111000;
+  // the highest bit of the last octet is cleared
+  workingBuffer[0] &= 0b01111111;
+  // and the second highest bit of the last octet is set
+  workingBuffer[0] |= 0b01000000;
+
+  return workingBuffer;
 }
 
 /**
@@ -31,8 +69,8 @@ export async function getEddsaKeyFromEthSigner(
  * @returns The ECDH shared key..
  */
 export function generateEcdhSharedKey(
-  privKey: string,
-  pubKey: string[],
+  privKey: Buffer,
+  pubKey: [Uint8Array, Uint8Array],
   eddsa: any,
 ): string[] {
   const keyBuffers = eddsa.babyJub.mulPointEscalar(
@@ -50,12 +88,9 @@ export function generateEcdhSharedKey(
  * @param eddsa - EdDSA instance from circomlibjs.
  * @returns The formatted private key.
  */
-export function formatPrivKeyForBabyJub(privKey: string, eddsa: any) {
+export function formatPrivKeyForBabyJub(privKey: Buffer, eddsa: any) {
   const sBuff = eddsa.pruneBuffer(
-    createBlakeHash('blake512')
-      .update(Buffer.from(privKey))
-      .digest()
-      .slice(0, 32),
+    createBlakeHash('blake512').update(privKey).digest().slice(0, 32),
   );
   const scalar = utils.leBuff2int(sBuff);
   return Scalar.shr(scalar, 3);
@@ -69,7 +104,7 @@ export function formatPrivKeyForBabyJub(privKey: string, eddsa: any) {
  * @param privateKey - EdDSA Private key of the holder.
  * @returns Holder commitment.
  */
-export function createHolderCommitment(eddsa: any, privateKey: string): string {
+export function createHolderCommitment(eddsa: any, privateKey: Buffer): string {
   const { poseidon } = eddsa;
   const pubKey = eddsa.prv2pub(privateKey);
 
@@ -94,4 +129,15 @@ export function createHolderCommitment(eddsa: any, privateKey: string): string {
       poseidon.F.toObject(signature.R8[1]).toString(),
     ]),
   ).toString();
+}
+
+/**
+ * Check if a string is a hex string.
+ *
+ * @param test - String to check.
+ * @returns True if the string is a hex string.
+ */
+function isHex(test: string) {
+  const regexp = /^[0-9a-fA-F]+$/u;
+  return regexp.test(test);
 }

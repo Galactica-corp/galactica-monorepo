@@ -2684,6 +2684,7 @@ __metadata:
     "@typechain/hardhat": ^6.1.2
     "@typechain/truffle-v5": ^8.0.2
     "@typechain/web3-v1": ^6.0.2
+    "@types/circomlibjs": ^0.1.5
     "@types/mocha": ^9.1.0
     bignumber.js: ^9.0.1
     blake-hash: ^2.0.0
@@ -5548,6 +5549,13 @@ __metadata:
     "@types/filesystem": "*"
     "@types/har-format": "*"
   checksum: af96fdc79fb019d827fdb6269f831921f8f36215ee05a2624436dd2ad4d84d7be12333cc6f54912fb8bae0ca49cbfde5a78de94723bfbd20d309d2e71e274a1b
+  languageName: node
+  linkType: hard
+
+"@types/circomlibjs@npm:^0.1.5":
+  version: 0.1.6
+  resolution: "@types/circomlibjs@npm:0.1.6"
+  checksum: c1626380bd46f6da6ab45c59338a91f0166933ae987a03eda2ae09c490457aa010e412c46192502198b7b41054ee0129bece3d3edcbabdb05ea226582f772cc4
   languageName: node
   linkType: hard
 

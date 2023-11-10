@@ -34,8 +34,8 @@ describe('ECDH shared key derivation', () => {
   it('generates unique shared ECDH key for alice and bob', async () => {
     const [alice, bob] = await ethers.getSigners();
 
-    const alicePriv = BigInt(await getEddsaKeyFromEthSigner(alice)).toString();
-    const bobPriv = BigInt(await getEddsaKeyFromEthSigner(bob)).toString();
+    const alicePriv = await getEddsaKeyFromEthSigner(alice);
+    const bobPriv = await getEddsaKeyFromEthSigner(bob);
 
     const alicePub = eddsa.prv2pub(alicePriv);
     const bobPub = eddsa.prv2pub(bobPriv);

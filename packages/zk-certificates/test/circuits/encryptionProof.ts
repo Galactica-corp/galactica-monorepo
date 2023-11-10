@@ -38,12 +38,8 @@ describe('Encryption Proof', () => {
     const [sender, receiver] = await ethers.getSigners();
     const message = ['42', '69'];
 
-    const senderPriv = BigInt(
-      await getEddsaKeyFromEthSigner(sender),
-    ).toString();
-    const receiverPriv = BigInt(
-      await getEddsaKeyFromEthSigner(receiver),
-    ).toString();
+    const senderPriv = await getEddsaKeyFromEthSigner(sender);
+    const receiverPriv = await getEddsaKeyFromEthSigner(receiver);
 
     const receiverPub = eddsa.prv2pub(receiverPriv);
 
