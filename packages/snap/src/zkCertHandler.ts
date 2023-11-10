@@ -8,6 +8,7 @@ import {
   createHolderCommitment,
   ZkCertStandard,
 } from '@galactica-net/zk-certificates';
+import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
 
@@ -17,7 +18,7 @@ import { keccak256 } from 'js-sha3';
  * @param holderEddsaKey - The eddsa key of the holder.
  */
 export async function calculateHolderCommitment(
-  holderEddsaKey: string,
+  holderEddsaKey: Buffer,
 ): Promise<string> {
   // use holder commitment function from zkkyc module (calculated on zkCert construction)
   return createHolderCommitment(await buildEddsa(), holderEddsaKey);
