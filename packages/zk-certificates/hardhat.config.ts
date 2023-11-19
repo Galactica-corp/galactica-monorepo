@@ -26,22 +26,35 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    galaTestnet: {
-      url: 'https://evm-rpc-http-devnet-41233.galactica.com/', // requires gala dev wireguard connection
+    galaDevnetV1: {
+      url: 'https://evm-rpc-http-devnet-41233.galactica.com/',
+      accounts: getAccounts(),
+    },
+    galaAndromeda: {
+      url: 'https://evm-rpc-http-andromeda.galactica.com/',
       accounts: getAccounts(),
     },
   },
   etherscan: {
     apiKey: {
-      galaTestnet: 'something', // not needed for now, I guess
+      galaDevnetV1: 'something', // not needed for now
+      galaAndromeda: 'something', // not needed for now
     },
     customChains: [
       {
-        network: 'galaTestnet',
+        network: 'galaDevnetV1',
         chainId: 41233,
         urls: {
           apiURL: 'https://explorer-devnet-41233.galactica.com/api',
           browserURL: 'https://explorer-devnet-41233.galactica.com/',
+        },
+      },
+      {
+        network: 'galaAndromeda',
+        chainId: 41237,
+        urls: {
+          apiURL: 'https://explorer-andromeda.galactica.com/api',
+          browserURL: 'https://explorer-andromeda.galactica.com/',
         },
       },
     ],
