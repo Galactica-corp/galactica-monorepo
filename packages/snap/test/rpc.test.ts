@@ -817,7 +817,7 @@ describe('Test rpc handler function', function () {
       const decrypted = decryptSafely({
         encryptedData: result,
         privateKey: testHolder.encryptionPrivKey,
-      })
+      });
       expect(decrypted).to.be.deep.eq(zkCert);
     });
   });
