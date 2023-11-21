@@ -13,7 +13,7 @@ async function main() {
     `Deploying contracts with account ${deployer.address} on network ${network.name}`,
   );
 
-  if (network.name === 'galaTestnet') {
+  if (network.name === 'galaAndromeda') {
     UserEncryptedDataAddress = '0x6A2abBFC400aEd3f5282028FBbf08e97FC6935DA';
   } else {
     throw new Error('Unknown network');
