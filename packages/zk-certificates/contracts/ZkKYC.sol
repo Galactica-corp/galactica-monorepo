@@ -12,7 +12,7 @@ contract ZkKYC is Ownable {
     IZkKYCVerifier public verifier;
     IKYCRegistry public KYCRegistry;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;
-    uint256 public constant timeDifferenceTolerance = 120; // the maximal difference between the onchain time and public input current time
+    uint256 public constant timeDifferenceTolerance = 30*60; // the maximal difference between the onchain time and public input current time
 
     // indices of the ZKP public input array
     uint8 public immutable INDEX_USER_PUBKEY_AX;

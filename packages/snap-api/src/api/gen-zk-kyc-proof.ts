@@ -14,6 +14,8 @@ export type GenZkProofParams<ProofInputType> = {
   requirements: {
     // For the standard of the zkCertificate that should be used for the proof.
     zkCertStandard: ZkCertStandard;
+    // EVM address where the zkCertificate is registered.
+    registryAddress: string;
   };
 
   // Prover to generate the ZKP.

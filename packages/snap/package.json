@@ -1,6 +1,6 @@
 {
-  "name": "@galactica-net/snap-beta",
-  "version": "0.5.2",
+  "name": "@galactica-net/snap",
+  "version": "0.5.4",
   "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
   "repository": {
     "type": "git",
@@ -34,6 +34,7 @@
     "@galactica-net/snap-api": "workspace:^",
     "@galactica-net/zk-certificates": "workspace:^",
     "circomlibjs": "^0.1.7",
+    "ethers": "^5.7.2",
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
   },
   "devDependencies": {
@@ -44,6 +45,7 @@
     "@metamask/eslint-config-jest": "^11.1.0",
     "@metamask/eslint-config-nodejs": "^11.1.0",
     "@metamask/eslint-config-typescript": "^11.1.0",
+    "@metamask/eth-sig-util": "^6.0.0",
     "@metamask/providers": "^10.2.1",
     "@metamask/rpc-methods": "^0.32.2",
     "@metamask/snaps-cli": "^0.32.2",
@@ -60,6 +62,7 @@
     "buffer": "^6.0.3",
     "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
+    "chai-fetch-mock": "^3.0.0",
     "eslint": "^8.38.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-import": "^2.26.0",
@@ -67,6 +70,7 @@
     "eslint-plugin-jsdoc": "^39.2.9",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "fetch-mock": "^9.11.0",
     "ffjavascript": "^0.2.56",
     "js-sha3": "^0.8.0",
     "mocha": "^10.2.0",

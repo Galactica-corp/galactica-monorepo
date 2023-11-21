@@ -10,8 +10,8 @@ const { log } = console;
  */
 async function main() {
   // parameters
-  const verificationSBT = '0xc1a96F7DD532fa4B774C41f9Eb853893314cB036';
-  const zkKYC = '0x4568bBf22031930e35F13E1A15BdF7a619a60539'; // you can reuse the zkKYC smart contract from the deployment of the RepeatableZKPTest
+  const verificationSBT = '0x7d1A6e0FC5ad5B20250B02fb735B640a4232a061';
+  const zkKYC = '0x86aCd7EC220583eEcDC10b50535b37FD77133E8D'; // you can reuse the zkKYC smart contract from the deployment of the RepeatableZKPTest
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();

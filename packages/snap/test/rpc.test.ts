@@ -8,31 +8,42 @@ import {
   ZkCertStandard,
   MerkleProofUpdateRequestParams,
   ConfirmationResponse,
+  EncryptedZkCert,
+  ZkCertRegistered,
+  MerkleProof,
 } from '@galactica-net/snap-api';
+import { fromDecToHex } from '@galactica-net/zk-certificates';
+import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import chaiFetchMock from 'chai-fetch-mock';
+import fetchMock from 'fetch-mock';
 import { match } from 'sinon';
 import sinonChai from 'sinon-chai';
 import { groth16 } from 'snarkjs';
 
 import {
   defaultRPCRequest,
-  testEntropy,
+  merkleProofServiceURL,
+  testEntropyEncrypt,
+  testEntropyHolder,
   testHolder,
   testZkpParams,
 } from './constants.mock';
-import { mockSnapProvider } from './wallet.mock';
+import { mockEthereumProvider, mockSnapProvider } from './wallet.mock';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
 import zkKYCToImportInUnitTest from '../../../test/zkKYCToImportInUnitTest.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
+import { encryptZkCert } from '../src/encryption';
 import { RpcArgs } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
+chai.use(chaiFetchMock);
 
 /**
  * Helper to build RPC requests for testing.
@@ -72,11 +83,44 @@ async function verifyProof(result: ZkCertProof) {
   expect(verification).to.be.true;
 }
 
+/**
+ * Helper for formatting a merkle proof to the format expected by the service.
+ *
+ * @param merkleProof - The merkle proof to be formatted.
+ * @returns The formatted merkle proof as returned by the service.
+ */
+function merkleProofToServiceResponse(merkleProof: MerkleProof): any {
+  return {
+    root: merkleProof.root,
+    indices: merkleProof.pathIndices,
+    path: merkleProof.pathElements,
+  };
+}
+
 describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
+  const ethereumProvider = mockEthereumProvider();
 
   beforeEach(function () {
-    snapProvider.rpcStubs.snap_getEntropy.resolves(testEntropy);
+    snapProvider.rpcStubs.snap_getEntropy
+      .onFirstCall()
+      .resolves(testEntropyHolder)
+      .onSecondCall()
+      .resolves(testEntropyEncrypt);
+    ethereumProvider.rpcStubs.eth_chainId.resolves('41233');
+    ethereumProvider.rpcStubs.eth_call.resolves(
+      fromDecToHex(zkCert.merkleProof.root, true),
+    );
+
+    // setting up merkle proof service for testing
+    fetchMock.get(
+      `${merkleProofServiceURL}${zkCert.registration.address}/${zkCert.leafHash}`,
+      merkleProofToServiceResponse(zkCert.merkleProof),
+    );
+    fetchMock.get(
+      `${merkleProofServiceURL}${zkCert2.registration.address}/${zkCert2.leafHash}`,
+      merkleProofToServiceResponse(zkCert2.merkleProof),
+    );
   });
 
   afterEach(function () {
@@ -84,6 +128,8 @@ describe('Test rpc handler function', function () {
       operation: 'get',
     });
     snapProvider.reset();
+    ethereumProvider.reset();
+    fetchMock.restore();
   });
 
   describe('Clear Storage method', function () {
@@ -96,6 +142,7 @@ describe('Test rpc handler function', function () {
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.ClearStorage),
         snapProvider,
+        ethereumProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
         RpcResponseErr.RejectedConfirm,
@@ -114,12 +161,13 @@ describe('Test rpc handler function', function () {
       const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.ClearStorage),
         snapProvider,
+        ethereumProvider,
       )) as ConfirmationResponse;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
         operation: 'update',
-        newState: { holders: [], zkCerts: [] },
+        newState: { holders: [], zkCerts: [], merkleServiceURL: '' },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.StorageCleared);
     });
@@ -147,6 +195,7 @@ describe('Test rpc handler function', function () {
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.GetHolderCommitment),
         snapProvider,
+        ethereumProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
         RpcResponseErr.RejectedConfirm,
@@ -159,6 +208,7 @@ describe('Test rpc handler function', function () {
       const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.GetHolderCommitment),
         snapProvider,
+        ethereumProvider,
       )) as HolderCommitmentData;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
@@ -171,11 +221,22 @@ describe('Test rpc handler function', function () {
       this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
+      const expectedHolderCommitment = await calculateHolderCommitment(
+        testEntropyHolder,
+      );
+      const zkKYC = { ...zkKYCToImportInUnitTest };
+      zkKYC.holderCommitment = expectedHolderCommitment;
+
       await processRpcRequest(
         buildRPCRequest(RpcMethods.ImportZkCert, {
-          zkCert: zkKYCToImportInUnitTest,
+          encryptedZkCert: encryptZkCert(
+            zkKYC as ZkCertRegistered,
+            testHolder.encryptionPubKey,
+            expectedHolderCommitment,
+          ),
         }),
         snapProvider,
+        ethereumProvider,
       );
 
       // even with no holder configured before, the snap should add the holder from the getEntropy method
@@ -184,17 +245,24 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [
             {
-              eddsaKey: testEntropy,
-              holderCommitment: await calculateHolderCommitment(testEntropy),
+              eddsaKey: testEntropyHolder,
+              holderCommitment: expectedHolderCommitment,
+              encryptionPrivKey: testEntropyEncrypt.slice(2),
+              encryptionPubKey: getEncryptionPublicKey(
+                testEntropyEncrypt.slice(2),
+              ),
             },
           ],
-          zkCerts: [zkKYCToImportInUnitTest],
+          zkCerts: [zkKYC],
+          merkleServiceURL: '',
         },
       });
     });
   });
 
   describe('Import zkCert method', function () {
+    let encryptedZkCert: EncryptedZkCert;
+
     beforeEach(function () {
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -202,17 +270,61 @@ describe('Test rpc handler function', function () {
           holders: [testHolder],
           zkCerts: [],
         });
+
+      encryptedZkCert = encryptZkCert(
+        zkCert as ZkCertRegistered,
+        testHolder.encryptionPubKey,
+        zkCert.holderCommitment,
+      );
     });
 
     it('should throw error if not confirmed', async function () {
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const callPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert }),
         snapProvider,
+        ethereumProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
         RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    it('should throw if the zkCert is not encrypted', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        snapProvider,
+        ethereumProvider,
+      );
+      await expect(callPromise).to.be.rejectedWith(
+        'not in the EthEncryptedData format',
+      );
+    });
+
+    it('should throw if data is missing in zkCert', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+
+      const invalidZkCert: any = { ...zkCert };
+      invalidZkCert.holderCommitment = undefined;
+
+      const invalidEncryptedZkCert = encryptZkCert(
+        invalidZkCert as ZkCertRegistered,
+        testHolder.encryptionPubKey,
+        zkCert.holderCommitment,
+      );
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.ImportZkCert, {
+          encryptedZkCert: invalidEncryptedZkCert,
+        }),
+        snapProvider,
+        ethereumProvider,
+      );
+      await expect(callPromise).to.be.rejectedWith(
+        'The decrypted zkCert is invalid. It is missing the filed holderCommitment.',
       );
     });
 
@@ -220,8 +332,9 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert }),
         snapProvider,
+        ethereumProvider,
       )) as ConfirmationResponse;
 
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
@@ -229,6 +342,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [zkCert],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.ZkCertImported);
@@ -244,8 +358,9 @@ describe('Test rpc handler function', function () {
         });
 
       const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert }),
         snapProvider,
+        ethereumProvider,
       )) as ConfirmationResponse;
 
       expect(result.message).to.be.eq(RpcResponseMsg.ZkCertAlreadyImported);
@@ -256,6 +371,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [zkCert, zkCert],
+          merkleServiceURL: '',
         },
       });
     });
@@ -270,8 +386,12 @@ describe('Test rpc handler function', function () {
         });
 
       const res: any = await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert, listZkCerts: true }),
+        buildRPCRequest(RpcMethods.ImportZkCert, {
+          encryptedZkCert,
+          listZkCerts: true,
+        }),
         snapProvider,
+        ethereumProvider,
       );
 
       expect(res).to.have.key(zkCert.zkCertStandard);
@@ -305,9 +425,18 @@ describe('Test rpc handler function', function () {
       renewedZkCert.leafHash = zkCert2.leafHash;
       // note that the merkle path indices and registry address stay the same
 
+      const encryptedRenewedZkCert = encryptZkCert(
+        renewedZkCert as ZkCertRegistered,
+        testHolder.encryptionPubKey,
+        zkCert.holderCommitment,
+      );
+
       const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { zkCert: renewedZkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, {
+          encryptedZkCert: encryptedRenewedZkCert,
+        }),
         snapProvider,
+        ethereumProvider,
       )) as any;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice; // once for the import, once for the update
@@ -316,6 +445,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [renewedZkCert],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.ZkCertImported);
@@ -336,6 +466,7 @@ describe('Test rpc handler function', function () {
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
         snapProvider,
+        ethereumProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
         RpcResponseErr.RejectedConfirm,
@@ -356,10 +487,13 @@ describe('Test rpc handler function', function () {
       const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
         snapProvider,
+        ethereumProvider,
       )) as ZkCertProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
+      // Merkle proof should be up to date and therefore not be fetched
+      expect(fetchMock.calls()).to.be.empty;
 
       await verifyProof(result);
     });
@@ -383,6 +517,7 @@ describe('Test rpc handler function', function () {
       const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
         snapProvider,
+        ethereumProvider,
       )) as ZkCertProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice;
@@ -404,6 +539,7 @@ describe('Test rpc handler function', function () {
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
         snapProvider,
+        ethereumProvider,
       );
 
       await expect(callPromise).to.be.rejectedWith(
@@ -433,6 +569,7 @@ describe('Test rpc handler function', function () {
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
         snapProvider,
+        ethereumProvider,
       );
 
       await expect(callPromise).to.be.rejectedWith(
@@ -442,6 +579,73 @@ describe('Test rpc handler function', function () {
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.callCount(3);
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledTwice;
+    });
+
+    it('should handle failures fetching merkle proof update', async function (this: Mocha.Context) {
+      this.timeout(25000);
+      fetchMock.restore();
+      fetchMock.get(
+        `${merkleProofServiceURL}${zkCert.registration.address}/${zkCert.leafHash}`,
+        404,
+      );
+
+      const outdatedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
+      outdatedZkCert.merkleProof.root = '01234';
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [outdatedZkCert],
+        });
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      await expect(callPromise).to.be.rejectedWith(
+        'Merkle proof fetch failed with status 404: Not Found',
+      );
+      expect(fetchMock.calls().length).to.equal(1);
+    });
+
+    it('should automatically fetch new merkle proof from node', async function (this: Mocha.Context) {
+      this.timeout(25000);
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+
+      const outdatedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
+      outdatedZkCert.merkleProof.root = '01234';
+
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [outdatedZkCert],
+        });
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        snapProvider,
+        ethereumProvider,
+      )) as ZkCertProof;
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
+
+      await verifyProof(result);
+
+      // Merkle proof should have been updated and stored
+      expect(fetchMock.calls().length).to.equal(1);
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert],
+          merkleServiceURL: '',
+        },
+      });
     });
   });
 
@@ -458,6 +662,7 @@ describe('Test rpc handler function', function () {
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.ListZkCerts, testZkpParams),
         snapProvider,
+        ethereumProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
         RpcResponseErr.RejectedConfirm,
@@ -479,6 +684,7 @@ describe('Test rpc handler function', function () {
       const res: any = await processRpcRequest(
         buildRPCRequest(RpcMethods.ListZkCerts),
         snapProvider,
+        ethereumProvider,
       );
 
       expect(res).to.have.key(zkCert.zkCertStandard);
@@ -523,10 +729,12 @@ describe('Test rpc handler function', function () {
       const hashes0 = await processRpcRequest(
         buildRPCRequest(RpcMethods.GetZkCertStorageHashes),
         snapProvider,
+        ethereumProvider,
       );
       const hashes1 = await processRpcRequest(
         buildRPCRequest(RpcMethods.GetZkCertStorageHashes),
         snapProvider,
+        ethereumProvider,
       );
 
       expect(hashes0).to.have.key(zkCert.zkCertStandard);
@@ -550,10 +758,12 @@ describe('Test rpc handler function', function () {
       const hashes0 = await processRpcRequest(
         buildRPCRequest(RpcMethods.GetZkCertStorageHashes),
         snapProvider,
+        ethereumProvider,
       );
       const hashes1 = await processRpcRequest(
         buildRPCRequest(RpcMethods.GetZkCertStorageHashes),
         snapProvider,
+        ethereumProvider,
       );
 
       expect(hashes0).to.have.key(zkCert.zkCertStandard);
@@ -574,6 +784,7 @@ describe('Test rpc handler function', function () {
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.ClearStorage, params),
         snapProvider,
+        ethereumProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
         RpcResponseErr.RejectedConfirm,
@@ -594,13 +805,20 @@ describe('Test rpc handler function', function () {
         zkCertStandard: ZkCertStandard.ZkKYC,
       };
 
-      const result = await processRpcRequest(
+      const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.ExportZkCert, params),
         snapProvider,
-      );
+        ethereumProvider,
+      )) as EncryptedZkCert;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
-      expect(result).to.be.eq(zkCert);
+      expect(result.holderCommitment).to.be.eq(testHolder.holderCommitment);
+
+      const decrypted = decryptSafely({
+        encryptedData: result,
+        privateKey: testHolder.encryptionPrivKey,
+      });
+      expect(decrypted).to.be.deep.eq(zkCert);
     });
   });
 
@@ -611,6 +829,7 @@ describe('Test rpc handler function', function () {
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.GetZkCertHash),
         snapProvider,
+        ethereumProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
         RpcResponseErr.RejectedConfirm,
@@ -629,6 +848,7 @@ describe('Test rpc handler function', function () {
       const result = await processRpcRequest(
         buildRPCRequest(RpcMethods.GetZkCertHash),
         snapProvider,
+        ethereumProvider,
       );
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
@@ -642,12 +862,18 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const updateParams: MerkleProofUpdateRequestParams = {
-        proofs: [{ leaf: zkCert.leafHash, ...zkCert.merkleProof }],
+        updates: [
+          {
+            proof: zkCert2.merkleProof,
+            registryAddr: zkCert.registration.address,
+          },
+        ],
       };
 
       const updatePromise = processRpcRequest(
         buildRPCRequest(RpcMethods.UpdateMerkleProof, updateParams),
         snapProvider,
+        ethereumProvider,
       );
       await expect(updatePromise).to.be.rejectedWith(
         RpcResponseErr.RejectedConfirm,
@@ -664,12 +890,18 @@ describe('Test rpc handler function', function () {
         });
 
       const updateParams: MerkleProofUpdateRequestParams = {
-        proofs: [{ leaf: zkCert2.leafHash, ...zkCert2.merkleProof }],
+        updates: [
+          {
+            proof: zkCert2.merkleProof,
+            registryAddr: zkCert.registration.address,
+          },
+        ],
       };
 
       const updatePromise = processRpcRequest(
         buildRPCRequest(RpcMethods.UpdateMerkleProof, updateParams),
         snapProvider,
+        ethereumProvider,
       );
       await expect(updatePromise).to.be.rejectedWith(
         Error,
@@ -688,12 +920,18 @@ describe('Test rpc handler function', function () {
         });
 
       const updateParams: MerkleProofUpdateRequestParams = {
-        proofs: [updatedMerkleProof],
+        updates: [
+          {
+            proof: updatedMerkleProof,
+            registryAddr: zkCert.registration.address,
+          },
+        ],
       };
 
       const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.UpdateMerkleProof, updateParams),
         snapProvider,
+        ethereumProvider,
       )) as ConfirmationResponse;
 
       const expectedUpdatedZkCert = { ...zkCert };
@@ -705,6 +943,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [expectedUpdatedZkCert, zkCert2],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
@@ -727,6 +966,7 @@ describe('Test rpc handler function', function () {
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.DeleteZkCert, {}),
         snapProvider,
+        ethereumProvider,
       );
 
       await expect(callPromise).to.be.rejectedWith(
@@ -745,6 +985,7 @@ describe('Test rpc handler function', function () {
           expirationDate: zkCert.content.expirationDate,
         }),
         snapProvider,
+        ethereumProvider,
       )) as ConfirmationResponse;
 
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
@@ -752,6 +993,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [zkCert2],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.ZkCertDeleted);
@@ -770,6 +1012,7 @@ describe('Test rpc handler function', function () {
           zkCertStandard: zkCert.zkCertStandard,
         }),
         snapProvider,
+        ethereumProvider,
       )) as ConfirmationResponse;
 
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
@@ -777,9 +1020,59 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [zkCert],
+          merkleServiceURL: '',
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.ZkCertDeleted);
+    });
+  });
+
+  describe('Update merkle proof URL', function () {
+    beforeEach(function () {
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+    });
+
+    it('should throw error if not confirmed', async function () {
+      snapProvider.rpcStubs.snap_dialog.resolves(null);
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.UpdateMerkleProofURL, {
+          url: 'https://test',
+        }),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      await expect(callPromise).to.be.rejectedWith(
+        Error,
+        RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    it('should update url in state', async function (this: Mocha.Context) {
+      const urlUpdate = { url: 'https://test' };
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.UpdateMerkleProofURL, urlUpdate),
+        snapProvider,
+        ethereumProvider,
+      )) as ConfirmationResponse;
+
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+        operation: 'update',
+        newState: {
+          holders: [testHolder],
+          zkCerts: [zkCert],
+          merkleServiceURL: urlUpdate.url,
+        },
+      });
+      expect(result.message).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
     });
   });
 });

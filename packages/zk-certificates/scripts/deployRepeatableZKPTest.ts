@@ -10,8 +10,8 @@ const { log } = console;
  */
 async function main() {
   // parameters
-  const verificationSBT = '0xc1a96F7DD532fa4B774C41f9Eb853893314cB036';
-  const zkKYCRegistry = '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF';
+  const verificationSBT = '0x7d1A6e0FC5ad5B20250B02fb735B640a4232a061';
+  const zkKYCRegistry = '0xAbb654092b5BCaeca2E854550c5C972602eF7dA8';
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();

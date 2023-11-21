@@ -10,7 +10,12 @@ import {
   ZkCertStandard,
   humanIDFieldOrder,
   zkKYCContentFields,
+  MerkleProof,
+  ENCRYPTION_VERSION,
+  EncryptedZkCert,
+  ZkCertRegistration,
 } from '@galactica-net/galactica-types';
+import { encryptSafely } from '@metamask/eth-sig-util';
 import { buildEddsa } from 'circomlibjs';
 import { Scalar } from 'ffjavascript';
 
@@ -117,27 +122,51 @@ export class ZKCertificate implements ZkCertData {
   }
 
   /**
-   * Export the zkCert as a JSON string that can be imported in the Galactica Snap for Metamask.
-   * TODO: add encryption option.
+   * Export the encrypted zkCert as a JSON string that can be imported in the Galactica Snap for Metamask.
    *
-   * @returns JSON string of the zkCert.
+   * @param encryptionPubKey - Public key of the holder used for encryption.
+   * @param merkleProof - Merkle proof to attach to the zkCert (optional).
+   * @param registration - Registration data to attach to the zkCert (optional).
+   * @returns JSON string of the encrypted zkCert.
    */
-  public exportJson(): string {
-    return JSON.stringify(this.export(), null, 2);
+  public exportJson(
+    encryptionPubKey: string,
+    merkleProof?: MerkleProof,
+    registration?: ZkCertRegistration,
+  ): string {
+    const dataToExport = this.exportRaw() as any;
+    if (merkleProof) {
+      dataToExport.merkleProof = merkleProof;
+    }
+    if (registration) {
+      dataToExport.registration = registration;
+    }
+
+    const encryptedData = encryptSafely({
+      publicKey: encryptionPubKey,
+      data: dataToExport,
+      version: ENCRYPTION_VERSION,
+    });
+    const encryptedZkCert: EncryptedZkCert = {
+      ...encryptedData,
+      holderCommitment: this.holderCommitment,
+    };
+    return JSON.stringify(encryptedZkCert, null, 2);
   }
 
   /**
-   * Export the zkCert as object containing only the fields relevant for import in a wallet.
+   * Export the unencrypted zkCert as object containing only the fields relevant for import in a wallet.
    *
-   * @returns ZkCert object.
+   * @returns ZkCertData object.
    */
-  public export(): any {
+  public exportRaw(): ZkCertData {
     const doc = {
       holderCommitment: this.holderCommitment,
       leafHash: this.leafHash,
       did: this.did,
       zkCertStandard: this.zkCertStandard,
       content: this.content,
+      contentHash: this.contentHash,
       providerData: this.providerData,
       randomSalt: this.randomSalt,
     };
@@ -161,7 +190,7 @@ export class ZKCertificate implements ZkCertData {
     );
     const signature = this.eddsa.signPoseidon(holderKey, hashPubkeyMsg);
 
-    // selfcheck
+    // self check
     if (
       !this.eddsa.verifyPoseidon(hashPubkeyMsg, signature, holderPubKeyEddsa)
     ) {
@@ -197,7 +226,7 @@ export class ZKCertificate implements ZkCertData {
     );
     const signature = this.eddsa.signPoseidon(providerKey, messageMod);
 
-    // selfcheck
+    // self check
     if (
       !this.eddsa.verifyPoseidon(messageMod, signature, providerPubKeyEddsa)
     ) {

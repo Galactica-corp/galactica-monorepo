@@ -6,7 +6,10 @@ import { invokeSnap } from '../utils/invoke-snap';
  * Parameter for updating the Merkle proof of one or more zkCerts.
  */
 export type MerkleProofUpdateRequestParams = {
-  proofs: MerkleProof[];
+  updates: {
+    registryAddr: string;
+    proof: MerkleProof;
+  }[];
 };
 
 /**

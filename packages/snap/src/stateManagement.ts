@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { ZkCertRegistered } from '@galactica-net/snap-api';
+import { GenericError, ZkCertRegistered } from '@galactica-net/snap-api';
 import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
 
+import { createEncryptionKeyPair } from './encryption';
 import { HolderData, StorageState } from './types';
 import { calculateHolderCommitment } from './zkCertHandler';
 
@@ -29,6 +30,13 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
       holders: stateRecord.holders?.valueOf() as HolderData[],
       zkCerts: stateRecord.zkCerts?.valueOf() as ZkCertRegistered[],
     };
+    if (
+      stateRecord.merkleServiceURL !== undefined &&
+      stateRecord.merkleServiceURL?.valueOf() !== ''
+    ) {
+      state.merkleServiceURL =
+        stateRecord.merkleServiceURL?.valueOf() as string;
+    }
   }
 
   // Check that the EdDSA holder key is set up.
@@ -43,10 +51,18 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
         salt: 'galactica',
       },
     });
+    const encryptionKeyPair = await createEncryptionKeyPair(snap);
     state.holders.push({
       holderCommitment: await calculateHolderCommitment(holderEdDSAKey),
       eddsaKey: holderEdDSAKey,
+      encryptionPubKey: encryptionKeyPair.pubKey,
+      encryptionPrivKey: encryptionKeyPair.privKey,
     });
+  } else if (state.holders[0].encryptionPubKey === undefined) {
+    // migrate old holder state without encryption keys
+    const encryptionKeyPair = await createEncryptionKeyPair(snap);
+    state.holders[0].encryptionPubKey = encryptionKeyPair.pubKey;
+    state.holders[0].encryptionPrivKey = encryptionKeyPair.privKey;
   }
 
   return state;
@@ -66,10 +82,59 @@ export async function saveState(
     holders: newState.holders,
     // using unknown to avoid ts error converting ZkCert[] to Json[]
     zkCerts: newState.zkCerts as unknown as Json[],
+    merkleServiceURL: newState.merkleServiceURL
+      ? newState.merkleServiceURL
+      : '',
   };
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys
   await snap.request({
     method: 'snap_manageState',
     params: { operation: 'update', newState: stateRecord },
   });
+}
+
+/**
+ * Get holder matching a holder commitment from the holderData array.
+ *
+ * @param holderCommitment - The holder commitment to search for.
+ * @param holders - The holderData array to search in.
+ * @returns The holderData.
+ * @throws Error if no holder is found.
+ */
+export function getHolder(
+  holderCommitment: string,
+  holders: HolderData[],
+): HolderData {
+  const holder = holders.find(
+    (holderData) => holderData.holderCommitment === holderCommitment,
+  );
+  if (holder === undefined) {
+    throw new GenericError({
+      name: 'MissingHolder',
+      message: `No holder found for commitment ${holderCommitment} Please use Metamask with the same mnemonic as when you created this holder commitment.`,
+    });
+  }
+  return holder;
+}
+
+/**
+ * Get zkCert matching a leafHash from the zkCert array.
+ *
+ * @param leafHash - The holder commitment to search for.
+ * @param zkCerts - The holderData array to search in.
+ * @returns The holderData.
+ * @throws Error if no holder is found.
+ */
+export function getZkCert(
+  leafHash: string,
+  zkCerts: ZkCertRegistered[],
+): ZkCertRegistered {
+  const res = zkCerts.find((zkCert) => zkCert.leafHash === leafHash);
+  if (res === undefined) {
+    throw new GenericError({
+      name: 'MissingZkCert',
+      message: `ZkCert ${leafHash} Could not be found. Please import it first.`,
+    });
+  }
+  return res;
 }

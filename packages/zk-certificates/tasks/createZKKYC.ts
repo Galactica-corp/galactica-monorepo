@@ -37,7 +37,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     )} to sign the zkKYC certificate`,
   );
 
-  console.log('holderCommitment', args.holderCommitment);
   console.log('randomSalt', args.randomSalt);
 
   console.log(`reading KYC data from ${args.kycDataFile as string}`);
@@ -76,10 +75,24 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     }
   }
 
+  // read holder commitment file
+  const holderCommitmentFile = JSON.parse(
+    fs.readFileSync(args.holderFile, 'utf-8'),
+  );
+  if (
+    !holderCommitmentFile.holderCommitment ||
+    !holderCommitmentFile.encryptionPubKey
+  ) {
+    throw new Error(
+      'The holder commitment file does not contain the expected fields (holderCommitment, encryptionPubKey)',
+    );
+  }
+  console.log('holderCommitment', holderCommitmentFile.holderCommitment);
+
   console.log('Creating zkKYC...');
   // TODO: create ZkKYC subclass requiring all the other fields
   const zkKYC = new ZKCertificate(
-    args.holderCommitment,
+    holderCommitmentFile.holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
     args.randomSalt,
@@ -93,7 +106,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(chalk.green(`Leaf Hash: ${zkKYC.leafHash}`));
 
   if (args.registryAddress === undefined) {
-    console.log('zkKYC', zkKYC.exportJson());
+    console.log('zkKYC', JSON.stringify(zkKYC.exportRaw(), null, 2));
     console.log(
       chalk.yellow(
         "Parameter 'registry-address' is missing. The zkKYC has not been issued on chain",
@@ -120,7 +133,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const leafBytes = fromHexToBytes32(fromDecToHex(zkKYC.leafHash));
 
   if (!args.merkleProof) {
-    console.log('zkKYC', zkKYC.exportJson());
+    console.log('zkKYC', JSON.stringify(zkKYC.exportRaw(), null, 2));
     console.log(
       chalk.yellow(
         'Merkle proof generation is disabled. Before using the zkKYC, you need to generate the merkle proof.',
@@ -194,20 +207,29 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   merkleProof = merkleTree.createProof(index);
 
   console.log(chalk.green('ZkKYC (created, issued, including merkle proof)'));
-  console.log(zkKYC.exportJson());
+  console.log(JSON.stringify(zkKYC.exportRaw(), null, 2));
   console.log(chalk.green('This ZkKYC can be imported in a wallet'));
 
-  // write output to file
-  const output = zkKYC.export();
-  output.merkleProof = {
-    root: merkleTree.root,
-    pathIndices: merkleProof.pathIndices,
-    pathElements: merkleProof.path,
-  };
+  // write encrypted zkKYC output to file
+  const output = zkKYC.exportJson(
+    holderCommitmentFile.encryptionPubKey,
+    {
+      root: merkleTree.root,
+      pathIndices: merkleProof.pathIndices,
+      pathElements: merkleProof.path,
+      leaf: zkKYC.leafHash,
+    },
+    {
+      address: recordRegistry.address,
+      revocable: true,
+      leafIndex: index,
+    },
+  );
+
   const outputFileName: string =
     args.outputFile || `issuedZkKYCs/${zkKYC.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
-  fs.writeFileSync(outputFileName, JSON.stringify(output, null, 2));
+  fs.writeFileSync(outputFileName, output);
   console.log(chalk.green(`Written ZkKYC to output file ${outputFileName}`));
 
   console.log(chalk.green('done'));
@@ -215,8 +237,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
 task('createZkKYC', 'Task to create a zkKYC certificate with input parameters')
   .addParam(
-    'holderCommitment',
-    'The holder commitment fixing the address of the holder without disclosing it to the provider',
+    'holderFile',
+    'Path to the file containing the encryption key and the holder commitment fixing the address of the holder without disclosing it to the provider',
     undefined,
     string,
     false,

@@ -12,7 +12,7 @@ async function main() {
   console.log();
 
   // parameters
-  const centerRegistryAddr = '0x91505781da1E7AFaCcE258f33d407F32897f84A9';
+  const centerRegistryAddr = '0x3D8AAba820817254719BD6f997835B6f9F3485e2';
   const kycCenterAddr = deployer.address;
 
   // get contract

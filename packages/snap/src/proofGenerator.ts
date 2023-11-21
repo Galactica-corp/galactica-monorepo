@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 import { MerkleProof } from '@galactica-net/galactica-types';
 import {
+  GenZKPError,
   GenZkProofParams,
   ZkCertInputType,
   ZkCertProof,
@@ -224,4 +225,33 @@ async function getCurveForSnarkJS(name: string): Promise<any> {
     throw new Error(`Curve not supported: ${name}`);
   }
   return curve;
+}
+
+/**
+ * Check validity of the ZKP generation request.
+ *
+ * @param params - Parameters defining the proof to be generated.
+ * @throws an error if the request is invalid.
+ */
+export function checkZkKycProofRequest(
+  params: GenZkProofParams<ZkCertInputType>,
+) {
+  if (params.userAddress === undefined) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `userAddress missing in request parameters.`,
+    });
+  }
+  if (params.requirements.zkCertStandard === undefined) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `ZkCert standard missing in request parameters.`,
+    });
+  }
+  if (params.requirements.registryAddress === undefined) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `Registry address missing in request parameters.`,
+    });
+  }
 }

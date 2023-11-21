@@ -214,7 +214,7 @@ describe('ageProofZkKYC SC', () => {
     );
 
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
-    const pulicTime = parseInt(
+    const publicTime = parseInt(
       publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
       10,
     );
@@ -225,7 +225,7 @@ describe('ageProofZkKYC SC', () => {
     );
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
-      pulicTime + 200,
+      publicTime + 200 + 30 * 60,
     ]);
 
     await hre.network.provider.send('evm_mine');

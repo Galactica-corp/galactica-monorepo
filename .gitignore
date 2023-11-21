@@ -68,7 +68,6 @@ node_modules/
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
-.vscode
 
 # yarn v2
 .yarn/cache
@@ -77,5 +76,7 @@ node_modules/
 .yarn/install-state.gz
 .pnp.*
 
+# turbo
+**/.turbo
 .local-pack
 .turbo

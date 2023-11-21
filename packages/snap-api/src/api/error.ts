@@ -16,6 +16,8 @@ type GenericErrorName =
   | 'RejectedConfirm'
   | 'UnknownMethod'
   | 'MissingHolder'
+  | 'MissingZkCert'
+  | 'MerkleProofUpdateFailed'
   | 'RejectedConnect'
   | 'RejectedSignature'
   | 'RejectedSelect';

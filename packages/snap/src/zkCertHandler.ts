@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { ZkCertRegistered, ZkCertStorageHashes } from '@galactica-net/snap-api';
+import {
+  ImportZkCertError,
+  ZkCertRegistered,
+  ZkCertStorageHashes,
+} from '@galactica-net/snap-api';
 import {
   createHolderCommitment,
   ZkCertStandard,
@@ -71,4 +75,78 @@ export function getZkCertStorageHashes(
     );
   }
   return storageHashes;
+}
+
+/**
+ * Checks if an imported ZkCert has the right format.
+ *
+ * @param zkCert - The zkCert to check.
+ * @throws If the format is not correct.
+ */
+export function checkZkCert(zkCert: ZkCertRegistered) {
+  if (!zkCert) {
+    throw new ImportZkCertError({
+      name: 'FormatError',
+      message: 'The decrypted zkCert is invalid.',
+    });
+  }
+  /**
+   * Throws customized error for missing fields.
+   *
+   * @param field - The missing field.
+   */
+  function complainMissingField(field: string) {
+    throw new ImportZkCertError({
+      name: 'FormatError',
+      message: `The decrypted zkCert is invalid. It is missing the filed ${field}.`,
+    });
+  }
+  if (!zkCert.leafHash) {
+    complainMissingField('leafHash');
+  }
+  if (!zkCert.contentHash) {
+    complainMissingField('contentHash');
+  }
+  if (!zkCert.providerData) {
+    complainMissingField('providerData');
+  }
+  if (!zkCert.providerData.ax) {
+    complainMissingField('providerData.ax');
+  }
+  if (!zkCert.providerData.ay) {
+    complainMissingField('providerData.ay');
+  }
+  if (!zkCert.providerData.r8x) {
+    complainMissingField('providerData.r8x');
+  }
+  if (!zkCert.providerData.r8y) {
+    complainMissingField('providerData.r8y');
+  }
+  if (!zkCert.providerData.s) {
+    complainMissingField('providerData.s');
+  }
+  if (!zkCert.holderCommitment) {
+    complainMissingField('holderCommitment');
+  }
+  if (!zkCert.randomSalt) {
+    complainMissingField('randomSalt');
+  }
+  if (!zkCert.zkCertStandard) {
+    complainMissingField('zkCertStandard');
+  }
+  if (!zkCert.content) {
+    complainMissingField('content');
+  }
+  if (!zkCert.registration) {
+    complainMissingField('registration');
+  }
+  if (!zkCert.registration.address) {
+    complainMissingField('registration.address');
+  }
+  if (zkCert.registration.revocable === undefined) {
+    complainMissingField('registration.revocable');
+  }
+  if (zkCert.registration.leafIndex === undefined) {
+    complainMissingField('registration.leafIndex');
+  }
 }
