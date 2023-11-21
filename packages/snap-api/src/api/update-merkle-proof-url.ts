@@ -1,5 +1,6 @@
 import { RpcMethods } from './rpcEnums';
 import { invokeSnap } from '../utils/invoke-snap';
+import { GalacticaErrorBase } from './error';
 
 /**
  * Parameter for updating the URL to get Merkle proofs from.
@@ -7,6 +8,10 @@ import { invokeSnap } from '../utils/invoke-snap';
 export type MerkleProofURLUpdateParams = {
   url: string;
 };
+
+type URLUpdateErrorName = 'OnlyHTTPS' | 'InvalidURL';
+
+export class URLUpdateError extends GalacticaErrorBase<URLUpdateErrorName> { }
 
 /**
  * UpdateMerkleProof allows you to update the url to get new merkle proofs from.

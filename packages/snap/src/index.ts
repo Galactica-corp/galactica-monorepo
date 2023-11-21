@@ -11,6 +11,7 @@ import {
   MerkleProofUpdateRequestParams,
   ZkCertSelectionParams,
   MerkleProofURLUpdateParams,
+  URLUpdateError,
 } from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
@@ -202,7 +203,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) =>
           candidate.holderCommitment === zkCert.holderCommitment &&
           candidate.merkleProof.pathIndices ===
-            zkCert.merkleProof.pathIndices &&
+          zkCert.merkleProof.pathIndices &&
           candidate.registration.address === zkCert.registration.address,
       );
       if (oldVersion) {
@@ -457,6 +458,14 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
     case RpcMethods.UpdateMerkleProofURL: {
       const urlUpdateParams = request.params as MerkleProofURLUpdateParams;
+
+      // check if the URL is secure
+      if (!urlUpdateParams.url.startsWith('https://')) {
+        throw new URLUpdateError({
+          name: 'OnlyHTTPS',
+          message: `The URL ${urlUpdateParams.url} is not secure. Please use a secure URL (starting with https://).`,
+        });
+      }
 
       confirm = await snap.request({
         method: 'snap_dialog',
