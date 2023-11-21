@@ -12,7 +12,7 @@ export type MerkleProofURLUpdateParams = {
  * UpdateMerkleProof allows you to update the url to get new merkle proofs from.
  * This is only a fallback until we have a decentralized solution.
  *
- * @param update - Merkle proofs to update to.
+ * @param update - New URL to get Merkle proofs from.
  * @returns Success message.
  * @throws RPCError on failure.
  */
