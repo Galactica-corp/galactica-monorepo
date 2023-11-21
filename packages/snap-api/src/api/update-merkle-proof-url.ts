@@ -12,7 +12,7 @@ export type MerkleProofURLUpdateParams = {
 
 type URLUpdateErrorName = 'OnlyHTTPS' | 'InvalidURL';
 
-export class URLUpdateError extends GalacticaErrorBase<URLUpdateErrorName> { }
+export class URLUpdateError extends GalacticaErrorBase<URLUpdateErrorName> {}
 
 /**
  * UpdateMerkleProof allows you to update the url to get new merkle proofs from.
