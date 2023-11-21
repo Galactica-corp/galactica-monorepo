@@ -814,12 +814,10 @@ describe('Test rpc handler function', function () {
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(result.holderCommitment).to.be.eq(testHolder.holderCommitment);
 
-      const decrypted = JSON.parse(
-        decryptSafely({
-          encryptedData: result,
-          privateKey: testHolder.encryptionPrivKey,
-        }),
-      );
+      const decrypted = decryptSafely({
+        encryptedData: result,
+        privateKey: testHolder.encryptionPrivKey,
+      })
       expect(decrypted).to.be.deep.eq(zkCert);
     });
   });
