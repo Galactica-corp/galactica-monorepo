@@ -51,7 +51,7 @@ const config: HardhatUserConfig = {
       },
       {
         network: 'galaAndromeda',
-        chainId: 41237,
+        chainId: 41238,
         urls: {
           apiURL: 'https://explorer-andromeda.galactica.com/api',
           browserURL: 'https://explorer-andromeda.galactica.com/',
