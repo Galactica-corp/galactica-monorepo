@@ -78,6 +78,8 @@ node_modules/
 
 # turbo
 **/.turbo
+.local-pack
+.turbo
 
 # ignore build files in subpackage so that it is also ignored when runnign prettier
 packages/zk-certificates/artifacts
