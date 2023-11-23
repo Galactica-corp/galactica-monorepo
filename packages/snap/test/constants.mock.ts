@@ -27,7 +27,7 @@ export const testSeedPhrase =
 export const testAddress = '0x53e173c619756eb6256d3ff4c7861bea5d739da1';
 
 export const testHolderCommitment =
-  '8096709547588707668441417395921510609031061478427174764315007749260829019346';
+  '11653424513738144847016662480093183292468411533078789806336980561050918005568';
 export const testEntropyHolder =
   '0xba5bc6bbb3c34947f652b6abc403d350713bbaab6bb6f90d252cfae6466d97e0';
 export const testEdDSAKey = getEddsaKeyFromEntropy(testEntropyHolder);

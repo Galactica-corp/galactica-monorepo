@@ -35,7 +35,6 @@ import { mockEthereumProvider, mockSnapProvider } from './wallet.mock';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
-import zkKYCToImportInUnitTest from '../../../test/zkKYCToImportInUnitTest.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
 import { encryptZkCert } from '../src/encryption';
@@ -228,7 +227,7 @@ describe('Test rpc handler function', function () {
       const expectedHolderCommitment = await calculateHolderCommitment(
         testEdDSAKey,
       );
-      const zkKYC = { ...zkKYCToImportInUnitTest };
+      const zkKYC = { ...zkCert };
       zkKYC.holderCommitment = expectedHolderCommitment;
 
       await processRpcRequest(
