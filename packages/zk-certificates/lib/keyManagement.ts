@@ -2,9 +2,11 @@
 import {
   eddsaKeyGenerationMessage,
   eddsaPrimeFieldMod,
+  EddsaPrivateKey,
 } from '@galactica-net/galactica-types';
 import createBlakeHash from 'blake-hash';
 import { Buffer } from 'buffer';
+import { Eddsa } from 'circomlibjs';
 import { Signer } from 'ethers';
 import { Scalar, utils } from 'ffjavascript';
 
@@ -16,7 +18,7 @@ import { Scalar, utils } from 'ffjavascript';
  */
 export async function getEddsaKeyFromEthSigner(
   signer: Signer,
-): Promise<Buffer> {
+): Promise<EddsaPrivateKey> {
   // use signature as entropy input so that the EdDSA key can be derived from the Ethereum private key
   const signature = await signer.signMessage(eddsaKeyGenerationMessage);
   return getEddsaKeyFromEntropy(signature.slice(2));
@@ -28,7 +30,7 @@ export async function getEddsaKeyFromEthSigner(
  * @param entropy - Random entropy to generate key from as hex string.
  * @returns The eddsa private key as buffer.
  */
-export function getEddsaKeyFromEntropy(entropy: string): Buffer {
+export function getEddsaKeyFromEntropy(entropy: string): EddsaPrivateKey {
   let source = entropy;
   if (entropy.startsWith('0x')) {
     source = entropy.slice(2);
@@ -58,9 +60,9 @@ export function getEddsaKeyFromEntropy(entropy: string): Buffer {
  * @returns The ECDH shared key..
  */
 export function generateEcdhSharedKey(
-  privKey: Buffer,
+  privKey: EddsaPrivateKey,
   pubKey: [Uint8Array, Uint8Array],
-  eddsa: any,
+  eddsa: Eddsa,
 ): string[] {
   const keyBuffers = eddsa.babyJub.mulPointEscalar(
     pubKey,
@@ -77,7 +79,10 @@ export function generateEcdhSharedKey(
  * @param eddsa - EdDSA instance from circomlibjs.
  * @returns The formatted private key.
  */
-export function formatPrivKeyForBabyJub(privKey: Buffer, eddsa: any) {
+export function formatPrivKeyForBabyJub(
+  privKey: EddsaPrivateKey,
+  eddsa: Eddsa,
+) {
   const sBuff = eddsa.pruneBuffer(
     createBlakeHash('blake512').update(privKey).digest().slice(0, 32),
   );
@@ -93,7 +98,10 @@ export function formatPrivKeyForBabyJub(privKey: Buffer, eddsa: any) {
  * @param privateKey - EdDSA Private key of the holder.
  * @returns Holder commitment.
  */
-export function createHolderCommitment(eddsa: any, privateKey: Buffer): string {
+export function createHolderCommitment(
+  eddsa: Eddsa,
+  privateKey: Buffer,
+): string {
   const { poseidon } = eddsa;
   const pubKey = eddsa.prv2pub(privateKey);
 

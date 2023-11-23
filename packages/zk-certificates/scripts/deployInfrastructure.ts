@@ -55,17 +55,15 @@ async function main() {
       'MockGalacticaInstitution',
       true,
     );
-    const institutionPrivKey = BigInt(
-      await getEddsaKeyFromEthSigner(inst),
-    ).toString();
+    const institutionPrivKey = await getEddsaKeyFromEthSigner(inst);
     const eddsa = await buildEddsa();
-    let institutionPub = eddsa.prv2pub(institutionPrivKey);
+    const institutionPub = eddsa.prv2pub(institutionPrivKey);
     // convert pubkey uint8array to decimal string
-    institutionPub = institutionPub.map((pubKey: Uint8Array) =>
+    const pubAsDecimalString = institutionPub.map((pubKey: Uint8Array) =>
       eddsa.poseidon.F.toObject(pubKey).toString(),
     );
-    console.log('Institution pubkey: ', institutionPub);
-    await galacticaInstitution.setInstitutionPubkey(institutionPub);
+    console.log('Institution pubkey: ', pubAsDecimalString);
+    await galacticaInstitution.setInstitutionPubkey(pubAsDecimalString);
     institutionContracts.push(galacticaInstitution);
   }
 

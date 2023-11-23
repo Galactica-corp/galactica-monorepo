@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
+import { EddsaPrivateKey } from '@galactica-net/galactica-types';
 import { ZkCertRegistered } from '@galactica-net/snap-api';
 import { BaseProvider } from '@metamask/providers';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
 import { NodeType } from '@metamask/snaps-ui';
 import { JsonRpcRequest } from '@metamask/types';
-import { Buffer } from 'buffer';
 
 export type RpcArgs = {
   origin: string;
@@ -23,7 +23,7 @@ export type HolderData = {
   // keys for encrypting zkCert data between the holder and the guardian
   encryptionPubKey: string;
   encryptionPrivKey: string;
-  eddsaKey: Buffer;
+  eddsaKey: EddsaPrivateKey;
 };
 
 export type StorageState = {
