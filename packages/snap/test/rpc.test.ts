@@ -182,7 +182,7 @@ describe('Test rpc handler function', function () {
             {
               address: '0x1234',
               holderCommitment: '0x2345',
-              eddsaKeyHex:
+              eddsaEntropy:
                 '0001020304050607080900010203040506070809000102030405060708090001',
               encryptionPrivKey: '0x1234',
               encryptionPubKey: '0x1234',
@@ -248,7 +248,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [
             {
-              eddsaKeyHex: testEdDSAKey.toString('hex'),
+              eddsaEntropy: testEdDSAKey.toString('hex'),
               holderCommitment: expectedHolderCommitment,
               encryptionPrivKey: testEntropyEncrypt.slice(2),
               encryptionPubKey: getEncryptionPublicKey(

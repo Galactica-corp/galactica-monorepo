@@ -1,4 +1,5 @@
 import { Buffer } from 'buffer';
+import type { Point } from 'circomlibjs';
 
 // Field used for EdDSA signatures.
 export const eddsaPrimeFieldMod =
@@ -9,3 +10,4 @@ export const eddsaKeyGenerationMessage =
   'Signing this message generates your EdDSA private key. Only do this on pages you trust to manage your zkCertificates.';
 
 export type EddsaPrivateKey = Buffer;
+export type EddsaPublicKey = Point;

@@ -10,7 +10,7 @@ import { SparseMerkleTree } from '../lib/sparseMerkleTree';
 async function main() {
   const registryAddress = '0xAbb654092b5BCaeca2E854550c5C972602eF7dA8';
   const leavesToProve = [
-    '15315828112501124867029720811609431069697976589690691085866464814530966648881',
+    '1587890648226949363967927358747281515927759982145649624939771519342787074806',
   ];
 
   // Create a new poseidon instance for hashing

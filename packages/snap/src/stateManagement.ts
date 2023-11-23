@@ -2,7 +2,6 @@
 import { GenericError, ZkCertRegistered } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
-import { Buffer } from 'buffer';
 
 import { createEncryptionKeyPair } from './encryption';
 import { HolderData, StorageState } from './types';
@@ -30,7 +29,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
   } else {
     let holderJSONData = stateRecord.holders?.valueOf() as {
       holderCommitment: string;
-      eddsaKeyHex: string;
+      eddsaEntropy: string;
       encryptionPubKey: string;
       encryptionPrivKey: string;
     }[];
@@ -39,14 +38,14 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
       (holder) =>
         holder.encryptionPubKey !== undefined &&
         holder.encryptionPrivKey !== undefined &&
-        holder.eddsaKeyHex !== undefined &&
+        holder.eddsaEntropy !== undefined &&
         holder.holderCommitment !== undefined,
     );
 
     state = {
       holders: holderJSONData.map((holder) => ({
         holderCommitment: holder.holderCommitment,
-        eddsaKey: Buffer.from(holder.eddsaKeyHex, 'hex'),
+        eddsaKey: getEddsaKeyFromEntropy(holder.eddsaEntropy),
         encryptionPubKey: holder.encryptionPubKey,
         encryptionPrivKey: holder.encryptionPrivKey,
       })),
@@ -104,7 +103,7 @@ export async function saveState(
   const stateRecord: Record<string, Json> = {
     holders: newState.holders.map((holder) => ({
       holderCommitment: holder.holderCommitment,
-      eddsaKeyHex: holder.eddsaKey.toString('hex'),
+      eddsaEntropy: holder.eddsaKey.toString('hex'),
       encryptionPubKey: holder.encryptionPubKey,
       encryptionPrivKey: holder.encryptionPrivKey,
     })),

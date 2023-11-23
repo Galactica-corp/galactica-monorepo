@@ -17,7 +17,6 @@ import {
   EddsaPrivateKey,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
-import { Buffer } from 'buffer';
 import { buildEddsa, Eddsa, Point, Poseidon } from 'circomlibjs';
 import { Scalar } from 'ffjavascript';
 
@@ -257,7 +256,7 @@ export class ZKCertificate implements ZkCertData {
    * @returns AuthorizationProofInput struct.
    */
   public getAuthorizationProofInput(
-    holderKey: Buffer,
+    holderKey: EddsaPrivateKey,
     userAddress: string,
   ): AuthorizationProofInput {
     // we include the 0x prefix so the address has length 42 in hexadecimal
