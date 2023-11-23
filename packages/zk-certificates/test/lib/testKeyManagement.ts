@@ -1,9 +1,9 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { Buffer } from 'buffer';
 import { expect } from 'chai';
 import { Eddsa, buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
+import { hashStringToFieldNumber } from '../../lib';
 import {
   getEddsaKeyFromEthSigner,
   generateEcdhSharedKey,
@@ -23,10 +23,12 @@ describe('Key Management', () => {
     const pubKey = eddsa.prv2pub(holderEdDSAKey);
 
     // test if the keys can sign and verify a message
-    const message = Buffer.from('test message');
-    const signature = eddsa.signPedersen(holderEdDSAKey, message);
+    const message = eddsa.F.e(
+      hashStringToFieldNumber('test message', eddsa.poseidon),
+    );
+    const signature = eddsa.signPoseidon(holderEdDSAKey, message);
 
-    expect(eddsa.verifyPedersen(message, signature, pubKey)).to.be.true;
+    expect(eddsa.verifyPoseidon(message, signature, pubKey)).to.be.true;
   });
 
   it('generates unique shared ECDH key for alice and bob', async () => {
