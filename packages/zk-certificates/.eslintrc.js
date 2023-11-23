@@ -21,7 +21,7 @@ module.exports = {
       },
     },
     {
-      files: ['lib/merkleTree.ts', 'lib/sparseMerkleTree.ts', 'lib/keyManagement.ts'],
+      files: ['lib/merkleTree.ts', 'lib/sparseMerkleTree.ts'],
       rules: {
         'no-bitwise': 0, // path is given in binary format
       },
