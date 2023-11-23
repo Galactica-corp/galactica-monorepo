@@ -322,6 +322,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.ListZkCerts: {
+      // This method returns a list of zkCertificate details so that a front-end can help the user to identify imported zkCerts and whether they are still valid.
+      // The data contains expiration date, issuer and verification level. We ask for confirmation to prevent tracking of users.
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
@@ -347,7 +349,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.GetZkCertStorageHashes: {
-      // does not need confirmation as it does not leak any personal or tracking data
+      // This method only returns a single hash of the storage state. It can be used to detect changes, for example if the user imported another zkCert in the meantime.
+      // Because it does not leak any personal or tracking data, we do not ask for confirmation.
       return getZkCertStorageHashes(state.zkCerts, origin);
     }
 
