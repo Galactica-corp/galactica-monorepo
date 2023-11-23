@@ -1,3 +1,0 @@
-type Window = {
-  ethereum: any;
-};
