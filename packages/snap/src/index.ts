@@ -15,6 +15,7 @@ import {
 } from '@galactica-net/snap-api';
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
+import { basicURLParse } from 'whatwg-url';
 
 import {
   checkEncryptedZkCertFormat,
@@ -473,6 +474,20 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new URLUpdateError({
           name: 'OnlyHTTPS',
           message: `The URL ${urlUpdateParams.url} is not secure. Please use a secure URL (starting with https://).`,
+        });
+      }
+
+      // check if URL is a valid URL
+      if (!basicURLParse(urlUpdateParams.url)) {
+        throw new URLUpdateError({
+          name: 'InvalidURL',
+          message: `The URL ${urlUpdateParams.url} is not a valid URL.`,
+        });
+      }
+      if (!urlUpdateParams.url.endsWith('/')) {
+        throw new URLUpdateError({
+          name: 'TrailingSlashMissing',
+          message: `The URL ${urlUpdateParams.url} is missing a trailing slash.`,
         });
       }
 

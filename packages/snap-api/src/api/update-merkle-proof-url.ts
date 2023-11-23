@@ -10,7 +10,7 @@ export type MerkleProofURLUpdateParams = {
   url: string;
 };
 
-type URLUpdateErrorName = 'OnlyHTTPS' | 'InvalidURL';
+type URLUpdateErrorName = 'OnlyHTTPS' | 'InvalidURL' | 'TrailingSlashMissing';
 
 export class URLUpdateError extends GalacticaErrorBase<URLUpdateErrorName> {}
 

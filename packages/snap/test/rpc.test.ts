@@ -1042,7 +1042,7 @@ describe('Test rpc handler function', function () {
 
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.UpdateMerkleProofURL, {
-          url: 'https://test',
+          url: 'https://test/',
         }),
         snapProvider,
         ethereumProvider,
@@ -1055,7 +1055,7 @@ describe('Test rpc handler function', function () {
     });
 
     it('should update url in state', async function (this: Mocha.Context) {
-      const urlUpdate = { url: 'https://test' };
+      const urlUpdate = { url: 'https://test/' };
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const result = (await processRpcRequest(
