@@ -1,5 +1,13 @@
-import { defaultSnapOrigin } from '../config';
-import { GetSnapsResponse, Snap } from '../types';
+import { sdkConfig } from '../config';
+
+export type GetSnapsResponse = Record<string, Snap>;
+
+export type Snap = {
+  permissionName: string;
+  id: string;
+  version: string;
+  initialPermissions: Record<string, unknown>;
+};
 
 /**
  * Get the installed snaps in MetaMask.
@@ -19,7 +27,7 @@ export const getSnaps = async (): Promise<GetSnapsResponse> => {
  * @param params - The params to pass with the snap to connect.
  */
 export const connectSnap = async (
-  snapId: string = defaultSnapOrigin,
+  snapId: string = sdkConfig.defaultSnapOrigin,
   params: Record<'version' | string, unknown> = {},
 ) => {
   console.log('Connecting to snap', snapId, params);
@@ -46,7 +54,8 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 
     return Object.values(snaps).find(
       (snap) =>
-        snap.id === defaultSnapOrigin && (!version || snap.version === version),
+        snap.id === sdkConfig.defaultSnapOrigin &&
+        (!version || snap.version === version),
     );
   } catch (error) {
     console.log('Failed to obtain installed snap', error);

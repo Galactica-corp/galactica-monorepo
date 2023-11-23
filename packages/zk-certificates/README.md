@@ -58,7 +58,7 @@ yarn test
 
 ### Library functions
 
-The libary functions only need to be compiled if you want to publish them to NPM or make it available to some other JavaScript project. Usually, this can be skipped because you can run scripts with `yarn hardhat run <file>`.
+The library functions only need to be compiled if you want to publish them to NPM or make it available to some other JavaScript project. Usually, this can be skipped because you can run scripts with `yarn hardhat run <file>`.
 
 To compile the library functions into a node module, you can run:
 
@@ -81,14 +81,14 @@ There are some scripts for deployment of the basic infrastructure and example dA
 Before running it, you need to configure the deployer wallet in the environment variables used in `hardhat.config.ts` adn fund the account.
 
 ```shell
-yarn hardhat run scripts/deployInfrastructure.ts --network galaTestnet
+yarn hardhat run scripts/deployInfrastructure.ts --network galaAndromeda
 ```
 
 You can find the addresses of the deployed contracts in the console output.
 If you also want to deploy example contracts, you can enter them in the following script before running it.
 
 ```shell
-yarn hardhat run scripts/deployExampleDApp.ts --network galaTestnet
+yarn hardhat run scripts/deployExampleDApp.ts --network galaAndromeda
 ```
 
 ## Create and issue zkCertificates
@@ -97,7 +97,7 @@ First collect the certificate data and holder commitment from the user. For exam
 Then you can sign it using the following hardhat task (replace holder commitment and file)
 
 ```shell
-yarn hardhat createZkKYC --holder-commitment 839160718446872147271060736034559178228117322331346628862983451058562783963 --kyc-data-file example/test.json --random-salt 1773 --registry-address 0x855d8DeF49d550df733Afb848aC723AEEBa58adF --network galaTestnet
+yarn hardhat createZkKYC --holder-file example/holderCommitment.json --kyc-data-file example/test.json --random-salt 1773 --registry-address 0xAbb654092b5BCaeca2E854550c5C972602eF7dA8 --network galaAndromeda
 ```
 
 The task issues the resulting zkCert on-chain and provides a merkle proof for it.

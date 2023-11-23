@@ -2,8 +2,6 @@ import { useContext } from 'react';
 import styled from 'styled-components';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
-  connectSnap,
-  getSnap,
   shouldDisplayReconnectButton,
   queryVerificationSBTs,
   formatVerificationSBTs,
@@ -30,6 +28,8 @@ import {
   generateZKProof,
   ZkCertProof,
   ZkCertStandard,
+  connectSnap,
+  getSnap,
 } from '@galactica-net/snap-api';
 
 const Container = styled.div`
@@ -218,7 +218,6 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
       dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
 
-      // send proof directly on chain
       let [a, b, c] = processProof(zkp.proof);
       let publicInputs = processPublicSignals(zkp.publicSignals);
 

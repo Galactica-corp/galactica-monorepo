@@ -814,12 +814,10 @@ describe('Test rpc handler function', function () {
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(result.holderCommitment).to.be.eq(testHolder.holderCommitment);
 
-      const decrypted = JSON.parse(
-        decryptSafely({
-          encryptedData: result,
-          privateKey: testHolder.encryptionPrivKey,
-        }),
-      );
+      const decrypted = decryptSafely({
+        encryptedData: result,
+        privateKey: testHolder.encryptionPrivKey,
+      });
       expect(decrypted).to.be.deep.eq(zkCert);
     });
   });
@@ -1044,7 +1042,7 @@ describe('Test rpc handler function', function () {
 
       const callPromise = processRpcRequest(
         buildRPCRequest(RpcMethods.UpdateMerkleProofURL, {
-          url: 'http://test',
+          url: 'https://test',
         }),
         snapProvider,
         ethereumProvider,
@@ -1057,7 +1055,7 @@ describe('Test rpc handler function', function () {
     });
 
     it('should update url in state', async function (this: Mocha.Context) {
-      const urlUpdate = { url: 'http://test' };
+      const urlUpdate = { url: 'https://test' };
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const result = (await processRpcRequest(

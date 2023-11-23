@@ -16,12 +16,6 @@ export async function prepareProofInput(
   institutionAddresses: string[],
   additionalProofInput: any,
 ) {
-  // expected time for between pressing the generation button and the verification happening on-chain
-  const estimatedProofCreationDuration = 20;
-
-  const expectedValidationTimestamp =
-    (await getCurrentBlockTime()) + estimatedProofCreationDuration;
-
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore https://github.com/metamask/providers/issues/200
   const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -42,7 +36,7 @@ export async function prepareProofInput(
 
   const proofInput: any = {
     // general zkKYC inputs
-    currentTime: expectedValidationTimestamp,
+    currentTime: await getCurrentBlockTime(),
     dAppAddress,
     investigationInstitutionPubKey: institutionPubKeys,
     // the zkKYC itself is not needed here. It is filled by the snap for user privacy.

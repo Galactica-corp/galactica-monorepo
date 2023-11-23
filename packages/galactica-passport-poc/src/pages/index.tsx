@@ -2,8 +2,6 @@ import { useContext } from 'react';
 import styled from 'styled-components';
 import { MetamaskActions, MetaMaskContext } from '../../../galactica-dapp/src/hooks';
 import {
-  connectSnap,
-  getSnap,
   shouldDisplayReconnectButton,
   queryVerificationSBTs,
   formatVerificationSBTs,
@@ -36,6 +34,8 @@ import {
   HolderCommitmentData,
   updateMerkleProof,
   MerkleProofUpdateRequestParams,
+  connectSnap,
+  getSnap,
 } from '@galactica-net/snap-api';
 import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions } from '../../../galactica-dapp/src/config/snap';
 

@@ -84,7 +84,7 @@ export type ZkCertRegistered = ZkCertData & {
   merkleProof: MerkleProof;
 };
 
-// Encryption used for zkCerts when being exported or passed form guardian to user
+// Encryption used for zkCerts when being exported or passed from guardian to user
 export const ENCRYPTION_VERSION = 'x25519-xsalsa20-poly1305';
 
 export type EncryptedZkCert = {
