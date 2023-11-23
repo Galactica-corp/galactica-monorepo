@@ -5,7 +5,6 @@ import {
 } from '@galactica-net/galactica-types';
 import createBlakeHash from 'blake-hash';
 import { Buffer } from 'buffer';
-import { createHash } from 'crypto';
 import { Signer } from 'ethers';
 import { Scalar, utils } from 'ffjavascript';
 
@@ -24,7 +23,7 @@ export async function getEddsaKeyFromEthSigner(
 }
 
 /**
- * Generates the eddsa private key following the EdDSA key generation process defined in https://www.rfc-editor.org/rfc/rfc8032#section-5.1.5 .
+ * Generates the EdDSA private key, following https://www.rfc-editor.org/rfc/rfc8032#section-5.1.5 .
  *
  * @param entropy - Random entropy to generate key from as hex string.
  * @returns The eddsa private key as buffer.
@@ -41,21 +40,11 @@ export function getEddsaKeyFromEntropy(entropy: string): Buffer {
     throw new Error('Entropy must be a hex string');
   }
 
-  const hashed = createHash('sha512').update(source, 'hex').digest('hex');
-  const sliceForGeneration = hashed.slice(64, 128);
-
-  // prune buffer according to https://www.rfc-editor.org/rfc/rfc8032#section-5.1.5
-  // Because they use little-endian integers and we use big-endian ones, we need to change the other side of the buffer
-  const workingBuffer = Buffer.from(sliceForGeneration, 'hex');
-
-  // The lowest three bits of the first octet are cleared
-  workingBuffer[31] &= 0b11111000;
-  // the highest bit of the last octet is cleared
-  workingBuffer[0] &= 0b01111111;
-  // and the second highest bit of the last octet is set
-  workingBuffer[0] |= 0b01000000;
-
-  return workingBuffer;
+  // According to https://www.rfc-editor.org/rfc/rfc8032#section-5.1.5 :
+  // The private key is 32 octets (256 bits) of cryptographically secure random data.
+  // So we can just take the first 32 bytes of the entropy.
+  const privKey = Buffer.from(entropy, 'hex').subarray(0, 32);
+  return privKey;
 }
 
 /**
