@@ -143,10 +143,9 @@ export class ZKCertificate implements ZkCertData {
       dataToExport.registration = registration;
     }
 
-    const message = JSON.stringify(dataToExport);
     const encryptedData = encryptSafely({
       publicKey: encryptionPubKey,
-      data: message,
+      data: dataToExport,
       version: ENCRYPTION_VERSION,
     });
     const encryptedZkCert: EncryptedZkCert = {
@@ -192,7 +191,7 @@ export class ZKCertificate implements ZkCertData {
     );
     const signature = this.eddsa.signPoseidon(holderKey, hashPubkeyMsg);
 
-    // selfcheck
+    // self check
     if (
       !this.eddsa.verifyPoseidon(hashPubkeyMsg, signature, holderPubKeyEddsa)
     ) {
@@ -228,7 +227,7 @@ export class ZKCertificate implements ZkCertData {
     );
     const signature = this.eddsa.signPoseidon(providerKey, messageMod);
 
-    // selfcheck
+    // self check
     if (
       !this.eddsa.verifyPoseidon(messageMod, signature, providerPubKeyEddsa)
     ) {

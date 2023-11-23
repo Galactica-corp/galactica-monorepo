@@ -52,11 +52,10 @@ export function encryptZkCert(
   pubKey: string,
   holderCommitment: string,
 ): EncryptedZkCert {
-  const message = JSON.stringify(zkCert);
   prepareGlobalsForEthSigUtil();
   const encryptedZkCert = encryptSafely({
     publicKey: pubKey,
-    data: message,
+    data: zkCert,
     version: ENCRYPTION_VERSION,
   }) as EncryptedZkCert;
   encryptedZkCert.holderCommitment = holderCommitment;
@@ -80,7 +79,10 @@ export function decryptZkCert(
     encryptedData: encryptedZkCert,
     privateKey: privKey,
   });
-  const zkCert = JSON.parse(decryptedMessage) as ZkCertRegistered;
+  // decryptSafely says it would return a string, but it actually returns what came out of JSON.parse().
+  // (https://github.com/MetaMask/eth-sig-util/blob/10206bf2f16f0b47b1f2da9a9cfbb39c6a7a7800/src/encryption.ts#L234)
+  // So we can cast it to ZkCertRegistered here.
+  const zkCert = decryptedMessage as unknown as ZkCertRegistered;
   checkZkCert(zkCert);
   return zkCert;
 }
