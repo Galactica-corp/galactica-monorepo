@@ -25,6 +25,7 @@ import { groth16 } from 'snarkjs';
 import {
   defaultRPCRequest,
   merkleProofServiceURL,
+  testEdDSAKey,
   testEntropyEncrypt,
   testEntropyHolder,
   testHolder,
@@ -34,7 +35,6 @@ import { mockEthereumProvider, mockSnapProvider } from './wallet.mock';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
-import zkKYCToImportInUnitTest from '../../../test/zkKYCToImportInUnitTest.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
 import { encryptZkCert } from '../src/encryption';
@@ -182,7 +182,10 @@ describe('Test rpc handler function', function () {
             {
               address: '0x1234',
               holderCommitment: '0x2345',
-              eddsaKey: '0x3456',
+              eddsaEntropy:
+                '0001020304050607080900010203040506070809000102030405060708090001',
+              encryptionPrivKey: '0x1234',
+              encryptionPubKey: '0x1234',
             },
           ],
           zkCerts: [],
@@ -222,9 +225,9 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const expectedHolderCommitment = await calculateHolderCommitment(
-        testEntropyHolder,
+        testEdDSAKey,
       );
-      const zkKYC = { ...zkKYCToImportInUnitTest };
+      const zkKYC = { ...zkCert };
       zkKYC.holderCommitment = expectedHolderCommitment;
 
       await processRpcRequest(
@@ -245,7 +248,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [
             {
-              eddsaKey: testEntropyHolder,
+              eddsaEntropy: testEdDSAKey.toString('hex'),
               holderCommitment: expectedHolderCommitment,
               encryptionPrivKey: testEntropyEncrypt.slice(2),
               encryptionPubKey: getEncryptionPublicKey(

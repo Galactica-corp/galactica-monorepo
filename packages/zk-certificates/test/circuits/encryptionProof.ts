@@ -1,6 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { assert } from 'chai';
-import { buildEddsa } from 'circomlibjs';
+import { Eddsa, buildEddsa } from 'circomlibjs';
 import { readFileSync } from 'fs';
 import hre, { ethers } from 'hardhat';
 import { CircuitTestUtils } from 'hardhat-circom';
@@ -14,7 +14,7 @@ import { buildMimcSponge } from '../../lib/mimcEncrypt';
 
 describe('Encryption Proof', () => {
   let circuit: CircuitTestUtils;
-  let eddsa: any;
+  let eddsa: Eddsa;
   let mimcjs: any;
 
   const sampleInput = JSON.parse(
@@ -38,12 +38,8 @@ describe('Encryption Proof', () => {
     const [sender, receiver] = await ethers.getSigners();
     const message = ['42', '69'];
 
-    const senderPriv = BigInt(
-      await getEddsaKeyFromEthSigner(sender),
-    ).toString();
-    const receiverPriv = BigInt(
-      await getEddsaKeyFromEthSigner(receiver),
-    ).toString();
+    const senderPriv = await getEddsaKeyFromEthSigner(sender);
+    const receiverPriv = await getEddsaKeyFromEthSigner(receiver);
 
     const receiverPub = eddsa.prv2pub(receiverPriv);
 

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+import { EddsaPrivateKey } from '@galactica-net/galactica-types';
 import { ZkCertRegistered } from '@galactica-net/snap-api';
 import { BaseProvider } from '@metamask/providers';
 import { SnapsGlobalObject } from '@metamask/snaps-types';
@@ -19,10 +20,10 @@ export type SnapRpcProcessor = (
 export type HolderData = {
   // address: string; Not needed as long as we do not support HW wallets
   holderCommitment: string;
-  eddsaKey: string;
   // keys for encrypting zkCert data between the holder and the guardian
   encryptionPubKey: string;
   encryptionPrivKey: string;
+  eddsaKey: EddsaPrivateKey;
 };
 
 export type StorageState = {

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+import { EddsaPrivateKey } from '@galactica-net/galactica-types';
 import {
   ImportZkCertError,
   ZkCertRegistered,
@@ -17,7 +18,7 @@ import { keccak256 } from 'js-sha3';
  * @param holderEddsaKey - The eddsa key of the holder.
  */
 export async function calculateHolderCommitment(
-  holderEddsaKey: string,
+  holderEddsaKey: EddsaPrivateKey,
 ): Promise<string> {
   // use holder commitment function from zkkyc module (calculated on zkCert construction)
   return createHolderCommitment(await buildEddsa(), holderEddsaKey);
