@@ -1,5 +1,5 @@
 import { RpcMethods } from './rpcEnums';
-import { ZkCertStandard } from './types';
+import type { ZkCertStandard } from './types';
 import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
 
@@ -16,8 +16,8 @@ export type ZkCertMetadataList = Record<ZkCertStandard, ZkCertListItem[]>;
 
 /**
  * Requests overview of zkCertificates held in the Snap for management.
- *
  * @param snapOrigin - Optional origin ID of the Snap if you want to use a non-default version.
+ * @returns List of ZKCertificates available in the Snap.
  */
 export const listZkCerts = async (
   snapOrigin: string = sdkConfig.defaultSnapOrigin,

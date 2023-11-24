@@ -4,7 +4,7 @@ import chaiAsPromised from 'chai-as-promised';
 import { buildEddsa } from 'circomlibjs';
 import { readFileSync } from 'fs';
 import hre, { ethers } from 'hardhat';
-import { CircuitTestUtils } from 'hardhat-circom';
+import type { CircuitTestUtils } from 'hardhat-circom';
 
 import { ZkCertStandard } from '../../lib';
 import {

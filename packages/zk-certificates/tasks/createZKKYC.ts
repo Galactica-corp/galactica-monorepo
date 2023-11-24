@@ -8,7 +8,7 @@ import { buildEddsa, buildPoseidon } from 'circomlibjs';
 import fs from 'fs';
 import { task, types } from 'hardhat/config';
 import { string } from 'hardhat/internal/core/params/argumentTypes';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
 import {
@@ -23,7 +23,6 @@ import { ZKCertificate } from '../lib/zkCertificate';
 
 /**
  * Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
- *
  * @param args - See task definition below or 'npx hardhat createZkKYC --help'.
  * @param hre - Hardhat runtime environment.
  */

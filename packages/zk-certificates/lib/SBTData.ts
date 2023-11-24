@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import {
+import type {
   EddsaPrivateKey,
   EddsaPublicKey,
 } from '@galactica-net/galactica-types';
@@ -10,7 +10,6 @@ import { buildMimcSponge } from './mimcEncrypt';
 
 /**
  * Encrypts data for fraud investigation, so that it can be posted on-chain and only be decrypted by the user and the institution.
- *
  * @param galaInstitutionPub - Public key of institution.
  * @param userPrivKey - Encryption key derived from user private key.
  * @param providerPubKeyAx - The first part of the provider pubkey as string (decimal string or hex string starting with 0x).
@@ -40,10 +39,10 @@ export async function encryptFraudInvestigationData(
 
 /**
  * Decrypts data for fraud investigation according to the encryption.
- *
  * @param galaInstitutionPrivKey - Private key of institution.
  * @param userPubKey - Public key of user (disclosed in proof, unique for each ZKP).
  * @param encryptedData - Message to decrypt.
+ * @returns Decrypted data.
  */
 export async function decryptFraudInvestigationData(
   galaInstitutionPrivKey: EddsaPrivateKey,

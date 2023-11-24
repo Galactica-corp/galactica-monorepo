@@ -1,7 +1,7 @@
 import { sdkConfig } from '../config';
 
-export const invokeSnap = async <T>(
-  request: T,
+export const invokeSnap = async <TRequest>(
+  request: TRequest,
   snapOrigin: string = sdkConfig.defaultSnapOrigin,
 ) => {
   if (!window.ethereum) {

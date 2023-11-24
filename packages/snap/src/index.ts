@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: BUSL-1.1
-import {
-  RpcResponseErr,
-  RpcMethods,
+import type {
   ConfirmationResponse,
-  RpcResponseMsg,
   ImportZkCertParams,
-  GenericError,
   GenZkProofParams,
   HolderCommitmentData,
   MerkleProofUpdateRequestParams,
   ZkCertSelectionParams,
   MerkleProofURLUpdateParams,
+} from '@galactica-net/snap-api';
+import {
+  RpcResponseErr,
+  RpcMethods,
+  RpcResponseMsg,
+  GenericError,
   URLUpdateError,
 } from '@galactica-net/snap-api';
-import { OnRpcRequestHandler } from '@metamask/snaps-types';
+import type { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 
 import {
@@ -28,7 +30,7 @@ import {
   generateZkKycProof,
 } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
-import { HolderData, SnapRpcProcessor, PanelContent } from './types';
+import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
 import {
   getZkCertStorageHashes,
   getZkCertStorageOverview,
@@ -38,7 +40,6 @@ import { selectZkCert } from './zkCertSelector';
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
  * It has all inputs as function parameters instead of relying on global variables.
- *
  * @param args - The request handler args as object.
  * @param args.origin - The origin of the request, e.g., the website that invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
@@ -58,7 +59,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
   let holder: HolderData;
   let response: ConfirmationResponse;
 
-  switch (request.method) {
+  switch (request.method as RpcMethods) {
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
       const genParams = request.params as unknown as GenZkProofParams<any>;
@@ -500,7 +501,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
- *
  * @param args - The request handler args as object.
  * @param args.origin - The origin of the request, e.g., the website that
  * invoked the snap.

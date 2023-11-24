@@ -1,5 +1,5 @@
 import { ZkCertStandard } from '@galactica-net/galactica-types';
-import {
+import type {
   GenZkProofParams,
   ProverData,
   ZkKYCAgeProofInput,
@@ -8,7 +8,7 @@ import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
 
 import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
-import { RpcArgs } from '../src/types';
+import type { RpcArgs } from '../src/types';
 
 const prover = proverData as ProverData;
 

@@ -1,33 +1,33 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import chai, { use, expect } from 'chai';
+import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import chai, { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { buildEddsa } from 'circomlibjs';
-import { BigNumber } from 'ethers';
+import type { BigNumber } from 'ethers';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
 import {
   fromDecToHex,
+  fromHexToBytes32,
   processProof,
   processPublicSignals,
-  fromHexToBytes32,
 } from '../../lib/helpers';
 import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 import { queryVerificationSBTs } from '../../lib/queryVerificationSBT';
 import { decryptFraudInvestigationData } from '../../lib/SBTData';
 import { reconstructShamirSecret } from '../../lib/shamirTools';
-import { ZKCertificate } from '../../lib/zkCertificate';
+import type { ZKCertificate } from '../../lib/zkCertificate';
 import {
-  generateZkKYCProofInput,
   generateSampleZkKYC,
+  generateZkKYCProofInput,
 } from '../../scripts/generateZKKYCInput';
-import { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
-import { ExampleMockDAppVerifier } from '../../typechain-types/contracts/ExampleMockDAppVerifier';
-import { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
-import { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
-import { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
-import { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
+import type { ExampleMockDAppVerifier } from '../../typechain-types/contracts/ExampleMockDAppVerifier';
+import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
+import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
+import type { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 
 use(chaiAsPromised);
 

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { EddsaPrivateKey } from '@galactica-net/galactica-types';
-import {
-  ImportZkCertError,
+import type { EddsaPrivateKey } from '@galactica-net/galactica-types';
+import type {
   ZkCertRegistered,
   ZkCertStorageHashes,
 } from '@galactica-net/snap-api';
+import { ImportZkCertError } from '@galactica-net/snap-api';
 import {
   createHolderCommitment,
   ZkCertStandard,
@@ -14,8 +14,8 @@ import { keccak256 } from 'js-sha3';
 
 /**
  * Calculates the holder commitment from the eddsa key. It is used to link a ZkCert to a holder without revealing the holder's identity to the provider.
- *
  * @param holderEddsaKey - The eddsa key of the holder.
+ * @returns Calculated holder commitment.
  */
 export async function calculateHolderCommitment(
   holderEddsaKey: EddsaPrivateKey,
@@ -27,7 +27,6 @@ export async function calculateHolderCommitment(
 /**
  * Provides an overview of the zkCert storage. This data can be queried by front-ends.
  * The data shared here must not reveal any private information or possibility to track users).
- *
  * @param zkCertStorage - The list of zkCerts stored.
  * @returns ZkCerts metadata listed for each zkCertStandard.
  */
@@ -57,7 +56,6 @@ export function getZkCertStorageOverview(
 
 /**
  * Provides hashes of zkCerts stored in the snap. Used to detect changes in the storage.
- *
  * @param zkCertStorage - The list of zkCerts stored.
  * @param origin - The site asking for the hash. Used as salt to prevent tracking.
  * @returns Storage hash for each zkCertStandard.
@@ -80,7 +78,6 @@ export function getZkCertStorageHashes(
 
 /**
  * Checks if an imported ZkCert has the right format.
- *
  * @param zkCert - The zkCert to check.
  * @throws If the format is not correct.
  */
@@ -93,7 +90,6 @@ export function checkZkCert(zkCert: ZkCertRegistered) {
   }
   /**
    * Throws customized error for missing fields.
-   *
    * @param field - The missing field.
    */
   function complainMissingField(field: string) {

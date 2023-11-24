@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 /**
  * Shortens an EVM address to the form 0x123..456 (better for size limited logs).
- *
  * @param addr - Full EVM address.
  * @returns Shortened address.
  */
@@ -11,7 +10,6 @@ export function shortenAddrStr(addr: string): string {
 
 /**
  * Fetch with configurable timeout.
- *
  * @param resource - URL to fetch from.
  * @param options - Fetch options, including timeout field.
  * @returns Fetch response.

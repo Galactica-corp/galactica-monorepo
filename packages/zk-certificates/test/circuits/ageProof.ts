@@ -2,7 +2,7 @@
 import { assert } from 'chai';
 import { readFileSync } from 'fs';
 import hre from 'hardhat';
-import { CircuitTestUtils } from 'hardhat-circom';
+import type { CircuitTestUtils } from 'hardhat-circom';
 
 describe('Age Proof Circuit Component', () => {
   let circuit: CircuitTestUtils;

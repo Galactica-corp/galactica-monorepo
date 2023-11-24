@@ -4,6 +4,4 @@ module.exports = {
   rules: {
     '@typescript-eslint/no-parameter-properties': 'off',
   },
-
-  ignorePatterns: ['!.eslintrc.js', 'dist/'],
 };

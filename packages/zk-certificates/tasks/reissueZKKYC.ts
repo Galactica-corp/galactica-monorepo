@@ -8,14 +8,14 @@ import { buildEddsa, buildPoseidon } from 'circomlibjs';
 import fs from 'fs';
 import { task, types } from 'hardhat/config';
 import { string } from 'hardhat/internal/core/params/argumentTypes';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
 import {
   fromDecToHex,
   fromHexToBytes32,
-  hashStringToFieldNumber,
   fromHexToDec,
+  hashStringToFieldNumber,
 } from '../lib/helpers';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { queryOnChainLeaves } from '../lib/queryMerkleTree';
@@ -24,7 +24,6 @@ import { ZKCertificate } from '../lib/zkCertificate';
 
 /**
  * Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.
- *
  * @param args - See task definition below or 'npx hardhat reissueZkKYC --help'.
  * @param hre - Hardhat runtime environment.
  */

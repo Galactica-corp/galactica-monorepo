@@ -1,4 +1,4 @@
-import { Buffer } from 'buffer';
+import type { Buffer } from 'buffer';
 import type { Point } from 'circomlibjs';
 
 // Field used for EdDSA signatures.
