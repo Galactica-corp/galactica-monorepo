@@ -23,8 +23,7 @@
     "/contracts"
   ],
   "scripts": {
-    "build": "tsup --dts",
-    "buildZK": "hardhat smartCircuitBuild --verbose && hardhat compile && tsc",
+    "build": "hardhat smartCircuitBuild --verbose && hardhat compile && tsup --dts",
     "compile": "hardhat smartCircuitBuild --verbose",
     "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose",
     "start": "tsup --watch",
