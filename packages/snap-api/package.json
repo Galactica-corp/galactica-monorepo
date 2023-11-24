@@ -16,10 +16,8 @@
   ],
   "scripts": {
     "build": "tsup --dts",
-    "publish-locally": "local-package-publisher -p",
     "start": "tsup --watch",
-    "test": "echo \"No test specified\"",
-    "unpublish-locally": "local-package-publisher -u"
+    "test": "echo \"No test specified\""
   },
   "dependencies": {
     "@galactica-net/galactica-types": "workspace:^",
@@ -27,7 +25,6 @@
     "typescript": "^5.1.6"
   },
   "devDependencies": {
-    "local-package-publisher": "^1.0.5",
     "tsup": "^7.2.0"
   },
   "publishConfig": {
