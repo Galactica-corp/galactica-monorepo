@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { buildEddsa } from 'circomlibjs';
 import { readFileSync } from 'fs';
 import hre from 'hardhat';
-import { CircuitTestUtils } from 'hardhat-circom';
+import type { CircuitTestUtils } from 'hardhat-circom';
 import { groth16 } from 'snarkjs';
 
 import { reconstructShamirSecret } from '../../lib/shamirTools';

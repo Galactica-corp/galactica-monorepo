@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { RpcResponseErr, ZkCertRegistered } from '@galactica-net/snap-api';
+import type { ZkCertRegistered } from '@galactica-net/snap-api';
+import { RpcResponseErr } from '@galactica-net/snap-api';
 import { ZKCertificate } from '@galactica-net/zk-certificates';
-import { SnapsGlobalObject } from '@metamask/snaps-types';
-import { panel, text, heading, divider } from '@metamask/snaps-ui';
+import type { SnapsGlobalObject } from '@metamask/snaps-types';
+import { divider, heading, panel, text } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
 
 /**
  * Selects a ZkCert from the available ones.
- *
  * @param snap - The snap for interaction with Metamask.
  * @param availableCerts - The available ZkCerts to select from.
  * @param zkCertStandard - The zkCertStandard of the ZkCert to select (optional).
  * @param registryAddress - The registry address to filter for (optional).
  * @param expirationDate - The expiration date to filter for (optional).
  * @param providerAx - The provider pubkey to filter for (optional).
+ * @returns Selected zkCert.
  */
 export async function selectZkCert(
   snap: SnapsGlobalObject,

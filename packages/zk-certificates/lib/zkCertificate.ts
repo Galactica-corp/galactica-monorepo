@@ -1,19 +1,21 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import {
-  eddsaPrimeFieldMod,
-  OwnershipProofInput,
+import type {
   AuthorizationProofInput,
-  ProviderData,
+  EncryptedZkCert,
   FraudInvestigationDataEncryptionProofInput,
   HumanIDProofInput,
+  MerkleProof,
+  OwnershipProofInput,
+  ProviderData,
   ZkCertData,
+  ZkCertRegistration,
   ZkCertStandard,
+} from '@galactica-net/galactica-types';
+import {
+  eddsaPrimeFieldMod,
+  ENCRYPTION_VERSION,
   humanIDFieldOrder,
   zkKYCContentFields,
-  MerkleProof,
-  ENCRYPTION_VERSION,
-  EncryptedZkCert,
-  ZkCertRegistration,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
 import { buildEddsa } from 'circomlibjs';
@@ -46,7 +48,6 @@ export class ZKCertificate implements ZkCertData {
 
   /**
    * Create a ZKCertificate.
-   *
    * @param holderCommitment - Commitment fixing the holder eddsa key without revealing it to the provider.
    * @param zkCertStandard - ZkCert standard to use.
    * @param eddsa - EdDSA instance to use for signing.
@@ -123,7 +124,6 @@ export class ZKCertificate implements ZkCertData {
 
   /**
    * Export the encrypted zkCert as a JSON string that can be imported in the Galactica Snap for Metamask.
-   *
    * @param encryptionPubKey - Public key of the holder used for encryption.
    * @param merkleProof - Merkle proof to attach to the zkCert (optional).
    * @param registration - Registration data to attach to the zkCert (optional).
@@ -156,7 +156,6 @@ export class ZKCertificate implements ZkCertData {
 
   /**
    * Export the unencrypted zkCert as object containing only the fields relevant for import in a wallet.
-   *
    * @returns ZkCertData object.
    */
   public exportRaw(): ZkCertData {
@@ -175,7 +174,6 @@ export class ZKCertificate implements ZkCertData {
 
   /**
    * Create the input for the ownership proof of this zkCert.
-   *
    * @param holderKey - EdDSA Private key of the holder.
    * @returns OwnershipProofInput struct.
    */
@@ -211,7 +209,6 @@ export class ZKCertificate implements ZkCertData {
 
   /**
    * Create the input for the provider signature check of this zkCert.
-   *
    * @param providerKey - EdDSA Private key of the KYC provider.
    * @returns ProviderData struct.
    */
@@ -247,7 +244,6 @@ export class ZKCertificate implements ZkCertData {
 
   /**
    * Create the input for the authorization proof of this zkCert.
-   *
    * @param holderKey - EdDSA Private key of the holder.
    * @param userAddress - User address to be signed.
    * @returns AuthorizationProofInput struct.
@@ -285,7 +281,6 @@ export class ZKCertificate implements ZkCertData {
 
   /**
    * Create the input for the fraud investigation data encryption proof of this zkCert.
-   *
    * @param institutionPub - EdDSA Public encryption key of the institution.
    * @param userPrivKey - EdDSA Private encryption key of the holder.
    * @returns Input for FraudInvestigationProof.
@@ -317,7 +312,6 @@ export class ZKCertificate implements ZkCertData {
 
   /**
    * Calculate dApp specific human ID from zkKYC and dApp address.
-   *
    * @param dAppAddress - Address of the dApp.
    * @returns Human ID as string.
    */

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { GenericError, ZkCertRegistered } from '@galactica-net/snap-api';
-import { Json, SnapsGlobalObject } from '@metamask/snaps-types';
+import type { ZkCertRegistered } from '@galactica-net/snap-api';
+import { GenericError } from '@galactica-net/snap-api';
+import type { Json, SnapsGlobalObject } from '@metamask/snaps-types';
 
 import { createEncryptionKeyPair } from './encryption';
-import { HolderData, StorageState } from './types';
+import type { HolderData, StorageState } from './types';
 import { calculateHolderCommitment } from './zkCertHandler';
 
 /**
  * Get the state from the snap storage in MetaMask's browser extension.
- *
  * @param snap - The snap for interaction with Metamask.
  * @returns The state.
  */
@@ -70,7 +70,6 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
 
 /**
  * Save updated state to the snap storage in MetaMask's browser extension.
- *
  * @param snap - The snap for interaction with Metamask.
  * @param newState - The new state.
  */
@@ -95,7 +94,6 @@ export async function saveState(
 
 /**
  * Get holder matching a holder commitment from the holderData array.
- *
  * @param holderCommitment - The holder commitment to search for.
  * @param holders - The holderData array to search in.
  * @returns The holderData.
@@ -119,7 +117,6 @@ export function getHolder(
 
 /**
  * Get zkCert matching a leafHash from the zkCert array.
- *
  * @param leafHash - The holder commitment to search for.
  * @param zkCerts - The holderData array to search in.
  * @returns The holderData.

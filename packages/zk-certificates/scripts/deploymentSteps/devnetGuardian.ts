@@ -1,6 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { Contract } from 'ethers';
+import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { Contract } from 'ethers';
 import hre from 'hardhat';
 
 import { deploySC } from '../../lib/hardhatHelpers';
@@ -10,7 +10,6 @@ const { log } = console;
 /**
  * Deploys a simple contract that everyone can use to test issuing zkKYCs without having to be whitelisted as guardians first.
  * Meant for the devnet.
- *
  * @param deployer - The deployer wallet.
  * @param guardianRegistryAddr - The address of the guardian registry.
  * @param zkCertRegistryAddr - The address of the zkCert registry.

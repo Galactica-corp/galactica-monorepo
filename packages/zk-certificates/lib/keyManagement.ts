@@ -5,12 +5,11 @@ import {
 } from '@galactica-net/galactica-types';
 import createBlakeHash from 'blake-hash';
 import { Buffer } from 'buffer';
-import { Signer } from 'ethers';
+import type { Signer } from 'ethers';
 import { Scalar, utils } from 'ffjavascript';
 
 /**
  * Generates the eddsa private key from the ethereum private key signing a fixed message.
- *
  * @param signer - Ethers signer.
  * @returns The eddsa private key.
  */
@@ -24,7 +23,6 @@ export async function getEddsaKeyFromEthSigner(
  * Generates an Elliptic-curve Diffie–Hellman shared key https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman.
  * It is symmetric and can be produced by both parties using their private key and the other party's public key.
  * Implementation based on https://github.com/privacy-scaling-explorations/maci/blob/796c3fa49d4983478d306061f094cf8a7532d63a/crypto/ts/index.ts#L328.
- *
  * @param privKey - EdDSA private key of Alice.
  * @param pubKey - EdDSA public key of Bob.
  * @param eddsa - EdDSA instance from circomlibjs.
@@ -45,7 +43,6 @@ export function generateEcdhSharedKey(
 /**
  * Format a random private key to be compatible with the BabyJub curve.
  * This is the format which should be passed into the PublicKey and other circuits.
- *
  * @param privKey - Private key to format.
  * @param eddsa - EdDSA instance from circomlibjs.
  * @returns The formatted private key.
@@ -64,7 +61,6 @@ export function formatPrivKeyForBabyJub(privKey: string, eddsa: any) {
 /**
  * Create the holder commitment for a zkCert.
  * Holder commitment = poseidon(sign_eddsa(poseidon(pubkey))).
- *
  * @param eddsa - EdDSA instance to use for signing (passed to avoid making this function async).
  * @param privateKey - EdDSA Private key of the holder.
  * @returns Holder commitment.

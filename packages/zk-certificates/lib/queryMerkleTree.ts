@@ -1,12 +1,11 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
+import type { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
 
 import { printProgress } from './helpers';
-import { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
+import type { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 
 /**
  * Query the on-chain Merkle tree leaves needed as input for the Merkle tree
- *
  * @param ethers - Ethers instance
  * @param contractAddr - Address of the KYCRecordRegistry contract
  * @param firstBlock - First block to query (ideally the contract creation block)
@@ -19,7 +18,6 @@ export type LeafLogResult = {
 };
 /**
  * Get Merkle tree leaves by reading blockchain log.
- *
  * @param ethers - Ethers instance.
  * @param contractAddr - Address of the RecordRegistry contract.
  * @param firstBlock - First block to query (optional, ideally the contract creation block).

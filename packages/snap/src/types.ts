@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { ZkCertRegistered } from '@galactica-net/snap-api';
-import { BaseProvider } from '@metamask/providers';
-import { SnapsGlobalObject } from '@metamask/snaps-types';
-import { NodeType } from '@metamask/snaps-ui';
-import { JsonRpcRequest } from '@metamask/types';
+import type { ZkCertRegistered } from '@galactica-net/snap-api';
+import type { BaseProvider } from '@metamask/providers';
+import type { SnapsGlobalObject } from '@metamask/snaps-types';
+import type { NodeType } from '@metamask/snaps-ui';
+import type { JsonRpcRequest } from '@metamask/types';
 
 export type RpcArgs = {
   origin: string;

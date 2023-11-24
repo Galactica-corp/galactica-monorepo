@@ -1,24 +1,23 @@
 // SPDX-License-Identifier: BUSL-1.1
 
 import { ENCRYPTION_VERSION } from '@galactica-net/galactica-types';
-import {
+import type {
   EncryptedZkCert,
-  ImportZkCertError,
   ZkCertRegistered,
 } from '@galactica-net/snap-api';
+import { ImportZkCertError } from '@galactica-net/snap-api';
 import {
-  getEncryptionPublicKey,
-  encryptSafely,
   decryptSafely,
+  encryptSafely,
+  getEncryptionPublicKey,
 } from '@metamask/eth-sig-util';
-import { SnapsGlobalObject } from '@metamask/rpc-methods';
+import type { SnapsGlobalObject } from '@metamask/rpc-methods';
 import { Buffer } from 'buffer';
 
 import { checkZkCert } from './zkCertHandler';
 
 /**
  * Create a new encryption key pair for the holder. It is used to encrypt personal details in ZK certificates, for example on the way from guardian to the holder.
- *
  * @param snap - The snap for interaction with Metamask.
  * @returns The public and private key.
  */
@@ -41,7 +40,6 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
 
 /**
  * Encrypt a zkCert for exporting.
- *
  * @param zkCert - The ZkCertRegistered to encrypt.
  * @param pubKey - The public key for encryption.
  * @param holderCommitment - The holder commitment to associate the zkCert with the holder who can decrypt it.
@@ -64,7 +62,6 @@ export function encryptZkCert(
 
 /**
  * Decrypt a zkCert. It takes the encrypted ZkCertRegistered as given by the guardian or exported from the Snap.
- *
  * @param encryptedZkCert - The encrypted zkCert as EthEncryptedData.
  * @param privKey - The private key for decryption.
  * @returns The decrypted ZkCertRegistered.
@@ -89,7 +86,6 @@ export function decryptZkCert(
 
 /**
  * Checks if an imported EncryptedZkCert has the right format.
- *
  * @param encryptedZkCert - The encrypted zkCert as EthEncryptedData.
  * @throws If the format is not correct.
  */

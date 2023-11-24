@@ -7,6 +7,10 @@ module.exports = {
     allowImportExportEverywhere: true,
   },
 
+  rules: {
+    '@typescript-eslint/no-parameter-properties': 'off',
+  },
+
   overrides: [
     {
       files: ['**/*.js'],

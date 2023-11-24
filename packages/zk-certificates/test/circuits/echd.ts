@@ -3,12 +3,12 @@ import { assert, expect } from 'chai';
 import { buildEddsa } from 'circomlibjs';
 import { readFileSync } from 'fs';
 import hre, { ethers } from 'hardhat';
-import { CircuitTestUtils } from 'hardhat-circom';
+import type { CircuitTestUtils } from 'hardhat-circom';
 
 import {
-  getEddsaKeyFromEthSigner,
-  generateEcdhSharedKey,
   formatPrivKeyForBabyJub,
+  generateEcdhSharedKey,
+  getEddsaKeyFromEthSigner,
 } from '../../lib/keyManagement';
 
 describe('ECDH shared key derivation', () => {

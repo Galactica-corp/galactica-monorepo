@@ -1,5 +1,5 @@
 import { subtask } from 'hardhat/config';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { TASK_CIRCOM_TEMPLATE } from 'hardhat-circom';
 
 subtask(
@@ -9,7 +9,6 @@ subtask(
 
 /**
  * Overwrite the default circomTemplate task to change the destination path of Verifier contracts.
- *
  * @param args - Task arguments.
  * @param hre - Hardhat runtime environment.
  * @param runSuper - Super function provided by snarkjs.

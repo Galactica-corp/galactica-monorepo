@@ -1,16 +1,18 @@
-import {
-  RpcResponseErr,
-  RpcMethods,
-  RpcResponseMsg,
-  ZkCertProof,
-  HolderCommitmentData,
-  ZkCertSelectionParams,
-  ZkCertStandard,
-  MerkleProofUpdateRequestParams,
+import type {
   ConfirmationResponse,
   EncryptedZkCert,
-  ZkCertRegistered,
+  HolderCommitmentData,
   MerkleProof,
+  MerkleProofUpdateRequestParams,
+  ZkCertProof,
+  ZkCertRegistered,
+  ZkCertSelectionParams,
+} from '@galactica-net/snap-api';
+import {
+  RpcMethods,
+  RpcResponseErr,
+  RpcResponseMsg,
+  ZkCertStandard,
 } from '@galactica-net/snap-api';
 import { fromDecToHex } from '@galactica-net/zk-certificates';
 import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
@@ -38,7 +40,7 @@ import zkKYCToImportInUnitTest from '../../../test/zkKYCToImportInUnitTest.json'
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
 import { encryptZkCert } from '../src/encryption';
-import { RpcArgs } from '../src/types';
+import type { RpcArgs } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
 
 chai.use(sinonChai);
@@ -47,15 +49,11 @@ chai.use(chaiFetchMock);
 
 /**
  * Helper to build RPC requests for testing.
- *
  * @param method - The method to be called.
  * @param params - Parameters to be passed, if any.
  * @returns The RPC request object.
  */
-function buildRPCRequest(
-  method: RpcMethods,
-  params: any | undefined = undefined,
-): RpcArgs {
+function buildRPCRequest(method: RpcMethods, params: any = undefined): RpcArgs {
   const res = defaultRPCRequest;
   res.request.method = method;
   if (params) {
@@ -66,7 +64,6 @@ function buildRPCRequest(
 
 /**
  * Verifies a proof and expects it to be valid.
- *
  * @param result - The proof to be verified.
  */
 async function verifyProof(result: ZkCertProof) {
@@ -85,7 +82,6 @@ async function verifyProof(result: ZkCertProof) {
 
 /**
  * Helper for formatting a merkle proof to the format expected by the service.
- *
  * @param merkleProof - The merkle proof to be formatted.
  * @returns The formatted merkle proof as returned by the service.
  */
@@ -221,9 +217,8 @@ describe('Test rpc handler function', function () {
       this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const expectedHolderCommitment = await calculateHolderCommitment(
-        testEntropyHolder,
-      );
+      const expectedHolderCommitment =
+        await calculateHolderCommitment(testEntropyHolder);
       const zkKYC = { ...zkKYCToImportInUnitTest };
       zkKYC.holderCommitment = expectedHolderCommitment;
 
