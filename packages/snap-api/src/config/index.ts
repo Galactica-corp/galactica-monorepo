@@ -1,4 +1,4 @@
-export type SdkConfig = {
+export type Config = {
   contracts: {
     kycGuardianWhitelist: string;
     zkKycRegistry: string;
@@ -13,7 +13,7 @@ export type SdkConfig = {
   defaultSnapOrigin: string;
 };
 
-export const sdkConfig: SdkConfig = {
+export const config: Config = {
   contracts: {
     kycGuardianWhitelist: '0x4De49e2047eE726B833fa815bf7392958245832d',
     zkKycRegistry: '0x8eD8311ED65eBe2b11ED8cB7076E779c1030F9cF',
@@ -29,6 +29,5 @@ export const sdkConfig: SdkConfig = {
     basicKycExampleDapp: '0x02ee87FE35cF9e635B752671D5477516256aDB4f',
     repeatableZkKycTest: '0x57ebf246fC38c59f48CE316381eEFF883C006Fa1',
   },
-  defaultSnapOrigin: 'npm:@galactica-net/snap',
-  // defaultSnapOrigin: 'local:http://localhost:8080',
+  defaultSnapOrigin: 'npm:@galactica-net/snap-beta',
 };

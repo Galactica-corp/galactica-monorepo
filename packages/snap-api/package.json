@@ -16,10 +16,9 @@
   ],
   "scripts": {
     "build": "tsup --dts",
-    "publish-locally": "local-package-publisher -p",
+    "pack": "yarn pack",
     "start": "tsup --watch",
-    "test": "echo \"No test specified\"",
-    "unpublish-locally": "local-package-publisher -u"
+    "test": "echo \"No test specified\""
   },
   "dependencies": {
     "@galactica-net/galactica-types": "workspace:^",
