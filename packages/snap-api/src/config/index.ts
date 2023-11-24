@@ -30,5 +30,4 @@ export const sdkConfig: SdkConfig = {
     repeatableZkKycTest: '0x57ebf246fC38c59f48CE316381eEFF883C006Fa1',
   },
   defaultSnapOrigin: 'npm:@galactica-net/snap',
-  // defaultSnapOrigin: 'local:http://localhost:8080',
 };

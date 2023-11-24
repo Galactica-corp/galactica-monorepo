@@ -87,8 +87,11 @@ async function createCircuitData(
     },
     requirements: {
       zkCertStandard: ZkCertStandard.ZkKYC,
+      registryAddress: '0x0',
     },
     userAddress: '0x0',
+    description: 'test',
+    publicInputDescriptions: [],
   };
   return params;
 }

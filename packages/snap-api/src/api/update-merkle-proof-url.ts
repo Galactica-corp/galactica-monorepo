@@ -1,5 +1,6 @@
 import { GalacticaErrorBase } from './error';
 import { RpcMethods } from './rpcEnums';
+import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
 
 /**
@@ -18,15 +19,20 @@ export class URLUpdateError extends GalacticaErrorBase<URLUpdateErrorName> {}
  * This is only a fallback until we have a decentralized solution.
  *
  * @param update - New URL to get Merkle proofs from.
+ * @param snapOrigin - Optional origin ID of the Snap if you want to use a non-default version.
  * @returns Success message.
  * @throws RPCError on failure.
  */
 export const updateMerkleProofURL = async (
   update: MerkleProofURLUpdateParams,
+  snapOrigin: string = sdkConfig.defaultSnapOrigin,
 ) => {
-  const response = await invokeSnap({
-    method: RpcMethods.UpdateMerkleProofURL,
-    params: update,
-  });
+  const response = await invokeSnap(
+    {
+      method: RpcMethods.UpdateMerkleProofURL,
+      params: update,
+    },
+    snapOrigin,
+  );
   return response;
 };
