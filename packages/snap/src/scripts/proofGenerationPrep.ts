@@ -179,7 +179,7 @@ async function verifyProof(proof: any, publicSignals: any, vKey: any) {
 type IProofGenPrepArguments = {
   circuitName: string;
   circuitsDir: string;
-  testInput: string;
+  testInput?: string;
   output?: string;
   help?: boolean;
 };
@@ -188,7 +188,7 @@ type IProofGenPrepArguments = {
  * Main function to run.
  */
 async function main() {
-  // proccess command line arguments
+  // process command line arguments
   const args = parse<IProofGenPrepArguments>(
     {
       circuitName: {
@@ -198,10 +198,16 @@ async function main() {
       circuitsDir: {
         type: String,
         description: 'Path to the directory containing the wasm and zkey files',
+        defaultValue: path.join(
+          __dirname,
+          '../../../zk-certificates/circuits/build',
+        ),
       },
       testInput: {
         type: String,
         description: 'Path to the input file to use for testing',
+        optional: true,
+        defaultValue: undefined,
       },
       output: {
         type: String,
@@ -230,16 +236,21 @@ async function main() {
     },
   );
 
+  const testInput = args.testInput
+    ? args.testInput
+    : path.join(
+        __dirname,
+        `../../../zk-certificates/circuits/input/${args.circuitName}.json`,
+      );
+
   if (!args.output) {
     args.output = `${__dirname}/../../../galactica-dapp/public/provers/${args.circuitName}.json`;
   }
-  if (!fs.existsSync(args.testInput)) {
-    throw new Error(`Test input file ${args.testInput} does not exist.`);
+  if (!fs.existsSync(testInput)) {
+    throw new Error(`Test input file ${testInput} does not exist.`);
   }
-  if (fs.lstatSync(args.testInput).isDirectory()) {
-    throw new Error(
-      `Test input ${args.testInput} must be a file, not a directory.`,
-    );
+  if (fs.lstatSync(testInput).isDirectory()) {
+    throw new Error(`Test input ${testInput} must be a file, not a directory.`);
   }
   if (!fs.existsSync(args.circuitsDir)) {
     throw new Error(`Circuit dir ${args.circuitsDir} does not exist.`);
@@ -248,8 +259,8 @@ async function main() {
     throw new Error(`Target dir for ${args.output} does not exist.`);
   }
 
-  console.warn(`Test ${args.testInput}`);
-  const input = JSON.parse(fs.readFileSync(args.testInput).toString());
+  console.warn(`Test ${testInput}`);
+  const input = JSON.parse(fs.readFileSync(testInput).toString());
 
   // extract needed circuit data
   const params = await createCircuitData(
