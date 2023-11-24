@@ -35,7 +35,7 @@ import {
   connectSnap,
   getSnap,
 } from '@galactica-net/snap-api';
-import { zkKYCAgeProofPublicInputDescriptions, zkKYCPublicInputDescriptions } from '../../../galactica-dapp/src/config/snap';
+import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions } from '../../../galactica-dapp/src/config/snap';
 
 const Container = styled.div`
   display: flex;
@@ -180,10 +180,10 @@ const Index = () => {
     }
   };
 
-  const handleSnapCallClick = async (method: () => Promise<any>) => {
+  const handleSnapCallClick = async (method: (snapOrigin: string) => Promise<any>) => {
     try {
       console.log('sending request to snap...');
-      const res = await method();
+      const res = await method(defaultSnapOrigin);
       console.log('Response from snap', res);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
     } catch (e) {
@@ -195,7 +195,7 @@ const Index = () => {
   const handleExportClick = async () => {
     try {
       console.log('sending request to snap...');
-      const res = await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC });
+      const res = await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin);
       console.log('Response from snap', res);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Downloading zkCert...` });
 
@@ -217,7 +217,7 @@ const Index = () => {
   const getHolderCommitmentClick = async () => {
     try {
       console.log('sending request to snap...');
-      const res = await getHolderCommitment();
+      const res = await getHolderCommitment(defaultSnapOrigin);
       console.log('Response from snap', res);
       const holderCommitmentData = res as HolderCommitmentData;
       dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
@@ -242,7 +242,7 @@ const Index = () => {
       const parsedFile = JSON.parse(fileContent);
 
       console.log('sending request to snap...');
-      const res = await importZkCert({ encryptedZkCert: parsedFile });
+      const res = await importZkCert({ encryptedZkCert: parsedFile }, defaultSnapOrigin);
       console.log('Response from snap', res);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
     } catch (e) {
@@ -275,7 +275,7 @@ const Index = () => {
         userAddress: getUserAddress(),
         description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
         publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
-      });
+      }, defaultSnapOrigin);
       console.log('Response from snap', res);
       const zkp = res as ZkCertProof;
 
@@ -517,7 +517,7 @@ const Index = () => {
               'Delete a zkCert from the Metamask snap storage.',
             button: (
               <GeneralButton
-                onClick={() => handleSnapCallClick(() => deleteZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }))}
+                onClick={() => handleSnapCallClick(() => deleteZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin))}
                 disabled={false}
                 text="Export"
               />

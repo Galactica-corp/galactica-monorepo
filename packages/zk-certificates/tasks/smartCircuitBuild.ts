@@ -1,5 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import camelcase from 'camelcase';
+import cryptoLib from 'crypto';
 import fs from 'fs';
 import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
@@ -37,7 +38,7 @@ async function smartCircuitBuild(
     });
     const verifierPath = path.join(
       rootPath,
-      'contracts',
+      'contracts/zkpVerifiers',
       `${verifierName}Verifier.sol`,
     );
     const buildConfigPath = path.join(
@@ -54,9 +55,9 @@ async function smartCircuitBuild(
 
     const sourceFiles = findAllImportedSourceFiles(circuit.circuit, []);
     // recompile also needed if a new ptau file is used
-    sourceFiles.push(hre.config.circom.ptau);
+    outputFiles.push(hre.config.circom.ptau);
 
-    // check build file existance
+    // check build file existence
     let buildNeeded = false;
     for (const outputFile of outputFiles) {
       if (!fs.existsSync(outputFile)) {
@@ -67,26 +68,36 @@ async function smartCircuitBuild(
         break;
       }
     }
-    if (!buildNeeded) {
-      // check if source files changed
-      let oldestOutputModificationTime = Number.MAX_SAFE_INTEGER;
-      for (const file of outputFiles) {
-        const modificationTime = fs.statSync(file).mtimeMs;
-        if (modificationTime < oldestOutputModificationTime) {
-          oldestOutputModificationTime = modificationTime;
-        }
-      }
-      let latestSourseModificationTime = 0;
-      for (const file of sourceFiles) {
-        const modificationTime = fs.statSync(file).mtimeMs;
-        if (modificationTime > latestSourseModificationTime) {
-          latestSourseModificationTime = modificationTime;
-        }
-      }
 
-      if (latestSourseModificationTime > oldestOutputModificationTime) {
+    // check content hash of source files
+    const sourceHashes: Record<string, string> = {};
+    for (const file of sourceFiles) {
+      const fileBuffer = fs.readFileSync(file, 'utf8');
+      const hashSum = cryptoLib.createHash('sha256');
+      hashSum.update(fileBuffer);
+      sourceHashes[file] = hashSum.digest('hex');
+    }
+
+    if (!buildNeeded) {
+      // compare with hashes from last build saved in buildConfig
+      const previousConfig = JSON.parse(
+        fs.readFileSync(buildConfigPath, 'utf8'),
+      );
+      if (previousConfig.sourceHashes) {
+        for (const file of sourceFiles) {
+          if (previousConfig.sourceHashes[file] !== sourceHashes[file]) {
+            buildNeeded = true;
+            console.log(
+              `Rebuilding ${circuit.name} because ${file} changed since last build`,
+            );
+            break;
+          }
+        }
+      } else {
         buildNeeded = true;
-        console.log(`Rebuilding ${circuit.name} because source files changed`);
+        console.log(
+          `Rebuilding ${circuit.name} because build config does not contain source hashes`,
+        );
       }
     }
     if (!buildNeeded) {
@@ -96,8 +107,8 @@ async function smartCircuitBuild(
         fs.readFileSync(buildConfigPath, 'utf8'),
       );
 
-      if (JSON.stringify(previousConfig) !== JSON.stringify(circuit)) {
-        // this would also triger on different order of keys
+      if (JSON.stringify(previousConfig.circuit) !== JSON.stringify(circuit)) {
+        // this would also trigger on different order of keys
         buildNeeded = true;
         console.log(`Rebuilding ${circuit.name} because build config changed`);
       }
@@ -122,9 +133,13 @@ async function smartCircuitBuild(
       fs.writeFileSync(verifierPath, contentAfter, 'utf8');
 
       // Write JSON of build config for that circuit to detect changes
+      const buildConfig = {
+        circuit,
+        sourceHashes,
+      };
       fs.writeFileSync(
         buildConfigPath,
-        JSON.stringify(circuit, null, 2),
+        JSON.stringify(buildConfig, null, 2),
         'utf8',
       );
     } else {

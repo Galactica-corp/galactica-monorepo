@@ -68,7 +68,6 @@ node_modules/
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
-.vscode/settings.json
 
 # yarn v2
 .yarn/cache
@@ -81,3 +80,7 @@ node_modules/
 **/.turbo
 .local-pack
 .turbo
+
+# ignore build files in subpackage so that it is also ignored when runnign prettier
+packages/zk-certificates/artifacts
+packages/zk-certificates/cache

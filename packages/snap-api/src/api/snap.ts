@@ -1,4 +1,4 @@
-import { sdkConfig } from '../config';
+import { config } from '../config';
 
 export type GetSnapsResponse = Record<string, Snap>;
 
@@ -27,7 +27,7 @@ export const getSnaps = async (): Promise<GetSnapsResponse> => {
  * @param params - The params to pass with the snap to connect.
  */
 export const connectSnap = async (
-  snapId: string = sdkConfig.defaultSnapOrigin,
+  snapId: string = config.defaultSnapOrigin,
   params: Record<'version' | string, unknown> = {},
 ) => {
   console.log('Connecting to snap', snapId, params);
@@ -54,7 +54,7 @@ export const getSnap = async (version?: string): Promise<Snap | undefined> => {
 
     return Object.values(snaps).find(
       (snap) =>
-        snap.id === sdkConfig.defaultSnapOrigin &&
+        snap.id === config.defaultSnapOrigin &&
         (!version || snap.version === version),
     );
   } catch (error) {

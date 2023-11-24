@@ -14,7 +14,7 @@ export * from './api/types';
 export * from './api/zkpInputTypes';
 export * from './api/snap';
 
-export { sdkConfig, type SdkConfig } from './config';
+export { config, type Config } from './config';
 
 export { RpcMethods, RpcResponseErr } from './api/rpcEnums';
 

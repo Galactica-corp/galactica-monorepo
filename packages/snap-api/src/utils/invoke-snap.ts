@@ -1,6 +1,9 @@
-import { sdkConfig } from '../config';
+import { config } from '../config';
 
-export const invokeSnap = async <T>(request: T) => {
+export const invokeSnap = async <T>(
+  request: T,
+  snapOrigin: string = config.defaultSnapOrigin,
+) => {
   if (!window.ethereum) {
     throw new Error('window.ethereum is undefined');
   }
@@ -8,7 +11,7 @@ export const invokeSnap = async <T>(request: T) => {
   return window.ethereum?.request({
     method: 'wallet_invokeSnap',
     params: {
-      snapId: sdkConfig.defaultSnapOrigin,
+      snapId: snapOrigin,
       request,
     },
   });
