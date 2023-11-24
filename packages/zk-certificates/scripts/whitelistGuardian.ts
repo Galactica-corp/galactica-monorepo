@@ -1,32 +1,19 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { ethers } from 'hardhat';
 
+import { whitelistGuardian } from './deploymentSteps/whitelistGuardian';
+
 /**
  * Script for adding a KYC center to the KYC center registry.
  */
 async function main() {
-  // wallets
-  const [deployer] = await ethers.getSigners();
-  console.log(`Using account ${deployer.address} as KYC provider`);
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
-  console.log();
-
   // parameters
-  const centerRegistryAddr = '0x3D8AAba820817254719BD6f997835B6f9F3485e2';
-  const kycCenterAddr = deployer.address;
+  const [deployer] = await ethers.getSigners();
+  const centerRegistryAddr = '0xeF1D3A76AC69bc8861f18d41Ef10D2C74A646cA6';
+  const guardian = deployer;
+  const guardianName = 'Galactica Test Guardian';
 
-  // get contract
-  const centerRegistry = await ethers.getContractAt(
-    'KYCCenterRegistry',
-    centerRegistryAddr,
-  );
-
-  console.log(`Adding ${kycCenterAddr} as KYC provider...`);
-  // TODO: skip when already added
-  const tx = await centerRegistry.grantKYCCenterRole(deployer.address);
-  await tx.wait();
-
-  console.log(`Done`);
+  await whitelistGuardian(deployer, centerRegistryAddr, guardian, guardianName);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

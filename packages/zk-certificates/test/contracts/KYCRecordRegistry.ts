@@ -32,10 +32,10 @@ describe('KYCRecordRegistry', () => {
     const PoseidonT3 = await ethers.getContractFactory('PoseidonT3');
     const poseidonT3 = await PoseidonT3.deploy();
 
-    const KYCCenterRegistryFactory = await ethers.getContractFactory(
-      'KYCCenterRegistry',
+    const GuardianRegistryFactory = await ethers.getContractFactory(
+      'GuardianRegistry',
     );
-    const KYCCenterRegistry = await KYCCenterRegistryFactory.deploy();
+    const GuardianRegistry = await GuardianRegistryFactory.deploy();
 
     const KYCRecordRegistryTest = await ethers.getContractFactory(
       'KYCRecordRegistryTest',
@@ -46,20 +46,20 @@ describe('KYCRecordRegistry', () => {
       },
     );
     const KYCRecordRegistry = await KYCRecordRegistryTest.deploy(
-      KYCCenterRegistry.address,
+      GuardianRegistry.address,
     );
 
     return {
       KYCRecordRegistry,
-      KYCCenterRegistry,
+      GuardianRegistry,
     };
   }
 
   it("shouldn't initialize twice", async () => {
-    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
 
     await expect(
-      KYCRecordRegistry.doubleInit(KYCCenterRegistry.address),
+      KYCRecordRegistry.doubleInit(GuardianRegistry.address),
     ).to.be.revertedWith('Initializable: contract is not initializing');
   });
 
@@ -94,10 +94,10 @@ describe('KYCRecordRegistry', () => {
   it('should insert elements', async function () {
     const loops = 5;
 
-    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
 
-    // add deployer as a KYCCenter
-    await KYCCenterRegistry.grantKYCCenterRole(deployer.address);
+    // add deployer as a Guardian
+    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -129,10 +129,10 @@ describe('KYCRecordRegistry', () => {
   it('should be able to nullify a leaf', async function () {
     const loops = 5;
 
-    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
 
-    // add deployer as a KYCCenter
-    await KYCCenterRegistry.grantKYCCenterRole(deployer.address);
+    // add deployer as a Guardian
+    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;

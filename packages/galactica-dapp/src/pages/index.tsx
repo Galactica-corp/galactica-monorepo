@@ -6,6 +6,7 @@ import {
   queryVerificationSBTs,
   formatVerificationSBTs,
   getUserAddress,
+  getGuardianNameMap,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -286,9 +287,9 @@ const Index = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const sbts = await queryVerificationSBTs(addresses.verificationSBT, provider, await signer.getAddress());
-      console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts)} `);
-
-      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: sbts });
+      const guardianNameMap = await getGuardianNameMap(sbts, addresses.zkKYCRegistry, provider);
+      console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts, guardianNameMap)} `);
+      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: { sbts, guardianNameMap } });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -406,7 +407,7 @@ const Index = () => {
         <Card
           content={{
             title: 'Show valid Verification SBTs',
-            description: formatVerificationSBTs(state.verificationSbts),
+            description: formatVerificationSBTs(state.verificationSbts, state.guardianNameMap),
             button: (
               <GeneralButton
                 onClick={showVerificationSBTs}
