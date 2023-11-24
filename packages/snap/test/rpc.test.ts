@@ -1,16 +1,18 @@
-import {
-  RpcResponseErr,
-  RpcMethods,
-  RpcResponseMsg,
-  ZkCertProof,
-  HolderCommitmentData,
-  ZkCertSelectionParams,
-  ZkCertStandard,
-  MerkleProofUpdateRequestParams,
+import type {
   ConfirmationResponse,
   EncryptedZkCert,
-  ZkCertRegistered,
+  HolderCommitmentData,
   MerkleProof,
+  MerkleProofUpdateRequestParams,
+  ZkCertProof,
+  ZkCertRegistered,
+  ZkCertSelectionParams,
+} from '@galactica-net/snap-api';
+import {
+  RpcMethods,
+  RpcResponseErr,
+  RpcResponseMsg,
+  ZkCertStandard,
 } from '@galactica-net/snap-api';
 import { fromDecToHex } from '@galactica-net/zk-certificates';
 import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
@@ -25,6 +27,7 @@ import { groth16 } from 'snarkjs';
 import {
   defaultRPCRequest,
   merkleProofServiceURL,
+  testEdDSAKey,
   testEntropyEncrypt,
   testEntropyHolder,
   testHolder,
@@ -34,11 +37,10 @@ import { mockEthereumProvider, mockSnapProvider } from './wallet.mock';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
-import zkKYCToImportInUnitTest from '../../../test/zkKYCToImportInUnitTest.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
 import { encryptZkCert } from '../src/encryption';
-import { RpcArgs } from '../src/types';
+import type { RpcArgs } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
 
 chai.use(sinonChai);
@@ -47,15 +49,11 @@ chai.use(chaiFetchMock);
 
 /**
  * Helper to build RPC requests for testing.
- *
  * @param method - The method to be called.
  * @param params - Parameters to be passed, if any.
  * @returns The RPC request object.
  */
-function buildRPCRequest(
-  method: RpcMethods,
-  params: any | undefined = undefined,
-): RpcArgs {
+function buildRPCRequest(method: RpcMethods, params: any = undefined): RpcArgs {
   const res = defaultRPCRequest;
   res.request.method = method;
   if (params) {
@@ -66,7 +64,6 @@ function buildRPCRequest(
 
 /**
  * Verifies a proof and expects it to be valid.
- *
  * @param result - The proof to be verified.
  */
 async function verifyProof(result: ZkCertProof) {
@@ -85,7 +82,6 @@ async function verifyProof(result: ZkCertProof) {
 
 /**
  * Helper for formatting a merkle proof to the format expected by the service.
- *
  * @param merkleProof - The merkle proof to be formatted.
  * @returns The formatted merkle proof as returned by the service.
  */
@@ -182,7 +178,10 @@ describe('Test rpc handler function', function () {
             {
               address: '0x1234',
               holderCommitment: '0x2345',
-              eddsaKey: '0x3456',
+              eddsaEntropy:
+                '0001020304050607080900010203040506070809000102030405060708090001',
+              encryptionPrivKey: '0x1234',
+              encryptionPubKey: '0x1234',
             },
           ],
           zkCerts: [],
@@ -221,10 +220,9 @@ describe('Test rpc handler function', function () {
       this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const expectedHolderCommitment = await calculateHolderCommitment(
-        testEntropyHolder,
-      );
-      const zkKYC = { ...zkKYCToImportInUnitTest };
+      const expectedHolderCommitment =
+        await calculateHolderCommitment(testEdDSAKey);
+      const zkKYC = { ...zkCert };
       zkKYC.holderCommitment = expectedHolderCommitment;
 
       await processRpcRequest(
@@ -245,7 +243,7 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [
             {
-              eddsaKey: testEntropyHolder,
+              eddsaEntropy: testEdDSAKey.toString('hex'),
               holderCommitment: expectedHolderCommitment,
               encryptionPrivKey: testEntropyEncrypt.slice(2),
               encryptionPubKey: getEncryptionPublicKey(

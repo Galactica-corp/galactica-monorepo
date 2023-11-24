@@ -17,7 +17,6 @@ export class URLUpdateError extends GalacticaErrorBase<URLUpdateErrorName> {}
 /**
  * UpdateMerkleProof allows you to update the url to get new merkle proofs from.
  * This is only a fallback until we have a decentralized solution.
- *
  * @param update - New URL to get Merkle proofs from.
  * @param snapOrigin - Optional origin ID of the Snap if you want to use a non-default version.
  * @returns Success message.

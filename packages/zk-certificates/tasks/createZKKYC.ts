@@ -8,7 +8,7 @@ import { buildEddsa, buildPoseidon } from 'circomlibjs';
 import fs from 'fs';
 import { task, types } from 'hardhat/config';
 import { string } from 'hardhat/internal/core/params/argumentTypes';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
 import {
@@ -23,7 +23,6 @@ import { ZKCertificate } from '../lib/zkCertificate';
 
 /**
  * Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
- *
  * @param args - See task definition below or 'npx hardhat createZkKYC --help'.
  * @param hre - Hardhat runtime environment.
  */
@@ -207,7 +206,21 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   merkleProof = merkleTree.createProof(index);
 
   console.log(chalk.green('ZkKYC (created, issued, including merkle proof)'));
-  console.log(JSON.stringify(zkKYC.exportRaw(), null, 2));
+  const rawJSON = {
+    ...zkKYC.exportRaw(),
+    merkleProof: {
+      root: merkleTree.root,
+      pathIndices: merkleProof.pathIndices,
+      pathElements: merkleProof.path,
+      leaf: zkKYC.leafHash,
+    },
+    registration: {
+      address: recordRegistry.address,
+      revocable: true,
+      leafIndex: index,
+    },
+  };
+  console.log(JSON.stringify(rawJSON, null, 2));
   console.log(chalk.green('This ZkKYC can be imported in a wallet'));
 
   // write encrypted zkKYC output to file

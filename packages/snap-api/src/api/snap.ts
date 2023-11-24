@@ -11,7 +11,6 @@ export type Snap = {
 
 /**
  * Get the installed snaps in MetaMask.
- *
  * @returns The snaps installed in MetaMask.
  */
 export const getSnaps = async (): Promise<GetSnapsResponse> => {
@@ -22,13 +21,12 @@ export const getSnaps = async (): Promise<GetSnapsResponse> => {
 
 /**
  * Connect a snap to MetaMask.
- *
  * @param snapId - The ID of the snap.
  * @param params - The params to pass with the snap to connect.
  */
 export const connectSnap = async (
   snapId: string = sdkConfig.defaultSnapOrigin,
-  params: Record<'version' | string, unknown> = {},
+  params: Record<'version', unknown> = { version: undefined },
 ) => {
   console.log('Connecting to snap', snapId, params);
   const res = await window.ethereum.request({
@@ -44,7 +42,6 @@ export const connectSnap = async (
 
 /**
  * Get the snap from MetaMask.
- *
  * @param version - The version of the snap to install (optional).
  * @returns The snap object returned by the extension.
  */

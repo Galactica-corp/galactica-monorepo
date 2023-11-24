@@ -4,7 +4,7 @@ import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
 import { Wallet } from 'ethers';
-import { HardhatUserConfig } from 'hardhat/config';
+import type { HardhatUserConfig } from 'hardhat/config';
 
 import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
@@ -168,7 +168,6 @@ const config: HardhatUserConfig = {
 /**
  * Gets the accounts for operation from the environment variables.
  * If they are not present, it will use random private keys (for example on the GitHub pipeline).
- *
  * @returns Array of private keys.
  */
 function getAccounts(): string[] {

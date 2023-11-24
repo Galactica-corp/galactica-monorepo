@@ -5,7 +5,6 @@ import galacticaInstitutionABI from '../config/abi/IGalacticaInstitution.json';
 
 /**
  * Prepares the proof input for the ZKP.
- *
  * @param dAppAddress - The address of the dApp the ZKP is for.
  * @param institutionAddresses - Addresses of involved institutions (if any) to get the pub key from.
  * @param additionalProofInput - Additional proof inputs that are not part of the core zkKYC.
@@ -49,7 +48,6 @@ export async function prepareProofInput(
 
 /**
  * Get prover data (separately loaded because the large json should not slow down initial site loading).
- *
  * @param path - Path to the prover data json file (relative to the public folder).
  * @returns JSON object with the prover data.
  */

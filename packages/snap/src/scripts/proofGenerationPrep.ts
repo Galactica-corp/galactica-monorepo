@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-import { GenZkProofParams, ZkCertStandard } from '@galactica-net/snap-api';
+import type { GenZkProofParams } from '@galactica-net/snap-api';
+import { ZkCertStandard } from '@galactica-net/snap-api';
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
 import * as fs from 'fs';
@@ -14,7 +15,6 @@ import { parse } from 'ts-command-line-args';
 
 /**
  * TestModified constructs and checks the zkKYC proof with the modified code of snarkjs that does not depend on file reading.
- *
  * @param circuitName - Name of the circuit to find the files.
  * @param circuitDir - Directory holding the .wasm and .zkey files.
  * @param params - Parameters to generate the proof with.
@@ -46,7 +46,6 @@ async function testModified(
 /**
  * Because we can not read files inside the SES of a snap, we parse the data here
  * to have it in typescript and be able to pass it through the RPC endpoint.
- *
  * @param circuitName - Name of the circuit to find the files.
  * @param circuitDir - Directory holding the .wasm and .zkey files.
  * @param input - Input data for testing if the generation works.
@@ -99,7 +98,6 @@ async function createCircuitData(
 /**
  * To simplify reading the data in the frontend, we write it to a json file here.
  * Then it can be imported on demand to be uploaded to the snap.
- *
  * @param filePath - Path to write to.
  * @param data - Data to write.
  */
@@ -160,7 +158,6 @@ async function writeCircuitDataToJSON(
 
 /**
  * Check if a generated  zkProof is valid.
- *
  * @param proof - Proof data.
  * @param publicSignals - Public signals.
  * @param vKey - Verification key.

@@ -1,7 +1,7 @@
 import { GalacticaErrorBase } from './error';
-import { ZkCertMetadataList } from './list-zk-certs';
+import type { ZkCertMetadataList } from './list-zk-certs';
 import { RpcMethods } from './rpcEnums';
-import { EncryptedZkCert } from './types';
+import type { EncryptedZkCert } from './types';
 import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
 
@@ -18,7 +18,6 @@ export type ImportZkCertParams = {
 
 /**
  * Imports a zkCertificate from a file into the Snap.
- *
  * @param importParams - The zkCert to be imported.
  * @param snapOrigin - Optional origin ID of the Snap if you want to use a non-default version.
  * @returns List of zkCert metadata or success message.

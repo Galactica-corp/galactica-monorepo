@@ -1,7 +1,7 @@
 import { GalacticaErrorBase } from './error';
 import { RpcMethods } from './rpcEnums';
-import { ZkCertStandard, ProverData, ZkCertProof } from './types';
-import { ZkCertInputType } from './zkpInputTypes';
+import type { ZkCertStandard, ProverData, ZkCertProof } from './types';
+import type { ZkCertInputType } from './zkpInputTypes';
 import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
 
@@ -40,7 +40,6 @@ export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> {}
 /**
  * GenerateZKProof prepares and executes the call to generate a ZKP in the Galactica snap.
  * You can use it to generate various kinds of proofs, depending on the input you pass.
- *
  * @param params - The parameters required to generate a ZKP in the Snap.
  * @param snapOrigin - Optional origin ID of the Snap if you want to use a non-default version.
  * @returns Request result with the ZK proof or error.
