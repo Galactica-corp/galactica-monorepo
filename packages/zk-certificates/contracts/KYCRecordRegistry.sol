@@ -3,15 +3,15 @@ pragma solidity ^0.8.7;
 pragma abicoder v2;
 
 // OpenZeppelin v4
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
-import {SNARK_SCALAR_FIELD} from "./helpers/Globals.sol";
+import {SNARK_SCALAR_FIELD} from './helpers/Globals.sol';
 
-import {PoseidonT3} from "./helpers/Poseidon.sol";
+import {PoseidonT3} from './helpers/Poseidon.sol';
 
-import {KYCCenterRegistry} from "./KYCCenterRegistry.sol";
+import {GuardianRegistry, GuardianInfo} from './GuardianRegistry.sol';
 
-import {IKYCRegistry} from "./interfaces/IKYCRegistry.sol";
+import {IKYCRegistry} from './interfaces/IKYCRegistry.sol';
 
 /**
  * @title KYCRecordRegistry
@@ -31,7 +31,7 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
 
     // Tree zero value
     bytes32 public constant ZERO_VALUE =
-        bytes32(uint256(keccak256("Galactica")) % SNARK_SCALAR_FIELD);
+        bytes32(uint256(keccak256('Galactica')) % SNARK_SCALAR_FIELD);
 
     // Next leaf index (number of inserted leaves in the current tree)
     uint256 public nextLeafIndex;
@@ -47,15 +47,15 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
     // a mapping to store which KYC center manages which ZKKYCRecords
     mapping(bytes32 => address) public ZKKYCRecordToCenter;
 
-    KYCCenterRegistry public _KYCCenterRegistry;
+    GuardianRegistry public _GuardianRegistry;
     event zkKYCRecordAddition(
         bytes32 indexed zkKYCRecordLeafHash,
-        address indexed KYCCenter,
+        address indexed Guardian,
         uint index
     );
     event zkKYCRecordRevocation(
         bytes32 indexed zkKYCRecordLeafHash,
-        address indexed KYCCenter,
+        address indexed Guardian,
         uint index
     );
 
@@ -64,7 +64,7 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
      * @dev OpenZeppelin initializer ensures this can only be called once
      */
     function initializeKYCRecordRegistry(
-        address KYCCenterRegistry_
+        address GuardianRegistry_
     ) internal onlyInitializing {
         /*
     To initialize the Merkle tree, we need to calculate the Merkle root
@@ -97,7 +97,7 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
 
         // Set merkle root
         merkleRoot = currentZero;
-        _KYCCenterRegistry = KYCCenterRegistry(KYCCenterRegistry_);
+        _GuardianRegistry = GuardianRegistry(GuardianRegistry_);
     }
 
     /**
@@ -114,8 +114,8 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
         // since we are adding a new zkKYC record, we assume that the leaf is of zero value
         bytes32 currentLeafHash = ZERO_VALUE;
         require(
-            _KYCCenterRegistry.KYCCenters(msg.sender),
-            "KYCRecordRegistry: not a KYC Center"
+            _GuardianRegistry.isWhitelisted(msg.sender),
+            'KYCRecordRegistry: not a KYC Center'
         );
         _changeLeafHash(
             leafIndex,
@@ -142,7 +142,7 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
         bytes32 newLeafHash = ZERO_VALUE;
         require(
             ZKKYCRecordToCenter[zkKYCRecordHash] == msg.sender,
-            "KYCRecordRegistry: not the corresponding KYC Center"
+            'KYCRecordRegistry: not the corresponding KYC Center'
         );
         _changeLeafHash(leafIndex, zkKYCRecordHash, newLeafHash, merkleProof);
         ZKKYCRecordToCenter[zkKYCRecordHash] = address(0);
@@ -163,7 +163,7 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
     ) internal {
         require(
             validate(merkleProof, index, currentLeafHash, merkleRoot),
-            "merkle proof is not valid"
+            'merkle proof is not valid'
         );
         // we update the merkle tree accordingly
         merkleRoot = compute(merkleProof, index, newLeafHash);
@@ -199,8 +199,8 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
         uint256 index,
         bytes32 leafHash
     ) internal pure returns (bytes32) {
-        require(index < TREE_SIZE, "_index bigger than tree size");
-        require(merkleProof.length == TREE_DEPTH, "Invalid _proofs length");
+        require(index < TREE_SIZE, '_index bigger than tree size');
+        require(merkleProof.length == TREE_DEPTH, 'Invalid _proofs length');
 
         for (uint256 d = 0; d < TREE_DEPTH; d++) {
             if ((index & 1) == 1) {

@@ -19,6 +19,7 @@ export type MetamaskState = {
   signer?: string;
   proofData?: any;
   verificationSbts: SBT[];
+  guardianNameMap: Map<string[2], string>,
 };
 
 const initialState: MetamaskState = {
@@ -28,6 +29,7 @@ const initialState: MetamaskState = {
   signer: "Connect",
   proofData: undefined,
   verificationSbts: [],
+  guardianNameMap: new Map<string[2], string>(),
 };
 
 type MetamaskDispatch = { type: MetamaskActions; payload: any };
@@ -92,7 +94,8 @@ const reducer: Reducer<MetamaskState, MetamaskDispatch> = (state, action) => {
     case MetamaskActions.SetVerificationSBT:
       return {
         ...state,
-        verificationSbts: action.payload,
+        verificationSbts: action.payload.sbts,
+        guardianNameMap: action.payload.guardianNameMap,
       };
 
     default:
