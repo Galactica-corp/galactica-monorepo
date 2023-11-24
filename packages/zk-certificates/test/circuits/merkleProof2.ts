@@ -33,8 +33,8 @@ describe('Merkle Proof 2 Circuit Component', () => {
     assert.propertyVal(witness, 'main.leaf', sampleInput.leaf);
     assert.propertyVal(
       witness,
-      'main.pathIndices',
-      BigInt(sampleInput.pathIndices).toString(),
+      'main.leafIndex',
+      BigInt(sampleInput.leafIndex).toString(),
     );
     // check resulting root as output
     assert.propertyVal(witness, 'main.root', expectedRoot);
@@ -58,7 +58,7 @@ describe('Merkle Proof 2 Circuit Component', () => {
 
   it('output changes on having a different path', async () => {
     const forgedInput = { ...sampleInput };
-    forgedInput.pathIndices -= 1; // flip some bits to have a different path
+    forgedInput.leafIndex -= 1; // flip some bits to have a different path
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
       sanityCheck,

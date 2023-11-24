@@ -135,7 +135,7 @@ export async function generateZkKYCProofInput(
   zkKYCInput.randomSalt = zkKYC.randomSalt;
 
   zkKYCInput.pathElements = merkleProof.pathElements;
-  zkKYCInput.pathIndices = merkleProof.pathIndices;
+  zkKYCInput.leafIndex = merkleProof.leafIndex;
   zkKYCInput.root = merkleRoot;
   zkKYCInput.currentTime = currentTimestamp;
 

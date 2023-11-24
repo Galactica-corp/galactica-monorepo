@@ -130,10 +130,8 @@ export class MerkleTree {
    */
   createProof(leaf: string): MerkleProof {
     const path = [];
-    // indices as binary number. If a bit is set, it means that the path is the right part of the parent node.
-    let pathIndices = 0;
-
     // Search for leaf position in the tree
+    // The leafIndex also works as binary array. If a bit is set, it means that the path is the right part of the parent node.
     const leafIndex = this.tree[0].indexOf(leaf);
     let curIndex = leafIndex;
 
@@ -153,8 +151,6 @@ export class MerkleTree {
         );
       } else {
         path.push(this.tree[level][curIndex - 1]);
-        // set bit indicating that we are on the right side of the parent node
-        pathIndices |= 1 << level;
       }
 
       // Get index for next level
@@ -164,7 +160,7 @@ export class MerkleTree {
     return {
       leaf,
       pathElements: path,
-      pathIndices,
+      leafIndex,
       root: this.root,
     };
   }
