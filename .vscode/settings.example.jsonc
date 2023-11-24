@@ -1,0 +1,38 @@
+{
+  "cSpell.words": [
+    "zkey",
+    "Circom",
+    "Devnet",
+    "eddsa",
+    "Galactica",
+    "groth",
+    "keccak",
+    "Merkle",
+    "pubkey",
+    "snarkjs",
+    "vkey"
+  ],
+  "editor.formatOnSave": true,
+  "editor.detectIndentation": false,
+  "explorer.confirmDragAndDrop": false,
+  // I want my default to be 4, but JavaScript/JSON to be 2
+  "editor.tabSize": 4,
+  "[javascript]": {
+    "editor.tabSize": 2
+  },
+  "[typescript]": {
+    "editor.tabSize": 2
+  },
+  "[typescriptreact]": {
+    "editor.tabSize": 2
+  },
+  "[json]": {
+    "files.insertFinalNewline": true,
+    "editor.tabSize": 2
+  },
+  "[solidity]": {
+    "editor.tabSize": 4
+  },
+  "editor.indentSize": "tabSize",
+  "editor.language.brackets": []
+}
