@@ -38,8 +38,8 @@ describe('zkKYC Circuit Component', () => {
     );
     assert.propertyVal(
       witness,
-      'main.pathIndices',
-      BigInt(sampleInput.pathIndices).toString(),
+      'main.leafIndex',
+      BigInt(sampleInput.leafIndex).toString(),
     );
 
     assert.propertyVal(witness, 'main.valid', '1', 'proof should be valid');

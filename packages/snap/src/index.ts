@@ -203,8 +203,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const oldVersion = state.zkCerts.find(
         (candidate) =>
           candidate.holderCommitment === zkCert.holderCommitment &&
-          candidate.merkleProof.pathIndices ===
-            zkCert.merkleProof.pathIndices &&
+          candidate.merkleProof.leafIndex === zkCert.merkleProof.leafIndex &&
           candidate.registration.address === zkCert.registration.address,
       );
       if (oldVersion) {

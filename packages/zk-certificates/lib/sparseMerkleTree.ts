@@ -161,7 +161,6 @@ export class SparseMerkleTree {
    */
   createProof(leafIndex: number): MerkleProof {
     const path = [];
-    let pathIndices = 0;
     const leaf = this.retrieveLeaf(0, leafIndex);
 
     let curIndex = leafIndex;
@@ -174,7 +173,6 @@ export class SparseMerkleTree {
       } else {
         path.push(this.retrieveLeaf(level, curIndex - 1));
         // set bit indicating that we are on the right side of the parent node
-        pathIndices |= 1 << level;
       }
 
       // Get index for next level
@@ -184,7 +182,7 @@ export class SparseMerkleTree {
     return {
       leaf,
       path,
-      pathIndices,
+      leafIndex,
       root: this.root,
     };
   }
@@ -198,6 +196,6 @@ export type MerkleProof = {
   // hashes of the branches on the side of the path
   path: string[];
   // interpreted as binary number. If a bit is set, it means that the path is the right part of the parent node.
-  pathIndices: number;
+  leafIndex: number;
   root: string;
 };

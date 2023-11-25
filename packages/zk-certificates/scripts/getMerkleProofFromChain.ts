@@ -42,7 +42,7 @@ async function main() {
     const output = {
       leaf,
       root: merkleTree.root,
-      pathIndices: merkleProof.pathIndices,
+      leafIndex: merkleProof.leafIndex,
       pathElements: merkleProof.path,
     };
 

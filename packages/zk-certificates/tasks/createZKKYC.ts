@@ -228,7 +228,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     holderCommitmentFile.encryptionPubKey,
     {
       root: merkleTree.root,
-      pathIndices: merkleProof.pathIndices,
+      leafIndex: merkleProof.leafIndex,
       pathElements: merkleProof.path,
       leaf: zkKYC.leafHash,
     },

@@ -30,7 +30,7 @@ describe('Merkle Proof Circuit Component', () => {
       sanityCheck,
     );
     assert.propertyVal(witness, 'main.leaf', '0');
-    assert.propertyVal(witness, 'main.pathIndices', '5');
+    assert.propertyVal(witness, 'main.leafIndex', '5');
     // check resulting root as output
     assert.propertyVal(witness, 'main.root', expectedRoot);
   });
@@ -53,7 +53,7 @@ describe('Merkle Proof Circuit Component', () => {
 
   it('output changes on having a different path', async () => {
     const forgedInput = { ...sampleInput };
-    forgedInput.pathIndices -= 1; // flip some bits to have a different path
+    forgedInput.leafIndex -= 1; // flip some bits to have a different path
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
       sanityCheck,

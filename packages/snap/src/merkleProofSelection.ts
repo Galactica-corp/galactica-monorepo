@@ -79,7 +79,7 @@ export async function getMerkleProof(
       root: resJson.root,
       leaf: zkCert.leafHash,
       pathElements: resJson.path,
-      pathIndices: resJson.indices,
+      leafIndex: resJson.indices,
     };
     return merkleProof;
   } catch (error) {

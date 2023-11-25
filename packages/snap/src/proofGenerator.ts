@@ -70,7 +70,7 @@ export const generateZkKycProof = async (
 
     root: merkleProof.root,
     pathElements: merkleProof.pathElements,
-    pathIndices: merkleProof.pathIndices,
+    leafIndex: merkleProof.leafIndex,
 
     userPrivKey: encryptionPrivKey,
 

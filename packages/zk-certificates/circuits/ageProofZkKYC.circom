@@ -36,7 +36,7 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
 
     // variables related to the merkle proof
     signal input pathElements[levels];
-    signal input pathIndices;
+    signal input leafIndex;
     signal input root;
     signal input currentTime;
 
@@ -123,7 +123,7 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     for (var i = 0; i < levels; i++) {
         zkKYC.pathElements[i] <== pathElements[i];
     }
-    zkKYC.pathIndices <== pathIndices;
+    zkKYC.leafIndex <== leafIndex;
     zkKYC.root <== root;
     zkKYC.currentTime <== currentTime;
     zkKYC.ax <== ax;
