@@ -10,18 +10,18 @@ include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "../../../node_modules/circomlib/circuits/switcher.circom";
 
 // Verifies that merkle proof is correct for given merkle root and a leaf
-// pathIndices bits is an array of 0/1 selectors telling whether given pathElement is on the left or right side of merkle path
+// leafIndex can also be used as pathIndices, containing bits is an array of 0/1 selectors telling whether given pathElement is on the left or right side of merkle path
 template MerkleProof(levels) {
     signal input leaf;
     signal input pathElements[levels];
-    signal input pathIndices;
+    signal input leafIndex;
     signal output root;
 
     component switcher[levels];
     component hasher[levels];
 
     component indexBits = Num2Bits(levels);
-    indexBits.in <== pathIndices;
+    indexBits.in <== leafIndex;
 
     for (var i = 0; i < levels; i++) {
         switcher[i] = Switcher();

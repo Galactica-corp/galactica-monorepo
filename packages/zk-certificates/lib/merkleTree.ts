@@ -1,8 +1,8 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { MerkleProof } from '@galactica-net/galactica-types';
+import type { MerkleProof } from '@galactica-net/galactica-types';
 import keccak256 from 'keccak256';
 
-import { SNARK_SCALAR_FIELD, arrayToBigInt } from './helpers';
+import { arrayToBigInt, SNARK_SCALAR_FIELD } from './helpers';
 
 /**
  * Class for managing and constructing merkle trees.
@@ -28,7 +28,6 @@ export class MerkleTree {
 
   /**
    * Creates a MerkleTree.
-   *
    * @param depth - Depth of the tree.
    * @param poseidon - Poseidon instance to use for hashing.
    */
@@ -55,7 +54,6 @@ export class MerkleTree {
 
   /**
    * Calculate hash of a node from its left and right children.
-   *
    * @param left - Left child of the node.
    * @param right - Right child of the node.
    * @returns Hash of the node.
@@ -66,7 +64,6 @@ export class MerkleTree {
 
   /**
    * Calculate node hashes for empty branches of all depths.
-   *
    * @param depth - Max depth to calculate.
    * @returns Array of hashes for empty branches with [0] being an empty leaf and [depth] being the root.
    */
@@ -89,7 +86,6 @@ export class MerkleTree {
    * and updating hashes along the path to the root. This is not necessary for the curret use case
    * because inserting new leaves into an existing tree is done in the smart contract.
    * Here in the frontend or backend you want to build a new tree from scratch.
-   *
    * @param leaves - Array of leaf hashes to insert.
    */
   insertLeaves(leaves: string[]): void {
@@ -124,16 +120,13 @@ export class MerkleTree {
 
   /**
    * Create a merkle proof for a leaf.
-   *
    * @param leaf - Hash of the leaf to prove.
    * @returns Merkle proof for the leaf.
    */
   createProof(leaf: string): MerkleProof {
     const path = [];
-    // indices as binary number. If a bit is set, it means that the path is the right part of the parent node.
-    let pathIndices = 0;
-
     // Search for leaf position in the tree
+    // The leafIndex also works as binary array. If a bit is set, it means that the path is the right part of the parent node.
     const leafIndex = this.tree[0].indexOf(leaf);
     let curIndex = leafIndex;
 
@@ -153,8 +146,6 @@ export class MerkleTree {
         );
       } else {
         path.push(this.tree[level][curIndex - 1]);
-        // set bit indicating that we are on the right side of the parent node
-        pathIndices |= 1 << level;
       }
 
       // Get index for next level
@@ -164,7 +155,7 @@ export class MerkleTree {
     return {
       leaf,
       pathElements: path,
-      pathIndices,
+      leafIndex,
       root: this.root,
     };
   }

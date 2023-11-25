@@ -26,7 +26,7 @@ flat
 
 # circom and snarkjs
 circuits/build
-contracts/*Verifier.sol
+contracts/zkpVerifiers
 circuits/pot*.ptau
 
 # ignore build files that do not need to be pushed as library
@@ -35,3 +35,5 @@ dist
 # ignore created zkKYC files
 issuedZkKYCs/*.json
 merkleProofs/*.json
+# and files with deployed smart contract addresses
+deployments/*.txt

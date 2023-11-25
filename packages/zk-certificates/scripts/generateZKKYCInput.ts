@@ -5,8 +5,8 @@ import { ethers } from 'hardhat';
 import { ZkCertStandard } from '../lib';
 import {
   createHolderCommitment,
-  getEddsaKeyFromEthSigner,
   formatPrivKeyForBabyJub,
+  getEddsaKeyFromEthSigner,
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ZKCertificate } from '../lib/zkCertificate';
@@ -32,7 +32,6 @@ export const fields = {
 
 /**
  * Generates a sample ZkKYC object with the given fields.
- *
  * @returns ZkKYC object promise.
  */
 export async function generateSampleZkKYC(): Promise<ZKCertificate> {
@@ -66,10 +65,10 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
 
 /**
  * Generates the zkKYC proof input for the zkKYC smart contract.
- *
  * @param zkKYC - The zkKYC object.
  * @param amountInstitutions - The amount of institutions to use for fraud investigation.
  * @param dAppAddress - The address of the DApp smart contract.
+ * @returns Zero Knowledge KYC proof input for the zkKYC smart contract.
  */
 export async function generateZkKYCProofInput(
   zkKYC: ZKCertificate,
@@ -110,9 +109,7 @@ export async function generateZkKYCProofInput(
   // calculate zkKYC leaf hash
   const { leafHash } = zkKYC;
 
-  const encryptionPrivKey = BigInt(
-    await getEddsaKeyFromEthSigner(encryptionAccount),
-  ).toString();
+  const encryptionPrivKey = await getEddsaKeyFromEthSigner(encryptionAccount);
 
   const humanIDProofInput = zkKYC.getHumanIDProofInput(
     dAppAddress,
@@ -134,7 +131,7 @@ export async function generateZkKYCProofInput(
   zkKYCInput.randomSalt = zkKYC.randomSalt;
 
   zkKYCInput.pathElements = merkleProof.pathElements;
-  zkKYCInput.pathIndices = merkleProof.pathIndices;
+  zkKYCInput.leafIndex = merkleProof.leafIndex;
   zkKYCInput.root = merkleRoot;
   zkKYCInput.currentTime = currentTimestamp;
 
@@ -158,9 +155,7 @@ export async function generateZkKYCProofInput(
   ).toString();
   zkKYCInput.investigationInstitutionPubKey = [];
   for (const inst of institutions) {
-    const institutionPrivKey = BigInt(
-      await getEddsaKeyFromEthSigner(inst),
-    ).toString();
+    const institutionPrivKey = await getEddsaKeyFromEthSigner(inst);
     const institutionPub = eddsa.prv2pub(institutionPrivKey);
 
     const fraudInvestigationDataEncryptionProofInput =

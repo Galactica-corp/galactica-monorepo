@@ -40,6 +40,14 @@ jobs:
       - if: ${{ steps.ptau-cache.outputs.cache-hit != 'true' }}
         name: Download ptau file
         run: wget https://galactica.com/trusted-setup/dev/pot17_final.ptau -O ./packages/zk-certificates/circuits/pot17_final.ptau
+      - name: cache zk circuit build
+        id: cache-zk-circuit-build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./packages/zk-certificates/contracts/zkpVerifiers
+            ./packages/zk-certificates/circuits/build
+          key: zk-circuit-cache-${{ runner.os }}-${{ hashFiles('packages/zk-certificates/circuits/*') }}
       - run: yarn build
       - run: yarn lint
       - run: yarn test

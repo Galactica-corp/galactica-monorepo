@@ -26,9 +26,8 @@ async function main() {
     UserEncryptedDataAddress,
   );
 
-  const userEncryptedData = await userEncryptedDataSC.encryptedData(
-    userAddress,
-  );
+  const userEncryptedData =
+    await userEncryptedDataSC.encryptedData(userAddress);
 
   console.log(
     `Encrypted data for user ${userAddress} is ${JSON.stringify(

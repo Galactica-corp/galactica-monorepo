@@ -3,19 +3,20 @@ pragma solidity ^0.8.7;
 pragma abicoder v2;
 
 /// @author Galactica dev team
-import { KYCRecordRegistry } from "../KYCRecordRegistry.sol";
+import {KYCRecordRegistry} from '../KYCRecordRegistry.sol';
 
 contract KYCRecordRegistryTest is KYCRecordRegistry {
-  constructor(address KYCCenterRegistry) {
-    initializeKYCRecordRegistryTest(KYCCenterRegistry);
-  }
+    constructor(address GuardianRegistry) {
+        initializeKYCRecordRegistryTest(GuardianRegistry);
+    }
 
-  function doubleInit(address KYCCenterRegistry) external {
-    KYCRecordRegistry.initializeKYCRecordRegistry(KYCCenterRegistry);
-  }
+    function doubleInit(address GuardianRegistry) external {
+        KYCRecordRegistry.initializeKYCRecordRegistry(GuardianRegistry);
+    }
 
-  function initializeKYCRecordRegistryTest(address KYCCenterRegistry) internal initializer {
-    KYCRecordRegistry.initializeKYCRecordRegistry(KYCCenterRegistry);
-  }
-
+    function initializeKYCRecordRegistryTest(
+        address GuardianRegistry
+    ) internal initializer {
+        KYCRecordRegistry.initializeKYCRecordRegistry(GuardianRegistry);
+    }
 }

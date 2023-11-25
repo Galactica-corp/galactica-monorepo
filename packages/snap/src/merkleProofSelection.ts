@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { MerkleProof, ZkCertRegistered } from '@galactica-net/galactica-types';
+import type {
+  MerkleProof,
+  ZkCertRegistered,
+} from '@galactica-net/galactica-types';
 import { GenericError } from '@galactica-net/snap-api';
 import { fromHexToDec } from '@galactica-net/zk-certificates';
-import { BaseProvider } from '@metamask/providers';
+import type { BaseProvider } from '@metamask/providers';
 import { Contract, providers } from 'ethers';
 
 import { fetchWithTimeout } from './utils';
@@ -12,7 +15,6 @@ const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 /**
  * Get Merkle proof for a zkCert in a registry. Fetches the merkle proof if it is ina revocable registry.
  * If the registry is non-revocable, the merkle proof is already included in the zkCert.
- *
  * @param zkCert - ZkCert to get the merkle proof for.
  * @param registryAddr - Address of the registry the zkCert is registered in.
  * @param ethereum - Ethereum provider to read from the blockchain.
@@ -77,7 +79,7 @@ export async function getMerkleProof(
       root: resJson.root,
       leaf: zkCert.leafHash,
       pathElements: resJson.path,
-      pathIndices: resJson.indices,
+      leafIndex: resJson.indices,
     };
     return merkleProof;
   } catch (error) {
@@ -92,7 +94,6 @@ export async function getMerkleProof(
 
 /**
  * Gets the node URL from the ethereum provider to fetch non-EVM data from.
- *
  * @returns URL as string.
  */
 function getDefaultMerkleServiceURL(): string {

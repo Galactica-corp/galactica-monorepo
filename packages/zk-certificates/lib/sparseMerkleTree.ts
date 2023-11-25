@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import keccak256 from 'keccak256';
 
-import { SNARK_SCALAR_FIELD, arrayToBigInt } from './helpers';
+import { arrayToBigInt, SNARK_SCALAR_FIELD } from './helpers';
 
 /**
  * Class for managing and constructing merkle trees.
@@ -28,7 +28,6 @@ export class SparseMerkleTree {
 
   /**
    * Create a MerkleTree.
-   *
    * @param depth - Depth of the tree.
    * @param poseidon - Poseidon instance to use for hashing.
    */
@@ -55,7 +54,6 @@ export class SparseMerkleTree {
 
   /**
    * Retrieve node/leaf at certain index and level of the tree.
-   *
    * @param level - Level numbered with depth contains the root.
    * @param index - Index of the leaf in that level.
    * @returns Content of the leaf.
@@ -81,7 +79,6 @@ export class SparseMerkleTree {
 
   /**
    * Calculate hash of a node from its left and right children.
-   *
    * @param left - Left child of the node.
    * @param right - Right child of the node.
    * @returns Hash of the node.
@@ -92,7 +89,6 @@ export class SparseMerkleTree {
 
   /**
    * Calculate node hashes for empty branches of all depths.
-   *
    * @param depth - Max depth to calculate.
    * @returns Array of hashes for empty branches with [0] being an empty leaf and [depth] being the root.
    */
@@ -115,7 +111,6 @@ export class SparseMerkleTree {
    * and updating hashes along the path to the root. This is not necessary for the current use case
    * because inserting new leaves into an existing tree is done in the smart contract.
    * Here in the frontend or backend you want to build a new tree from scratch.
-   *
    * @param leaves - Array of leaf hashes to insert.
    * @param indices - Array of indices of the leaves to insert.
    */
@@ -161,13 +156,11 @@ export class SparseMerkleTree {
 
   /**
    * Create a merkle proof for a leaf at certain index.
-   *
    * @param leafIndex - Index of the leaf to prove.
    * @returns Merkle proof for the leaf at the index.
    */
   createProof(leafIndex: number): MerkleProof {
     const path = [];
-    let pathIndices = 0;
     const leaf = this.retrieveLeaf(0, leafIndex);
 
     let curIndex = leafIndex;
@@ -180,7 +173,6 @@ export class SparseMerkleTree {
       } else {
         path.push(this.retrieveLeaf(level, curIndex - 1));
         // set bit indicating that we are on the right side of the parent node
-        pathIndices |= 1 << level;
       }
 
       // Get index for next level
@@ -190,7 +182,7 @@ export class SparseMerkleTree {
     return {
       leaf,
       path,
-      pathIndices,
+      leafIndex,
       root: this.root,
     };
   }
@@ -204,6 +196,6 @@ export type MerkleProof = {
   // hashes of the branches on the side of the path
   path: string[];
   // interpreted as binary number. If a bit is set, it means that the path is the right part of the parent node.
-  pathIndices: number;
+  leafIndex: number;
   root: string;
 };

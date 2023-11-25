@@ -12,7 +12,7 @@ import { SparseMerkleTree } from '../lib/sparseMerkleTree';
 async function main() {
   const registryAddress = '0xAbb654092b5BCaeca2E854550c5C972602eF7dA8';
   const leavesToProve = [
-    '9692421774444060561729589394553086451412517656073381178772613649069837222874',
+    '1587890648226949363967927358747281515927759982145649624939771519342787074806',
   ];
 
   // Create a new poseidon instance for hashing
@@ -44,7 +44,7 @@ async function main() {
     const output = {
       leaf,
       root: merkleTree.root,
-      pathIndices: merkleProof.pathIndices,
+      leafIndex: merkleProof.leafIndex,
       pathElements: merkleProof.path,
     };
 

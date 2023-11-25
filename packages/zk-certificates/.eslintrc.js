@@ -6,6 +6,10 @@ module.exports = {
     allowImportExportEverywhere: true,
   },
 
+  rules: {
+    '@typescript-eslint/no-parameter-properties': 'off'
+  },
+
   overrides: [
     {
       files: ['hardhat.config.ts'],
@@ -68,5 +72,5 @@ module.exports = {
     },
   ],
 
-  ignorePatterns: ['.eslintrc.js', 'artifacts/', 'cache/', 'circuits/build/'],
+  ignorePatterns: ['.eslintrc.js', 'artifacts/', 'cache/', 'circuits/build/', 'contracts/.prettierrc.js'],
 };

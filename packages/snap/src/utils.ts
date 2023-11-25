@@ -2,7 +2,6 @@
 
 /**
  * Fetch with configurable timeout.
- *
  * @param resource - URL to fetch from.
  * @param options - Fetch options, including timeout field.
  * @returns Fetch response.

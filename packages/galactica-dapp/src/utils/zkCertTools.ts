@@ -1,7 +1,10 @@
-import { ethers, BigNumber, EventFilter } from 'ethers';
+import type { EventFilter } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 
 import { getLocalStorage, setLocalStorage } from './localStorage';
+import GuardianRegistryABI from '../config/abi/GuardianRegistry.json';
 import VerificationSbtABI from '../config/abi/IVerificationSBT.json';
+import KYCRecordRegistryABI from '../config/abi/KYCRecordRegistry.json';
 
 /**
  * Data structure for a verification SBT.
@@ -14,10 +17,10 @@ export class SBT {
     public expirationTime: number,
     public verifierCodehash: string,
     public encryptedData: string[],
-    public userPubKey: string[],
+    public userPubKey: string[2],
     public humanID: string,
-    public providerPubKey: string,
-  ) {}
+    public providerPubKey: string[2],
+  ) {} // eslint-disable-line no-empty-function
 }
 
 /**
@@ -47,7 +50,6 @@ const LOCAL_STORAGE_KEY_SBT = 'cachedVerificationSBTs';
  * Finds verification SBTs for a user. Searches through logs of created verificationSBTs
  * and filters according to the userAddr (and optionally dAppAddr and humanID) provided.
  * Modifies the local storage to speedup future calls by caching results.
- *
  * @param sbtContractAddr - Address of the verification SBT contract holding the mapping of completed verifications.
  * @param provider - Provider to use to query logs.
  * @param userAddr - Address of the user to find verification SBTs for.
@@ -172,7 +174,10 @@ export async function queryVerificationSBTs(
   return userSBTs.verificationSBTs;
 }
 
-export function formatVerificationSBTs(sbts: SBT[]): string {
+export function formatVerificationSBTs(
+  sbts: SBT[],
+  providerNameMap: Map<string[2], string>,
+): string {
   let res = '';
   let count = 1;
   for (const sbt of sbts) {
@@ -183,11 +188,70 @@ export function formatVerificationSBTs(sbts: SBT[]): string {
     ).toDateString()}\n`;
     /* eslint-disable @typescript-eslint/restrict-template-expressions */
     res += `  humanID ${sbt.humanID}\n`;
-    res += `  provider ${JSON.stringify(sbt.providerPubKey)}\n`;
+    res += `  provider ${JSON.stringify(
+      providerNameMap.get(sbt.providerPubKey),
+    )}\n`;
     /* eslint-enable @typescript-eslint/restrict-template-expressions */
     res += `\n`;
 
     count += 1;
   }
   return res;
+}
+
+/**
+ * Query guardian name string from on-chain registry for being able to display a nice name.
+ * @param pubKey - PubKey of the guardian pubKey in form [Ax, Ay].
+ * @param registryAddr - Address of the registry contract where the zkCert is registered.
+ * @param provider - Ethereum provider to use to query the registry.
+ * @returns Guardian name.
+ */
+export async function getGuardianName(
+  pubKey: string[2],
+  registryAddr: string,
+  provider: ethers.providers.Web3Provider,
+): Promise<string> {
+  const registryContract = new ethers.Contract(
+    registryAddr,
+    KYCRecordRegistryABI.abi,
+    provider,
+  );
+  const guardianWhitelistContract = new ethers.Contract(
+    await registryContract._GuardianRegistry(),
+    GuardianRegistryABI.abi,
+    provider,
+  );
+  const guardianAddr = await guardianWhitelistContract.pubKeyToAddress(
+    pubKey[0],
+    pubKey[1],
+  );
+  const guardianInfo = await guardianWhitelistContract.guardians(guardianAddr);
+
+  return guardianInfo.name;
+}
+
+/**
+ * Constructs a map of guardian pubKey->name for a list of SBTs.
+ * @param sbts - List of SBTs to get the guardian name for.
+ * @param registryAddr - Address of the registry contract where the zkCert is registered.
+ * @param provider - Ethereum provider to use to query the registry.
+ * @returns Map of guardian pubKey->name.
+ */
+export async function getGuardianNameMap(
+  sbts: SBT[],
+  registryAddr: string,
+  provider: ethers.providers.Web3Provider,
+): Promise<Map<string[2], string>> {
+  const providerNameMap = new Map<string, string>();
+  for (const sbt of sbts) {
+    if (!providerNameMap.has(sbt.providerPubKey)) {
+      const providerName = await getGuardianName(
+        sbt.providerPubKey,
+        registryAddr,
+        provider,
+      );
+      providerNameMap.set(sbt.providerPubKey, providerName);
+    }
+  }
+  return providerNameMap;
 }

@@ -4,12 +4,13 @@ import '@nomiclabs/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
 import { Wallet } from 'ethers';
-import { HardhatUserConfig } from 'hardhat/config';
+import type { HardhatUserConfig } from 'hardhat/config';
 
 import './tasks/createZKKYC';
 import './tasks/smartCircuitBuild';
 import './tasks/revokeZKKYC';
 import './tasks/reissueZKKYC';
+import './tasks/circomTemplate';
 
 const config: HardhatUserConfig = {
   mocha: {
@@ -52,7 +53,7 @@ const config: HardhatUserConfig = {
       },
       {
         network: 'galaAndromeda',
-        chainId: 41237,
+        chainId: 41238,
         urls: {
           apiURL: 'https://explorer-andromeda.galactica.com/api',
           browserURL: 'https://explorer-andromeda.galactica.com/',
@@ -68,6 +69,7 @@ const config: HardhatUserConfig = {
     // The final ptau file, relative to inputBasePath, from a Phase 1 ceremony
     ptau: 'pot17_final.ptau',
     // Each object in this array refers to a separate circuit
+
     circuits: [
       {
         name: 'zkKYC',
@@ -166,7 +168,6 @@ const config: HardhatUserConfig = {
 /**
  * Gets the accounts for operation from the environment variables.
  * If they are not present, it will use random private keys (for example on the GitHub pipeline).
- *
  * @returns Array of private keys.
  */
 function getAccounts(): string[] {

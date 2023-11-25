@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import { buildPoseidon } from 'circomlibjs';
 import { task, types } from 'hardhat/config';
 import { string } from 'hardhat/internal/core/params/argumentTypes';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { fromDecToHex, fromHexToBytes32 } from '../lib/helpers';
 import { queryOnChainLeaves } from '../lib/queryMerkleTree';
@@ -11,7 +11,6 @@ import { SparseMerkleTree } from '../lib/sparseMerkleTree';
 
 /**
  * Script for revoking a zkKYC certificate, issuing it and adding a merkle proof for it.
- *
  * @param args - See task definition below or 'npx hardhat createZkKYC --help'.
  * @param hre - Hardhat runtime environment.
  */
@@ -40,11 +39,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.registryAddress,
   );
   const guardianRegistry = await hre.ethers.getContractAt(
-    'KYCCenterRegistry',
-    await recordRegistry._KYCCenterRegistry(),
+    'GuardianRegistry',
+    await recordRegistry._GuardianRegistry(),
   );
 
-  if (!(await guardianRegistry.KYCCenters(provider.address))) {
+  if (!(await guardianRegistry.guardians(provider.address))) {
     throw new Error(
       `Provider ${provider.address} is not a guardian yet. Please register it first using the script .`,
     );

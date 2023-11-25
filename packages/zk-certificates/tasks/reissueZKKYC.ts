@@ -8,14 +8,14 @@ import { buildEddsa, buildPoseidon } from 'circomlibjs';
 import fs from 'fs';
 import { task, types } from 'hardhat/config';
 import { string } from 'hardhat/internal/core/params/argumentTypes';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
 import {
   fromDecToHex,
   fromHexToBytes32,
-  hashStringToFieldNumber,
   fromHexToDec,
+  hashStringToFieldNumber,
 } from '../lib/helpers';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { queryOnChainLeaves } from '../lib/queryMerkleTree';
@@ -24,7 +24,6 @@ import { ZKCertificate } from '../lib/zkCertificate';
 
 /**
  * Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.
- *
  * @param args - See task definition below or 'npx hardhat reissueZkKYC --help'.
  * @param hre - Hardhat runtime environment.
  */
@@ -129,11 +128,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.registryAddress,
   );
   const guardianRegistry = await hre.ethers.getContractAt(
-    'KYCCenterRegistry',
-    await recordRegistry._KYCCenterRegistry(),
+    'GuardianRegistry',
+    await recordRegistry._GuardianRegistry(),
   );
 
-  if (!(await guardianRegistry.KYCCenters(provider.address))) {
+  if (!(await guardianRegistry.guardians(provider.address))) {
     throw new Error(
       `Provider ${provider.address} is not a guardian yet. Please register it first using the script .`,
     );
@@ -228,7 +227,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     holderCommitmentFile.encryptionPubKey,
     {
       root: merkleTree.root,
-      pathIndices: newMerkleProof.pathIndices,
+      leafIndex: newMerkleProof.leafInde,
       pathElements: newMerkleProof.path,
       leaf: newZkKYC.leafHash,
     },

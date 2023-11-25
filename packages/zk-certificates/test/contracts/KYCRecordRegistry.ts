@@ -1,16 +1,16 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
 import hre, { ethers } from 'hardhat';
 
 import {
-  overwriteArtifact,
   fromDecToHex,
   fromHexToBytes32,
   generateRandomBytes32Array,
   generateRandomNumberArray,
+  overwriteArtifact,
 } from '../../lib/helpers';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
@@ -23,7 +23,6 @@ describe('KYCRecordRegistry', () => {
 
   /**
    * Deploy fixtures to work with the same setup in an efficient way.
-   *
    * @returns Fixtures.
    */
   async function deploy() {
@@ -32,10 +31,9 @@ describe('KYCRecordRegistry', () => {
     const PoseidonT3 = await ethers.getContractFactory('PoseidonT3');
     const poseidonT3 = await PoseidonT3.deploy();
 
-    const KYCCenterRegistryFactory = await ethers.getContractFactory(
-      'KYCCenterRegistry',
-    );
-    const KYCCenterRegistry = await KYCCenterRegistryFactory.deploy();
+    const GuardianRegistryFactory =
+      await ethers.getContractFactory('GuardianRegistry');
+    const GuardianRegistry = await GuardianRegistryFactory.deploy();
 
     const KYCRecordRegistryTest = await ethers.getContractFactory(
       'KYCRecordRegistryTest',
@@ -46,20 +44,20 @@ describe('KYCRecordRegistry', () => {
       },
     );
     const KYCRecordRegistry = await KYCRecordRegistryTest.deploy(
-      KYCCenterRegistry.address,
+      GuardianRegistry.address,
     );
 
     return {
       KYCRecordRegistry,
-      KYCCenterRegistry,
+      GuardianRegistry,
     };
   }
 
   it("shouldn't initialize twice", async () => {
-    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
 
     await expect(
-      KYCRecordRegistry.doubleInit(KYCCenterRegistry.address),
+      KYCRecordRegistry.doubleInit(GuardianRegistry.address),
     ).to.be.revertedWith('Initializable: contract is not initializing');
   });
 
@@ -94,10 +92,10 @@ describe('KYCRecordRegistry', () => {
   it('should insert elements', async function () {
     const loops = 5;
 
-    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
 
-    // add deployer as a KYCCenter
-    await KYCCenterRegistry.grantKYCCenterRole(deployer.address);
+    // add deployer as a Guardian
+    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -129,10 +127,10 @@ describe('KYCRecordRegistry', () => {
   it('should be able to nullify a leaf', async function () {
     const loops = 5;
 
-    const { KYCRecordRegistry, KYCCenterRegistry } = await loadFixture(deploy);
+    const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
 
-    // add deployer as a KYCCenter
-    await KYCCenterRegistry.grantKYCCenterRole(deployer.address);
+    // add deployer as a Guardian
+    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;

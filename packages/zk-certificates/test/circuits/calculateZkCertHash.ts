@@ -4,7 +4,7 @@ import { assert } from 'chai';
 import { buildPoseidon } from 'circomlibjs';
 import { readFileSync } from 'fs';
 import hre from 'hardhat';
-import { CircuitTestUtils } from 'hardhat-circom';
+import type { CircuitTestUtils } from 'hardhat-circom';
 
 describe('Calculate zkCert Hash Circuit Component', () => {
   let circuit: CircuitTestUtils;
