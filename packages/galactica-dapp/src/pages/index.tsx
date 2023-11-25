@@ -140,8 +140,8 @@ const Index = () => {
 
   const handleSnapConnectClick = async () => {
     try {
-      await connectSnap();
-      const installedSnap = await getSnap();
+      await connectSnap(defaultSnapOrigin);
+      const installedSnap = await getSnap(defaultSnapOrigin);
 
       dispatch({
         type: MetamaskActions.SetInstalled,
