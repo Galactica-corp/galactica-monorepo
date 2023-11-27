@@ -5,6 +5,7 @@ import fs from 'fs';
 import { task } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
+import download from 'download';
 
 /**
  * Script (re)building circom circuits when needed.
@@ -21,9 +22,12 @@ async function smartCircuitBuild(
 
   // Check that the trusted setup file exists
   if (!fs.existsSync(hre.config.circom.ptau)) {
-    throw new Error(
-      `Trusted setup file ${hre.config.circom.ptau} does not exist. Please have a look into the readme on how to get it.`,
-    );
+    console.warn(`Trusted setup file ${hre.config.circom.ptau} does not exist. Please have a look into the readme on how to get it.`);
+    const trustedSetupUrl = 'https://galactica.com/trusted-setup/dev/pot17_final.ptau';
+    console.warn(`Downloading it from ${trustedSetupUrl}.`);
+    // Download trusted setup file
+    await download(trustedSetupUrl, path.dirname(hre.config.circom.ptau));
+    console.log('Downloaded trusted setup file.');
   }
 
   // read the list of circuits from a config file
