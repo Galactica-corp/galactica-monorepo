@@ -33,8 +33,10 @@ export async function deploySC(
   console.log('constructorArgs:', JSON.stringify(constructorArgs));
 
   if (verify) {
-    if (constructorArgs?.length != 0) {
-      console.warn(`Skipping automatic verification of ${name} because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.`);
+    if (constructorArgs?.length !== 0) {
+      console.warn(
+        `Skipping automatic verification of ${name} because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.`,
+      );
       return contract;
     }
     try {

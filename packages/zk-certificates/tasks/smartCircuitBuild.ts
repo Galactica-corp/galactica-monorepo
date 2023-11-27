@@ -1,11 +1,11 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import camelcase from 'camelcase';
 import cryptoLib from 'crypto';
+import download from 'download';
 import fs from 'fs';
 import { task } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
-import download from 'download';
 
 /**
  * Script (re)building circom circuits when needed.
@@ -22,8 +22,11 @@ async function smartCircuitBuild(
 
   // Check that the trusted setup file exists
   if (!fs.existsSync(hre.config.circom.ptau)) {
-    console.warn(`Trusted setup file ${hre.config.circom.ptau} does not exist. Please have a look into the readme on how to get it.`);
-    const trustedSetupUrl = 'https://galactica.com/trusted-setup/dev/pot17_final.ptau';
+    console.warn(
+      `Trusted setup file ${hre.config.circom.ptau} does not exist. Please have a look into the readme on how to get it.`,
+    );
+    const trustedSetupUrl =
+      'https://galactica.com/trusted-setup/dev/pot17_final.ptau';
     console.warn(`Downloading it from ${trustedSetupUrl}.`);
     // Download trusted setup file
     await download(trustedSetupUrl, path.dirname(hre.config.circom.ptau));
