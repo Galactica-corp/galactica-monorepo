@@ -51,7 +51,7 @@ async function main() {
       eddsa.F.e(value.toString()),
     );
 
-    const galaPrivKey = BigInt(await getEddsaKeyFromEthSigner(inst)).toString();
+    const galaPrivKey = await getEddsaKeyFromEthSigner(inst);
 
     const decryptedShare = (await decryptFraudInvestigationData(
       galaPrivKey,

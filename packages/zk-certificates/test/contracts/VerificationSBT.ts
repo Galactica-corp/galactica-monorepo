@@ -234,9 +234,7 @@ describe('Verification SBT Smart contract', () => {
     ).to.be.true;
 
     // test decryption
-    const userPriv = BigInt(
-      await getEddsaKeyFromEthSigner(encryptionAccount),
-    ).toString();
+    const userPriv = await getEddsaKeyFromEthSigner(encryptionAccount);
 
     const eddsa = await buildEddsa();
     const userPub = eddsa.prv2pub(userPriv);
@@ -244,9 +242,9 @@ describe('Verification SBT Smart contract', () => {
     // let all institutions decrypt their shamir secret sharing part
     const decryptedData: any[][] = [];
     for (let i = 0; i < amountInstitutions; i++) {
-      const galaInstitutionPriv = BigInt(
-        await getEddsaKeyFromEthSigner(institutions[i]),
-      ).toString();
+      const galaInstitutionPriv = await getEddsaKeyFromEthSigner(
+        institutions[i],
+      );
 
       decryptedData[i] = await decryptFraudInvestigationData(
         galaInstitutionPriv,

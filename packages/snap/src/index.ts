@@ -59,7 +59,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
   let holder: HolderData;
   let response: ConfirmationResponse;
 
-  switch (request.method) {
+  switch (request.method as RpcMethods) {
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
       const genParams = request.params as unknown as GenZkProofParams<any>;
@@ -203,8 +203,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const oldVersion = state.zkCerts.find(
         (candidate) =>
           candidate.holderCommitment === zkCert.holderCommitment &&
-          candidate.merkleProof.pathIndices ===
-            zkCert.merkleProof.pathIndices &&
+          candidate.merkleProof.leafIndex === zkCert.merkleProof.leafIndex &&
           candidate.registration.address === zkCert.registration.address,
       );
       if (oldVersion) {

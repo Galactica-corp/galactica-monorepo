@@ -38,10 +38,20 @@ It can be generated with the script `packages/snap/scripts/proofGenerationPrep.t
 
 ```shell
 cd packages/snap
-yarn run proofPrep --circuitName <name> --circuitsDir <path> --testInput <path>
+yarn run proofPrep --circuitName <name>
 ```
 
-You can modify the script to select another proof to prepare.
+You can modify the script to select another proof to prepare. For the zkKYC circuit used in the galactica-dapp example front end, this would be
+
+```shell
+yarn run proofPrep --circuitName zkKYC
+```
+
+See the help page for more details how to import circuits from outside the monorepo or use custom test inputs:
+
+```shell
+yarn run proofPrep --help
+```
 
 ## Usage
 

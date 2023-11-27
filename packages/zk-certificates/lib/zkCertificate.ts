@@ -10,6 +10,7 @@ import type {
   ZkCertData,
   ZkCertRegistration,
   ZkCertStandard,
+  EddsaPrivateKey,
 } from '@galactica-net/galactica-types';
 import {
   eddsaPrimeFieldMod,
@@ -18,6 +19,7 @@ import {
   zkKYCContentFields,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
+import type { Eddsa, Point, Poseidon } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
 import { Scalar } from 'ffjavascript';
 
@@ -30,7 +32,7 @@ import { encryptFraudInvestigationData } from './SBTData';
  */
 export class ZKCertificate implements ZkCertData {
   // Field of the curve used by Poseidon
-  protected poseidon: any;
+  protected poseidon: Poseidon;
 
   protected fieldPoseidon: any;
 
@@ -38,7 +40,7 @@ export class ZKCertificate implements ZkCertData {
 
   public zkCertStandard: ZkCertStandard;
 
-  protected eddsa: any;
+  protected eddsa: Eddsa;
 
   public randomSalt: number;
 
@@ -58,7 +60,7 @@ export class ZKCertificate implements ZkCertData {
   constructor(
     holderCommitment: string,
     zkCertStandard: ZkCertStandard, // TODO: move enum from snap here
-    eddsa: any,
+    eddsa: Eddsa,
     randomSalt: number,
     content: Record<string, any> = {}, // standardize field definitions
     providerData: ProviderData = {
@@ -177,7 +179,9 @@ export class ZKCertificate implements ZkCertData {
    * @param holderKey - EdDSA Private key of the holder.
    * @returns OwnershipProofInput struct.
    */
-  public getOwnershipProofInput(holderKey: string): OwnershipProofInput {
+  public getOwnershipProofInput(
+    holderKey: EddsaPrivateKey,
+  ): OwnershipProofInput {
     const holderPubKeyEddsa = this.eddsa.prv2pub(holderKey);
     const hashPubkey: bigint = this.fieldPoseidon.toObject(
       this.poseidon([holderPubKeyEddsa[0], holderPubKeyEddsa[1]]),
@@ -212,7 +216,7 @@ export class ZKCertificate implements ZkCertData {
    * @param providerKey - EdDSA Private key of the KYC provider.
    * @returns ProviderData struct.
    */
-  public signWithProvider(providerKey: string): ProviderData {
+  public signWithProvider(providerKey: EddsaPrivateKey): ProviderData {
     const providerPubKeyEddsa = this.eddsa.prv2pub(providerKey);
     const message: bigint = this.fieldPoseidon.toObject(
       this.poseidon([this.contentHash, this.holderCommitment]),
@@ -249,7 +253,7 @@ export class ZKCertificate implements ZkCertData {
    * @returns AuthorizationProofInput struct.
    */
   public getAuthorizationProofInput(
-    holderKey: string,
+    holderKey: EddsaPrivateKey,
     userAddress: string,
   ): AuthorizationProofInput {
     // we include the 0x prefix so the address has length 42 in hexadecimal
@@ -261,9 +265,11 @@ export class ZKCertificate implements ZkCertData {
     const userAddressField = this.fieldPoseidon.e(userAddress);
     const signature = this.eddsa.signPoseidon(holderKey, userAddressField);
 
-    // selfcheck
+    // self check
     const holderPubKeyEddsa = this.eddsa.prv2pub(holderKey);
-    if (!this.eddsa.verifyPoseidon(userAddress, signature, holderPubKeyEddsa)) {
+    if (
+      !this.eddsa.verifyPoseidon(userAddressField, signature, holderPubKeyEddsa)
+    ) {
       throw new Error('Self check on EdDSA signature failed');
     }
 
@@ -286,8 +292,8 @@ export class ZKCertificate implements ZkCertData {
    * @returns Input for FraudInvestigationProof.
    */
   public async getFraudInvestigationDataEncryptionProofInput(
-    institutionPub: string[],
-    userPrivKey: string,
+    institutionPub: Point,
+    userPrivKey: EddsaPrivateKey,
   ): Promise<FraudInvestigationDataEncryptionProofInput> {
     const eddsa = await buildEddsa();
     const userPub = eddsa.prv2pub(userPrivKey);

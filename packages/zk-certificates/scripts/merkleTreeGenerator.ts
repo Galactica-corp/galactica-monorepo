@@ -27,7 +27,7 @@ async function main() {
     // create json output file
     const output = {
       root: merkleTree.root,
-      pathIndices: merkleProof.pathIndices,
+      leafIndex: merkleProof.leafIndex,
       pathElements: merkleProof.pathElements,
     };
 

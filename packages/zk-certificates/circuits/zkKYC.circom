@@ -48,7 +48,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
 
     // variables related to the merkle proof
     signal input pathElements[levels];
-    signal input pathIndices;
+    signal input leafIndex;
     signal input root;
     signal input currentTime;
 
@@ -156,7 +156,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     for (var i = 0; i < levels; i++) {
         merkleProof.pathElements[i] <== pathElements[i];
     }
-    merkleProof.pathIndices <== pathIndices;
+    merkleProof.leafIndex <== leafIndex;
 
     // check that the calculated root is equal to the public root
     root === merkleProof.root;
