@@ -11,6 +11,7 @@ export type SdkConfig = {
     repeatableZkKycTest: string;
   };
   defaultSnapOrigin: string;
+  defaultSnapVersion: string;
 };
 
 export const sdkConfig: SdkConfig = {
@@ -29,5 +30,6 @@ export const sdkConfig: SdkConfig = {
     basicKycExampleDapp: '0x02ee87FE35cF9e635B752671D5477516256aDB4f',
     repeatableZkKycTest: '0x57ebf246fC38c59f48CE316381eEFF883C006Fa1',
   },
-  defaultSnapOrigin: 'npm:@galactica-net/snap-beta',
+  defaultSnapOrigin: 'npm:@galactica-net/snap',
+  defaultSnapVersion: '0.5.4',
 };
