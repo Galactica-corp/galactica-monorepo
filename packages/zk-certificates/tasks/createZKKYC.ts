@@ -210,7 +210,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     ...zkKYC.exportRaw(),
     merkleProof: {
       root: merkleTree.root,
-      pathIndices: merkleProof.pathIndices,
+      leafIndex: merkleProof.leafIndex,
       pathElements: merkleProof.path,
       leaf: zkKYC.leafHash,
     },
