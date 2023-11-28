@@ -204,7 +204,7 @@ const Index = () => {
 
       const res: any = await generateZKProof({
         input: proofInput,
-        prover: await getProver("/provers/exampleMockDApp.json"),
+        prover: await getProver("https://galactica-trusted-setup.s3.eu-central-1.amazonaws.com/exampleMockDApp.json"),
         requirements: {
           zkCertStandard: ZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
@@ -251,7 +251,7 @@ const Index = () => {
 
       const res: any = await generateZKProof({
         input: proofInput,
-        prover: await getProver("/provers/zkKYC.json"),
+        prover: await getProver("https://galactica-trusted-setup.s3.eu-central-1.amazonaws.com/zkKYC.json"),
         requirements: {
           zkCertStandard: ZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
