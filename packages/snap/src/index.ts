@@ -17,6 +17,7 @@ import {
 } from '@galactica-net/snap-api';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
+import { basicURLParse } from 'whatwg-url';
 
 import {
   checkEncryptedZkCertFormat,
@@ -85,13 +86,22 @@ export const processRpcRequest: SnapRpcProcessor = async (
       searchedZkCert.merkleProof = merkleProof;
       await saveState(snap, state);
 
-      await snap.request({
-        method: 'snap_notify',
-        params: {
-          type: 'native',
-          message: `ZK proof generation running...`,
-        },
-      });
+      try {
+        await snap.request({
+          method: 'snap_notify',
+          params: {
+            type: 'native',
+            message: `ZK proof generation running...`,
+          },
+        });
+      } catch (error) {
+        // Ignore errors due to rate limiting, the notification is not essential
+        if (error.message.includes('currently rate-limited')) {
+          console.log('snap_notify failed due to rate limit');
+        } else {
+          throw error;
+        }
+      }
 
       const proof = await generateZkKycProof(
         genParams,
@@ -312,6 +322,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.ListZkCerts: {
+      // This method returns a list of zkCertificate details so that a front-end can help the user to identify imported zkCerts and whether they are still valid.
+      // The data contains expiration date, issuer and verification level. We ask for confirmation to prevent tracking of users.
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
@@ -337,7 +349,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.GetZkCertStorageHashes: {
-      // does not need confirmation as it does not leak any personal or tracking data
+      // This method only returns a single hash of the storage state. It can be used to detect changes, for example if the user imported another zkCert in the meantime.
+      // Because it does not leak any personal or tracking data, we do not ask for confirmation.
       return getZkCertStorageHashes(state.zkCerts, origin);
     }
 
@@ -464,6 +477,20 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new URLUpdateError({
           name: 'OnlyHTTPS',
           message: `The URL ${urlUpdateParams.url} is not secure. Please use a secure URL (starting with https://).`,
+        });
+      }
+
+      // check if URL is a valid URL
+      if (!basicURLParse(urlUpdateParams.url)) {
+        throw new URLUpdateError({
+          name: 'InvalidURL',
+          message: `The URL ${urlUpdateParams.url} is not a valid URL.`,
+        });
+      }
+      if (!urlUpdateParams.url.endsWith('/')) {
+        throw new URLUpdateError({
+          name: 'TrailingSlashMissing',
+          message: `The URL ${urlUpdateParams.url} is missing a trailing slash.`,
         });
       }
 

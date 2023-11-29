@@ -59,7 +59,7 @@ export class ZKCertificate implements ZkCertData {
    */
   constructor(
     holderCommitment: string,
-    zkCertStandard: ZkCertStandard, // TODO: move enum from snap here
+    zkCertStandard: ZkCertStandard,
     eddsa: Eddsa,
     randomSalt: number,
     content: Record<string, any> = {}, // standardize field definitions

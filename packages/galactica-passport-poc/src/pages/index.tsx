@@ -33,6 +33,8 @@ import {
   ZkCertStandard,
   ZkCertProof,
   HolderCommitmentData,
+  updateMerkleProof,
+  MerkleProofUpdateRequestParams,
   connectSnap,
   getSnap,
 } from '@galactica-net/snap-api';
@@ -145,8 +147,8 @@ const Index = () => {
 
   const handleSnapConnectClick = async () => {
     try {
-      await connectSnap();
-      const installedSnap = await getSnap();
+      await connectSnap(defaultSnapOrigin);
+      const installedSnap = await getSnap(defaultSnapOrigin);
 
       dispatch({
         type: MetamaskActions.SetInstalled,
@@ -158,6 +160,18 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }
   };
+
+  /**
+   * Converts response object from Snap to string to show to the user.
+   * 
+   * @param res - Object returned by Snap.
+   */
+  const communicateResponse = (res: any) => {
+    const msg = res.message || JSON.stringify(res);
+
+    console.log('Response from snap', msg);
+    dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${msg} ` });
+  }
 
   const handleMMConnectClick = async () => {
     try {
@@ -185,8 +199,7 @@ const Index = () => {
     try {
       console.log('sending request to snap...');
       const res = await method(defaultSnapOrigin);
-      console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
+      communicateResponse(res);
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -197,11 +210,10 @@ const Index = () => {
     try {
       console.log('sending request to snap...');
       const res = await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin);
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       dispatch({ type: MetamaskActions.SetInfo, payload: `Downloading zkCert...` });
 
       // save to file
-      // TODO: add a saveAs dialog to let the user choose file name and location
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
         JSON.stringify(res, null, 2)
       )}`;
@@ -219,12 +231,12 @@ const Index = () => {
     try {
       console.log('sending request to snap...');
       const res = await getHolderCommitment(defaultSnapOrigin);
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       const holderCommitmentData = res as HolderCommitmentData;
       dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
 
       // save to file as placeholder
-      // TODO: integrate some kind of provider API to submit the prepared zkCert to for signing and issuance on chain
+      // In a non-test environment, the holder commitment would be passed to the guardian directly
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
         JSON.stringify(holderCommitmentData, null, 2)
       )}`;
@@ -238,14 +250,32 @@ const Index = () => {
     }
   };
 
-  const handleOnImportSelect = async (fileContent: string) => {
+  const importSelectedZkCert = async (fileContent: string) => {
     try {
       const parsedFile = JSON.parse(fileContent);
 
       console.log('sending request to snap...');
       const res = await importZkCert({ encryptedZkCert: parsedFile }, defaultSnapOrigin);
-      console.log('Response from snap', res);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Response from Snap: ${res} ` });
+      communicateResponse(res);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const updateSelectedMerkleProof = async (fileContent: string) => {
+    try {
+      const parsedFile = JSON.parse(fileContent);
+      const merkleUpdates: MerkleProofUpdateRequestParams = {
+        updates: [{
+          registryAddr: addresses.zkKYCRegistry,
+          proof: parsedFile,
+        }]
+      };
+
+      console.log('sending request to snap...');
+      const res = await updateMerkleProof(merkleUpdates, defaultSnapOrigin);
+      communicateResponse(res);
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -268,7 +298,7 @@ const Index = () => {
       const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
       const res: any = await generateZKProof({
         input: proofInput,
-        prover: await getProver("/provers/exampleMockDApp.json"),
+        prover: await getProver("https://galactica-trusted-setup.s3.eu-central-1.amazonaws.com/exampleMockDApp.json"),
         requirements: {
           zkCertStandard: ZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
@@ -277,7 +307,7 @@ const Index = () => {
         description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
         publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
       }, defaultSnapOrigin);
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
@@ -487,7 +517,7 @@ const Index = () => {
               'Uploads a zkCert file into the Metamask snap storage.',
             button: (
               <SelectAndImportButton
-                onFileSelected={handleOnImportSelect}
+                fileSelectAction={importSelectedZkCert}
                 disabled={false}
                 text="Select & Import"
               />
@@ -522,6 +552,22 @@ const Index = () => {
                 onClick={() => handleSnapCallClick(() => deleteZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin))}
                 disabled={false}
                 text="Export"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Update Merkle Proof',
+            description:
+              'Uploads a new Merkle Proof for a zkCert.',
+            button: (
+              <SelectAndImportButton
+                fileSelectAction={updateSelectedMerkleProof}
+                disabled={false}
+                text="Select & Import"
               />
             ),
           }}

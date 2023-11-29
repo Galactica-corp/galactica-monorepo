@@ -1,5 +1,7 @@
 import { buildPoseidon } from 'circomlibjs';
+import fs from 'fs';
 import { ethers } from 'hardhat';
+import path from 'path';
 
 import { queryOnChainLeaves } from '../lib/queryMerkleTree';
 import { SparseMerkleTree } from '../lib/sparseMerkleTree';
@@ -47,6 +49,11 @@ async function main() {
     };
 
     console.log(`Merkle proof for ${leaf}:\n`, JSON.stringify(output, null, 2));
+
+    // write proof to file for later upload in front-end
+    const proofPath = `merkleProofs/${leaf}.json`;
+    fs.mkdirSync(path.dirname(proofPath), { recursive: true });
+    fs.writeFileSync(proofPath, JSON.stringify(output, null, 2));
   }
 }
 

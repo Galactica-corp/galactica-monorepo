@@ -17,8 +17,8 @@ ZkCerts can be utilized to prove a wide range of statements. The Galactica Snap 
 
 First you need to decide what kind of statements the users of your DApp should proof to be able to use it:
 
-- Galactica provides common use cases, such as a zkKYC and zkKYC+age proof TODO: link docs with overview what these proofs contain. For these common proofs, you might be able to reuse an already completed verification (See the section on "Handle Verification SBTs"). Specifications for standardization can be found as Galactica improvement proposals. TODO: link
-- Custom ZK statements can be proven by building a ZK circuit for it using the [circom2](https://docs.circom.io/) framework. You can find various component templates in the Galactica ZK circuit library to build upon. TODO: link
+- Galactica provides common use cases, such as a [zkKYC](https://docs.galactica.com/galactica-developer-documentation/galactica-concepts/zero-knowledge-kyc) and zkKYC+age proof. For these common proofs, you might be able to reuse an already completed verification (See the section on "Handle Verification SBTs"). Specifications for standardization can be found as Galactica improvement proposals.
+- Custom ZK statements can be proven by building a ZK circuit for it using the [circom2](https://docs.circom.io/) framework. You can find various [component templates](https://github.com/Galactica-corp/galactica-monorepo/tree/main/packages/zk-certificates/circuits) in the Galactica ZK circuit library to build upon.
 
 According to the kind of statement the user is going to prove we need to provide the following parameters to the Galactica Snap:
 

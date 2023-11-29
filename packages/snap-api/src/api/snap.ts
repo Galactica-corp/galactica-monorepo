@@ -42,17 +42,19 @@ export const connectSnap = async (
 
 /**
  * Get the snap from MetaMask.
+ * @param snapId - The ID of the snap.
  * @param version - The version of the snap to install (optional).
  * @returns The snap object returned by the extension.
  */
-export const getSnap = async (version?: string): Promise<Snap | undefined> => {
+export const getSnap = async (
+  snapId: string = sdkConfig.defaultSnapOrigin,
+  version?: string,
+): Promise<Snap | undefined> => {
   try {
     const snaps = await getSnaps();
 
     return Object.values(snaps).find(
-      (snap) =>
-        snap.id === sdkConfig.defaultSnapOrigin &&
-        (!version || snap.version === version),
+      (snap) => snap.id === snapId && (!version || snap.version === version),
     );
   } catch (error) {
     console.log('Failed to obtain installed snap', error);

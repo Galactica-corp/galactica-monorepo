@@ -140,8 +140,8 @@ const Index = () => {
 
   const handleSnapConnectClick = async () => {
     try {
-      await connectSnap();
-      const installedSnap = await getSnap();
+      await connectSnap(defaultSnapOrigin);
+      const installedSnap = await getSnap(defaultSnapOrigin);
 
       dispatch({
         type: MetamaskActions.SetInstalled,
@@ -160,7 +160,7 @@ const Index = () => {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
 
       // Will open the MetaMask UI
-      window.ethereum.request({ method: 'eth_requestAccounts' });
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
       // TODO: You should disable this button while the request is pending!
       const signer = provider.getSigner();
       console.log('Connected with Metamask to', await signer.getAddress());
@@ -175,6 +175,18 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }
   };
+
+  /**
+   * Converts response object from Snap to string to show to the user.
+   * 
+   * @param res - Object returned by Snap.
+   */
+  const communicateResponse = (res: any) => {
+    const msg = res.message || JSON.stringify(res);
+
+    console.log('Response from snap', msg);
+    dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${msg} ` });
+  }
 
   const ageProofZKPClick = async () => {
     try {
@@ -192,7 +204,7 @@ const Index = () => {
 
       const res: any = await generateZKProof({
         input: proofInput,
-        prover: await getProver("/provers/exampleMockDApp.json"),
+        prover: await getProver("https://galactica-trusted-setup.s3.eu-central-1.amazonaws.com/exampleMockDApp.json"),
         requirements: {
           zkCertStandard: ZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
@@ -201,7 +213,7 @@ const Index = () => {
         description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
         publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
       }, defaultSnapOrigin);
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
@@ -239,7 +251,7 @@ const Index = () => {
 
       const res: any = await generateZKProof({
         input: proofInput,
-        prover: await getProver("/provers/zkKYC.json"),
+        prover: await getProver("https://galactica-trusted-setup.s3.eu-central-1.amazonaws.com/zkKYC.json"),
         requirements: {
           zkCertStandard: ZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
@@ -249,7 +261,7 @@ const Index = () => {
         publicInputDescriptions: zkKYCPublicInputDescriptions,
       }, defaultSnapOrigin);
 
-      console.log('Response from snap', res);
+      console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });

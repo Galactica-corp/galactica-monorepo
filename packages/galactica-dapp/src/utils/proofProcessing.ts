@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 
-// TODO: use functions from zkKYC module instead
+// not using the functions from zk-certificates package here to simplify dependencies and work around webpack issue
 
 export function fromHexToDec(hexIn: string): string {
   if (hexIn.startsWith('0x')) {
