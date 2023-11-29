@@ -245,4 +245,10 @@ export function checkZkKycProofRequest(
       message: `Registry address missing in request parameters.`,
     });
   }
+  if (params.prover === undefined || params.prover.wasm === undefined) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `Missing prover data.`,
+    });
+  }
 }
