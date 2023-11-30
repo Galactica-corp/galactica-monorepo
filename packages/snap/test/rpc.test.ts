@@ -1,3 +1,4 @@
+import type { HolderCommitmentData } from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
   EncryptedZkCert,
@@ -41,7 +42,6 @@ import { processRpcRequest } from '../src';
 import { encryptZkCert } from '../src/encryption';
 import type { RpcArgs } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
-import { HolderCommitmentData } from '@galactica-net/galactica-types';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);

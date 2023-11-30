@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+import type { HolderCommitmentData } from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
   ImportZkCertParams,
@@ -36,7 +37,6 @@ import {
   getZkCertStorageOverview,
 } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
-import { HolderCommitmentData } from '@galactica-net/galactica-types';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
