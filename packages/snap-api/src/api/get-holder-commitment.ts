@@ -1,11 +1,8 @@
+import type { HolderCommitmentData } from '@galactica-net/galactica-types';
+
 import { RpcMethods } from './rpcEnums';
 import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
-
-export type HolderCommitmentData = {
-  holderCommitment: string;
-  encryptionPubKey: string;
-};
 
 /**
  * GetHolderCommitment queries the commitment identifying the holder from the snap.

@@ -1,0 +1,65 @@
+/* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+
+import type {
+  MerkleProof,
+  ZkCertRegistration,
+} from '@galactica-net/galactica-types';
+import type { Signer } from 'ethers';
+import { Contract } from 'ethers';
+
+import { fromDecToHex, fromHexToBytes32 } from './helpers';
+import type { SparseMerkleTree } from './sparseMerkleTree';
+import type { ZKCertificate } from './zkCertificate';
+
+/**
+ * Issues zkCert record on-chain and updates the merkle tree.
+ * @param zkCert - ZKCertificate to issue on-chain.
+ * @param recordRegistry - Record registry contract.
+ * @param issuer - Issuer of the zkCert (guardian).
+ * @param merkleTree - Merkle tree of the registry (passed to not reconstruct it repeatedly).
+ * @returns MerkleProof of the new leaf in the tree and registration data.
+ */
+export async function issueZkCert(
+  zkCert: ZKCertificate,
+  recordRegistry: Contract,
+  issuer: Signer,
+  merkleTree: SparseMerkleTree,
+): Promise<{ merkleProof: MerkleProof; registration: ZkCertRegistration }> {
+  const guardianRegistry = new Contract(
+    await recordRegistry._GuardianRegistry(),
+    ['function isWhitelisted(address) view returns (bool)'],
+    recordRegistry.provider,
+  );
+  if (!(await guardianRegistry.isWhitelisted(await issuer.getAddress()))) {
+    throw new Error(
+      `Issuer ${await issuer.getAddress()} is not a guardian yet. Please register it first using the script .`,
+    );
+  }
+  const leafBytes = fromHexToBytes32(fromDecToHex(zkCert.leafHash));
+
+  const chosenLeafIndex = merkleTree.getFreeLeafIndex();
+  const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
+
+  // now we have the merkle proof to add a new leaf
+  const tx = await recordRegistry.addZkKYCRecord(
+    chosenLeafIndex,
+    leafBytes,
+    leafEmptyMerkleProof.pathElements.map((value) =>
+      fromHexToBytes32(fromDecToHex(value)),
+    ),
+  );
+  await tx.wait();
+
+  // update the merkle tree according to the new leaf
+  merkleTree.insertLeaves([zkCert.leafHash], [chosenLeafIndex]);
+  const leafInsertedMerkleProof = merkleTree.createProof(chosenLeafIndex);
+
+  return {
+    merkleProof: leafInsertedMerkleProof,
+    registration: {
+      address: recordRegistry.address,
+      revocable: true,
+      leafIndex: chosenLeafIndex,
+    },
+  };
+}
