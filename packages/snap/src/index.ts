@@ -3,7 +3,6 @@ import type {
   ConfirmationResponse,
   ImportZkCertParams,
   GenZkProofParams,
-  HolderCommitmentData,
   MerkleProofUpdateRequestParams,
   ZkCertSelectionParams,
   MerkleProofURLUpdateParams,
@@ -37,6 +36,7 @@ import {
   getZkCertStorageOverview,
 } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
+import { HolderCommitmentData } from '@galactica-net/galactica-types';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
