@@ -100,4 +100,7 @@ export async function revokeZkCert(
     ),
   );
   await tx.wait();
+
+  // update the merkle tree according to the new leaf
+  merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndex]);
 }

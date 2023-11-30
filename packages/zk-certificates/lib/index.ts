@@ -11,5 +11,6 @@ export * from './merkleTree';
 export * from './zkKYC';
 export * from './holderCommitment';
 export * from './registryTools';
+export * from './queryMerkleTree';
 export type { ZkKYCContent } from '@galactica-net/galactica-types';
 export { ZkCertStandard } from '@galactica-net/galactica-types';
