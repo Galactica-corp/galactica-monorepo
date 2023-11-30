@@ -1,13 +1,11 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import chalk from 'chalk';
-import { buildPoseidon } from 'circomlibjs';
 import { task, types } from 'hardhat/config';
 import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-import { fromDecToHex, fromHexToBytes32 } from '../lib/helpers';
-import { queryOnChainLeaves } from '../lib/queryMerkleTree';
-import { SparseMerkleTree } from '../lib/sparseMerkleTree';
+import { revokeZkCert } from '../lib';
+import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 
 /**
  * Script for revoking a zkKYC certificate, issuing it and adding a merkle proof for it.
@@ -38,62 +36,32 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     'KYCRecordRegistry',
     args.registryAddress,
   );
-  const guardianRegistry = await hre.ethers.getContractAt(
-    'GuardianRegistry',
-    await recordRegistry._GuardianRegistry(),
-  );
-
-  if (!(await guardianRegistry.guardians(provider.address))) {
-    throw new Error(
-      `Provider ${provider.address} is not a guardian yet. Please register it first using the script .`,
-    );
-  }
 
   console.log(
-    'Generating merkle proof. This might take a while because it needs to query on-chain data...',
+    'Generating merkle tree. This might take a while because it needs to query on-chain data...',
   );
   // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
-  const poseidon = await buildPoseidon();
-  const merkleDepth = 32;
-  const leafLogResults = await queryOnChainLeaves(
-    hre.ethers,
-    recordRegistry.address,
-  ); // TODO: provide first block to start querying from to speed this up
-  const leafHashes = leafLogResults.map((value) => value.leafHash);
-  const leafIndices = leafLogResults.map((value) => Number(value.index));
-  const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
-  const batchSize = 10_000;
-  for (let i = 0; i < leafLogResults.length; i += batchSize) {
-    merkleTree.insertLeaves(
-      leafHashes.slice(i, i + batchSize),
-      leafIndices.slice(i, i + batchSize),
-    );
-  }
-
-  if (merkleTree.retrieveLeaf(0, args.index) !== args.leafHash) {
-    console.log(chalk.yellow('Incorrect leaf hash at the input index.'));
-    return;
-  }
-
-  // create Merkle proof
-  const merkleProof = merkleTree.createProof(args.index);
-
-  // now we have the merkle proof to add a new leaf
-  const tx = await recordRegistry.revokeZkKYCRecord(
-    args.index,
-    fromDecToHex(args.leafHash, true),
-    merkleProof.path.map((value) => fromHexToBytes32(fromDecToHex(value))),
+  const merkleTree = await buildMerkleTreeFromRegistry(
+    recordRegistry,
+    hre.ethers.provider,
+    32,
   );
-  await tx.wait();
+
+  await revokeZkCert(
+    args.leafHash,
+    args.index,
+    recordRegistry,
+    provider,
+    merkleTree,
+  );
+
   console.log(
     chalk.green(
-      `Revoked the zkKYC certificate ${
-        args.leafHash as string
-      } on chain at index ${args.index as number}`,
+      `Revoked the zkKYC certificate ${args.leafHash} on-chain at index ${
+        args.index as number
+      }`,
     ),
   );
-
-  console.log(chalk.green('done'));
 }
 
 task(

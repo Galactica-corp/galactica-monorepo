@@ -63,3 +63,41 @@ export async function issueZkCert(
     },
   };
 }
+
+/**
+ * Revokes zkCert record on-chain and updates the merkle tree.
+ * @param zkCertLeafHash - Leaf hash of the zkCert to revoke.
+ * @param leafIndex - Index of the zkCert to revoke.
+ * @param recordRegistry - Record registry contract.
+ * @param issuer - Issuer of the zkCert (= guardian allowed to revoke).
+ * @param merkleTree - Merkle tree of the registry (passed to not reconstruct it repeatedly).
+ */
+export async function revokeZkCert(
+  zkCertLeafHash: string,
+  leafIndex: number,
+  recordRegistry: Contract,
+  issuer: Signer,
+  merkleTree: SparseMerkleTree,
+) {
+  if (merkleTree.retrieveLeaf(0, leafIndex) !== zkCertLeafHash) {
+    throw Error('Incorrect leaf hash at the input index.');
+  }
+  const leafHashAsBytes = fromHexToBytes32(fromDecToHex(zkCertLeafHash));
+  if (
+    (await recordRegistry.ZKKYCRecordToCenter(leafHashAsBytes)) !==
+    (await issuer.getAddress())
+  ) {
+    throw Error('Only the issuer of the zkCert can revoke it.');
+  }
+
+  const merkleProof = merkleTree.createProof(leafIndex);
+
+  const tx = await recordRegistry.connect(issuer).revokeZkKYCRecord(
+    leafIndex,
+    leafHashAsBytes,
+    merkleProof.pathElements.map((value) =>
+      fromHexToBytes32(fromDecToHex(value)),
+    ),
+  );
+  await tx.wait();
+}
