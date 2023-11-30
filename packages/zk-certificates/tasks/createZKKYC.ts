@@ -29,7 +29,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       issuer.address.toString(),
     )} to sign the zkKYC certificate`,
   );
-  console.log('randomSalt', args.randomSalt);
 
   // read KYC data file
   const data = JSON.parse(fs.readFileSync(args.kycDataFile, 'utf-8'));
@@ -41,13 +40,16 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   const holderCommitmentData = parseHolderCommitment(holderCommitmentFile);
 
+  // generate random number as salt for new zkKYC
+  const randomSalt = Math.floor(Math.random() * 2 ** 32);
+
   console.log('Creating zkKYC...');
   // TODO: create ZkKYC subclass requiring all the other fields
   const zkKYC = new ZKCertificate(
     holderCommitmentData.holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
-    args.randomSalt,
+    randomSalt,
     zkKYCFields,
   );
 
@@ -127,13 +129,6 @@ task('createZkKYC', 'Task to create a zkKYC certificate with input parameters')
     undefined,
     string,
     false,
-  )
-  .addParam(
-    'randomSalt',
-    'Random salt to input into zkCert hashing',
-    0,
-    types.int,
-    true,
   )
   .addParam(
     'kycDataFile',

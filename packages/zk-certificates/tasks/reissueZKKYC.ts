@@ -87,6 +87,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   }
   console.log('holderCommitment', holderCommitmentFile.holderCommitment);
 
+  // generate random number as salt for new zkKYC
+  const randomSalt = Math.floor(Math.random() * 2 ** 32);
+
   console.log('Reissuing zkKYC...');
   const oldZkKYCFields = { ...zkKYCFields };
   oldZkKYCFields.expirationDate = args.oldExpirationDate;
@@ -97,14 +100,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     holderCommitmentFile.holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
-    args.randomSalt,
+    0, // TODO: get around needing old salt
     oldZkKYCFields,
   );
   const newZkKYC = new ZKCertificate(
     holderCommitmentFile.holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
-    args.randomSalt,
+    randomSalt,
     newZkKYCFields,
   );
 
@@ -174,13 +177,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   if (merkleTree.retrieveLeaf(0, args.index) !== fromHexToDec(oldLeafBytes)) {
     console.log(
-      `the current leaf hash at index ${
-        args.index as number
+      `the current leaf hash at index ${args.index as number
       } does not correspond with the outdated zkKYC Cert we want to update`,
     );
     console.log(
-      `current leaf hash at index ${
-        args.index as number
+      `current leaf hash at index ${args.index as number
       }: ${merkleTree.retrieveLeaf(0, args.index)}`,
     );
     console.log(`outdated zkKYC Cert leaf hash: ${oldLeafBytes}`);
@@ -210,8 +211,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   await tx.wait();
   console.log(
     chalk.green(
-      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${
-        args.index as number
+      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${args.index as number
       } with new expiration date ${args.newExpirationDate as number}`,
     ),
   );
@@ -265,13 +265,6 @@ task(
     undefined,
     string,
     false,
-  )
-  .addParam(
-    'randomSalt',
-    'Random salt to input into zkCert hashing',
-    0,
-    types.int,
-    true,
   )
   .addParam(
     'kycDataFile',
