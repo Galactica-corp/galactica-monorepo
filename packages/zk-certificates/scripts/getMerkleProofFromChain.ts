@@ -3,6 +3,7 @@ import fs from 'fs';
 import { ethers } from 'hardhat';
 import path from 'path';
 
+import { printProgress } from '../lib/helpers';
 import { queryOnChainLeaves } from '../lib/queryMerkleTree';
 import { SparseMerkleTree } from '../lib/sparseMerkleTree';
 
@@ -23,7 +24,12 @@ async function main() {
 
   // build merkle tree
   const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
-  const leafLogResults = await queryOnChainLeaves(ethers, registryAddress);
+  const leafLogResults = await queryOnChainLeaves(
+    ethers,
+    registryAddress,
+    1,
+    printProgress,
+  );
   const leafHashes = leafLogResults.map((log) => log.leafHash);
   const leafIndices = leafLogResults.map((log) => Number(log.index));
   const batchSize = 10_000;

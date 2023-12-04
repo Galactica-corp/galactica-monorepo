@@ -8,6 +8,7 @@ import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
+import { printProgress } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
@@ -69,6 +70,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     recordRegistry,
     hre.ethers.provider,
     32,
+    1,
+    printProgress,
   );
 
   // reissue = revoke + issue

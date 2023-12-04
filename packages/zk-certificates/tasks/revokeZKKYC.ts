@@ -4,6 +4,7 @@ import { task, types } from 'hardhat/config';
 import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
+import { printProgress } from '../lib/helpers';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { revokeZkCert } from '../lib/registryTools';
 
@@ -45,6 +46,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     recordRegistry,
     hre.ethers.provider,
     32,
+    1,
+    printProgress,
   );
 
   await revokeZkCert(
