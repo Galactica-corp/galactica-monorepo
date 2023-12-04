@@ -3,14 +3,18 @@
  * Index defining exports of lib functions to other packages using this module
  */
 
-export * from './keyManagement';
 export * from './helpers';
-export * from './zkCertificate';
-export * from './mimcEncrypt';
-export * from './merkleTree';
-export * from './zkKYC';
 export * from './holderCommitment';
-export * from './registryTools';
+export * from './keyManagement';
+export * from './merkleTree';
+export * from './mimcEncrypt';
+export * from './poseidon';
 export * from './queryMerkleTree';
+export * from './registryTools';
+export * from './SBTData';
+export * from './shamirTools';
+export * from './sparseMerkleTree';
+export * from './zkCertificate';
+export * from './zkKYC';
 export type { ZkKYCContent } from '@galactica-net/galactica-types';
 export { ZkCertStandard } from '@galactica-net/galactica-types';

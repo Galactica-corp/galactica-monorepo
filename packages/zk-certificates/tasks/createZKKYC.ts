@@ -8,10 +8,12 @@ import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
-import { issueZkCert, parseHolderCommitment, prepareKYCFields } from '../lib';
+import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
+import { issueZkCert } from '../lib/registryTools';
 import { ZKCertificate } from '../lib/zkCertificate';
+import { prepareKYCFields } from '../lib/zkKYC';
 
 /**
  * Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.

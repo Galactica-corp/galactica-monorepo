@@ -4,8 +4,8 @@ import { task, types } from 'hardhat/config';
 import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-import { revokeZkCert } from '../lib';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
+import { revokeZkCert } from '../lib/registryTools';
 
 /**
  * Script for revoking a zkKYC certificate, issuing it and adding a merkle proof for it.
