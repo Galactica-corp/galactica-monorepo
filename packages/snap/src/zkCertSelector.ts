@@ -49,6 +49,7 @@ export async function selectZkCert(
     throw new Error(
       `No such zkCerts available. Filter used ${JSON.stringify({
         zkCertStandard,
+        registryAddress,
         expirationDate,
         providerAx,
       })}. Please import it first.`,

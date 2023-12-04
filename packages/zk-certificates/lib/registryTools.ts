@@ -16,6 +16,7 @@ import type { ZKCertificate } from './zkCertificate';
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert (guardian).
  * @param merkleTree - Merkle tree of the registry (passed to not reconstruct it repeatedly).
+ * @param devnetGuardian - Optional proxy contract on DevNet to test without a whitelisted guardian.
  * @returns MerkleProof of the new leaf in the tree and registration data.
  */
 export async function issueZkCert(
@@ -23,14 +24,16 @@ export async function issueZkCert(
   recordRegistry: Contract,
   issuer: Signer,
   merkleTree: SparseMerkleTree,
+  devnetGuardian?: Contract,
 ): Promise<{ merkleProof: MerkleProof; registration: ZkCertRegistration }> {
   const leafBytes = fromHexToBytes32(fromDecToHex(zkCert.leafHash));
 
   const chosenLeafIndex = merkleTree.getFreeLeafIndex();
   const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
 
+  const contractToCall = devnetGuardian ?? recordRegistry;
   // now we have the merkle proof to add a new leaf
-  const tx = await recordRegistry.connect(issuer).addZkKYCRecord(
+  const tx = await contractToCall.connect(issuer).addZkKYCRecord(
     chosenLeafIndex,
     leafBytes,
     leafEmptyMerkleProof.pathElements.map((value) =>
