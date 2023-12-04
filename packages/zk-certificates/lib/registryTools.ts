@@ -4,8 +4,7 @@ import type {
   MerkleProof,
   ZkCertRegistration,
 } from '@galactica-net/galactica-types';
-import type { Signer } from 'ethers';
-import { Contract } from 'ethers';
+import type { Signer, Contract } from 'ethers';
 
 import { fromDecToHex, fromHexToBytes32 } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
@@ -25,23 +24,13 @@ export async function issueZkCert(
   issuer: Signer,
   merkleTree: SparseMerkleTree,
 ): Promise<{ merkleProof: MerkleProof; registration: ZkCertRegistration }> {
-  const guardianRegistry = new Contract(
-    await recordRegistry._GuardianRegistry(),
-    ['function isWhitelisted(address) view returns (bool)'],
-    recordRegistry.provider,
-  );
-  if (!(await guardianRegistry.isWhitelisted(await issuer.getAddress()))) {
-    throw new Error(
-      `Issuer ${await issuer.getAddress()} is not a guardian yet. Please register it first using the script .`,
-    );
-  }
   const leafBytes = fromHexToBytes32(fromDecToHex(zkCert.leafHash));
 
   const chosenLeafIndex = merkleTree.getFreeLeafIndex();
   const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
 
   // now we have the merkle proof to add a new leaf
-  const tx = await recordRegistry.addZkKYCRecord(
+  const tx = await recordRegistry.connect(issuer).addZkKYCRecord(
     chosenLeafIndex,
     leafBytes,
     leafEmptyMerkleProof.pathElements.map((value) =>

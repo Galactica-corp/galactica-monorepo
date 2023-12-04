@@ -219,4 +219,20 @@ export class SparseMerkleTree {
     }
     return index;
   }
+
+  /**
+   * Gets the index of a leaf in the tree.
+   * @param leaf - Leaf to check.
+   * @returns Index.
+   */
+  getLeafIndex(leaf: string): number {
+    for (const index in this.tree[0]) {
+      if (Object.prototype.hasOwnProperty.call(this.tree[0], index)) {
+        if (this.tree[0][index] === leaf) {
+          return Number(index);
+        }
+      }
+    }
+    throw new Error('Leaf not found in the tree.');
+  }
 }
