@@ -107,7 +107,7 @@ describe('KYCRecordRegistry', () => {
       // console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
       // add new zkKYCRecord and check the root
       const merkleProof = merkleTree.createProof(leafIndices[i]);
-      const merkleProofPath = merkleProof.path.map((value) =>
+      const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
       await KYCRecordRegistry.addZkKYCRecord(
@@ -145,7 +145,7 @@ describe('KYCRecordRegistry', () => {
 
       // add new zkKYCRecord
       const merkleProof = merkleTree.createProof(leafIndices[i]);
-      const merkleProofPath = merkleProof.path.map((value) =>
+      const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
       await KYCRecordRegistry.addZkKYCRecord(
@@ -158,7 +158,7 @@ describe('KYCRecordRegistry', () => {
 
     // now we will try to nullify the first added leaf
     const merkleProof = merkleTree.createProof(leafIndices[0]);
-    const merkleProofPath = merkleProof.path.map((value) =>
+    const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
     await KYCRecordRegistry.revokeZkKYCRecord(
@@ -185,7 +185,7 @@ describe('KYCRecordRegistry', () => {
     const leafIndices = generateRandomNumberArray(1);
     // add new zkKYCRecord and check the root
     const merkleProof = merkleTree.createProof(leafIndices[0]);
-    const merkleProofPath = merkleProof.path.map((value) =>
+    const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
     await expect(

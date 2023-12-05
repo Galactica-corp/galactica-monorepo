@@ -6,7 +6,8 @@ import { fromDecToHex, fromHexToBytes32 } from '../lib/helpers';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 
 /**
- * Script to issue zkKYC records on-chain.
+ * Script to issue zkCert hashes on-chain.
+ * This script is primarily used for testing purposes because it does not create the zkCert itself.
  */
 async function main() {
   // parameters

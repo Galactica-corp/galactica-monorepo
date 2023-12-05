@@ -1,7 +1,8 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
+import { buildPoseidon } from 'circomlibjs';
+import type { Contract, providers } from 'ethers';
 
-import { printProgress } from './helpers';
+import { SparseMerkleTree } from './sparseMerkleTree';
 import type { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
 
 /**
@@ -18,22 +19,19 @@ export type LeafLogResult = {
 };
 /**
  * Get Merkle tree leaves by reading blockchain log.
- * @param ethers - Ethers instance.
- * @param contractAddr - Address of the RecordRegistry contract.
+ * @param provider - Ethers provider.
+ * @param registry - Address of the RecordRegistry contract.
  * @param firstBlock - First block to query (optional, ideally the contract creation block).
+ * @param onProgress - Callback function to be called with the progress in percent.
  * @returns Promise of an LeafLogResult array of Merkle tree leaves.
  */
 export async function queryOnChainLeaves(
-  ethers: HardhatEthersHelpers,
-  contractAddr: string,
+  provider: providers.Provider,
+  registry: KYCRecordRegistry,
   firstBlock = 1,
+  onProgress?: (percent: string) => void,
 ): Promise<LeafLogResult[]> {
-  const contract = (await ethers.getContractAt(
-    'KYCRecordRegistry',
-    contractAddr,
-  )) as KYCRecordRegistry;
-
-  const currentBlock = await ethers.provider.getBlockNumber();
+  const currentBlock = await provider.getBlockNumber();
   const resAdded: LeafLogResult[] = [];
   const resRevoked: LeafLogResult[] = [];
   const res: LeafLogResult[] = [];
@@ -46,21 +44,22 @@ export async function queryOnChainLeaves(
   // get logs in batches of 10000 blocks because of rpc call size limit
   for (let i = firstBlock; i < currentBlock; i += maxBlockInterval) {
     const maxBlock = Math.min(i + maxBlockInterval, currentBlock);
-    // display progress in %
-    printProgress(
-      `${Math.round(
-        ((maxBlock - firstBlock) / (currentBlock - firstBlock)) * 100,
-      )}`,
-    );
+    if (onProgress) {
+      onProgress(
+        `${Math.round(
+          ((maxBlock - firstBlock) / (currentBlock - firstBlock)) * 100,
+        )}`,
+      );
+    }
 
     // go through all logs adding a verification SBT for the user
-    const leafAddedLogs = await contract.queryFilter(
-      contract.filters.zkKYCRecordAddition(),
+    const leafAddedLogs = await registry.queryFilter(
+      registry.filters.zkKYCRecordAddition(),
       i,
       maxBlock,
     );
-    const leafRevokedLogs = await contract.queryFilter(
-      contract.filters.zkKYCRecordRevocation(),
+    const leafRevokedLogs = await registry.queryFilter(
+      registry.filters.zkKYCRecordRevocation(),
       i,
       maxBlock,
     );
@@ -103,7 +102,49 @@ export async function queryOnChainLeaves(
       `invalid merkle tree reconstruction: zkKYC record ${resRevoked[0].leafHash} at index ${resRevoked[0].index} has been revoked but not added`,
     );
   }
-  printProgress(`100`);
+  if (onProgress) {
+    onProgress(`100`);
+  }
   console.log(``);
   return res;
+}
+
+/**
+ * Constructs a merkle tree from the leaves stored in an on-chain registry.
+ * @param recordRegistry - Contract of the registry storing the Merkle tree on-chain.
+ * @param provider - Ethers provider.
+ * @param merkleDepth - Depth of the Merkle tree.
+ * @param firstBlock - First block to query (optional, ideally the contract creation block).
+ * @param onProgress - Callback function to be called with the progress in percent.
+ * @returns Reconstructed Merkle tree.
+ */
+export async function buildMerkleTreeFromRegistry(
+  recordRegistry: Contract,
+  provider: providers.Provider,
+  merkleDepth: number,
+  firstBlock = 1,
+  onProgress?: (percent: string) => void,
+): Promise<SparseMerkleTree> {
+  const leafLogResults = await queryOnChainLeaves(
+    provider,
+    recordRegistry as KYCRecordRegistry,
+    firstBlock,
+    onProgress,
+  );
+  const leafHashes = leafLogResults.map((value) => value.leafHash);
+  const leafIndices = leafLogResults.map((value) => Number(value.index));
+
+  const poseidon = await buildPoseidon();
+
+  const merkleTree = new SparseMerkleTree(merkleDepth, poseidon);
+
+  const batchSize = 10_000;
+  for (let i = 0; i < leafLogResults.length; i += batchSize) {
+    merkleTree.insertLeaves(
+      leafHashes.slice(i, i + batchSize),
+      leafIndices.slice(i, i + batchSize),
+    );
+  }
+
+  return merkleTree;
 }

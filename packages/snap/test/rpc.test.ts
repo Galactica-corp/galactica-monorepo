@@ -1,7 +1,7 @@
+import type { HolderCommitmentData } from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
   EncryptedZkCert,
-  HolderCommitmentData,
   MerkleProof,
   MerkleProofUpdateRequestParams,
   ZkCertProof,

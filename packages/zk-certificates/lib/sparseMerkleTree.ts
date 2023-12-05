@@ -1,4 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import type { MerkleProof } from '@galactica-net/galactica-types';
 import keccak256 from 'keccak256';
 
 import { arrayToBigInt, SNARK_SCALAR_FIELD } from './helpers';
@@ -160,7 +161,7 @@ export class SparseMerkleTree {
    * @returns Merkle proof for the leaf at the index.
    */
   createProof(leafIndex: number): MerkleProof {
-    const path = [];
+    const pathElements = [];
     const leaf = this.retrieveLeaf(0, leafIndex);
 
     let curIndex = leafIndex;
@@ -169,9 +170,9 @@ export class SparseMerkleTree {
       // check side we are on
       if (curIndex % 2 === 0) {
         // if the index is even we are on the left and need to get the node from the right
-        path.push(this.retrieveLeaf(level, curIndex + 1));
+        pathElements.push(this.retrieveLeaf(level, curIndex + 1));
       } else {
-        path.push(this.retrieveLeaf(level, curIndex - 1));
+        pathElements.push(this.retrieveLeaf(level, curIndex - 1));
         // set bit indicating that we are on the right side of the parent node
       }
 
@@ -181,21 +182,57 @@ export class SparseMerkleTree {
 
     return {
       leaf,
-      path,
+      pathElements,
       leafIndex,
       root: this.root,
     };
   }
-}
 
-/**
- * Simple struct for a merkle proof.
- */
-export type MerkleProof = {
-  leaf: string;
-  // hashes of the branches on the side of the path
-  path: string[];
-  // interpreted as binary number. If a bit is set, it means that the path is the right part of the parent node.
-  leafIndex: number;
-  root: string;
-};
+  /**
+   * Finds the smallest index of an empty leaf.
+   * @returns Index of the first empty leaf.
+   */
+  getFreeLeafIndex(): number {
+    const leafIndices: number[] = [];
+    for (const index in this.tree[0]) {
+      if (Object.prototype.hasOwnProperty.call(this.tree[0], index)) {
+        leafIndices.push(Number(index));
+      }
+    }
+
+    let index = 0;
+    // firstly we sort the list of indices
+    leafIndices.sort();
+    // if the list is not empty and the first index is 0 then we proceed to find the gap
+    // otherwise the index remains 0
+    if (leafIndices.length >= 1 && leafIndices[0] === 0) {
+      for (let i = 0; i < leafIndices.length - 1; i++) {
+        if (leafIndices[i + 1] - leafIndices[i] >= 2) {
+          index = leafIndices[i] + 1;
+          break;
+        }
+      }
+      // if the index is not assigned in the for loop yet, i.e. there is no gap in the indices array
+      if (index === 0) {
+        index = leafIndices[leafIndices.length - 1] + 1;
+      }
+    }
+    return index;
+  }
+
+  /**
+   * Gets the index of a leaf in the tree.
+   * @param leaf - Leaf to check.
+   * @returns Index.
+   */
+  getLeafIndex(leaf: string): number {
+    for (const index in this.tree[0]) {
+      if (Object.prototype.hasOwnProperty.call(this.tree[0], index)) {
+        if (this.tree[0][index] === leaf) {
+          return Number(index);
+        }
+      }
+    }
+    throw new Error('Leaf not found in the tree.');
+  }
+}
