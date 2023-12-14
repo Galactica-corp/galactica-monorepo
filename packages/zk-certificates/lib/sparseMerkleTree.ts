@@ -202,7 +202,8 @@ export class SparseMerkleTree {
 
     let index = 0;
     // firstly we sort the list of indices
-    leafIndices.sort();
+    // Pass sorting function to sort it by the number and not the lexicographical order
+    leafIndices.sort((a, b) => a - b);
     // if the list is not empty and the first index is 0 then we proceed to find the gap
     // otherwise the index remains 0
     if (leafIndices.length >= 1 && leafIndices[0] === 0) {
