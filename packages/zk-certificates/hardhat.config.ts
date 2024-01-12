@@ -161,6 +161,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_exampleMockDApp.circom',
         input: 'input/exampleMockDApp.json',
       },
+      {
+        name: 'patriciaTree',
+        circuit: 'test/test_patriciaTreeKeccak.circom',
+        input: 'input/patriciaTreeKeccak.json',
+      },
     ],
   },
 };
