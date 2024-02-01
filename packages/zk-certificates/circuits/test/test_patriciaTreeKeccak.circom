@@ -7,5 +7,5 @@ component main {public [
 ] } = MPTInclusionFixedKeyHexLen(
   10, // maxDepth: same as in zk-attestor
   64, // keyHexLen: 1 for each 4 bits in an ethereum address
-  228 // maxValueHexLen: same as in zk-attestor
+  64 // maxValueHexLen: because we encode only reputation scores a 256 bit integer is enough
 );

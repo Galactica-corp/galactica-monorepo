@@ -5,9 +5,12 @@ include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "../../../node_modules/circomlib/circuits/multiplexer.circom";
 
-include "./keccak.circom";
+include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "./rlp.circom";
 
+/**
+ * Check that the extention into leaf is a valid RLP encoding of the key and value.
+ */
 template LeafCheck(maxKeyHexLen, maxValueHexLen) {
 
     // key prefix hex len + (maxkeyHexLen + 0x prefix len) + maximum value hex len + maxValueHexLen
@@ -147,7 +150,7 @@ template LeafCheck(maxKeyHexLen, maxValueHexLen) {
     log(leaf_value_match.out);
 }
 
-template ExtensionCheck(maxKeyHexLen, maxNodeRefHexLen) {
+template ExtensionCheck(maxKeyHexLen) {
     var maxExtensionRlpHexLen = 4 + 2 + maxKeyHexLen + 2 + maxNodeRefHexLen;
     var EXTENSION_BITS = log_ceil(maxExtensionRlpHexLen);
     var arrayPrefixMaxHexLen = 2 * (EXTENSION_BITS \ 8 + 1);
@@ -155,8 +158,7 @@ template ExtensionCheck(maxKeyHexLen, maxNodeRefHexLen) {
     signal input keyNibbleHexLen;
     signal input keyNibbleHexs[maxKeyHexLen];
 
-    signal input nodeRefHexLen;
-    signal input nodeRefHexs[maxNodeRefHexLen];
+    signal input nodeRefHash;
 
     // extension = rlp_prefix           [2]
     //             rlp_length           [0, 2 * ceil((...))]
@@ -175,18 +177,14 @@ template ExtensionCheck(maxKeyHexLen, maxNodeRefHexLen) {
 
     log(111111100002);
     log(maxKeyHexLen);
-    log(maxNodeRefHexLen);
 
     log(keyNibbleHexLen);
-    log(nodeRefHexLen);
     log(nodePathPrefixHexLen);
 
     for (var idx = 0; idx < maxKeyHexLen; idx++) {
 	log(keyNibbleHexs[idx]);
     }
-    for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
-	log(nodeRefHexs[idx]);
-    }
+	log(nodeRefHash);
     for (var idx = 0; idx < maxExtensionRlpHexLen; idx++) {
 	log(nodeRlpHexs[idx]);
     }
@@ -244,7 +242,7 @@ template ExtensionCheck(maxKeyHexLen, maxNodeRefHexLen) {
     // check path contains nibbles of key using rlp.fields[0]
     component extension_to_path = ShiftLeft(maxExtensionRlpHexLen, 0, 2);
     for (var idx = 0; idx < maxExtensionRlpHexLen; idx++) {
-	extension_to_path.in[idx] <== rlp.fields[0][idx];
+	    extension_to_path.in[idx] <== rlp.fields[0][idx];
     }
     extension_to_path.shift <== nodePathPrefixHexLen;
     
@@ -263,10 +261,11 @@ template ExtensionCheck(maxKeyHexLen, maxNodeRefHexLen) {
     key_path <== key_path_len_match.out * key_path_match.out;
     
     // check node_ref matches child using rlp.fields[1]
+    // TODO: adjust for refHash instead of RefHex[]
     component node_ref_match = ArrayEq(maxNodeRefHexLen);
     for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
-	node_ref_match.a[idx] <== rlp.fields[1][idx];
-	node_ref_match.b[idx] <== nodeRefHexs[idx];
+	    node_ref_match.a[idx] <== rlp.fields[1][idx];
+	    node_ref_match.b[idx] <== nodeRefHexs[idx];
     }
     node_ref_match.inLen <== rlp.fieldHexLen[1];
     
@@ -286,14 +285,12 @@ template ExtensionCheck(maxKeyHexLen, maxNodeRefHexLen) {
     log(node_ref_len_match.out);	
 }
 
-template EmptyVtBranchCheck(maxNodeRefHexLen) {
+template EmptyVtBranchCheck() {
     var maxBranchRlpHexLen = 1064;
     var BRANCH_BITS = 11;
     
     signal input keyNibble;
-
-    signal input nodeRefHexLen;
-    signal input nodeRefHexs[maxNodeRefHexLen];
+    signal input nodeRefHash;
 
     // branch = rlp_prefix              [2]
     //          rlp_length              [0, 8]
@@ -311,17 +308,13 @@ template EmptyVtBranchCheck(maxNodeRefHexLen) {
     signal output outLen;
 
     log(111111100004);
-    log(maxNodeRefHexLen);
     
     log(keyNibble);
-    log(nodeRefHexLen);
 
     log(maxBranchRlpHexLen);
-    for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
-	log(nodeRefHexs[idx]);
-    }
+	log(nodeRefHash);
     for (var idx = 0; idx < maxBranchRlpHexLen; idx++) {
-	log(nodeRlpHexs[idx]);
+	    log(nodeRlpHexs[idx]);
     }
    
     // check input hexs are hexs
@@ -343,6 +336,7 @@ template EmptyVtBranchCheck(maxNodeRefHexLen) {
     }
 
     // check node_ref at index of nibble / value matches child / value
+    // TODO: adjust with refHash instead of RefHex[]
     component nodeRefSelector = Multiplexer(64, 16);
     component nodeRefHexLenSelector = Multiplexer(1, 16);
     for (var idx = 0; idx < 16; idx++) {
@@ -373,3 +367,13 @@ template EmptyVtBranchCheck(maxNodeRefHexLen) {
     log(node_ref_len_match.out);
 }
 
+function log_ceil(n) {
+   var n_temp = n;
+   for (var i = 0; i < 254; i++) {
+       if (n_temp == 0) {
+          return i;
+       }
+       n_temp = n_temp \ 2;
+   }
+   return 254;
+}
