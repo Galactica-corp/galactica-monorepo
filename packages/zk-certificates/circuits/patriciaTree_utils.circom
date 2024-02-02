@@ -197,9 +197,13 @@ template ExtensionCheck(maxKeyHexLen) {
     }
 
     // validity of RLP encoding
-    component rlp = RlpArrayCheck(maxExtensionRlpHexLen, 2, arrayPrefixMaxHexLen,
-                                  [0, 0],
-				  [maxKeyHexLen + 2, maxNodeRefHexLen]);
+    component rlp = RlpArrayCheck(
+        maxExtensionRlpHexLen, 
+        2, 
+        arrayPrefixMaxHexLen,
+        [0, 0],
+        [maxKeyHexLen + 2, maxNodeRefHexLen]
+    );
     for (var idx = 0; idx < maxExtensionRlpHexLen; idx++) {
         rlp.in[idx] <== nodeRlpHexs[idx];
     }
@@ -248,8 +252,8 @@ template ExtensionCheck(maxKeyHexLen) {
     
     component key_path_match = ArrayEq(maxKeyHexLen);
     for (var idx = 0; idx < maxKeyHexLen; idx++) {
-	key_path_match.a[idx] <== extension_to_path.out[idx];
-	key_path_match.b[idx] <== keyNibbleHexs[idx];
+	    key_path_match.a[idx] <== extension_to_path.out[idx];
+	    key_path_match.b[idx] <== keyNibbleHexs[idx];
     }
     key_path_match.inLen <== rlp.fieldHexLen[0] - nodePathPrefixHexLen;
     
@@ -261,13 +265,12 @@ template ExtensionCheck(maxKeyHexLen) {
     key_path <== key_path_len_match.out * key_path_match.out;
     
     // check node_ref matches child using rlp.fields[1]
-    // TODO: adjust for refHash instead of RefHex[]
-    component node_ref_match = ArrayEq(maxNodeRefHexLen);
+    component node_ref_match = RlpIntEncodingCheck(maxNodeRefHexLen);
     for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
-	    node_ref_match.a[idx] <== rlp.fields[1][idx];
-	    node_ref_match.b[idx] <== nodeRefHexs[idx];
+	    node_ref_match.in[idx] <== rlp.fields[1][idx];
+	    node_ref_match.value <== nodeRefHash;
     }
-    node_ref_match.inLen <== rlp.fieldHexLen[1];
+    node_ref_match.rlpLen <== rlp.fieldHexLen[1];
     
     component node_ref_len_match = IsEqual();
     node_ref_len_match.in[0] <== nodeRefHexLen;
@@ -365,15 +368,4 @@ template EmptyVtBranchCheck() {
     log(out);
     log(node_ref_match.out);
     log(node_ref_len_match.out);
-}
-
-function log_ceil(n) {
-   var n_temp = n;
-   for (var i = 0; i < 254; i++) {
-       if (n_temp == 0) {
-          return i;
-       }
-       n_temp = n_temp \ 2;
-   }
-   return 254;
 }

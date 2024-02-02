@@ -162,6 +162,11 @@ const config: HardhatUserConfig = {
         input: 'input/exampleMockDApp.json',
       },
       {
+        name: 'rlpIntEncodingCheck',
+        circuit: 'test/test_rlpIntEncodingCheck.circom',
+        input: 'input/rlpIntEncodingCheck.json',
+      },
+      {
         name: 'patriciaTree',
         circuit: 'test/test_patriciaTreeKeccak.circom',
         input: 'input/patriciaTreeKeccak.json',

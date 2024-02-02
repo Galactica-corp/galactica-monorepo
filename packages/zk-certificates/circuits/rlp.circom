@@ -4,6 +4,7 @@ pragma circom 2.0.2;
 include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "../../../node_modules/circomlib/circuits/multiplexer.circom";
+include "../../../node_modules/circomlib/circuits/switcher.circom";
 
 // selects indices [start, end)
 template SubArray(nIn, maxSelect, nInBits) {
@@ -470,4 +471,93 @@ template RlpArrayCheck(maxHexLen, nFields, arrayPrefixMaxHexLen, fieldMinHexLen,
             log(fields[idx][j]);
 	    }
     }
+}
+
+// Template to check the RLP encoding of a single integer
+// TODO: maybe we need to use a maxRplLen and a signal rplLen instead
+template RlpIntEncodingCheck(maxRlpLen) {
+    // RLP encoding to check
+    signal input in[maxRlpLen];
+    // length of the RLP encoding
+    signal input rlpLen;
+    // integer the RLP encoding should represent
+    signal input value;
+
+    // output if the RLP encoding is correct
+    signal output out;
+
+    log(333333300007);
+
+    for (var idx = 0; idx < maxRlpLen; idx++) {
+        log(in[idx]);
+    }
+    log(value);
+
+
+    // In case the value is less than 128, the RLP encoding is just the value itself
+    // Because this template is only for ints and not lists, rlpLen = 1 means it must be a < 128 int
+    component oneByteEqual = IsEqual();
+    oneByteEqual.in[0] <== value;
+    oneByteEqual.in[1] <== in[0];
+
+    component valueLt128 = LessThan(8);
+    valueLt128.in[0] <== value;
+    valueLt128.in[1] <== 128;
+
+    signal caseRlpLen1Works <== oneByteEqual.out * valueLt128.out;
+
+
+    // In case rlpLen > 1, the first byte is 0x80 (dec. 128) plus the length of the value in bytes
+    signal valueBytesLen <== in[0] - 0x80;
+
+    // the field modulo allows not more than 32 bytes
+    component lenLt32 = LessThan(8);
+    lenLt32.in[0] <== rlpLen;
+    lenLt32.in[1] <== 32;
+    // TODO: check that there is no overflow regarding the max field value (can maybe be ignored because it is very hard to find a hash collision)
+
+    // after the prefix, the rlp is followed by the bytes of the value
+    // we just sum up the bytes to reconstruct the value
+    signal sum[maxRlpLen - 1];
+    sum[0] <== in[1];
+    for (var idx = 1; idx < maxRlpLen - 1; idx++) {
+        sum[idx] <== sum[idx - 1] * 256 + in[idx + 1];
+    }
+    
+    component valueCheck = IsEqual();
+    // TODO: select right value for rlpLen, see patricia tree for selector example
+    valueCheck.in[0] <== sum[rlpLen - 2];
+    valueCheck.in[1] <== value;
+
+    signal caseRlpLenLongerWorks <== valueCheck.out;
+
+
+    // Make sure the output is correct depending on the rlpLen case
+    component lenIsOne = IsZero();
+    lenIsOne.in <== rlpLen - 1;
+    component lenCaseSelector = Switcher();
+    lenCaseSelector.L <== caseRlpLen1Works;
+    lenCaseSelector.R <== caseRlpLenLongerWorks;
+    lenCaseSelector.sel <== lenIsOne.out;
+    out <== lenCaseSelector.outL;
+    log(out);
+}
+
+// TODO: move those functions somewhere more general
+function log_ceil(n) {
+   var n_temp = n;
+   for (var i = 0; i < 254; i++) {
+       if (n_temp == 0) {
+          return i;
+       }
+       n_temp = n_temp \ 2;
+   }
+   return 254;
+}
+
+function min(a, b) {
+    if (a < b) {
+	return a;
+    }
+    return b;
 }

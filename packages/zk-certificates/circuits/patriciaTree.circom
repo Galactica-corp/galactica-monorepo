@@ -14,7 +14,7 @@ include "./patriciaTree_utils.circom";
 // Assumes all keys have a fixed bit length, so that branches have length 16 only
 // and all paths terminate in a leaf
 // For learning about Merkle Patricia Tries check out https://ethereum.org/en/developers/docs/data-structures-and-encoding/patricia-merkle-trie#merkle-patricia-trees
-
+// This version was simplified to use the Poseidon Hash instead of Keccak and the leaf is assumed to be a single field element (hash or score)
 // keyHexLen: 64 
 template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
     var maxLeafRlpHexLen = 4 + (keyHexLen + 2) + 4 + maxValueHexLen;
@@ -25,7 +25,7 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
     
     signal input keyHexs[keyHexLen];
     signal input valueHexs[maxValueHexLen];
-    signal input rootHashHexs[64]; // 32-bytes root hash. Each bytes will be represented by two value. e.g 0xa1 ==> [10, 1]
+    signal input rootHash;
 
     signal input keyFragmentStarts[maxDepth];
     
@@ -231,27 +231,21 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
         }
 
         // compute hashes at each layer
-        // TODO: replace with Poseidon
-        nodeHashes[layer] = KeccakOrLiteralHex(maxNodeRlpHexLen);
+        nodeHashes[layer] = Poseidon(maxNodeRlpHexLen);
         for (var idx = 0; idx < maxNodeRlpHexLen; idx++) {
-            nodeHashes[layer].in[idx] <== nodeRlpHexs[layer][idx];
+            nodeHashes[layer].inputs[idx] <== nodeRlpHexs[layer][idx];
         }
-        nodeHashes[layer].inLen <== nodeTypes[layer] * (exts[layer].outLen - branches[layer].outLen) + branches[layer].outLen;
     }
 
     // check rootHash
-    // TODO: replace with Equals check of poseidon hash
-    component rootHashCheck = ArrayEq(64);    
-    for (var idx = 0; idx < 64; idx++) {
-	rootHashCheck.a[idx] <== rootHashHexs[idx];
-	rootHashCheck.b[idx] <== nodeHashes[0].out[idx];
-    }
-    rootHashCheck.inLen <== 64;
+    component rootHashCheck = IsEqual();
+    rootHashCheck.in[0] <== rootHash;
+    rootHashCheck.in[0] <== nodeHashes[0].out;
     
     component checksPassed = Multiplexer(1, maxDepth);
     checksPassed.inp[0][0] <== rootHashCheck.out + leaf.out + allFragmentsValid.out;
     for (var layer = 0; layer < maxDepth - 1; layer++) {
-	checksPassed.inp[layer + 1][0] <== checksPassed.inp[layer][0] + branches[layer].out + nodeTypes[layer] * (exts[layer].out - branches[layer].out);
+	    checksPassed.inp[layer + 1][0] <== checksPassed.inp[layer][0] + branches[layer].out + nodeTypes[layer] * (exts[layer].out - branches[layer].out);
     }
     checksPassed.sel <== depth - 1;
 
@@ -264,6 +258,6 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
     log(out);
     log(valueHexLen);
     for (var idx = 0; idx < maxDepth; idx++) {
-	log(checksPassed.inp[idx][0]);
+	    log(checksPassed.inp[idx][0]);
     }
 }
