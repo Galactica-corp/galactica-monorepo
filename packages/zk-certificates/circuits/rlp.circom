@@ -502,12 +502,22 @@ template RlpIntEncodingCheck(maxRlpLen, intByteLen) {
     valueLt128.in[1] <== 128;
 
     // all three conditions must be true (==1), calculated in two steps to work around non quadratic constraint
-    // signal caseRlpLen1WorksStep1 <== oneByteEqual.out * valueLt128.out;
-    signal caseRlpLen1Works <== oneByteEqual.out * valueLt128.out * intByteLenIs1.out;
+    signal caseRlpLen1Required <== intByteLenIs1.out * valueLt128.out;
+    signal caseRlpLen1Works <== caseRlpLen1Required * oneByteEqual.out;
 
 
     // In case rlpLen > 1, the first byte is 0x80 (dec. 128) plus the length of the value in bytes
-    signal valueBytesLen <== in[0] - 0x80;
+
+    //check that the lengths are correct
+    component encodedLengthCorrect = IsEqual();
+    encodedLengthCorrect.in[0] <== in[0] - 0x80;
+    encodedLengthCorrect.in[1] <== intByteLen;
+    // if byteLen > 1, the RLP encoding must contain the full length
+    component containsFullByteLength = IsEqual();
+    containsFullByteLength.in[0] <== rlpLen;
+    containsFullByteLength.in[1] <== intByteLen + 1;
+    signal lengthsCorrect <== encodedLengthCorrect.out * containsFullByteLength.out;
+
 
     // the field modulo allows not more than 32 bytes
     component lenLt32 = LessThan(8);
@@ -535,17 +545,22 @@ template RlpIntEncodingCheck(maxRlpLen, intByteLen) {
     valueCheck.in[0] <== sumMux.out[0];
     valueCheck.in[1] <== value;
 
-    signal caseRlpLenLongerWorks <== valueCheck.out * (1-valueLt128.out);
-
+    signal caseRlpLenLongerWorks <== valueCheck.out * (1-caseRlpLen1Required);
 
     // Make sure the output is correct depending on the rlpLen case
     component lenIsOne = IsZero();
     lenIsOne.in <== rlpLen - 1;
     component lenCaseSelector = Multiplexer(1, 2);
-    lenCaseSelector.inp[0][0] <== caseRlpLenLongerWorks;
+    lenCaseSelector.inp[0][0] <== caseRlpLenLongerWorks * lengthsCorrect;
     lenCaseSelector.inp[1][0] <== caseRlpLen1Works;
     lenCaseSelector.sel <== lenIsOne.out;
     out <== lenCaseSelector.out[0];
+
+    // log(caseRlpLenLongerWorks);
+    // log(lengthsCorrect);
+    // log(caseRlpLen1Works);
+    // log(lenCaseSelector.sel);
+    // log(out);
 }
 
 // TODO: move those functions somewhere more general
