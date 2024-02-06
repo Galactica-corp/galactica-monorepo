@@ -191,7 +191,7 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
         extKeySelectors[layer].start <== keyFragmentStarts[layer];
         extKeySelectors[layer].end <== keyFragmentStarts[layer + 1];
         
-        exts[layer] = ExtensionCheck(keyHexLen, 64);
+        exts[layer] = ExtensionCheck(keyHexLen);
         exts[layer].keyNibbleHexLen <== keyFragmentStarts[layer + 1] - keyFragmentStarts[layer];
         for (var idx = 0; idx < keyHexLen; idx++) {
             exts[layer].keyNibbleHexs[idx] <== extKeySelectors[layer].out[idx];
@@ -216,7 +216,7 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
         }
         nibbleSelector[layer].sel <== depthLt[layer].out * keyFragmentStarts[layer];
         
-        branches[layer] = EmptyVtBranchCheck(64);	
+        branches[layer] = EmptyVtBranchCheck();	
         branches[layer].keyNibble <== nibbleSelector[layer].out[0];
 
         // if layer + 1 > depth, we do not care what values are filled in

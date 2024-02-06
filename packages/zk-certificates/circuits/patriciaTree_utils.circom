@@ -151,7 +151,9 @@ template LeafCheck(maxKeyHexLen, maxValueHexLen) {
 }
 
 template ExtensionCheck(maxKeyHexLen) {
-    var maxExtensionRlpHexLen = 4 + 2 + maxKeyHexLen + 2 + maxNodeRefHexLen;
+    var hashLength = 64; // 256 bits hash = 64 hex characters 
+    var maxNodeRefHexLen = 2 + hashLength; // max 2 length encoding hex characters 
+    var maxExtensionRlpHexLen = 4 + 2 + maxKeyHexLen + maxNodeRefHexLen;
     var EXTENSION_BITS = log_ceil(maxExtensionRlpHexLen);
     var arrayPrefixMaxHexLen = 2 * (EXTENSION_BITS \ 8 + 1);
 
@@ -202,7 +204,7 @@ template ExtensionCheck(maxKeyHexLen) {
         2, 
         arrayPrefixMaxHexLen,
         [0, 0],
-        [maxKeyHexLen + 2, maxNodeRefHexLen]
+        [maxKeyHexLen + 2, hashLength]
     );
     for (var idx = 0; idx < maxExtensionRlpHexLen; idx++) {
         rlp.in[idx] <== nodeRlpHexs[idx];
@@ -265,7 +267,7 @@ template ExtensionCheck(maxKeyHexLen) {
     key_path <== key_path_len_match.out * key_path_match.out;
     
     // check node_ref matches child using rlp.fields[1]
-    component node_ref_match = RlpIntEncodingCheck(maxNodeRefHexLen);
+    component node_ref_match = RlpIntEncodingCheck(maxNodeRefHexLen, 32);
     for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
 	    node_ref_match.in[idx] <== rlp.fields[1][idx];
 	    node_ref_match.value <== nodeRefHash;

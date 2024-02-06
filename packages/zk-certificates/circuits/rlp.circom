@@ -473,93 +473,40 @@ template RlpArrayCheck(maxHexLen, nFields, arrayPrefixMaxHexLen, fieldMinHexLen,
 }
 
 /**
- * Template to check the RLP encoding of a single integer
- * @param maxRlpLen - The maximum length of the RLP encoding.
- * @param intByteLen - How many bytes the integer has, used to ensure that a value has only one valid RLP encoding (preventing double spent).
+ * Template to check the RLP encoding of a single uint256
  */
-template RlpIntEncodingCheck(maxRlpLen, intByteLen) {
+template RlpUInt256EncodingCheck() {
+    var rlpLen = 64 + 2; // prefix +64 hex characters
     // RLP encoding to check
-    signal input in[maxRlpLen];
-    // length of the RLP encoding
-    signal input rlpLen;
+    signal input in[rlpLen];
     // integer the RLP encoding should represent
     signal input value;
 
     // output if the RLP encoding is correct
     signal output out;
 
-    // In case intByteLen==1 and value<128, the RLP encoding is just the value itself
-    // Because this template is only for ints and not lists, rlpLen = 1 means it must be a < 128 int
-    component intByteLenIs1 = IsZero();
-    intByteLenIs1.in <== intByteLen - 1;
-
-    component oneByteEqual = IsEqual();
-    oneByteEqual.in[0] <== value;
-    oneByteEqual.in[1] <== in[0];
-
-    component valueLt128 = LessThan(252);
-    valueLt128.in[0] <== value;
-    valueLt128.in[1] <== 128;
-
-    // all three conditions must be true (==1), calculated in two steps to work around non quadratic constraint
-    signal caseRlpLen1Required <== intByteLenIs1.out * valueLt128.out;
-    signal caseRlpLen1Works <== caseRlpLen1Required * oneByteEqual.out;
-
-
-    // In case rlpLen > 1, the first byte is 0x80 (dec. 128) plus the length of the value in bytes
+    // the prefix byte is 0x80 (dec. 128) plus the length of the value in bytes
 
     //check that the lengths are correct
     component encodedLengthCorrect = IsEqual();
-    encodedLengthCorrect.in[0] <== in[0] - 0x80;
-    encodedLengthCorrect.in[1] <== intByteLen;
-    // if byteLen > 1, the RLP encoding must contain the full length
-    component containsFullByteLength = IsEqual();
-    containsFullByteLength.in[0] <== rlpLen;
-    containsFullByteLength.in[1] <== intByteLen + 1;
-    signal lengthsCorrect <== encodedLengthCorrect.out * containsFullByteLength.out;
+    encodedLengthCorrect.in[0] <== in[0] * 16 + in[1] - 0x80;
+    encodedLengthCorrect.in[1] <== 32; // number of following bytes
 
-
-    // the field modulo allows not more than 32 bytes
-    component lenLt32 = LessThan(8);
-    lenLt32.in[0] <== rlpLen;
-    lenLt32.in[1] <== 32;
-    // TODO: check that there is no overflow regarding the max field value (can maybe be ignored because it is very hard to find a hash collision)
 
     // after the prefix, the rlp is followed by the bytes of the value
     // we just sum up the bytes to reconstruct the value
-    signal sum[maxRlpLen];
-    sum[0] <== 0; // dummy value to have something to select if rlpLen = 1
-    sum[1] <== in[1];
-    for (var idx = 2; idx < maxRlpLen; idx++) {
-        sum[idx] <== sum[idx - 1] * 256 + in[idx];
+    signal sum[rlpLen-2];
+    sum[0] <== in[2];
+    for (var idx = 1; idx < rlpLen-2; idx++) {
+        sum[idx] <== sum[idx - 1] * 16 + in[idx + 2];
     }
-    // Select the sum[rlpLen]
-    component sumMux = Multiplexer(1, maxRlpLen);
-    for (var idx = 0; idx < maxRlpLen; idx++) {
-        sumMux.inp[idx][0] <== sum[idx];
-    }
-    sumMux.sel <== rlpLen - 1;
     
     // Check if the sum of the RLP encoding is equal to the value
     component valueCheck = IsEqual();
-    valueCheck.in[0] <== sumMux.out[0];
+    valueCheck.in[0] <== sum[rlpLen-3];
     valueCheck.in[1] <== value;
 
-    signal caseRlpLenLongerWorks <== valueCheck.out * (1-caseRlpLen1Required);
-
-    // Make sure the output is correct depending on the rlpLen case
-    component lenIsOne = IsZero();
-    lenIsOne.in <== rlpLen - 1;
-    component lenCaseSelector = Multiplexer(1, 2);
-    lenCaseSelector.inp[0][0] <== caseRlpLenLongerWorks * lengthsCorrect;
-    lenCaseSelector.inp[1][0] <== caseRlpLen1Works;
-    lenCaseSelector.sel <== lenIsOne.out;
-    out <== lenCaseSelector.out[0];
-
-    // log(caseRlpLenLongerWorks);
-    // log(lengthsCorrect);
-    // log(caseRlpLen1Works);
-    // log(lenCaseSelector.sel);
+    out <== valueCheck.out * encodedLengthCorrect.out;
     // log(out);
 }
 

@@ -2,4 +2,4 @@ pragma circom 2.1.4;
 
 include "../rlp.circom";
 
-component main = RlpIntEncodingCheck(33, 32);
+component main = RlpUInt256EncodingCheck();
