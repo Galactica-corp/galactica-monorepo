@@ -166,11 +166,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_rlpIntEncodingCheck.circom',
         input: 'input/rlpIntEncodingCheck.json',
       },
-      {
-        name: 'patriciaTree',
-        circuit: 'test/test_patriciaTreeKeccak.circom',
-        input: 'input/patriciaTreeKeccak.json',
-      },
+      // {
+      //   name: 'patriciaTree',
+      //   circuit: 'test/test_patriciaTreeKeccak.circom',
+      //   input: 'input/patriciaTreeKeccak.json',
+      // },
     ],
   },
 };

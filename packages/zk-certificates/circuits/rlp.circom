@@ -4,7 +4,6 @@ pragma circom 2.0.2;
 include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "../../../node_modules/circomlib/circuits/multiplexer.circom";
-include "../../../node_modules/circomlib/circuits/switcher.circom";
 
 // selects indices [start, end)
 template SubArray(nIn, maxSelect, nInBits) {
@@ -473,9 +472,12 @@ template RlpArrayCheck(maxHexLen, nFields, arrayPrefixMaxHexLen, fieldMinHexLen,
     }
 }
 
-// Template to check the RLP encoding of a single integer
-// TODO: maybe we need to use a maxRplLen and a signal rplLen instead
-template RlpIntEncodingCheck(maxRlpLen) {
+/**
+ * Template to check the RLP encoding of a single integer
+ * @param maxRlpLen - The maximum length of the RLP encoding.
+ * @param intByteLen - How many bytes the integer has, used to ensure that a value has only one valid RLP encoding (preventing double spent).
+ */
+template RlpIntEncodingCheck(maxRlpLen, intByteLen) {
     // RLP encoding to check
     signal input in[maxRlpLen];
     // length of the RLP encoding
@@ -486,25 +488,22 @@ template RlpIntEncodingCheck(maxRlpLen) {
     // output if the RLP encoding is correct
     signal output out;
 
-    log(333333300007);
-
-    for (var idx = 0; idx < maxRlpLen; idx++) {
-        log(in[idx]);
-    }
-    log(value);
-
-
-    // In case the value is less than 128, the RLP encoding is just the value itself
+    // In case intByteLen==1 and value<128, the RLP encoding is just the value itself
     // Because this template is only for ints and not lists, rlpLen = 1 means it must be a < 128 int
+    component intByteLenIs1 = IsZero();
+    intByteLenIs1.in <== intByteLen - 1;
+
     component oneByteEqual = IsEqual();
     oneByteEqual.in[0] <== value;
     oneByteEqual.in[1] <== in[0];
 
-    component valueLt128 = LessThan(8);
+    component valueLt128 = LessThan(252);
     valueLt128.in[0] <== value;
     valueLt128.in[1] <== 128;
 
-    signal caseRlpLen1Works <== oneByteEqual.out * valueLt128.out;
+    // all three conditions must be true (==1), calculated in two steps to work around non quadratic constraint
+    // signal caseRlpLen1WorksStep1 <== oneByteEqual.out * valueLt128.out;
+    signal caseRlpLen1Works <== oneByteEqual.out * valueLt128.out * intByteLenIs1.out;
 
 
     // In case rlpLen > 1, the first byte is 0x80 (dec. 128) plus the length of the value in bytes
@@ -518,29 +517,35 @@ template RlpIntEncodingCheck(maxRlpLen) {
 
     // after the prefix, the rlp is followed by the bytes of the value
     // we just sum up the bytes to reconstruct the value
-    signal sum[maxRlpLen - 1];
-    sum[0] <== in[1];
-    for (var idx = 1; idx < maxRlpLen - 1; idx++) {
-        sum[idx] <== sum[idx - 1] * 256 + in[idx + 1];
+    signal sum[maxRlpLen];
+    sum[0] <== 0; // dummy value to have something to select if rlpLen = 1
+    sum[1] <== in[1];
+    for (var idx = 2; idx < maxRlpLen; idx++) {
+        sum[idx] <== sum[idx - 1] * 256 + in[idx];
     }
+    // Select the sum[rlpLen]
+    component sumMux = Multiplexer(1, maxRlpLen);
+    for (var idx = 0; idx < maxRlpLen; idx++) {
+        sumMux.inp[idx][0] <== sum[idx];
+    }
+    sumMux.sel <== rlpLen - 1;
     
+    // Check if the sum of the RLP encoding is equal to the value
     component valueCheck = IsEqual();
-    // TODO: select right value for rlpLen, see patricia tree for selector example
-    valueCheck.in[0] <== sum[rlpLen - 2];
+    valueCheck.in[0] <== sumMux.out[0];
     valueCheck.in[1] <== value;
 
-    signal caseRlpLenLongerWorks <== valueCheck.out;
+    signal caseRlpLenLongerWorks <== valueCheck.out * (1-valueLt128.out);
 
 
     // Make sure the output is correct depending on the rlpLen case
     component lenIsOne = IsZero();
     lenIsOne.in <== rlpLen - 1;
-    component lenCaseSelector = Switcher();
-    lenCaseSelector.L <== caseRlpLen1Works;
-    lenCaseSelector.R <== caseRlpLenLongerWorks;
+    component lenCaseSelector = Multiplexer(1, 2);
+    lenCaseSelector.inp[0][0] <== caseRlpLenLongerWorks;
+    lenCaseSelector.inp[1][0] <== caseRlpLen1Works;
     lenCaseSelector.sel <== lenIsOne.out;
-    out <== lenCaseSelector.outL;
-    log(out);
+    out <== lenCaseSelector.out[0];
 }
 
 // TODO: move those functions somewhere more general
