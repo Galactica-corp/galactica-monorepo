@@ -1,5 +1,5 @@
 /* Acknowledgement: Implementation based on https://github.com/yi-sun/zk-attestor */
-pragma circom 2.0.2;
+pragma circom 2.1.4;
 
 include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/comparators.circom";

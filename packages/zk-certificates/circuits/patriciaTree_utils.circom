@@ -1,5 +1,5 @@
 /* Acknowledgement: Implementation based on https://github.com/yi-sun/zk-attestor */
-pragma circom 2.0.2;
+pragma circom 2.1.4;
 
 include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/comparators.circom";
@@ -22,10 +22,13 @@ template LeafCheck(maxKeyHexLen, maxValueHexLen) {
     // arrayPrefixMaxHexLen = 2 * bytes (bits \ 8 + 1), in leafCheck case, the arrayPrefixMaxHexLen = 2
     var arrayPrefixMaxHexLen = 2 * (LEAF_BITS \ 8 + 1);
 
+    var hashLength = 64; // 256 bits hash = 64 hex characters 
+    var maxNodeRefHexLen = 2 + hashLength; // max 2 length encoding hex characters 
+
     // FIXME: Differentiate between cases where keyLen is 0 and where the prefix+nibble is '1b'
     signal input keyNibbleHexLen;
     signal input keyNibbleHexs[maxKeyHexLen];
-    signal input valueHexs[maxValueHexLen];
+    signal input value;
 
     // leaf = rlp_prefix           [2]
     //        rlp_length           [0, 2 * ceil(log_8(1 + ceil(log_8(keyHexLen + 2)) + 4 + keyHexLen + 2 + 2 * ceil(log_8(maxValueHexLen)) + maxValueHexLen))]
@@ -42,7 +45,6 @@ template LeafCheck(maxKeyHexLen, maxValueHexLen) {
 
     signal output out;
     signal output outLen;
-    signal output valueHexLen;
 
     log(111111100001);
     log(maxKeyHexLen);
@@ -52,20 +54,18 @@ template LeafCheck(maxKeyHexLen, maxValueHexLen) {
     log(leafPathPrefixHexLen);
 
     for (var idx = 0; idx < maxKeyHexLen; idx++) {
-	log(keyNibbleHexs[idx]);
+	    log(keyNibbleHexs[idx]);
     }
-    for (var idx = 0; idx < maxValueHexLen; idx++) {
-	log(valueHexs[idx]);
-    }
+	log(value);
     for (var idx = 0; idx < maxLeafRlpHexLen; idx++) {
-	log(leafRlpHexs[idx]);
+        log(leafRlpHexs[idx]);
     }
 
     // check input hexes are hexes
     component hexCheck[maxLeafRlpHexLen];
     for (var idx = 0; idx < maxLeafRlpHexLen; idx++) {
-	hexCheck[idx] = Num2Bits(4);
-	hexCheck[idx].in <== leafRlpHexs[idx];
+        hexCheck[idx] = Num2Bits(4);
+        hexCheck[idx].in <== leafRlpHexs[idx];
     }
 
     // check RLP validity
@@ -114,14 +114,14 @@ template LeafCheck(maxKeyHexLen, maxValueHexLen) {
     // check path matches keyNibbles using rlp.fields[0]
     component leaf_to_path = ShiftLeft(maxLeafRlpHexLen, 0, 2);
     for (var idx = 0; idx < maxLeafRlpHexLen; idx++) {
-	leaf_to_path.in[idx] <== rlp.fields[0][idx];
+        leaf_to_path.in[idx] <== rlp.fields[0][idx];
     }
     leaf_to_path.shift <== leafPathPrefixHexLen;
 
     component key_path_match = ArrayEq(maxKeyHexLen);
     for (var idx = 0; idx < maxKeyHexLen; idx++) {
-	key_path_match.a[idx] <== leaf_to_path.out[idx];
-	key_path_match.b[idx] <== keyNibbleHexs[idx];
+        key_path_match.a[idx] <== leaf_to_path.out[idx];
+        key_path_match.b[idx] <== keyNibbleHexs[idx];
     }
     key_path_match.inLen <== rlp.fieldHexLen[0] - leafPathPrefixHexLen;
 
@@ -131,18 +131,20 @@ template LeafCheck(maxKeyHexLen, maxValueHexLen) {
 
     signal key_path;
     key_path <== key_path_len_match.out * key_path_match.out;
-    
-    // check value matches valueBits using rlp.fields[1]
-    component leaf_value_match = ArrayEq(maxValueHexLen);
-    for (var idx = 0; idx < maxValueHexLen; idx++) {
-	leaf_value_match.a[idx] <== rlp.fields[1][idx];
-	leaf_value_match.b[idx] <== valueHexs[idx];
-    }
-    leaf_value_match.inLen <== rlp.fieldHexLen[1];
 
-    out <== rlp.out + prefixValid + key_path + leaf_value_match.out;
+    // check that value matches rlp.fields[1]
+    component leaf_value_match = RlpUInt256EncodingCheck();
+    for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
+	    leaf_value_match.in[idx] <== rlp.fields[1][idx];
+    }
+    leaf_value_match.value <== value;
+
+    component value_len_match = IsEqual();
+    value_len_match.in[0] <== 64; // TODO: shouldn't those be 66?
+    value_len_match.in[1] <== rlp.fieldHexLen[1];
+
+    out <== rlp.out + prefixValid + key_path + leaf_value_match.out * value_len_match.out;
     outLen <== rlp.totalRlpHexLen;
-    valueHexLen <== rlp.fieldHexLen[1];
 
     log(out);
     log(key_path_len_match.out);
@@ -267,15 +269,14 @@ template ExtensionCheck(maxKeyHexLen) {
     key_path <== key_path_len_match.out * key_path_match.out;
     
     // check node_ref matches child using rlp.fields[1]
-    component node_ref_match = RlpIntEncodingCheck(maxNodeRefHexLen, 32);
+    component node_ref_match = RlpUInt256EncodingCheck();
     for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
 	    node_ref_match.in[idx] <== rlp.fields[1][idx];
 	    node_ref_match.value <== nodeRefHash;
     }
-    node_ref_match.rlpLen <== rlp.fieldHexLen[1];
     
     component node_ref_len_match = IsEqual();
-    node_ref_len_match.in[0] <== nodeRefHexLen;
+    node_ref_len_match.in[0] <== 64; // TODO: shouldn't those be 66?
     node_ref_len_match.in[1] <== rlp.fieldHexLen[1];
 
     signal node_ref;
@@ -293,6 +294,8 @@ template ExtensionCheck(maxKeyHexLen) {
 template EmptyVtBranchCheck() {
     var maxBranchRlpHexLen = 1064;
     var BRANCH_BITS = 11;
+    var hashLength = 64; // 256 bits hash = 64 hex characters 
+    var maxNodeRefHexLen = 2 + hashLength; // max 2 length encoding hex characters
     
     signal input keyNibble;
     signal input nodeRefHash;
@@ -335,33 +338,32 @@ template EmptyVtBranchCheck() {
     // check RLP validity
     component rlp = RlpArrayCheck(maxBranchRlpHexLen, 17, 8,
                                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-	                          [64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 0]);
+	                          [64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 0]); // TODO: shouldn't those be 66?
     for (var idx = 0; idx < maxBranchRlpHexLen; idx++) {
         rlp.in[idx] <== nodeRlpHexs[idx];
     }
 
-    // check node_ref at index of nibble / value matches child / value
-    // TODO: adjust with refHash instead of RefHex[]
-    component nodeRefSelector = Multiplexer(64, 16);
+    // find node_ref at index of nibble / value matches child / value
+    component nodeRefSelector = Multiplexer(64, 16); // TODO: shouldn't those be 66?
     component nodeRefHexLenSelector = Multiplexer(1, 16);
     for (var idx = 0; idx < 16; idx++) {
-        for (var j = 0; j < 64; j++) {
-	    nodeRefSelector.inp[idx][j] <== rlp.fields[idx][j];
-	}
-	nodeRefHexLenSelector.inp[idx][0] <== rlp.fieldHexLen[idx];
+        for (var j = 0; j < 64; j++) { // TODO: shouldn't those be 66?
+	        nodeRefSelector.inp[idx][j] <== rlp.fields[idx][j];
+        }
+        nodeRefHexLenSelector.inp[idx][0] <== rlp.fieldHexLen[idx];
     }
     nodeRefSelector.sel <== keyNibble;
     nodeRefHexLenSelector.sel <== keyNibble;
-    
-    component node_ref_match = ArrayEq(maxNodeRefHexLen);
-    for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
-	node_ref_match.a[idx] <== nodeRefSelector.out[idx];
-	node_ref_match.b[idx] <== nodeRefHexs[idx];
-    }
-    node_ref_match.inLen <== nodeRefHexLen;
 
+    // check that node_ref RLP matches the hash of the reference child
+    component node_ref_match = RlpUInt256EncodingCheck();
+    for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
+        node_ref_match.in[idx] <== nodeRefSelector.out[idx];
+    }
+    node_ref_match.value <== nodeRefHash;
+    
     component node_ref_len_match = IsEqual();
-    node_ref_len_match.in[0] <== nodeRefHexLen;
+    node_ref_len_match.in[0] <== 64; // TODO: shouldn't those be 66?
     node_ref_len_match.in[1] <== nodeRefHexLenSelector.out[0];
 
     out <== rlp.out + node_ref_match.out + node_ref_len_match.out + 1;

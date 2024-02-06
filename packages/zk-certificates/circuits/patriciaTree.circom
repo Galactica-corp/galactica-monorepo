@@ -1,5 +1,5 @@
 /* Acknowledgement: Implementation based on https://github.com/yi-sun/zk-attestor */
-pragma circom 2.0.2;
+pragma circom 2.1.4;
 
 include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/comparators.circom";
@@ -24,7 +24,7 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
     var KEY_BITS = log_ceil(keyHexLen); // log_ceil(64) = 6
     
     signal input keyHexs[keyHexLen];
-    signal input valueHexs[maxValueHexLen];
+    signal input value;
     signal input rootHash;
 
     signal input keyFragmentStarts[maxDepth];
@@ -67,7 +67,6 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
     signal input depth;
     
     signal output out;
-    signal output valueHexLen;
 
     log(111111100007);
     log(maxDepth);
@@ -144,9 +143,7 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
     for (var idx = 0; idx < keyHexLen; idx++) {
 	    leaf.keyNibbleHexs[idx] <== leafSelector.out[idx];
     }
-    for (var idx = 0; idx < maxValueHexLen; idx++) {
-	leaf.valueHexs[idx] <== valueHexs[idx];
-    }
+	leaf.value <== value;
     for (var idx = 0; idx < maxLeafRlpHexLen; idx++) {
 	    leaf.leafRlpHexs[idx] <== leafRlpHexs[idx];
     } 
@@ -199,7 +196,7 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
 
         // if layer + 1 > depth, we do not care what values are filled in
         if (layer == maxDepth - 2) {
-            exts[layer].nodeRefHash <== depthEq[layer + 1].out * leafHash.out[idx];
+            exts[layer].nodeRefHash <== depthEq[layer + 1].out * leafHash.out;
         } else {
             exts[layer].nodeRefHash <== depthEq[layer + 1].out * (leafHash.out - nodeHashes[layer + 1].out) + nodeHashes[layer + 1].out;
         }
@@ -253,10 +250,8 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
     numChecks.in[0] <== checksPassed.out[0];
     numChecks.in[1] <== 4 * depth + 2;
     out <== numChecks.out;
-    valueHexLen <== leaf.valueHexLen;
 
     log(out);
-    log(valueHexLen);
     for (var idx = 0; idx < maxDepth; idx++) {
 	    log(checksPassed.inp[idx][0]);
     }

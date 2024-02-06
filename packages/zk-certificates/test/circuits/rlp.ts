@@ -10,7 +10,7 @@ use(chaiAsPromised);
 
 
 
-describe.only('RLP Int Encoding', () => {
+describe('RLP Int Encoding', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(
