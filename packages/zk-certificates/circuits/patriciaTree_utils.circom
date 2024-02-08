@@ -4,8 +4,6 @@ pragma circom 2.1.4;
 include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "../../../node_modules/circomlib/circuits/multiplexer.circom";
-
-include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "./rlp.circom";
 
 /**
