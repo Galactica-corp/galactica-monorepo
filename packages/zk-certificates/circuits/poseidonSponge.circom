@@ -37,43 +37,88 @@ template PoseidonSponge(n){
         hashSteps++;
     }
 
-    signal chunks[hashSteps * frameSize];
-    // fill full chunks
-    for (var i = 0; i < n \ spongeChunkSize; i++) {
-        chunks[i] <== 
-            inputs[i] 
-            + inputs[i+0] 
-            + inputs[i+1] 
-            + inputs[i+2] 
-            + inputs[i+3] 
-            + inputs[i+4] 
-            + inputs[i+5] 
-            + inputs[i+6] 
-            + inputs[i+7] 
-            + inputs[i+8] 
-            + inputs[i+9] 
-            + inputs[i+10] 
-            + inputs[i+11] 
-            + inputs[i+12] 
-            + inputs[i+13] 
-            + inputs[i+14] 
-            + inputs[i+15];
-    }
-    // TODO: fill the last chunk
-
     component hashes[hashSteps];
-
     for (var i = 0; i < hashSteps; i++) {
         hashes[i] = Poseidon(frameSize);
-        for (var j = 0; j < frameSize; j++) {
-            var chunkIndex = i * frameSize + j;
-            if (chunkIndex < chunkAmount) {
-                hashes[i].inputs[j] <== chunks[chunkIndex];
-                // TODO: not quite, need to fill in the previous hashes
-            }
-        }
-        // TODO: handle the last frame that might be only partially filled
     }
 
-    out <== hashes[hashSteps-1].out;
+    var k = 0; // which position of a frame to fill next
+    var h = 0; // which hash frame to fill next
+    var dirty = 0; // whether there is some leftover input that did not fill a full frame
+
+    for (var i = 0; i < n \ spongeChunkSize; i++) {
+        dirty = 1;
+
+        // fill next value in current frame
+        // written this way to let the circom compiler sees that it expressable as quadratic constraint
+        hashes[h].inputs[k] <== 0
+            + inputs[i * spongeChunkSize + 00] * 0x1000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 01] * 0x100000000000000000000000000000
+            + inputs[i * spongeChunkSize + 02] * 0x10000000000000000000000000000
+            + inputs[i * spongeChunkSize + 03] * 0x1000000000000000000000000000
+            + inputs[i * spongeChunkSize + 04] * 0x100000000000000000000000000
+            + inputs[i * spongeChunkSize + 05] * 0x10000000000000000000000000
+            + inputs[i * spongeChunkSize + 06] * 0x1000000000000000000000000
+            + inputs[i * spongeChunkSize + 07] * 0x100000000000000000000000
+            + inputs[i * spongeChunkSize + 08] * 0x10000000000000000000000
+            + inputs[i * spongeChunkSize + 09] * 0x1000000000000000000000
+            + inputs[i * spongeChunkSize + 10] * 0x100000000000000000000
+            + inputs[i * spongeChunkSize + 11] * 0x10000000000000000000
+            + inputs[i * spongeChunkSize + 12] * 0x1000000000000000000
+            + inputs[i * spongeChunkSize + 13] * 0x100000000000000000
+            + inputs[i * spongeChunkSize + 14] * 0x10000000000000000
+            + inputs[i * spongeChunkSize + 15] * 0x1000000000000000
+            + inputs[i * spongeChunkSize + 16] * 0x100000000000000
+            + inputs[i * spongeChunkSize + 17] * 0x10000000000000
+            + inputs[i * spongeChunkSize + 18] * 0x1000000000000
+            + inputs[i * spongeChunkSize + 19] * 0x100000000000
+            + inputs[i * spongeChunkSize + 20] * 0x10000000000
+            + inputs[i * spongeChunkSize + 21] * 0x1000000000
+            + inputs[i * spongeChunkSize + 22] * 0x100000000
+            + inputs[i * spongeChunkSize + 23] * 0x10000000
+            + inputs[i * spongeChunkSize + 24] * 0x1000000
+            + inputs[i * spongeChunkSize + 25] * 0x100000
+            + inputs[i * spongeChunkSize + 26] * 0x10000
+            + inputs[i * spongeChunkSize + 27] * 0x1000
+            + inputs[i * spongeChunkSize + 28] * 0x100
+            + inputs[i * spongeChunkSize + 29] * 0x10
+            + inputs[i * spongeChunkSize + 30] * 0x1;
+
+        if (k == frameSize-1) {
+            // frame is full, put hash into next frame
+            hashes[h+1].inputs[0] <== hashes[h].out;
+            k = 1;
+            h++;
+            dirty = 0;
+        } else {
+            k++;
+        }
+    }
+
+    signal lastChunkBuild[n % spongeChunkSize];
+    if (n % spongeChunkSize > 0) {
+        // the last chunk of the message is less than 31 bytes
+        // zero padding it, so that 0xdeadbeaf becomes
+        // 0xdeadbeaf000000000000000000000000000000000000000000000000000000
+        lastChunkBuild[0] <== inputs[(n \ spongeChunkSize) * spongeChunkSize];
+        for (var i = 1; i < n % spongeChunkSize; i++) {
+            lastChunkBuild[i] <== lastChunkBuild[i-1] * 0x10 + inputs[(n \ spongeChunkSize) * spongeChunkSize + i];
+        }
+        var paddingFactor = 1 << ((spongeChunkSize - n % spongeChunkSize) * 4);
+        hashes[h].inputs[k] <== lastChunkBuild[n % spongeChunkSize - 1] * paddingFactor;
+        k++;
+    }
+
+    if (dirty > 0) {
+        // handle the last frame that might be only partially filled
+        for (k=k; k < frameSize; k++) {
+            hashes[h].inputs[k] <== 0;
+        }
+    }
+
+    // some sanity checks
+    h === hashSteps-1;
+
+    out <== hashes[h].out;
+    // TODO: rename according to inputs only being uint8 = hashString or something like that
 }
