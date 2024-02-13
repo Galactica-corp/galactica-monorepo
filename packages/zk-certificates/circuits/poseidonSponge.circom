@@ -52,36 +52,36 @@ template PoseidonSponge(n){
         // fill next value in current frame
         // written this way to let the circom compiler sees that it expressable as quadratic constraint
         hashes[h].inputs[k] <== 0
-            + inputs[i * spongeChunkSize + 00] * 0x1000000000000000000000000000000
-            + inputs[i * spongeChunkSize + 01] * 0x100000000000000000000000000000
-            + inputs[i * spongeChunkSize + 02] * 0x10000000000000000000000000000
-            + inputs[i * spongeChunkSize + 03] * 0x1000000000000000000000000000
-            + inputs[i * spongeChunkSize + 04] * 0x100000000000000000000000000
-            + inputs[i * spongeChunkSize + 05] * 0x10000000000000000000000000
-            + inputs[i * spongeChunkSize + 06] * 0x1000000000000000000000000
-            + inputs[i * spongeChunkSize + 07] * 0x100000000000000000000000
-            + inputs[i * spongeChunkSize + 08] * 0x10000000000000000000000
-            + inputs[i * spongeChunkSize + 09] * 0x1000000000000000000000
-            + inputs[i * spongeChunkSize + 10] * 0x100000000000000000000
-            + inputs[i * spongeChunkSize + 11] * 0x10000000000000000000
-            + inputs[i * spongeChunkSize + 12] * 0x1000000000000000000
-            + inputs[i * spongeChunkSize + 13] * 0x100000000000000000
-            + inputs[i * spongeChunkSize + 14] * 0x10000000000000000
-            + inputs[i * spongeChunkSize + 15] * 0x1000000000000000
-            + inputs[i * spongeChunkSize + 16] * 0x100000000000000
-            + inputs[i * spongeChunkSize + 17] * 0x10000000000000
-            + inputs[i * spongeChunkSize + 18] * 0x1000000000000
-            + inputs[i * spongeChunkSize + 19] * 0x100000000000
-            + inputs[i * spongeChunkSize + 20] * 0x10000000000
-            + inputs[i * spongeChunkSize + 21] * 0x1000000000
-            + inputs[i * spongeChunkSize + 22] * 0x100000000
-            + inputs[i * spongeChunkSize + 23] * 0x10000000
-            + inputs[i * spongeChunkSize + 24] * 0x1000000
-            + inputs[i * spongeChunkSize + 25] * 0x100000
-            + inputs[i * spongeChunkSize + 26] * 0x10000
-            + inputs[i * spongeChunkSize + 27] * 0x1000
-            + inputs[i * spongeChunkSize + 28] * 0x100
-            + inputs[i * spongeChunkSize + 29] * 0x10
+            + inputs[i * spongeChunkSize + 00] * 0x1000000000000000000000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 01] * 0x10000000000000000000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 02] * 0x100000000000000000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 03] * 0x1000000000000000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 04] * 0x10000000000000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 05] * 0x100000000000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 06] * 0x1000000000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 07] * 0x10000000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 08] * 0x100000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 09] * 0x1000000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 10] * 0x10000000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 11] * 0x100000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 12] * 0x1000000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 13] * 0x10000000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 14] * 0x100000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 15] * 0x1000000000000000000000000000000
+            + inputs[i * spongeChunkSize + 16] * 0x10000000000000000000000000000
+            + inputs[i * spongeChunkSize + 17] * 0x100000000000000000000000000
+            + inputs[i * spongeChunkSize + 18] * 0x1000000000000000000000000
+            + inputs[i * spongeChunkSize + 19] * 0x10000000000000000000000
+            + inputs[i * spongeChunkSize + 20] * 0x100000000000000000000
+            + inputs[i * spongeChunkSize + 21] * 0x1000000000000000000
+            + inputs[i * spongeChunkSize + 22] * 0x10000000000000000
+            + inputs[i * spongeChunkSize + 23] * 0x100000000000000
+            + inputs[i * spongeChunkSize + 24] * 0x1000000000000
+            + inputs[i * spongeChunkSize + 25] * 0x10000000000
+            + inputs[i * spongeChunkSize + 26] * 0x100000000
+            + inputs[i * spongeChunkSize + 27] * 0x1000000
+            + inputs[i * spongeChunkSize + 28] * 0x10000
+            + inputs[i * spongeChunkSize + 29] * 0x100
             + inputs[i * spongeChunkSize + 30] * 0x1;
 
         if (k == frameSize-1) {
@@ -102,9 +102,9 @@ template PoseidonSponge(n){
         // 0xdeadbeaf000000000000000000000000000000000000000000000000000000
         lastChunkBuild[0] <== inputs[(n \ spongeChunkSize) * spongeChunkSize];
         for (var i = 1; i < n % spongeChunkSize; i++) {
-            lastChunkBuild[i] <== lastChunkBuild[i-1] * 0x10 + inputs[(n \ spongeChunkSize) * spongeChunkSize + i];
+            lastChunkBuild[i] <== lastChunkBuild[i-1] * 0x100 + inputs[(n \ spongeChunkSize) * spongeChunkSize + i];
         }
-        var paddingFactor = 1 << ((spongeChunkSize - n % spongeChunkSize) * 4);
+        var paddingFactor = 1 << ((spongeChunkSize - n % spongeChunkSize) * 8);
         hashes[h].inputs[k] <== lastChunkBuild[n % spongeChunkSize - 1] * paddingFactor;
         k++;
     }
