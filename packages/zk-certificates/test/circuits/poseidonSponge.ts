@@ -4,14 +4,13 @@ import hre from 'hardhat';
 import type { CircuitTestUtils } from 'hardhat-circom';
 import { buildPoseidon } from 'circomlibjs';
 import { hashMessage } from '../../lib/poseidon';
-import { Buffer } from 'buffer';
-import { assert, expect, use } from 'chai';
+import { assert, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 use(chaiAsPromised);
 
 
 
-describe.only('Poseidon Sponge Circuit', () => {
+describe('Poseidon Sponge Circuit', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(

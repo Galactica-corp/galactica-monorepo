@@ -138,7 +138,7 @@ template LeafCheck(maxKeyHexLen, maxValueHexLen) {
     leaf_value_match.value <== value;
 
     component value_len_match = IsEqual();
-    value_len_match.in[0] <== 64; // TODO: shouldn't those be 66?
+    value_len_match.in[0] <== 66;
     value_len_match.in[1] <== rlp.fieldHexLen[1];
 
     out <== rlp.out + prefixValid + key_path + leaf_value_match.out * value_len_match.out;
@@ -268,13 +268,13 @@ template ExtensionCheck(maxKeyHexLen) {
     
     // check node_ref matches child using rlp.fields[1]
     component node_ref_match = RlpUInt256EncodingCheck();
+    node_ref_match.value <== nodeRefHash;
     for (var idx = 0; idx < maxNodeRefHexLen; idx++) {
 	    node_ref_match.in[idx] <== rlp.fields[1][idx];
-	    node_ref_match.value <== nodeRefHash;
     }
     
     component node_ref_len_match = IsEqual();
-    node_ref_len_match.in[0] <== 64; // TODO: shouldn't those be 66?
+    node_ref_len_match.in[0] <== 66;
     node_ref_len_match.in[1] <== rlp.fieldHexLen[1];
 
     signal node_ref;
@@ -336,16 +336,16 @@ template EmptyVtBranchCheck() {
     // check RLP validity
     component rlp = RlpArrayCheck(maxBranchRlpHexLen, 17, 8,
                                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-	                          [64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 0]); // TODO: shouldn't those be 66?
+	                          [66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 0]);
     for (var idx = 0; idx < maxBranchRlpHexLen; idx++) {
         rlp.in[idx] <== nodeRlpHexs[idx];
     }
 
     // find node_ref at index of nibble / value matches child / value
-    component nodeRefSelector = Multiplexer(64, 16); // TODO: shouldn't those be 66?
+    component nodeRefSelector = Multiplexer(66, 16); 
     component nodeRefHexLenSelector = Multiplexer(1, 16);
     for (var idx = 0; idx < 16; idx++) {
-        for (var j = 0; j < 64; j++) { // TODO: shouldn't those be 66?
+        for (var j = 0; j < 66; j++) { 
 	        nodeRefSelector.inp[idx][j] <== rlp.fields[idx][j];
         }
         nodeRefHexLenSelector.inp[idx][0] <== rlp.fieldHexLen[idx];
@@ -361,7 +361,7 @@ template EmptyVtBranchCheck() {
     node_ref_match.value <== nodeRefHash;
     
     component node_ref_len_match = IsEqual();
-    node_ref_len_match.in[0] <== 64; // TODO: shouldn't those be 66?
+    node_ref_len_match.in[0] <== 66; 
     node_ref_len_match.in[1] <== nodeRefHexLenSelector.out[0];
 
     out <== rlp.out + node_ref_match.out + node_ref_len_match.out + 1;

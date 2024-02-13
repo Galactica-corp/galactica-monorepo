@@ -7,6 +7,7 @@ include "../../../node_modules/circomlib/circuits/gates.circom";
 include "../../../node_modules/circomlib/circuits/multiplexer.circom";
 
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
+include "./poseidonSponge.circom";
 include "./rlp.circom";
 include "./patriciaTree_utils.circom";
 
@@ -150,7 +151,7 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
     leaf.leafPathPrefixHexLen <== leafPathPrefixHexLen;
 
     // hash of leaf
-    component leafHash = Poseidon(maxLeafRlpHexLen);
+    component leafHash = PoseidonSponge(maxLeafRlpHexLen);
     for (var idx = 0; idx < maxLeafRlpHexLen; idx++) {
 	    leafHash.inputs[idx] <== leafRlpHexs[idx];
     }
@@ -228,7 +229,7 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
         }
 
         // compute hashes at each layer
-        nodeHashes[layer] = Poseidon(maxNodeRlpHexLen);
+        nodeHashes[layer] = PoseidonSponge(maxNodeRlpHexLen);
         for (var idx = 0; idx < maxNodeRlpHexLen; idx++) {
             nodeHashes[layer].inputs[idx] <== nodeRlpHexs[layer][idx];
         }
@@ -237,7 +238,7 @@ template MPTInclusionFixedKeyHexLen(maxDepth, keyHexLen, maxValueHexLen) {
     // check rootHash
     component rootHashCheck = IsEqual();
     rootHashCheck.in[0] <== rootHash;
-    rootHashCheck.in[0] <== nodeHashes[0].out;
+    rootHashCheck.in[1] <== nodeHashes[0].out;
     
     component checksPassed = Multiplexer(1, maxDepth);
     checksPassed.inp[0][0] <== rootHashCheck.out + leaf.out + allFragmentsValid.out;
