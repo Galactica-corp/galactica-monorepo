@@ -19,6 +19,10 @@ struct GuardianInfo {
 /// @author Galactica dev team
 /// @title Smart contract storing whitelist of GNET guardians, for example KYC provider guardians
 contract GuardianRegistry is Ownable {
+
+    // a short description to describe which type of zkCertificate is managed by Guardians in this Registry
+
+    public string description;
     mapping(address => GuardianInfo) public guardians;
 
     mapping(uint256 => mapping(uint256 => address)) public pubKeyToAddress;
@@ -28,7 +32,9 @@ contract GuardianRegistry is Ownable {
         _;
     }
 
-    constructor() Ownable(msg.sender) {}
+    constructor(string _description) Ownable(msg.sender) {
+        description = _description;
+    }
 
     function _checkGuardian(address account) internal view {
         if (!guardians[account].whitelisted) {
