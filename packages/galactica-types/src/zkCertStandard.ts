@@ -5,6 +5,7 @@
  */
 export enum ZkCertStandard {
   ZkKYC = 'gip69',
+  twitterZkCertificate = 'gip70'
 }
 
 /**
@@ -82,4 +83,36 @@ export const humanIDFieldOrder = [
   'dayOfBirth',
   'passportID',
   'dAppAddress',
+];
+
+
+/**
+ * Data specifically contained in twitterZkCertificate
+ */
+export type TwitterZkCertificateContent = {
+  accountId: string;
+  creationTime: string;
+  location: string;
+  verified: string;
+  followersCount: string;
+  friendsCount: string;
+  likesCount: string;
+  postsCount: string;
+  expirationTime: string;
+};
+
+/**
+ * Ordered list of fields contained specifically in the twitterZkCertificate.
+ * It does not include fields that are common to all zkCerts.
+ */
+export const zkKYCContentFields = [
+  'accountId',
+  'creationTime',
+  'location',
+  'verified',
+  'followersCount',
+  'friendsCount',
+  'likesCount',
+  'postsCount',
+  'expirationTime'
 ];
