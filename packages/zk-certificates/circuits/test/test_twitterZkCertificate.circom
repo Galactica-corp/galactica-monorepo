@@ -1,6 +1,6 @@
 pragma circom 2.1.4;
 
-include "../zkKYC.circom";
+include "../twitterZkCertificate.circom";
 
 component main {public [
   root,
@@ -8,4 +8,4 @@ component main {public [
   userAddress,
   providerAx,
   providerAy
-]} = ZKKYC(32, 60);
+]} = TwitterZkCertificate(32, 60);

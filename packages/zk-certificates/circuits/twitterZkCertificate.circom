@@ -1,16 +1,13 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 pragma circom 2.1.4;
 
-include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../node_modules/circomlib/circuits/comparators.circom";
+include "../../../node_modules/circomlib/circuits/poseidon.circom";
+include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "./merkleProof.circom";
 include "./calculateZkCertHash.circom";
 include "./authorization.circom";
 include "./ownership.circom";
-include "./encryptionProof.circom";
-include "./humanID.circom";
 include "./providerSignatureCheck.circom";
-include "./shamirsSecretSharing.circom";
 
 /**
  * Circuit to check that, given twitter accounts infos we calculate the corresponding leaf hash
@@ -41,7 +38,7 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
 
     // variables related to the merkle proof
     signal input pathElements[levels];
-    signal input pathIndices;
+    signal input leafIndex;
     signal input root;
     signal input currentTime;
 
@@ -128,7 +125,7 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     for (var i = 0; i < levels; i++) {
         merkleProof.pathElements[i] <== pathElements[i];
     }
-    merkleProof.pathIndices <== pathIndices;
+    merkleProof.leafIndex <== leafIndex;
 
     // check that the calculated root is equal to the public root
     root === merkleProof.root;

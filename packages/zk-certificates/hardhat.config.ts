@@ -161,6 +161,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_exampleMockDApp.circom',
         input: 'input/exampleMockDApp.json',
       },
+      {
+        name: 'twitterZkCertificate',
+        circuit: 'test/test_twitterZkCertificate.circom',
+        input: 'input/twitterZkCertificate.json',
+      },
     ],
   },
 };
