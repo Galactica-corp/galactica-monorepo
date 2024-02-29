@@ -8,6 +8,7 @@ import {
 import { MerkleTree } from '../lib/merkleTree';
 import { ethers } from 'hardhat';
 import { ZkCertStandard } from '../lib';
+import { twitterZkCertificateContentFields} from '@galactica-net/galactica-types';
 import { formatPrivKeyForBabyJub } from '../lib/keyManagement';
 
 // sample field inputs
@@ -37,7 +38,8 @@ export async function generateSampleTwitterZkCertificate(): Promise<ZKCertificat
     holderCommitment,
     ZkCertStandard.TwitterZkCertificate,
     eddsa,
-    1773
+    1773,
+    twitterZkCertificateContentFields
   );
 
   // set the fields in zkKYC object
