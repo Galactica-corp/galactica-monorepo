@@ -5,7 +5,7 @@
  */
 export enum ZkCertStandard {
   ZkKYC = 'gip69',
-  twitterZkCertificate = 'gip70'
+  TwitterZkCertificate = 'gip70'
 }
 
 /**
@@ -105,7 +105,7 @@ export type TwitterZkCertificateContent = {
  * Ordered list of fields contained specifically in the twitterZkCertificate.
  * It does not include fields that are common to all zkCerts.
  */
-export const zkKYCContentFields = [
+export const twitterZkCertificateContentFields = [
   'accountId',
   'creationTime',
   'location',
