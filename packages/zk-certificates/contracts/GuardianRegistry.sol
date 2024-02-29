@@ -22,7 +22,7 @@ contract GuardianRegistry is Ownable {
 
     // a short description to describe which type of zkCertificate is managed by Guardians in this Registry
 
-    public string description;
+    string public description;
     mapping(address => GuardianInfo) public guardians;
 
     mapping(uint256 => mapping(uint256 => address)) public pubKeyToAddress;
@@ -32,7 +32,7 @@ contract GuardianRegistry is Ownable {
         _;
     }
 
-    constructor(string _description) Ownable(msg.sender) {
+    constructor(string memory _description) Ownable(msg.sender) {
         description = _description;
     }
 

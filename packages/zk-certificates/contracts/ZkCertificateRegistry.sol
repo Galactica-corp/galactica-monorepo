@@ -27,7 +27,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
 
     // a short description to describe the zkCertificate we store in this SC
     // examples: zkKYC, Twitter zkCertificate
-    public string description;
+    string public description;
 
     // The tree depth and size
     uint256 internal constant TREE_DEPTH = 32;
@@ -69,7 +69,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
      */
     function initializeZkCertificateRegistry(
         address GuardianRegistry_,
-        string _description
+        string memory _description
     ) internal onlyInitializing {
 
     description = _description;
@@ -130,7 +130,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             zkCertificateHash,
             merkleProof
         );
-        ZkCertificateToCenter[zkCertificateHash] = msg.sender;
+        ZkCertificateToGuardian[zkCertificateHash] = msg.sender;
         emit zkCertificateAddition(zkCertificateHash, msg.sender, leafIndex);
     }
 

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.7;
 pragma abicoder v2;
 
-import {KYCRecordRegistry} from "../KYCRecordRegistry.sol";
+import {ZkCertificateRegistry} from "../ZkCertificateRegistry.sol";
 
 /**
  * @title DevnetGuardian is a simple KYC guardian that everyone can use to issue zkKYCs on Devnet
@@ -10,12 +10,12 @@ import {KYCRecordRegistry} from "../KYCRecordRegistry.sol";
  * @notice Works as interface to the KYCRecordRegistry providing a simple way to issue zkKYCs while being authorized as a guardian
  */
 contract DevnetGuardian {
-    KYCRecordRegistry public recordRegistry;
+    ZkCertificateRegistry public recordRegistry;
 
     mapping(uint256 => address) public creatorOfIndex;
 
     constructor(address _recordRegistry) {
-        recordRegistry = KYCRecordRegistry(_recordRegistry);
+        recordRegistry = ZkCertificateRegistry(_recordRegistry);
     }
 
     /**
@@ -29,7 +29,7 @@ contract DevnetGuardian {
         bytes32 zkKYCRecordHash,
         bytes32[] memory merkleProof
     ) public {
-        recordRegistry.addZkKYCRecord(leafIndex, zkKYCRecordHash, merkleProof);
+        recordRegistry.addZkCertificate(leafIndex, zkKYCRecordHash, merkleProof);
         creatorOfIndex[leafIndex] = msg.sender;
     }
 
@@ -50,7 +50,7 @@ contract DevnetGuardian {
             "KYCRecordRegistry (DevNet Test): not the corresponding KYC Center"
         );
         creatorOfIndex[leafIndex] = address(0);
-        recordRegistry.revokeZkKYCRecord(
+        recordRegistry.revokeZkCertificate(
             leafIndex,
             zkKYCRecordHash,
             merkleProof
