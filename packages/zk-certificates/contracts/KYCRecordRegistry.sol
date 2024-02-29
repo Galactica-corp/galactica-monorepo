@@ -11,15 +11,15 @@ import {PoseidonT3} from './helpers/Poseidon.sol';
 
 import {GuardianRegistry, GuardianInfo} from './GuardianRegistry.sol';
 
-import {IKYCRegistry} from './interfaces/IKYCRegistry.sol';
+import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
 
 /**
- * @title KYCRecordRegistry
+ * @title ZkCertificateRegistry
  * @author Galactica dev team
  * @notice Sparse Merkle Tree for revokable ZK certificates records
  * Relevant external contract calls should be in those functions, not here
  */
-contract KYCRecordRegistry is Initializable, IKYCRegistry {
+contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     // NOTE: The order of instantiation MUST stay the same across upgrades
     // add new variables to the bottom of the list and decrement the __gap
     // variable at the end of this file
@@ -44,17 +44,17 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
     // Caching these values is essential to efficient appends.
     bytes32[TREE_DEPTH] public zeros;
 
-    // a mapping to store which KYC center manages which ZKKYCRecords
-    mapping(bytes32 => address) public ZKKYCRecordToCenter;
+    // a mapping to store which Guardian manages which ZkCertificate
+    mapping(bytes32 => address) public ZkCertificateToGuardian;
 
     GuardianRegistry public _GuardianRegistry;
-    event zkKYCRecordAddition(
-        bytes32 indexed zkKYCRecordLeafHash,
+    event zkCertificateAddition(
+        bytes32 indexed zkCertificateLeafHash,
         address indexed Guardian,
         uint index
     );
-    event zkKYCRecordRevocation(
-        bytes32 indexed zkKYCRecordLeafHash,
+    event zkCertificateRevocation(
+        bytes32 indexed zkCertificateLeafHash,
         address indexed Guardian,
         uint index
     );
@@ -63,7 +63,7 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
      * @notice Calculates initial values for Merkle Tree
      * @dev OpenZeppelin initializer ensures this can only be called once
      */
-    function initializeKYCRecordRegistry(
+    function initializeZkCertificateRegistry(
         address GuardianRegistry_
     ) internal onlyInitializing {
         /*
@@ -101,52 +101,52 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
     }
 
     /**
-     * @notice addZkKYCRecord issues a zkKYC record by adding it to the Merkle tree
-     * @param leafIndex - leaf position of the zkKYC in the Merkle tree
-     * @param zkKYCRecordHash - hash of the zkKYC record leaf
-     * @param merkleProof - Merkle proof of the zkKYC record leaf being free
+     * @notice addZkCertificate issues a zkCertificate record by adding it to the Merkle tree
+     * @param leafIndex - leaf position of the zkCertificate in the Merkle tree
+     * @param zkCertificateHash - hash of the zkCertificate record leaf
+     * @param merkleProof - Merkle proof of the zkCertificate record leaf being free
      */
-    function addZkKYCRecord(
+    function addZkCertificate(
         uint256 leafIndex,
-        bytes32 zkKYCRecordHash,
+        bytes32 zkCertificateHash,
         bytes32[] memory merkleProof
     ) public {
-        // since we are adding a new zkKYC record, we assume that the leaf is of zero value
+        // since we are adding a new zkCertificate record, we assume that the leaf is of zero value
         bytes32 currentLeafHash = ZERO_VALUE;
         require(
             _GuardianRegistry.isWhitelisted(msg.sender),
-            'KYCRecordRegistry: not a KYC Center'
+            'ZkCertificateRegistry: not a Guardian'
         );
         _changeLeafHash(
             leafIndex,
             currentLeafHash,
-            zkKYCRecordHash,
+            zkCertificateHash,
             merkleProof
         );
-        ZKKYCRecordToCenter[zkKYCRecordHash] = msg.sender;
-        emit zkKYCRecordAddition(zkKYCRecordHash, msg.sender, leafIndex);
+        ZkCertificateToCenter[zkCertificateHash] = msg.sender;
+        emit zkCertificateAddition(zkCertificateHash, msg.sender, leafIndex);
     }
 
     /**
-     * @notice revokeZkKYCRecord removes a previously issued zkKYC from the registry by setting the content of the merkle leaf to zero.
-     * @param leafIndex - leaf position of the zkKYC in the Merkle tree
-     * @param zkKYCRecordHash - hash of the zkKYC record leaf
-     * @param merkleProof - Merkle proof of the zkKYC record being in the tree
+     * @notice revokeZkCertificate removes a previously issued zkCertificate from the registry by setting the content of the merkle leaf to zero.
+     * @param leafIndex - leaf position of the zkCertificate in the Merkle tree
+     * @param zkCertificateHash - hash of the zkCertificate record leaf
+     * @param merkleProof - Merkle proof of the zkCertificate record being in the tree
      */
-    function revokeZkKYCRecord(
+    function revokeZkCertificate(
         uint256 leafIndex,
-        bytes32 zkKYCRecordHash,
+        bytes32 zkCertificateHash,
         bytes32[] memory merkleProof
     ) public {
         // since we are deleting the content of a leaf, the new value is the zero value
         bytes32 newLeafHash = ZERO_VALUE;
         require(
-            ZKKYCRecordToCenter[zkKYCRecordHash] == msg.sender,
-            'KYCRecordRegistry: not the corresponding KYC Center'
+            ZkCertificateToGuardian[zkCertificateHash] == msg.sender,
+            'ZkCertificateRegistry: not the corresponding Guardian'
         );
-        _changeLeafHash(leafIndex, zkKYCRecordHash, newLeafHash, merkleProof);
-        ZKKYCRecordToCenter[zkKYCRecordHash] = address(0);
-        emit zkKYCRecordRevocation(zkKYCRecordHash, msg.sender, leafIndex);
+        _changeLeafHash(leafIndex, zkCertificateHash, newLeafHash, merkleProof);
+        ZkCertificateToGuardian[zkCertificateHash] = address(0);
+        emit zkCertificateRevocation(zkCertificateHash, msg.sender, leafIndex);
     }
 
     /** @notice Function change the leaf content at a certain index
