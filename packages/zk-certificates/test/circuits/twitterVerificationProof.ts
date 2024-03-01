@@ -8,17 +8,16 @@ import {
   generateTwitterZkCertificateProofInput,
 } from '../../scripts/generateTwitterZkCertificateInput';
 
-describe('twitterFollowersCountProof Circuit Component', () => {
+describe.only('twitterVerificationProof Circuit Component', () => {
   let circuit: CircuitTestUtils;
   let sampleInput: any;
 
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('twitterFollowersCountProof');
+    circuit = await hre.circuitTest.setup('twitterVerificationProof');
     const twitterZkCertificate = await generateSampleTwitterZkCertificate();
     sampleInput = await generateTwitterZkCertificateProofInput(twitterZkCertificate);
-    sampleInput.followersCountThreshold = 10;
   });
 
   it('produces a witness with valid constraints', async () => {
@@ -34,8 +33,8 @@ describe('twitterFollowersCountProof Circuit Component', () => {
 
     assert.propertyVal(
       witness,
-      'main.followersCountThreshold',
-      sampleInput.followersCountThreshold.toString(),
+      'main.verified',
+      sampleInput.verified.toString(),
     );
 
     // check resulting root as output
