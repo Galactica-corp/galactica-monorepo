@@ -17,7 +17,7 @@ export const fields = {
   creationTime: '23234234',
   location: '12233937',
   verified: 1,
-  followersCount: 5,
+  followersCount: 85,
   friendsCount: 28,
   likesCount: 10,
   postsCount: 22,

@@ -166,6 +166,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_twitterZkCertificate.circom',
         input: 'input/twitterZkCertificate.json',
       },
+      {
+        name: 'twitterFollowersCountProof',
+        circuit: 'test/test_twitterFollowersCountProof.circom',
+        input: 'input/twitterFollowersCountProof.json',
+      },
     ],
   },
 };

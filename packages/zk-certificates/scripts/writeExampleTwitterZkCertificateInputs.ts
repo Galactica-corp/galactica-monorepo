@@ -19,20 +19,17 @@ async function main() {
     'utf8',
   );
 
-  // also create example for ageProofZkKYC
-  /* const ageProofZkKYCInput = {
-    ...zkKYCInput,
-    currentYear: 2023,
-    currentMonth: 5,
-    currentDay: 9,
-    ageThreshold: 18,
+  // also create example for twitterZkCertificate followersCount
+  const twitterFollowersCountProofInput = {
+    ...twitterZkCertificateInput,
+    followersCountThreshold: 10,
   };
 
   fs.writeFileSync(
-    './circuits/input/ageProofZkKYC.json',
-    JSON.stringify(ageProofZkKYCInput, null, 2),
+    './circuits/input/twiiterFollowersCountProof.json',
+    JSON.stringify(twitterFollowersCountProofInput, null, 2),
     'utf8',
-  ); */
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -10,7 +10,7 @@ include "./twitterZkCertificate.circom";
  * @param levels - number of levels of the merkle tree.
  * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
  */
-template TwitterFollowerCountProof(levels, maxExpirationLengthDays){
+template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
     signal input holderCommitment;
     signal input randomSalt;
 
@@ -100,7 +100,7 @@ template TwitterFollowerCountProof(levels, maxExpirationLengthDays){
     // EdDSA signature of the pubkey
     twitterZkCertificate.s <== s;
     twitterZkCertificate.r8x <== r8x;
-    twitterZkCertificate,r8y <== r8y;
+    twitterZkCertificate.r8y <== r8y;
 
     // verify that tx sender is authorized to use the proof
     // user address as message to be signed, this will be a public input so the SC can compare it with the onchain message sender
@@ -114,10 +114,9 @@ template TwitterFollowerCountProof(levels, maxExpirationLengthDays){
     twitterZkCertificate.providerAx <== providerAx;
     twitterZkCertificate.providerAy <== providerAy;
 
-    twitterZkCertificate.userPubKey[0] <== userPubKey[0]; // becomes public as part of the output to check that it corresponds to user address
-    twitterZkCertificate.userPubKey[1] <== userPubKey[1];
-    twitterZkCertificate.valid <== valid;
-    twitterZkCertificate.verificationExpiration <== verificationExpiration;
+    userPubKey[0] <== twitterZkCertificate.userPubKey[0]; // becomes public as part of the output to check that it corresponds to user address
+    userPubKey[1] <== twitterZkCertificate.userPubKey[1];
+    verificationExpiration <== twitterZkCertificate.verificationExpiration;
 
     // circuit to check the followersCount
     component compare = GreaterEqThan(128);
@@ -125,7 +124,7 @@ template TwitterFollowerCountProof(levels, maxExpirationLengthDays){
     compare.in[1] <== followersCountThreshold;
 
     component and = AND();
-    and.a <== twitterZkCertificate.out;
+    and.a <== twitterZkCertificate.valid;
     and.b <== compare.out;
 
     valid <== and.out;

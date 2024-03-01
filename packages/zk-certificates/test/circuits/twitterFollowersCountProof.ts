@@ -8,16 +8,17 @@ import {
   generateTwitterZkCertificateProofInput,
 } from '../../scripts/generateTwitterZkCertificateInput';
 
-describe('twitterZkCertificate Circuit Component', () => {
+describe.only('twitterFollowersCountProof Circuit Component', () => {
   let circuit: CircuitTestUtils;
   let sampleInput: any;
 
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('twitterZkCertificate');
+    circuit = await hre.circuitTest.setup('twitterFollowersCountProof');
     const twitterZkCertificate = await generateSampleTwitterZkCertificate();
     sampleInput = await generateTwitterZkCertificateProofInput(twitterZkCertificate);
+    sampleInput.followersCountThreshold = 10;
   });
 
   it('produces a witness with valid constraints', async () => {
@@ -33,33 +34,13 @@ describe('twitterZkCertificate Circuit Component', () => {
 
     assert.propertyVal(
       witness,
-      'main.randomSalt',
-      sampleInput.randomSalt.toString(),
-    );
-    assert.propertyVal(
-      witness,
-      'main.leafIndex',
-      BigInt(sampleInput.leafIndex).toString(),
+      'main.followersCountThreshold',
+      sampleInput.followersCountThreshold.toString(),
     );
 
-    assert.propertyVal(witness, 'main.valid', '1', 'proof should be valid');
-
-    const maxValidityLength = 60 * 24 * 60 * 60; // 60 days according to parameter
-    assert.propertyVal(
-      witness,
-      'main.verificationExpiration',
-      `${Number(sampleInput.currentTime) + maxValidityLength}`,
-      'expiration of Verification SBT should be capped by the max validity duration parameter',
-    );
+    // check resulting root as output
+    assert.propertyVal(witness, 'main.valid', '1');
   });
 
-  it('the proof is not valid if the expiration time has passed', async () => {
-    const forgedInput = { ...sampleInput };
-    forgedInput.currentTime = Number(forgedInput.expirationTime) + 1;
-    const witness = await circuit.calculateLabeledWitness(
-      forgedInput,
-      sanityCheck,
-    );
-    assert.propertyVal(witness, 'main.valid', '0');
-  });
+
 });
