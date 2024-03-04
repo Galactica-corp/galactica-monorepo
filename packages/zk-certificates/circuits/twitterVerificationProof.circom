@@ -5,12 +5,12 @@ include "../../../node_modules/circomlib/circuits/gates.circom";
 include "./twitterZkCertificate.circom";
 
 /**
- * Circuit to check that a given twitter zkCertificate has at least a certain number of followers
+ * Circuit to check that a given twitter zkCertificate belongs to a verified account
  *
  * @param levels - number of levels of the merkle tree.
  * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
  */
-template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
+template TwitterVerificationProof(levels, maxExpirationLengthDays){
     signal input holderCommitment;
     signal input randomSalt;
 

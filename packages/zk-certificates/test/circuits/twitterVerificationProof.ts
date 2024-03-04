@@ -8,7 +8,7 @@ import {
   generateTwitterZkCertificateProofInput,
 } from '../../scripts/generateTwitterZkCertificateInput';
 
-describe.only('twitterVerificationProof Circuit Component', () => {
+describe('twitterVerificationProof Circuit Component', () => {
   let circuit: CircuitTestUtils;
   let sampleInput: any;
 
