@@ -17,7 +17,7 @@ async function main() {
   const merkleDepth = 32;
 
   const registry = await ethers.getContractAt(
-    'KYCRecordRegistry',
+    'ZkCertificateRegistry',
     registryAddress,
   );
 
