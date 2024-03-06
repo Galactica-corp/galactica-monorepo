@@ -40,6 +40,7 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     signal input pathElements[levels];
     signal input leafIndex;
     signal input root;
+    
     signal input currentTime;
 
     // verify that proof creator indeed owns the pubkey behind the holdercommitment
