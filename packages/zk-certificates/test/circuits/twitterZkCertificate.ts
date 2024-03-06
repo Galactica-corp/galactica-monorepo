@@ -17,7 +17,8 @@ describe('twitterZkCertificate Circuit Component', () => {
   before(async () => {
     circuit = await hre.circuitTest.setup('twitterZkCertificate');
     const twitterZkCertificate = await generateSampleTwitterZkCertificate();
-    sampleInput = await generateTwitterZkCertificateProofInput(twitterZkCertificate);
+    sampleInput =
+      await generateTwitterZkCertificateProofInput(twitterZkCertificate);
   });
 
   it('produces a witness with valid constraints', async () => {

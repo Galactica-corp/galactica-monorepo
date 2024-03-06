@@ -11,7 +11,8 @@ import {
  */
 async function main() {
   const twitterZkCertificate = await generateSampleTwitterZkCertificate();
-  const twitterZkCertificateInput = await generateTwitterZkCertificateProofInput(twitterZkCertificate);
+  const twitterZkCertificateInput =
+    await generateTwitterZkCertificateProofInput(twitterZkCertificate);
 
   fs.writeFileSync(
     './circuits/input/twitterZkCertificate.json',

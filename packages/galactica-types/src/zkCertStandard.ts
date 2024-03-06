@@ -5,7 +5,7 @@
  */
 export enum ZkCertStandard {
   ZkKYC = 'gip69',
-  TwitterZkCertificate = 'gip70'
+  TwitterZkCertificate = 'gip70',
 }
 
 /**
@@ -85,7 +85,6 @@ export const humanIDFieldOrder = [
   'dAppAddress',
 ];
 
-
 /**
  * Data specifically contained in twitterZkCertificate
  */
@@ -114,5 +113,5 @@ export const twitterZkCertificateContentFields = [
   'friendsCount',
   'likesCount',
   'postsCount',
-  'expirationTime'
+  'expirationTime',
 ];

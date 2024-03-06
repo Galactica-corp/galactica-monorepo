@@ -17,7 +17,8 @@ describe('twitterFollowersCountProof Circuit Component', () => {
   before(async () => {
     circuit = await hre.circuitTest.setup('twitterFollowersCountProof');
     const twitterZkCertificate = await generateSampleTwitterZkCertificate();
-    sampleInput = await generateTwitterZkCertificateProofInput(twitterZkCertificate);
+    sampleInput =
+      await generateTwitterZkCertificateProofInput(twitterZkCertificate);
     sampleInput.followersCountThreshold = 10;
   });
 
@@ -41,6 +42,4 @@ describe('twitterFollowersCountProof Circuit Component', () => {
     // check resulting root as output
     assert.propertyVal(witness, 'main.valid', '1');
   });
-
-
 });

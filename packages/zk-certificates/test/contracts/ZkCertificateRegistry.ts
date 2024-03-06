@@ -33,7 +33,9 @@ describe('ZkCertificateRegistry', () => {
 
     const GuardianRegistryFactory =
       await ethers.getContractFactory('GuardianRegistry');
-    const GuardianRegistry = await GuardianRegistryFactory.deploy("Test Guardian Registry");
+    const GuardianRegistry = await GuardianRegistryFactory.deploy(
+      'Test Guardian Registry',
+    );
 
     const ZkCertificateRegistryTest = await ethers.getContractFactory(
       'ZkCertificateRegistryTest',
@@ -54,7 +56,8 @@ describe('ZkCertificateRegistry', () => {
   }
 
   it("shouldn't initialize twice", async () => {
-    const { ZkCertificateRegistry, GuardianRegistry } = await loadFixture(deploy);
+    const { ZkCertificateRegistry, GuardianRegistry } =
+      await loadFixture(deploy);
 
     await expect(
       ZkCertificateRegistry.doubleInit(GuardianRegistry.address),
@@ -92,7 +95,8 @@ describe('ZkCertificateRegistry', () => {
   it('should insert elements', async function () {
     const loops = 5;
 
-    const { ZkCertificateRegistry, GuardianRegistry } = await loadFixture(deploy);
+    const { ZkCertificateRegistry, GuardianRegistry } =
+      await loadFixture(deploy);
 
     // add deployer as a Guardian
     await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
@@ -127,7 +131,8 @@ describe('ZkCertificateRegistry', () => {
   it('should be able to nullify a leaf', async function () {
     const loops = 5;
 
-    const { ZkCertificateRegistry, GuardianRegistry } = await loadFixture(deploy);
+    const { ZkCertificateRegistry, GuardianRegistry } =
+      await loadFixture(deploy);
 
     // add deployer as a Guardian
     await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
