@@ -34,7 +34,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   console.log('Revoking zkKYC...');
   const recordRegistry = await hre.ethers.getContractAt(
-    'KYCRecordRegistry',
+    'ZkCertificateRegistry',
     args.registryAddress,
   );
 

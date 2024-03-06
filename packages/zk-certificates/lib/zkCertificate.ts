@@ -48,12 +48,15 @@ export class ZKCertificate implements ZkCertData {
 
   public providerData: ProviderData;
 
+  public contentFields: string[];
+
   /**
    * Create a ZKCertificate.
    * @param holderCommitment - Commitment fixing the holder eddsa key without revealing it to the provider.
    * @param zkCertStandard - ZkCert standard to use.
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
+   * @param contentFields - names of fields making up the content, default to be ZkKYC
    * @param content - ZKCertificate parameters, can be set later.
    * @param providerData - Provider data, can be set later.
    */
@@ -62,6 +65,7 @@ export class ZKCertificate implements ZkCertData {
     zkCertStandard: ZkCertStandard,
     eddsa: Eddsa,
     randomSalt: number,
+    contentFields: string[] = zkKYCContentFields,
     content: Record<string, any> = {}, // standardize field definitions
     providerData: ProviderData = {
       ax: '0',
@@ -79,12 +83,13 @@ export class ZKCertificate implements ZkCertData {
     this.randomSalt = randomSalt;
     this.content = content;
     this.providerData = providerData;
+    this.contentFields = contentFields;
   }
 
   get contentHash(): string {
     return this.poseidon.F.toObject(
       this.poseidon(
-        zkKYCContentFields.map((field) => this.content[field]),
+        this.contentFields.map((field) => this.content[field]),
         undefined,
         1,
       ),

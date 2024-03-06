@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import './Ownable.sol';
 import './interfaces/IAgeProofZkKYCVerifier.sol';
-import './interfaces/IKYCRegistry.sol';
+import './interfaces/IZkCertificateRegistry.sol';
 import './libraries/BokkyPooBahsDateTimeLibrary.sol';
 import './interfaces/IGalacticaInstitution.sol';
 import 'hardhat/console.sol';
@@ -12,7 +12,7 @@ import 'hardhat/console.sol';
 /// @title A wrapper for verifier with age condition
 contract AgeProofZkKYC is Ownable {
   IAgeProofZkKYCVerifier public verifier;
-  IKYCRegistry public KYCRegistry;
+  IZkCertificateRegistry public KYCRegistry;
   IGalacticaInstitution[] public fraudInvestigationInstitutions;
   uint256 public constant timeDifferenceTolerance = 30 * 60; // the maximal difference between the onchain time and public input current time
 
@@ -42,7 +42,7 @@ contract AgeProofZkKYC is Ownable {
     address[] memory _fraudInvestigationInstitutions
   ) Ownable(_owner) {
     verifier = IAgeProofZkKYCVerifier(_verifier);
-    KYCRegistry = IKYCRegistry(_KYCRegistry);
+    KYCRegistry = IZkCertificateRegistry(_KYCRegistry);
     for (uint i = 0; i < _fraudInvestigationInstitutions.length; i++) {
       fraudInvestigationInstitutions.push(
         IGalacticaInstitution(_fraudInvestigationInstitutions[i])
@@ -81,7 +81,7 @@ contract AgeProofZkKYC is Ownable {
     verifier = newVerifier;
   }
 
-  function setKYCRegistry(IKYCRegistry newKYCRegistry) public onlyOwner {
+  function setKYCRegistry(IZkCertificateRegistry newKYCRegistry) public onlyOwner {
     KYCRegistry = newKYCRegistry;
   }
 

@@ -36,7 +36,7 @@ async function main() {
     centerRegistryAddr,
   );
   const recordRegistry = await ethers.getContractAt(
-    'KYCRecordRegistry',
+    'ZkCertificateRegistry',
     recordRegistryAddr,
   );
 
