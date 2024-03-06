@@ -56,7 +56,7 @@ export class ZKCertificate implements ZkCertData {
    * @param zkCertStandard - ZkCert standard to use.
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
-   * @param contentFields - names of fields making up the content, default to be ZkKYC
+   * @param contentFields - Names of fields making up the content, default to be ZkKYC.
    * @param content - ZKCertificate parameters, can be set later.
    * @param providerData - Provider data, can be set later.
    */

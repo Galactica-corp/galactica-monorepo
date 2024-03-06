@@ -26,7 +26,7 @@ export const fields = {
 
 /**
  * Generates a sample twitter ZkCertificate object with the given fields.
- * @returns twitter ZkCertificate object promise.
+ * @returns Twitter ZkCertificate object promise.
  */
 export async function generateSampleTwitterZkCertificate(): Promise<ZKCertificate> {
   // and eddsa instance for signing
