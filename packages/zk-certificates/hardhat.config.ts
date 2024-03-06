@@ -161,6 +161,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_exampleMockDApp.circom',
         input: 'input/exampleMockDApp.json',
       },
+      {
+        name: 'poseidonSponge',
+        circuit: 'test/test_poseidonSponge.circom',
+        input: 'input/poseidonSponge.json',
+      },
     ],
   },
 };
