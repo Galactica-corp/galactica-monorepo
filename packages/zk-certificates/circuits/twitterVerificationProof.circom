@@ -58,7 +58,6 @@ template TwitterVerificationProof(levels, maxExpirationLengthDays){
     signal input providerAx;
     signal input providerAy;
 
-    signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
     signal output valid;
     signal output verificationExpiration;
 
@@ -112,8 +111,6 @@ template TwitterVerificationProof(levels, maxExpirationLengthDays){
     twitterZkCertificate.providerAx <== providerAx;
     twitterZkCertificate.providerAy <== providerAy;
 
-    userPubKey[0] <== twitterZkCertificate.userPubKey[0]; // becomes public as part of the output to check that it corresponds to user address
-    userPubKey[1] <== twitterZkCertificate.userPubKey[1];
     verificationExpiration <== twitterZkCertificate.verificationExpiration;
 
     // circuit to check the followersCount
