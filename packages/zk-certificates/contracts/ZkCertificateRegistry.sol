@@ -63,6 +63,8 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         uint index
     );
 
+    
+
     /**
      * @notice Calculates initial values for Merkle Tree
      * @dev OpenZeppelin initializer ensures this can only be called once
