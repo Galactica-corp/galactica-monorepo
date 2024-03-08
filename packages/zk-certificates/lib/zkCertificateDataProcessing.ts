@@ -49,7 +49,7 @@ export function prepareZkCertificateFields(
     (content) => !exceptions.includes(content),
   )) {
     if (zkCertificateData[field] === undefined) {
-      throw new Error(`Field ${field} missing in zkCertificate data`);
+      throw new Error(`Field ${field} missing in zkCertificate data of type ${zkCertificateType}`);
     }
     if (stringFieldsForHashing.includes(field)) {
       // hashing string data so that it fits into the field used by the circuit

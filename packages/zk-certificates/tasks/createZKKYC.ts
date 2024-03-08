@@ -14,7 +14,7 @@ import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { issueZkCert } from '../lib/registryTools';
 import { ZKCertificate } from '../lib/zkCertificate';
-import { prepareKYCFields } from '../lib/zkCertificateDataProcessing';
+import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
 /**
  * Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
@@ -35,7 +35,15 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   // read KYC data file
   const data = JSON.parse(fs.readFileSync(args.zkCertificateDataFile, 'utf-8'));
-  const zkKYCFields = prepareKYCFields(eddsa, data);
+  let zkCertificateType;
+  if (args.zkCertificateType == 'zkKYC') {
+    zkCertificateType = ZkCertStandard.ZkKYC;
+  } else if (args.zkCertificateType == `twitterZkCertificate`) {
+    zkCertificateType = ZkCertStandard.TwitterZkCertificate;
+  } else {
+    throw new Error(`ZkCertStandard type ${args.zkCertificateType} is unsupported`);
+  }
+  const zkKYCFields = prepareZkCertificateFields(eddsa, data);
 
   // read holder commitment file
   const holderCommitmentFile = JSON.parse(
@@ -140,6 +148,13 @@ task('createZkKYC', 'Task to create a zkKYC certificate with input parameters')
     'zkCertificateDataFile',
     'The file containing the KYC data',
     undefined,
+    types.string,
+    false,
+  )
+  .addParam(
+    'zkCertificateType',
+    'type of zkCertificate, default to be zkKYC',
+    'zkKYC',
     types.string,
     false,
   )
