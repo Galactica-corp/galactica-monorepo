@@ -63,7 +63,12 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         uint index
     );
 
-    
+    constructor(
+        address GuardianRegistry_,
+        string memory _description
+    ) initializer {
+      initializeZkCertificateRegistry(GuardianRegistry_, _description);
+    }
 
     /**
      * @notice Calculates initial values for Merkle Tree

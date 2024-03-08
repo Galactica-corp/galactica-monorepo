@@ -21,17 +21,16 @@ async function main() {
 
    const poseidonT3 = await deploySC('PoseidonT3', false);
 
-
-  const ZkCertificateRegistry = await deploySC("ZkCertificateRegistry",true, {libraries: {PoseidonT3: poseidonT3.address,}}, []);
+      // initialize the contract
+  const guardianRegistryAddress = "0xb5e4A15F468AC505Bf0D53ceA2144b52135cCEF9";
+  const description = "twitter ZkCertificate";
+  const ZkCertificateRegistry = await deploySC("ZkCertificateRegistry",true, {libraries: {PoseidonT3: poseidonT3.address,}}, [guardianRegistryAddress, description]);
 
   console.log(
     `The address of the contract is ${ZkCertificateRegistry.address}`,
   );
 
-  // initialize the contract
-  const guardianRegistryAddress = "0xb5e4A15F468AC505Bf0D53ceA2144b52135cCEF9";
-  const description = "twitter ZkCertificate";
-  await ZkCertificateRegistry.initializeZkCertificateRegistry(guardianRegistryAddress, description);
+
 
 }
 

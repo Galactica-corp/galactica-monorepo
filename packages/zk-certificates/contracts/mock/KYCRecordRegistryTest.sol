@@ -6,9 +6,7 @@ pragma abicoder v2;
 import {ZkCertificateRegistry} from '../ZkCertificateRegistry.sol';
 
 contract ZkCertificateRegistryTest is ZkCertificateRegistry {
-    constructor(address GuardianRegistry) {
-        initializeZkCertificateRegistryTest(GuardianRegistry);
-    }
+    constructor(address GuardianRegistry) ZkCertificateRegistry(GuardianRegistry, "Test Registry"){}
 
     function doubleInit(address GuardianRegistry) external {
         ZkCertificateRegistry.initializeZkCertificateRegistry(GuardianRegistry, "Test Registry");

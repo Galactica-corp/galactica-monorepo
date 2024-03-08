@@ -14,7 +14,7 @@ import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { issueZkCert, revokeZkCert } from '../lib/registryTools';
 import { ZKCertificate } from '../lib/zkCertificate';
-import { prepareKYCFields } from '../lib/zkKYC';
+import { prepareKYCFields } from '../lib/zkCertificateDataProcessing';
 
 /**
  * Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.

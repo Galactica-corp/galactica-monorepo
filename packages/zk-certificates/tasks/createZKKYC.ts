@@ -14,7 +14,7 @@ import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { issueZkCert } from '../lib/registryTools';
 import { ZKCertificate } from '../lib/zkCertificate';
-import { prepareKYCFields } from '../lib/zkKYC';
+import { prepareKYCFields } from '../lib/zkCertificateDataProcessing';
 
 /**
  * Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
@@ -22,7 +22,7 @@ import { prepareKYCFields } from '../lib/zkKYC';
  * @param hre - Hardhat runtime environment.
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
-  console.log('Creating zkKYC certificate');
+  console.log('Creating zkCertificate');
 
   const eddsa = await buildEddsa();
 
@@ -30,11 +30,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(
     `Using provider ${chalk.yellow(
       issuer.address.toString(),
-    )} to sign the zkKYC certificate`,
+    )} to sign the zkCertificate`,
   );
 
   // read KYC data file
-  const data = JSON.parse(fs.readFileSync(args.kycDataFile, 'utf-8'));
+  const data = JSON.parse(fs.readFileSync(args.zkCertificateDataFile, 'utf-8'));
   const zkKYCFields = prepareKYCFields(eddsa, data);
 
   // read holder commitment file
@@ -53,6 +53,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     ZkCertStandard.ZkKYC,
     eddsa,
     randomSalt,
+    Object.keys(zkKYCFields),
     zkKYCFields,
   );
 
@@ -136,7 +137,7 @@ task('createZkKYC', 'Task to create a zkKYC certificate with input parameters')
     false,
   )
   .addParam(
-    'kycDataFile',
+    'zkCertificateDataFile',
     'The file containing the KYC data',
     undefined,
     types.string,
