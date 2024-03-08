@@ -6,7 +6,7 @@ import 'hardhat-circom';
 import { Wallet } from 'ethers';
 import type { HardhatUserConfig } from 'hardhat/config';
 
-import './tasks/createZKKYC';
+import './tasks/createZkCertificate';
 import './tasks/smartCircuitBuild';
 import './tasks/revokeZKKYC';
 import './tasks/reissueZKKYC';
