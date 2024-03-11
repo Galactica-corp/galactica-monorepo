@@ -14,26 +14,37 @@ import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { issueZkCert, revokeZkCert } from '../lib/registryTools';
 import { ZKCertificate } from '../lib/zkCertificate';
-import { prepareKYCFields } from '../lib/zkCertificateDataProcessing';
+import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
 /**
- * Script for reissuing a zkKYC certificate with current time stamp and adding a new merkle proof for it.
- * @param args - See task definition below or 'npx hardhat reissueZkKYC --help'.
+ * Script for reissuing a zkCertificate with current time stamp and adding a new merkle proof for it.
+ * @param args - See task definition below or 'npx hardhat reissueZkCertificate --help'.
  * @param hre - Hardhat runtime environment.
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
-  console.log('Creating zkKYC certificate');
+  console.log('Reissuing zkCertificate');
+
+  const eddsa = await buildEddsa();
 
   const [issuer] = await hre.ethers.getSigners();
   console.log(
     `Using provider ${chalk.yellow(
       issuer.address.toString(),
-    )} to sign the zkKYC certificate`,
+    )} to sign the zkCertificate`,
   );
 
-  const data = JSON.parse(fs.readFileSync(args.kycDataFile, 'utf-8'));
-  const eddsa = await buildEddsa();
-  const zkKYCFields = prepareKYCFields(eddsa, data);
+  // read certificate data file
+  const data = JSON.parse(fs.readFileSync(args.zkCertificateDataFile, 'utf-8'));
+  let zkCertificateType;
+  if (args.zkCertificateType == 'zkKYC') {
+    zkCertificateType = ZkCertStandard.ZkKYC;
+  } else if (args.zkCertificateType == `twitterZkCertificate`) {
+    zkCertificateType = ZkCertStandard.TwitterZkCertificate;
+  } else {
+    throw new Error(`ZkCertStandard type ${args.zkCertificateType} is unsupported`);
+  }
+  const zkCertificateFields = prepareZkCertificateFields(eddsa, data, zkCertificateType);
+
 
   // read holder commitment file
   const holderCommitmentFile = JSON.parse(
@@ -44,18 +55,19 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // generate random number as salt for new zkKYC
   const randomSalt = Math.floor(Math.random() * 2 ** 32);
 
-  zkKYCFields.expirationDate = args.newExpirationDate;
-  const newZkKYC = new ZKCertificate(
-    holderCommitmentFile.holderCommitment,
-    ZkCertStandard.ZkKYC,
+  zkCertificateFields.expirationDate = args.newExpirationDate;
+  const newZkCertificate = new ZKCertificate(
+    holderCommitmentData.holderCommitment,
+    zkCertificateType,
     eddsa,
     randomSalt,
-    zkKYCFields,
+    Object.keys(zkCertificateFields),
+    zkCertificateFields,
   );
 
-  // let provider sign the zkKYC
+  // let provider sign the zkCertificate
   const providerEdDSAKey = await getEddsaKeyFromEthSigner(issuer);
-  newZkKYC.signWithProvider(providerEdDSAKey);
+  newZkCertificate.signWithProvider(providerEdDSAKey);
 
   const recordRegistry = await hre.ethers.getContractAt(
     'ZkCertificateRegistry',
@@ -85,22 +97,22 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `Revoked the zkKYC certificate ${args.leafHash} on-chain at index ${
+      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${
         args.index as number
       }`,
     ),
   );
 
-  console.log('Issuing zkKYC...');
+  console.log('Issuing zkCertificate...');
   const { merkleProof, registration } = await issueZkCert(
-    newZkKYC,
+    newZkCertificate,
     recordRegistry,
     issuer,
     merkleTree,
   );
   console.log(
     chalk.green(
-      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${
+      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${
         args.index as number
       } with new expiration date ${args.newExpirationDate as number}`,
     ),
@@ -108,36 +120,36 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   // print to console for developers and testers, not necessary for production
   const rawJSON = {
-    ...newZkKYC.exportRaw(),
+    ...newZkCertificate.exportRaw(),
     merkleProof,
     registration,
   };
   console.log(JSON.stringify(rawJSON, null, 2));
 
-  console.log(chalk.green('This ZkKYC can be imported in a wallet'));
-  // write encrypted zkKYC output to file
-  const output = newZkKYC.exportJson(
+  console.log(chalk.green('This ZkCertificate can be imported in a wallet'));
+  // write encrypted zkCertificate output to file
+  const output = newZkCertificate.exportJson(
     holderCommitmentData.encryptionPubKey,
     merkleProof,
     registration,
   );
 
   const outputFileName: string =
-    args.outputFile || `issuedZkKYCs/${newZkKYC.leafHash}.json`;
+    args.outputFile || `issuedZkCertificates/${newZkCertificate.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
   fs.writeFileSync(outputFileName, output);
-  console.log(chalk.green(`Written ZkKYC to output file ${outputFileName}`));
+  console.log(chalk.green(`Written ZkCertificate to output file ${outputFileName}`));
 
   console.log(chalk.green('done'));
 }
 
 task(
-  'reissueZkKYC',
-  'Task to reissue a zkKYC certificate with later expiration date',
+  'reissueZkCertificate',
+  'Task to reissue a zkCertificate with later expiration date',
 )
   .addParam(
     'index',
-    'index of the zkKYC certificate to be updated',
+    'index of the zkCertificate to be updated',
     0,
     types.int,
     true,
@@ -151,15 +163,22 @@ task(
     false,
   )
   .addParam(
-    'kycDataFile',
+    'zkCertificateDataFile',
     'The file containing the KYC data',
     undefined,
     types.string,
     false,
   )
   .addParam(
+    'zkCertificateType',
+    'type of zkCertificate, default to be zkKYC',
+    undefined,
+    types.string,
+    false,
+  )
+  .addParam(
     'registryAddress',
-    'The smart contract address where zkKYCs are registered',
+    'The smart contract address where zkCertificates are registered',
     undefined,
     types.string,
     false,

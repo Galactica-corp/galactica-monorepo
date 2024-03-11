@@ -33,7 +33,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     )} to sign the zkCertificate`,
   );
 
-  // read KYC data file
+  // read certificate data file
   const data = JSON.parse(fs.readFileSync(args.zkCertificateDataFile, 'utf-8'));
   let zkCertificateType;
   if (args.zkCertificateType == 'zkKYC') {
@@ -43,7 +43,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   } else {
     throw new Error(`ZkCertStandard type ${args.zkCertificateType} is unsupported`);
   }
-  const zkCertificateFields = prepareZkCertificateFields(eddsa, data);
+  const zkCertificateFields = prepareZkCertificateFields(eddsa, data, zkCertificateType);
 
   // read holder commitment file
   const holderCommitmentFile = JSON.parse(

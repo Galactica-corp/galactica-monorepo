@@ -8,8 +8,8 @@ import type { HardhatUserConfig } from 'hardhat/config';
 
 import './tasks/createZkCertificate';
 import './tasks/smartCircuitBuild';
-import './tasks/revokeZKKYC';
-import './tasks/reissueZKKYC';
+import './tasks/revokeZkCertificate';
+import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
 
 const config: HardhatUserConfig = {
