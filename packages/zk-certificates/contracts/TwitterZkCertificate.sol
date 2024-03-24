@@ -45,7 +45,7 @@ contract TwitterZkCertificate is Ownable {
         verifier = newVerifier;
     }
 
-    function setKYCRegistry(IZkCertificateRegistry newRegistry) public onlyOwner {
+    function setRegistry(IZkCertificateRegistry newRegistry) public onlyOwner {
         registry = newRegistry;
     }
 
