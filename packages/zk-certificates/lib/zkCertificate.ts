@@ -30,7 +30,7 @@ import { encryptFraudInvestigationData } from './SBTData';
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
  * Specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac .
  */
-export class ZKCertificate implements ZkCertData {
+export class ZkCertificate implements ZkCertData {
   // Field of the curve used by Poseidon
   protected poseidon: Poseidon;
 

@@ -9,7 +9,7 @@ import {
   getEddsaKeyFromEthSigner,
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
-import { ZKCertificate } from '../lib/zkCertificate';
+import { ZkCertificate } from '../lib/zkCertificate';
 
 // sample field inputs
 export const fields = {
@@ -38,7 +38,7 @@ export async function generateSampleTwitterZkCertificate(): Promise<ZKCertificat
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
 
-  const zkTwitterCertificate = new ZKCertificate(
+  const zkTwitterCertificate = new ZkCertificate(
     holderCommitment,
     ZkCertStandard.TwitterZkCertificate,
     eddsa,
@@ -63,7 +63,7 @@ export async function generateSampleTwitterZkCertificate(): Promise<ZKCertificat
  * @returns Zero Knowledge twitter proof input for the twitter ZkCertificate smart contract.
  */
 export async function generateTwitterZkCertificateProofInput(
-  twitterZkCertificate: ZKCertificate,
+  twitterZkCertificate: ZkCertificate,
 ): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
