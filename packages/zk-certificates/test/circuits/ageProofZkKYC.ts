@@ -3,7 +3,7 @@ import { assert } from 'chai';
 import hre from 'hardhat';
 import type { CircuitTestUtils } from 'hardhat-circom';
 
-import type { ZKCertificate } from '../../lib';
+import type { ZkCertificate } from '../../lib';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
@@ -12,7 +12,7 @@ import {
 describe('Age Proof combined with zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
-  let zkKYC: ZKCertificate;
+  let zkKYC: ZkCertificate;
   let sampleInput: any;
 
   const sanityCheck = true;

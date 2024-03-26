@@ -9,7 +9,7 @@ import {
   getEddsaKeyFromEthSigner,
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
-import { ZKCertificate } from '../lib/zkCertificate';
+import { ZkCertificate } from '../lib/zkCertificate';
 
 // sample field inputs
 export const fields = {
@@ -45,7 +45,7 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
-  const zkKYC = new ZKCertificate(
+  const zkKYC = new ZkCertificate(
     holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,

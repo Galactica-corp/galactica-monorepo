@@ -4,7 +4,7 @@ import fs from 'fs';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from './generateZKKYCInput';
+} from './generateZkKYCInput';
 
 /**
  * Script for creating proof input for a zkKYC certificate.

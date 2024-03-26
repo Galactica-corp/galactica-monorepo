@@ -15,11 +15,11 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZKKYCInput';
-import type { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { RepeatableZKPTest } from '../../typechain-types/contracts/mock/RepeatableZKPTest';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
-import type { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
+import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -29,7 +29,7 @@ describe('RepeatableZKPTest', () => {
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKycSC: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
-  let mockKYCRegistry: MockKYCRegistry;
+  let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let verificationSBT: VerificationSBT;
   let repeatableZKPTest: RepeatableZKPTest;
 
@@ -46,12 +46,12 @@ describe('RepeatableZKPTest', () => {
     [deployer, user] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    const mockKYCRegistryFactory = await ethers.getContractFactory(
-      'MockKYCRegistry',
+    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+      'MockZkCertificateRegistry',
       deployer,
     );
-    mockKYCRegistry =
-      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
+    mockZkCertificateRegistry =
+      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
       'ZkKYCVerifier',
@@ -64,7 +64,7 @@ describe('RepeatableZKPTest', () => {
     zkKycSC = (await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
-      mockKYCRegistry.address,
+      mockZkCertificateRegistry.address,
       [],
     )) as ZkKYC;
     await zkKYCVerifier.deployed();
@@ -117,7 +117,7 @@ describe('RepeatableZKPTest', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
@@ -154,7 +154,7 @@ describe('RepeatableZKPTest', () => {
     const publicRoot = publicSignals[await zkKycSC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     const [piA, piB, piC] = processProof(proof);

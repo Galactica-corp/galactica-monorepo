@@ -58,10 +58,12 @@ template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
     signal input providerAx;
     signal input providerAy;
 
+
+    signal input followersCountThreshold;
+
     signal output valid;
     signal output verificationExpiration;
 
-    signal input followersCountThreshold;
 
     component twitterZkCertificate = TwitterZkCertificate(levels, maxExpirationLengthDays);
     twitterZkCertificate.holderCommitment <== holderCommitment;

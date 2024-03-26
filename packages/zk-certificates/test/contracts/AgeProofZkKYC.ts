@@ -18,7 +18,7 @@ import {
 } from '../../scripts/generateZKKYCInput';
 import type { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
 import type { AgeProofZkKYCVerifier } from '../../typechain-types/contracts/AgeProofZkKYCVerifier';
-import type { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -28,7 +28,7 @@ describe('ageProofZkKYC SC', () => {
   /* await hre.network.provider.send('hardhat_reset'); */
   let ageProofZkKYC: AgeProofZkKYC;
   let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
-  let mockKYCRegistry: MockKYCRegistry;
+  let mockZkCertificateRegistry: MockZkCertificateRegistry;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
@@ -43,12 +43,12 @@ describe('ageProofZkKYC SC', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    const mockKYCRegistryFactory = await ethers.getContractFactory(
-      'MockKYCRegistry',
+    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+      'MockZkCertificateRegistry',
       deployer,
     );
-    mockKYCRegistry =
-      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
+    mockZkCertificateRegistry =
+      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     const ageProofZkKYCVerifierFactory = await ethers.getContractFactory(
       'AgeProofZkKYCVerifier',
@@ -64,7 +64,7 @@ describe('ageProofZkKYC SC', () => {
     ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
       deployer.address,
       ageProofZkKYCVerifier.address,
-      mockKYCRegistry.address,
+      mockZkCertificateRegistry.address,
       [],
     )) as AgeProofZkKYC;
     await ageProofZkKYCVerifier.deployed();
@@ -122,7 +122,7 @@ describe('ageProofZkKYC SC', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
@@ -146,7 +146,7 @@ describe('ageProofZkKYC SC', () => {
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     const [piA, piB, piC] = processProof(proof);
@@ -176,7 +176,7 @@ describe('ageProofZkKYC SC', () => {
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
@@ -220,7 +220,7 @@ describe('ageProofZkKYC SC', () => {
     );
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
@@ -250,7 +250,7 @@ describe('ageProofZkKYC SC', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
@@ -287,7 +287,7 @@ describe('ageProofZkKYC SC', () => {
     );
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
