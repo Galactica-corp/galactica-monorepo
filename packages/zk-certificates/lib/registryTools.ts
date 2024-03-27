@@ -8,11 +8,11 @@ import type { Signer, Contract } from 'ethers';
 
 import { fromDecToHex, fromHexToBytes32 } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
-import type { ZKCertificate } from './zkCertificate';
+import type { ZkCertificate } from './zkCertificate';
 
 /**
  * Issues zkCert record on-chain and updates the merkle tree.
- * @param zkCert - ZKCertificate to issue on-chain.
+ * @param zkCert - ZkCertificate to issue on-chain.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert (guardian).
  * @param merkleTree - Merkle tree of the registry (passed to not reconstruct it repeatedly).
@@ -20,7 +20,7 @@ import type { ZKCertificate } from './zkCertificate';
  * @returns MerkleProof of the new leaf in the tree and registration data.
  */
 export async function issueZkCert(
-  zkCert: ZKCertificate,
+  zkCert: ZkCertificate,
   recordRegistry: Contract,
   issuer: Signer,
   merkleTree: SparseMerkleTree,

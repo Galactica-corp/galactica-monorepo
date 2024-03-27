@@ -5,12 +5,12 @@ import type { Eddsa } from 'circomlibjs';
 import { hashStringToFieldNumber } from './helpers';
 
 /**
- * Function preparing the inputs for a zkKYC certificate.
+ * Function preparing the fields for  ZkCertificate depending on its types.
  * It hashes all string fields to be representable in zk circuits.
  * @param eddsa - Eddsa object from circomlibjs.
- * @param kycData - Input KYC data to be verified and hashed if necessary.
+ * @param zkCertificateData - Input KYC data to be verified and hashed if necessary.
  * @param zkCertificateType - Type of ZkCert, default to be zkKYC.
- * @returns Prepared KYC data.
+ * @returns Prepared ZkCertificate data.
  * @throws Error if any of the required fields is missing.
  */
 export function prepareZkCertificateFields(
@@ -21,8 +21,8 @@ export function prepareZkCertificateFields(
   // verify that all the fields are present
   const exceptions = ['holderCommitment'];
   let stringFieldsForHashing;
-  let zkCertificateContentFields;
-  if (zkCertificateType == ZkCertStandard.ZkKYC) {
+  let zkCertificateContentFields: string[] = [];
+  if (zkCertificateType === ZkCertStandard.ZkKYC) {
     stringFieldsForHashing = [
       // TODO: standardize the definition of fields and which of those are hashed and read it from the standard instead of hardcoding it here
       'surname',
@@ -37,10 +37,8 @@ export function prepareZkCertificateFields(
       'passportID',
     ];
     zkCertificateContentFields = zkKYCContentFields;
-  } else if (zkCertificateType == ZkCertStandard.TwitterZkCertificate) {
-    stringFieldsForHashing = [
-      'location'
-    ];
+  } else if (zkCertificateType === ZkCertStandard.TwitterZkCertificate) {
+    stringFieldsForHashing = ['location'];
     zkCertificateContentFields = twitterZkCertificateContentFields;
   }
 
@@ -49,9 +47,11 @@ export function prepareZkCertificateFields(
     (content) => !exceptions.includes(content),
   )) {
     if (zkCertificateData[field] === undefined) {
-      throw new Error(`Field ${field} missing in zkCertificate data of type ${zkCertificateType}`);
+      throw new Error(
+        `Field ${field} missing in zkCertificate data of type ${zkCertificateType}`
+      );
     }
-    if (stringFieldsForHashing.includes(field)) {
+    if (stringFieldsForHashing?.includes(field)) {
       // hashing string data so that it fits into the field used by the circuit
       zkCertificateFields[field] = hashStringToFieldNumber(
         zkCertificateData[field],

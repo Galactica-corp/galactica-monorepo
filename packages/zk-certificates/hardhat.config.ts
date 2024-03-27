@@ -176,6 +176,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_twitterVerificationProof.circom',
         input: 'input/twitterZkCertificate.json',
       },
+      {
+        name: 'poseidonSponge',
+        circuit: 'test/test_poseidonSponge.circom',
+        input: 'input/poseidonSponge.json',
+      },
     ],
   },
 };
