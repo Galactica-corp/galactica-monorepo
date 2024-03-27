@@ -12,7 +12,7 @@ import { MerkleTree } from '../lib/merkleTree';
 import { ZkCertificate } from '../lib/zkCertificate';
 
 // sample field inputs
-export const fields = {
+export const sampleFields = {
   accountId: '23742384',
   creationTime: '23234234',
   location: '12233937',
@@ -28,7 +28,7 @@ export const fields = {
  * Generates a sample twitter ZkCertificate object with the given fields.
  * @returns Twitter ZkCertificate object promise.
  */
-export async function generateSampleTwitterZkCertificate(): Promise<ZKCertificate> {
+export async function generateSampleTwitterZkCertificate(fields: any = sampleFields): Promise<ZkCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -64,6 +64,7 @@ export async function generateSampleTwitterZkCertificate(): Promise<ZKCertificat
  */
 export async function generateTwitterZkCertificateProofInput(
   twitterZkCertificate: ZkCertificate,
+  fields: any = sampleFields
 ): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();

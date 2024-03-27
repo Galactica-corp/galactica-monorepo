@@ -11,24 +11,24 @@ import {
   processProof,
   processPublicSignals,
 } from '../../lib/helpers';
-import type { ZkCertificate } from '../../lib/zkCertificate';
+import type {ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleTwitterZkCertificate,
   generateTwitterZkCertificateProofInput,
 } from '../../scripts/generateTwitterZkCertificateInput';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { TwitterZkCertificate } from '../../typechain-types/contracts/TwitterZkCertificate';
-import type { TwitterZkCertificateVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterZkCertificateVerifier';
+import type { TwitterVerificationProof } from '../../typechain-types/contracts/TwitterVerificationProofProof';
+import type { TwitterVerificationProofVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterVerificationProofVerifier';
 
 chai.config.includeStack = true;
 
 const { expect } = chai;
 
-describe('zkCertificate followers count proof', () => {
+describe('twitterVerificationProof SC', () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
-  let twitterZkCertificateContract: TwitterZkCertificate;
-  let twitterZkCertificateVerifier: TwitterZkCertificateVerifier;
+  let twitterVerificationProofContract: TwitterVerificationProof;
+  let twitterVerificationProofVerifier: TwitterVerificationProofVerifier;
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
 
   let deployer: SignerWithAddress;
@@ -43,7 +43,7 @@ describe('zkCertificate followers count proof', () => {
 
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
-    // set up zkCertificateRegistry, GalacticaInstitution, twitterZkCertificateVerifier, twitterZkCertificate
+    // set up zkCertificateRegistry, GalacticaInstitution, twitterVerificationProofVerifier, twitterVerificationProof
     const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
       'MockZkCertificateRegistry',
       deployer,
@@ -52,47 +52,47 @@ describe('zkCertificate followers count proof', () => {
       (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
 
-    const twitterZkCertificateVerifierFactory = await ethers.getContractFactory(
-      'TwitterFollowersCountProofVerifier',
+    const twitterVerificationProofVerifierFactory = await ethers.getContractFactory(
+      'TwitterVerificationProofVerifier',
       deployer,
     );
-    twitterZkCertificateVerifier = (await twitterZkCertificateVerifierFactory.deploy()) as TwitterZkCertificateVerifier;
+    twitterVerificationProofVerifier = (await twitterVerificationProofVerifierFactory.deploy()) as TwitterVerificationProofVerifier;
 
-    const twitterZkCertificateFactory = await ethers.getContractFactory('TwitterFollowersCountProof', deployer);
-    twitterZkCertificateContract = (await twitterZkCertificateFactory.deploy(
+    const twitterVerificationProofFactory = await ethers.getContractFactory('TwitterVerificationProof', deployer);
+    twitterVerificationProofContract = (await twitterVerificationProofFactory.deploy(
       deployer.address,
-      twitterZkCertificateVerifier.address,
+      twitterVerificationProofVerifier.address,
       mockZkCertificateRegistry.address,
       [],
-    )) as TwitterZkCertificate;
+    )) as TwitterVerificationProof;
 
     twitterZkCertificate = await generateSampleTwitterZkCertificate();
-    sampleInput = await generateTwitterZkCertificateProofInput(twitterZkCertificate);
-
-    sampleInput.followersCountThreshold = 10;
+    sampleInput = await generateTwitterZkCertificateProofInput(
+      twitterZkCertificate
+    );
 
     // get signer object authorized to use the zkCertificate record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
 
-    circuitWasmPath = './circuits/build/twitterFollowersCountProof.wasm';
-    circuitZkeyPath = './circuits/build/twitterFollowersCountProof.zkey';
+    circuitWasmPath = './circuits/build/twitterVerificationProof.wasm';
+    circuitZkeyPath = './circuits/build/twitterVerificationProof.zkey';
   });
 
   it('only owner can change ZkCertificateRegistry and Verifier addresses', async () => {
     // random user cannot change the addresses
     await expect(
-      twitterZkCertificateContract.connect(user).setVerifier(user.address),
+      twitterVerificationProofContract.connect(user).setVerifier(user.address),
     ).to.be.revertedWith('Ownable: caller is not the owner');
     await expect(
-      twitterZkCertificateContract.connect(user).setRegistry(user.address),
+      twitterVerificationProofContract.connect(user).setRegistry(user.address),
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
     // owner can change addresses
-    await twitterZkCertificateContract.connect(deployer).setVerifier(user.address);
-    await twitterZkCertificateContract.connect(deployer).setRegistry(user.address);
+    await twitterVerificationProofContract.connect(deployer).setVerifier(user.address);
+    await twitterVerificationProofContract.connect(deployer).setRegistry(user.address);
 
-    expect(await twitterZkCertificateContract.verifier()).to.be.equal(user.address);
-    expect(await twitterZkCertificateContract.registry()).to.be.equal(user.address);
+    expect(await twitterVerificationProofContract.verifier()).to.be.equal(user.address);
+    expect(await twitterVerificationProofContract.registry()).to.be.equal(user.address);
   });
 
   it('correct proof can be verified onchain', async () => {
@@ -102,9 +102,9 @@ describe('zkCertificate followers count proof', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     const publicTime = parseInt(
-      publicSignals[await twitterZkCertificateContract.INDEX_CURRENT_TIME()],
+      publicSignals[await twitterVerificationProofContract.INDEX_CURRENT_TIME()],
       10,
     );
     // set the merkle root to the correct one
@@ -120,7 +120,7 @@ describe('zkCertificate followers count proof', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
 
-    await twitterZkCertificateContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
+    await twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
   });
 
   it('incorrect proof failed to be verified', async () => {
@@ -130,7 +130,7 @@ describe('zkCertificate followers count proof', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
@@ -141,10 +141,9 @@ describe('zkCertificate followers count proof', () => {
 
     // switch c, a to get an incorrect proof
     await expect(
-      twitterZkCertificateContract.connect(user).verifyProof(piC, piB, piA, publicInputs),
+      twitterVerificationProofContract.connect(user).verifyProof(piC, piB, piA, publicInputs),
     ).to.be.reverted;
   });
-
 
   it('revert if proof output is invalid', async () => {
     const forgedInput = { ...sampleInput };
@@ -158,10 +157,10 @@ describe('zkCertificate followers count proof', () => {
       circuitWasmPath,
       circuitZkeyPath,
     );
-    expect(publicSignals[await twitterZkCertificateContract.INDEX_IS_VALID()]).to.be.equal(
+    expect(publicSignals[await twitterVerificationProofContract.INDEX_IS_VALID()]).to.be.equal(
       '0',
     );
-    const publicRoot = publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     // set the merkle root to the correct one
 
     await mockZkCertificateRegistry.setMerkleRoot(
@@ -172,7 +171,7 @@ describe('zkCertificate followers count proof', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      twitterZkCertificateContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+      twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith('the proof output is not valid');
   });
 
@@ -190,7 +189,7 @@ describe('zkCertificate followers count proof', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      twitterZkCertificateContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+      twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith("the root in the proof doesn't match");
   });
 
@@ -201,9 +200,9 @@ describe('zkCertificate followers count proof', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     const publicTime = parseInt(
-      publicSignals[await twitterZkCertificateContract.INDEX_CURRENT_TIME()],
+      publicSignals[await twitterVerificationProofContract.INDEX_CURRENT_TIME()],
       10,
     );
     // set the merkle root to the correct one
@@ -221,7 +220,7 @@ describe('zkCertificate followers count proof', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      twitterZkCertificateContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+      twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith('the current time is incorrect');
   });
 
@@ -232,9 +231,9 @@ describe('zkCertificate followers count proof', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     const publicTime = parseInt(
-      publicSignals[await twitterZkCertificateContract.INDEX_CURRENT_TIME()],
+      publicSignals[await twitterVerificationProofContract.INDEX_CURRENT_TIME()],
       10,
     );
     // set the merkle root to the correct one
@@ -249,7 +248,7 @@ describe('zkCertificate followers count proof', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      twitterZkCertificateContract
+      twitterVerificationProofContract
         .connect(randomUser)
         .verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith(
@@ -257,33 +256,40 @@ describe('zkCertificate followers count proof', () => {
     );
   });
 
-  it('invalid proof if the user followers count is less than the threshold', async () => {
-    const forgedInput = { ...sampleInput };
+  it('unverified twitter account returns incorrect proof', async () => {
 
-    // make the twitterZkCertificate record having less followers
-    forgedInput.followersCountThreshold = 100000;
+    const fields = {
+      accountId: '23742384',
+      creationTime: '23234234',
+      location: '12233937',
+      verified: 0,
+      followersCount: 85,
+      friendsCount: 28,
+      likesCount: 10,
+      postsCount: 22,
+      expirationTime: 1769736098,
+    };
 
-
+    const twitterZkCertificateUnverified = await generateSampleTwitterZkCertificate(fields);
+    const sampleInputUnverified = await generateTwitterZkCertificateProofInput(twitterZkCertificateUnverified, fields);
     const { proof, publicSignals } = await groth16.fullProve(
-      forgedInput,
+      sampleInputUnverified,
       circuitWasmPath,
       circuitZkeyPath,
     );
-    expect(publicSignals[await twitterZkCertificateContract.INDEX_IS_VALID()]).to.be.equal(
-      '0',
-    );
-    const publicRoot = publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
-    // set the merkle root to the correct one
 
+    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+    // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
-    // set time to the public time
     const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
+
+
     await expect(
-      twitterZkCertificateContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+      twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith('the proof output is not valid');
-    });
+  });
 });
