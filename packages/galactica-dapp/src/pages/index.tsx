@@ -178,7 +178,7 @@ const Index = () => {
 
   /**
    * Converts response object from Snap to string to show to the user.
-   * 
+   *
    * @param res - Object returned by Snap.
    */
   const communicateResponse = (res: any) => {

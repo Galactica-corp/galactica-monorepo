@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 import type { MerkleProof } from '@galactica-net/galactica-types';
+import { ZkCertStandard } from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
   ZkCertInputType,
@@ -75,6 +76,76 @@ export const generateZkKycProof = async (
     userPrivKey: encryptionPrivKey,
 
     humanID: zkCert.getHumanID(processedParams.input.dAppAddress),
+  };
+
+  try {
+    const { proof, publicSignals } = await groth16.fullProveMemory(
+      inputs,
+      processedParams.prover.wasm,
+      processedParams.prover.zkeyHeader,
+      processedParams.prover.zkeySections,
+    );
+
+    // console.log('Calculated proof: ');
+    // console.log(JSON.stringify(proof, null, 1));
+
+    return { proof, publicSignals };
+  } catch (error) {
+    console.log('proof generation failed');
+    console.log(error.stack);
+    throw error;
+  }
+};
+
+export const generateTwitterFollowersThresholdProof = async (
+  params: GenZkProofParams<ZkCertInputType>,
+  zkCert: ZKCertificate,
+  holder: HolderData,
+  merkleProof: MerkleProof,
+): Promise<ZkCertProof> => {
+  const processedParams = await preprocessInput(params);
+
+  const authorizationProof = zkCert.getAuthorizationProofInput(
+    holder.eddsaKey,
+    params.userAddress,
+  );
+
+  // Generate private key for sending encrypted messages to institutions
+  // It should be different if the ZKP is sent from another address
+  // Therefore generating it from the private holder eddsa key and the user address
+  const eddsa = await buildEddsa();
+  const encryptionHashBase = eddsa.poseidon.F.toObject(
+    eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
+  ).toString();
+  const encryptionPrivKey = formatPrivKeyForBabyJub(
+    encryptionHashBase,
+    eddsa,
+  ).toString();
+
+  const inputs: any = {
+    ...processedParams.input,
+
+    ...zkCert.content,
+    randomSalt: zkCert.randomSalt,
+
+    ...zkCert.getOwnershipProofInput(holder.eddsaKey),
+
+    userAddress: authorizationProof.userAddress,
+    s2: authorizationProof.s,
+    r8x2: authorizationProof.r8x,
+    r8y2: authorizationProof.r8y,
+
+    providerAx: zkCert.providerData.ax,
+    providerAy: zkCert.providerData.ay,
+    providerS: zkCert.providerData.s,
+    providerR8x: zkCert.providerData.r8x,
+    providerR8y: zkCert.providerData.r8y,
+
+    root: merkleProof.root,
+    pathElements: merkleProof.pathElements,
+    leafIndex: merkleProof.leafIndex,
+
+    userPrivKey: encryptionPrivKey,
   };
 
   try {
@@ -233,7 +304,43 @@ export function checkZkKycProofRequest(
       message: `userAddress missing in request parameters.`,
     });
   }
-  if (params.requirements.zkCertStandard === undefined) {
+  if (params.requirements.zkCertStandard !== ZkCertStandard.ZkKYC) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `ZkCert standard missing in request parameters.`,
+    });
+  }
+  if (params.requirements.registryAddress === undefined) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `Registry address missing in request parameters.`,
+    });
+  }
+  if (params.prover === undefined || params.prover.wasm === undefined) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `Missing prover data.`,
+    });
+  }
+}
+
+/**
+ * Check validity of the ZKP generation request.
+ * @param params - Parameters defining the proof to be generated.
+ * @throws an error if the request is invalid.
+ */
+export function checkTwitterFollowersThresholdProofRequest(
+  params: GenZkProofParams<ZkCertInputType>,
+) {
+  if (params.userAddress === undefined) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `userAddress missing in request parameters.`,
+    });
+  }
+  if (
+    params.requirements.zkCertStandard !== ZkCertStandard.TwitterZkCertificate
+  ) {
     throw new GenZKPError({
       name: 'MissingInputParams',
       message: `ZkCert standard missing in request parameters.`,

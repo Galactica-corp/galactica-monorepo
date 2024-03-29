@@ -1,13 +1,7 @@
+import { ethers } from 'ethers';
 import { useContext } from 'react';
 import styled from 'styled-components';
-import { MetamaskActions, MetaMaskContext } from '../../../galactica-dapp/src/hooks';
-import {
-  shouldDisplayReconnectButton,
-  queryVerificationSBTs,
-  formatVerificationSBTs,
-  getUserAddress,
-  getGuardianNameMap,
-} from '../utils';
+
 import {
   ConnectSnapButton,
   InstallFlaskButton,
@@ -17,8 +11,19 @@ import {
   SelectAndImportButton,
   ConnectMMButton,
 } from '../../../galactica-dapp/src/components';
-import { ethers } from 'ethers';
+import {
+  MetamaskActions,
+  MetaMaskContext
+} from '../../../galactica-dapp/src/hooks';
 import { processProof, processPublicSignals } from '../../../galactica-dapp/src/utils/proofProcessing';
+import {
+  shouldDisplayReconnectButton,
+  queryVerificationSBTs,
+  formatVerificationSBTs,
+  getUserAddress,
+  getGuardianNameMap,
+} from '../utils';
+
 
 import addresses from '../../../galactica-dapp/src/config/addresses';
 import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
@@ -29,6 +34,7 @@ import {
   importZkCert,
   exportZkCert,
   generateZKProof,
+  generateZKProof2,
   getHolderCommitment,
   ZkCertStandard,
   ZkCertProof,
@@ -38,7 +44,12 @@ import {
   connectSnap,
   getSnap,
 } from '@galactica-net/snap-api';
-import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions } from '../../../galactica-dapp/src/config/snap';
+import {
+  defaultSnapOrigin,
+  zkKYCAgeProofPublicInputDescriptions,
+  twitterFollowersThresholdProofPublicInputDescriptions
+} from '../../../galactica-dapp/src/config/snap';
+import { getCurrentBlockTime } from '../../../galactica-dapp/src/utils/metamask';
 
 const Container = styled.div`
   display: flex;
@@ -163,7 +174,7 @@ const Index = () => {
 
   /**
    * Converts response object from Snap to string to show to the user.
-   * 
+   *
    * @param res - Object returned by Snap.
    */
   const communicateResponse = (res: any) => {
@@ -339,6 +350,60 @@ const Index = () => {
     }
   };
 
+  const bigProofGenerationClick2 = async () => {
+    try {
+      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
+
+      const dateNow = new Date();
+      const proofInput = {
+        currentTime: await getCurrentBlockTime(),
+        // specific inputs to prove that the twitterZkCertificate with at least 100 followers
+        followersThreshold: '100',
+      };
+
+      const res: any = await generateZKProof2({
+        input: proofInput,
+        prover: await getProver("./public/provers/twitterFollowersThresholdProver.json"),
+        requirements: {
+          zkCertStandard: ZkCertStandard.TwitterZkCertificate,
+          registryAddress: addresses.twitterZkCertificateRegistry,
+        },
+        userAddress: getUserAddress(),
+        description: "This proof discloses that you hold a valid twitterZkCertificate and that your follower count is at least 100.",
+        publicInputDescriptions: twitterFollowersThresholdProofPublicInputDescriptions,
+      }, defaultSnapOrigin);
+      console.log('Response from snap', JSON.stringify(res));
+      const zkp = res as ZkCertProof;
+
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+      dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
+
+      // send proof directly on chain
+      let [a, b, c] = processProof(zkp.proof);
+      let publicInputs = processPublicSignals(zkp.publicSignals);
+
+      console.log(`Sending proof for on-chain verification...`);
+      // this is the on-chain function that requires a ZKP
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      // get contracts
+      const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
+      let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
+      console.log("tx", tx);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
+      const receipt = await tx.wait();
+      console.log("receipt", receipt);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
+
+      console.log(`Updating verification SBTs...`);
+      await showVerificationSBTs();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
   const showVerificationSBTs = async () => {
     try {
       //@ts-ignore https://github.com/metamask/providers/issues/200
@@ -465,6 +530,23 @@ const Index = () => {
           disabled={false}
           fullWidth={false}
         />
+
+<Card
+          content={{
+            title: 'twitter + follower threshold proof',
+            description:
+              '1. Call Metamask Snap to generate a proof that you hold a twitter ZkCertificate and has more than a certain number of followers. 2. Send proof tx for on-chain verification.',
+            button: (
+              <GeneralButton
+                onClick={bigProofGenerationClick2}
+                disabled={false}
+                text="Generate & Submit"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
         {/* <Notice>
           <p>
             Please note that the <b>snap.manifest.json</b> and{' '}
@@ -549,7 +631,7 @@ const Index = () => {
               'Delete a zkCert from the Metamask snap storage.',
             button: (
               <GeneralButton
-                onClick={() => 
+                onClick={() =>
                   handleSnapCallClick(() => deleteZkCert({}, defaultSnapOrigin))
                 }
                 disabled={false}
