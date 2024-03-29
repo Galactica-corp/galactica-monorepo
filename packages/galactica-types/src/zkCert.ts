@@ -90,6 +90,8 @@ export const ENCRYPTION_VERSION = 'x25519-xsalsa20-poly1305';
 export type EncryptedZkCert = {
   // holder commitment to associate the zkCert with the holder who can decrypt it
   holderCommitment: string;
+  // type of zkCertificate (for example ZkKYC, twitterZkCertificate)
+  zkCertificateType: ZkCertStandard;
 } & EthEncryptedData;
 
 /**

@@ -13,8 +13,9 @@ import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { issueZkCert } from '../lib/registryTools';
-import { ZKCertificate } from '../lib/zkCertificate';
+import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
+import { encryptZkCert } from `@galactica-net/snap/src/encryption`;
 
 /**
  * Script for creating a zkCertificate, issuing it and adding a merkle proof for it.
@@ -36,12 +37,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // read certificate data file
   const data = JSON.parse(fs.readFileSync(args.zkCertificateDataFile, 'utf-8'));
   let zkCertificateType;
-  if (args.zkCertificateType == 'zkKYC') {
+  if (args.zkCertificateType === 'zkKYC') {
     zkCertificateType = ZkCertStandard.ZkKYC;
-  } else if (args.zkCertificateType == `twitterZkCertificate`) {
+  } else if (args.zkCertificateType === `twitterZkCertificate`) {
     zkCertificateType = ZkCertStandard.TwitterZkCertificate;
   } else {
-    throw new Error(`ZkCertStandard type ${args.zkCertificateType} is unsupported`);
+    throw new Error(
+      `ZkCertStandard type ${args.zkCertificateType} is unsupported`
+    );
   }
   const zkCertificateFields = prepareZkCertificateFields(eddsa, data, zkCertificateType);
 
@@ -51,12 +54,18 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   const holderCommitmentData = parseHolderCommitment(holderCommitmentFile);
 
-  // generate random number as salt for new zkCertificate
-  const randomSalt = Math.floor(Math.random() * 2 ** 32);
+  let randomSalt: number;
+  // generate random number as salt for new zkCertificate if not provided
+  if (args.randomSalt === undefined) {
+    randomSalt = Math.floor(Math.random() * 2 ** 32);
+  } else {
+    randomSalt = parseInt(args.randomSalt, 10);
+  }
+
 
   console.log('Creating zkCertificate...');
   // TODO: create ZkKYC subclass requiring all the other fields
-  const zkCertificate = new ZKCertificate(
+  const zkCertificate: ZkCertificate = new ZkCertificate(
     holderCommitmentData.holderCommitment,
     zkCertificateType,
     eddsa,
@@ -72,68 +81,70 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(chalk.green(`created the zkCertificate ${zkCertificate.did}`));
 
   if (args.registryAddress === undefined) {
-    console.log('zkCertificate', JSON.stringify(zkCertificate.exportRaw(), null, 2));
+    console.log(
+      'zkCertificate', JSON.stringify(zkCertificate.exportRaw(), null, 2),
+    );
     console.log(
       chalk.yellow(
-        "Parameter 'registry-address' is missing. The zkKYC has not been issued on chain",
+        "Parameter 'registry-address' is missing. The zkCertificate has not been issued on chain",
       ),
     );
     return;
+  } else {
+    const recordRegistry = await hre.ethers.getContractAt(
+      'ZkCertificateRegistry',
+      args.registryAddress,
+    );
+  
+    console.log(
+      'Generating merkle proof. This might take a while because it needs to query on-chain data...',
+    );
+    // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
+    const merkleTree = await buildMerkleTreeFromRegistry(
+      recordRegistry,
+      hre.ethers.provider,
+      32,
+      1,
+      printProgress,
+    );
+  
+    console.log('Issuing zkCertificate...');
+    const { merkleProof, registration } = await issueZkCert(
+      zkCertificate,
+      recordRegistry,
+      issuer,
+      merkleTree,
+    );
+    console.log(
+      chalk.green(
+        `Issued the zkCertificate certificate ${zkCertificate.did} on chain at index ${registration.leafIndex}`,
+      ),
+    );
+  
+    // print to console for developers and testers, not necessary for production
+    const rawJSON = {
+      ...zkCertificate.exportRaw(),
+      merkleProof,
+      registration,
+    };
+    console.log(JSON.stringify(rawJSON, null, 2));
+  
+    console.log(chalk.green('This ZkCertificate can be imported in a wallet'));
+    // write encrypted zkCertificate output to file
+    const output = zkCertificate.exportJson(
+      holderCommitmentData.encryptionPubKey,
+      merkleProof,
+      registration,
+    );
+  
+    const outputFileName: string =
+      args.outputFile || `issuedZkCertificates/${zkCertificate.leafHash}.json`;
+    fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
+    fs.writeFileSync(outputFileName, output);
+    console.log(chalk.green(`Written ZkCertificate to output file ${outputFileName}`));
+
+    console.log(chalk.green('done'));
   }
-
-  const recordRegistry = await hre.ethers.getContractAt(
-    'ZkCertificateRegistry',
-    args.registryAddress,
-  );
-
-  console.log(
-    'Generating merkle proof. This might take a while because it needs to query on-chain data...',
-  );
-  // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
-  const merkleTree = await buildMerkleTreeFromRegistry(
-    recordRegistry,
-    hre.ethers.provider,
-    32,
-    1,
-    printProgress,
-  );
-
-  console.log('Issuing zkCertificate...');
-  const { merkleProof, registration } = await issueZkCert(
-    zkCertificate,
-    recordRegistry,
-    issuer,
-    merkleTree,
-  );
-  console.log(
-    chalk.green(
-      `Issued the zkCertificate certificate ${zkCertificate.did} on chain at index ${registration.leafIndex}`,
-    ),
-  );
-
-  // print to console for developers and testers, not necessary for production
-  const rawJSON = {
-    ...zkCertificate.exportRaw(),
-    merkleProof,
-    registration,
-  };
-  console.log(JSON.stringify(rawJSON, null, 2));
-
-  console.log(chalk.green('This ZkCertificate can be imported in a wallet'));
-  // write encrypted zkCertificate output to file
-  const output = zkCertificate.exportJson(
-    holderCommitmentData.encryptionPubKey,
-    merkleProof,
-    registration,
-  );
-
-  const outputFileName: string =
-    args.outputFile || `issuedZkCertificates/${zkCertificate.leafHash}.json`;
-  fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
-  fs.writeFileSync(outputFileName, output);
-  console.log(chalk.green(`Written ZkCertificate to output file ${outputFileName}`));
-
-  console.log(chalk.green('done'));
 }
 
 task('createZkCertificate', 'Task to create a zkKYC certificate with input parameters')
@@ -154,6 +165,13 @@ task('createZkCertificate', 'Task to create a zkKYC certificate with input param
   .addParam(
     'zkCertificateType',
     'type of zkCertificate, default to be zkKYC',
+    undefined,
+    types.string,
+    false,
+  )
+  .addParam(
+    'randomSalt',
+    'random salt, default to be randomly chosen by the system',
     undefined,
     types.string,
     false,

@@ -209,7 +209,7 @@ const Index = () => {
   const handleExportClick = async () => {
     try {
       console.log('sending request to snap...');
-      const res = await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin);
+      const res = await exportZkCert({}, defaultSnapOrigin);
       console.log('Response from snap', JSON.stringify(res));
       dispatch({ type: MetamaskActions.SetInfo, payload: `Downloading zkCert...` });
 
@@ -549,7 +549,9 @@ const Index = () => {
               'Delete a zkCert from the Metamask snap storage.',
             button: (
               <GeneralButton
-                onClick={() => handleSnapCallClick(() => deleteZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin))}
+                onClick={() => 
+                  handleSnapCallClick(() => deleteZkCert({}, defaultSnapOrigin))
+                }
                 disabled={false}
                 text="Export"
               />

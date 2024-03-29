@@ -33,7 +33,7 @@ export async function issueZkCert(
 
   const contractToCall = devnetGuardian ?? recordRegistry;
   // now we have the merkle proof to add a new leaf
-  const tx = await contractToCall.connect(issuer).addZkKYCRecord(
+  const tx = await contractToCall.connect(issuer).addZkCertificate(
     chosenLeafIndex,
     leafBytes,
     leafEmptyMerkleProof.pathElements.map((value) =>
@@ -41,6 +41,11 @@ export async function issueZkCert(
     ),
   );
   await tx.wait();
+  const provider = contractToCall.provider;
+  const txReceipt = await provider.getTransactionReceipt(tx.hash);
+  if (txReceipt.status !== 1) {
+    throw Error('Transaction failed');
+  }
 
   // update the merkle tree according to the new leaf
   merkleTree.insertLeaves([zkCert.leafHash], [chosenLeafIndex]);

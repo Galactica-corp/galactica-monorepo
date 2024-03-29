@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 import type { HolderCommitmentData } from '@galactica-net/galactica-types';
+import { ZkCertStandard } from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
   ImportZkCertParams,
@@ -157,6 +158,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
     case RpcMethods.ImportZkCert: {
       const importParams = request.params as ImportZkCertParams;
+
       checkEncryptedZkCertFormat(importParams.encryptedZkCert);
 
       holder = getHolder(
@@ -169,11 +171,21 @@ export const processRpcRequest: SnapRpcProcessor = async (
         holder.encryptionPrivKey,
       );
 
+      let zkCertificateName: string; // Default name
+      if (zkCert.zkCertStandard === ZkCertStandard.TwitterZkCertificate) {
+        zkCertificateName = 'Twitter ZK Certificate';
+      } else if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
+        zkCertificateName = 'ZkKYC';
+      } else {
+        throw new Error(`Unsupported zkCertificate type`);
+      }
+
       // prevent uploading the same zkCert again (it is fine on different registries though)
       const searchedZkCert = state.zkCerts.find(
         (candidate) =>
           candidate.leafHash === zkCert.leafHash &&
-          candidate.registration.address === zkCert.registration.address,
+          candidate.registration.address === zkCert.registration.address &&
+          candidate.zkCertStandard === zkCert.zkCertStandard,
       );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };
@@ -183,7 +195,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const prompt: PanelContent = [
         heading('Import your zkCertificate into your MetaMask'),
         text(
-          `With this action you are importing your zkKYC in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
+          `With this action you are importing your ${zkCertificateName} in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
         ),
       ];
       if (importParams.listZkCerts === true) {
@@ -214,7 +226,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) =>
           candidate.holderCommitment === zkCert.holderCommitment &&
           candidate.merkleProof.leafIndex === zkCert.merkleProof.leafIndex &&
-          candidate.registration.address === zkCert.registration.address,
+          candidate.registration.address === zkCert.registration.address &&
+          candidate.zkCertStandard === zkCert.zkCertStandard,
       );
       if (oldVersion) {
         const confirmRenewal = await snap.request({
