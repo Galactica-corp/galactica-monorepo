@@ -29,7 +29,6 @@ export function prepareKYCFields(
     'region',
     'country',
     'citizenship',
-    'passportID',
   ];
   const zkKYCFields: Record<string, any> = {};
   for (const field of zkKYCContentFields.filter(

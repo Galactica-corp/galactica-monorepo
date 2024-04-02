@@ -20,11 +20,8 @@ export type ZkKYCContent = {
   birthDay: string;
 
   citizenship: string;
-  passportID: string;
 
   verificationLevel: string;
-
-  expirationDate: string;
 
   streetAndNumber: string;
   addressSupplement: string;
@@ -46,6 +43,7 @@ export const zkCertCommonFields = [
   'providerR8y',
   'holderCommitment',
   'randomSalt',
+  'expirationDate',
 ];
 
 /**
@@ -60,14 +58,12 @@ export const zkKYCContentFields = [
   'monthOfBirth',
   'dayOfBirth',
   'verificationLevel',
-  'expirationDate',
   'streetAndNumber',
   'postcode',
   'town',
   'region',
   'country',
   'citizenship',
-  'passportID',
 ];
 
 /**
@@ -80,6 +76,6 @@ export const humanIDFieldOrder = [
   'yearOfBirth',
   'monthOfBirth',
   'dayOfBirth',
-  'passportID',
+  'citizenship',
   'dAppAddress',
 ];

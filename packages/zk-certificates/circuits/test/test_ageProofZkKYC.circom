@@ -11,7 +11,6 @@ component main {public [
   currentDay, 
   ageThreshold, 
   investigationInstitutionPubKey, 
-  humanID, 
   dAppAddress,
   providerAx,
   providerAy

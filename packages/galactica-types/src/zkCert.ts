@@ -47,7 +47,6 @@ export type FraudInvestigationDataEncryptionProofInput = {
 
 // / Data required for a ZK proof of someone's DApp specific HumanID
 export type HumanIDProofInput = {
-  passportID: string;
   dAppAddress: string;
   humanID: string;
 };
@@ -58,6 +57,7 @@ export type ZkCertData = {
   // identifier of the zkCert standard (e.g. zkKYC, zkDiploma, zkGymMembership, ...)
   zkCertStandard: ZkCertStandard;
   randomSalt: number;
+  expirationDate: number;
   content: ZkKYCContent | Record<string, any>;
   providerData: ProviderData;
   contentHash: string;
