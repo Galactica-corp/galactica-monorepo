@@ -27,36 +27,35 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    galaDevnetV1: {
-      url: 'https://evm-rpc-http-devnet-41233.galactica.com/',
-      accounts: getAccounts(),
-    },
     galaAndromeda: {
       url: 'https://evm-rpc-http-andromeda.galactica.com/',
+      accounts: getAccounts(),
+    },
+    reticulum: {
+      url: 'https://evm-rpc-http-reticulum.galactica.com/',
       accounts: getAccounts(),
     },
   },
   etherscan: {
     apiKey: {
-      galaTestnet: 'something', // not needed for now
-      galaDevnetV1: 'something', // not needed for now
       galaAndromeda: 'something', // not needed for now
+      reticulum: 'something', // not needed for now
     },
     customChains: [
-      {
-        network: 'galaDevnetV1',
-        chainId: 41233,
-        urls: {
-          apiURL: 'https://explorer-devnet-41233.galactica.com/api',
-          browserURL: 'https://explorer-devnet-41233.galactica.com/',
-        },
-      },
       {
         network: 'galaAndromeda',
         chainId: 41238,
         urls: {
           apiURL: 'https://explorer-andromeda.galactica.com/api',
           browserURL: 'https://explorer-andromeda.galactica.com/',
+        },
+      },
+      {
+        network: 'reticulum',
+        chainId: 9301,
+        urls: {
+          apiURL: 'https://explorer-reticulum.galactica.com/api',
+          browserURL: 'https://explorer-reticulum.galactica.com/',
         },
       },
     ],
