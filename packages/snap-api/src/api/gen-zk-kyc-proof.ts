@@ -75,7 +75,7 @@ export const generateZKProof2 = async (
 ) => {
   const response: ZkCertProof = await invokeSnap(
     {
-      method: RpcMethods.GenTwitterFollowersThresholdProof,
+      method: RpcMethods.GenTwitterFollowersCountProof,
       params,
     },
     snapOrigin,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.9;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -117,14 +117,7 @@ contract GalacticaTwitterSBT is ERC721, AccessControl {
         _requireMinted(tokenId);
         // concatinate base URI with holder address
         // address will be lower case and not have checksum encoding
-        return
-            string(
-                abi.encodePacked(
-                    _baseURI(),
-                    Strings.toHexString(getAddressForID(tokenId)),
-                    ".json"
-                )
-            );
+        return baseURI;
     }
 
     /**

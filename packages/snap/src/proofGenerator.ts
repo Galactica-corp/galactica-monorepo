@@ -97,7 +97,7 @@ export const generateZkKycProof = async (
   }
 };
 
-export const generateTwitterFollowersThresholdProof = async (
+export const generateTwitterFollowersCountProof = async (
   params: GenZkProofParams<ZkCertInputType>,
   zkCert: ZKCertificate,
   holder: HolderData,
@@ -329,7 +329,7 @@ export function checkZkKycProofRequest(
  * @param params - Parameters defining the proof to be generated.
  * @throws an error if the request is invalid.
  */
-export function checkTwitterFollowersThresholdProofRequest(
+export function checkTwitterFollowersCountProofRequest(
   params: GenZkProofParams<ZkCertInputType>,
 ) {
   if (params.userAddress === undefined) {

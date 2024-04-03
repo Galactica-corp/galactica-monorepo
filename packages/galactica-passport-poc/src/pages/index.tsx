@@ -1,3 +1,21 @@
+import type {
+  ZkCertProof,
+  HolderCommitmentData,
+  MerkleProofUpdateRequestParams,
+} from '@galactica-net/snap-api';
+import {
+  clearStorage,
+  deleteZkCert,
+  importZkCert,
+  exportZkCert,
+  generateZKProof,
+  generateZKProof2,
+  getHolderCommitment,
+  ZkCertStandard,
+  updateMerkleProof,
+  connectSnap,
+  getSnap,
+} from '@galactica-net/snap-api';
 import { ethers } from 'ethers';
 import { useContext } from 'react';
 import styled from 'styled-components';
@@ -11,11 +29,27 @@ import {
   SelectAndImportButton,
   ConnectMMButton,
 } from '../../../galactica-dapp/src/components';
+import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
+import twitterFollowersCountProofABI from '../../../galactica-dapp/src/config/abi/TwitterFollowersCountProof.json';
+import addresses from '../../../galactica-dapp/src/config/addresses';
+import {
+  defaultSnapOrigin,
+  zkKYCAgeProofPublicInputDescriptions,
+  twitterFollowersCountProofPublicInputDescriptions
+} from '../../../galactica-dapp/src/config/snap';
 import {
   MetamaskActions,
-  MetaMaskContext
+  MetaMaskContext,
 } from '../../../galactica-dapp/src/hooks';
-import { processProof, processPublicSignals } from '../../../galactica-dapp/src/utils/proofProcessing';
+import { getCurrentBlockTime } from '../../../galactica-dapp/src/utils/metamask';
+import {
+  processProof,
+  processPublicSignals
+} from '../../../galactica-dapp/src/utils/proofProcessing';
+import {
+  getProver,
+  prepareProofInput,
+} from '../../../galactica-dapp/src/utils/zkp';
 import {
   shouldDisplayReconnectButton,
   queryVerificationSBTs,
@@ -24,32 +58,6 @@ import {
   getGuardianNameMap,
 } from '../utils';
 
-
-import addresses from '../../../galactica-dapp/src/config/addresses';
-import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
-import { getProver, prepareProofInput } from '../../../galactica-dapp/src/utils/zkp';
-import {
-  clearStorage,
-  deleteZkCert,
-  importZkCert,
-  exportZkCert,
-  generateZKProof,
-  generateZKProof2,
-  getHolderCommitment,
-  ZkCertStandard,
-  ZkCertProof,
-  HolderCommitmentData,
-  updateMerkleProof,
-  MerkleProofUpdateRequestParams,
-  connectSnap,
-  getSnap,
-} from '@galactica-net/snap-api';
-import {
-  defaultSnapOrigin,
-  zkKYCAgeProofPublicInputDescriptions,
-  twitterFollowersThresholdProofPublicInputDescriptions
-} from '../../../galactica-dapp/src/config/snap';
-import { getCurrentBlockTime } from '../../../galactica-dapp/src/utils/metamask';
 
 const Container = styled.div`
   display: flex;
@@ -352,52 +360,75 @@ const Index = () => {
 
   const bigProofGenerationClick2 = async () => {
     try {
-      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `ZK proof generation in Snap running...`,
+      });
 
-      const dateNow = new Date();
       const proofInput = {
         currentTime: await getCurrentBlockTime(),
         // specific inputs to prove that the twitterZkCertificate with at least 100 followers
-        followersThreshold: '100',
+        FollowersCount: '100',
       };
 
-      const res: any = await generateZKProof2({
-        input: proofInput,
-        prover: await getProver("./public/provers/twitterFollowersThresholdProver.json"),
-        requirements: {
-          zkCertStandard: ZkCertStandard.TwitterZkCertificate,
-          registryAddress: addresses.twitterZkCertificateRegistry,
+      const res: any = await generateZKProof2(
+        {
+          input: proofInput,
+          prover: await getProver(
+            'https://galactica-trusted-setup.s3.eu-central-1.amazonaws.com/exampleMockDApp.json',
+          ),
+          requirements: {
+            zkCertStandard: ZkCertStandard.TwitterZkCertificate,
+            // eslint-disable-next-line import/no-named-as-default-member
+            registryAddress: addresses.twitterZkCertificateRegistry,
+          },
+          userAddress: getUserAddress(),
+          description:
+            'This proof discloses that you hold a valid twitterZkCertificate and that your follower count is at least 100.',
+          publicInputDescriptions:
+            twitterFollowersCountProofPublicInputDescriptions,
         },
-        userAddress: getUserAddress(),
-        description: "This proof discloses that you hold a valid twitterZkCertificate and that your follower count is at least 100.",
-        publicInputDescriptions: twitterFollowersThresholdProofPublicInputDescriptions,
-      }, defaultSnapOrigin);
+        defaultSnapOrigin,
+      );
       console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
 
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Proof generation successful.`,
+      });
       dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
-
       // send proof directly on chain
-      let [a, b, c] = processProof(zkp.proof);
-      let publicInputs = processPublicSignals(zkp.publicSignals);
+      // eslint-disable-next-line id-length
+      const [a, b, c] = processProof(zkp.proof);
+      const publicInputs = processPublicSignals(zkp.publicSignals);
 
       console.log(`Sending proof for on-chain verification...`);
       // this is the on-chain function that requires a ZKP
-      //@ts-ignore https://github.com/metamask/providers/issues/200
+      // @ts-expect-error https://github.com/metamask/providers/issues/200
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       // get contracts
-      const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
-      let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
-      console.log("tx", tx);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
+      const twitterFollowersCountProof = new ethers.Contract(
+        // eslint-disable-next-line import/no-named-as-default-member
+        addresses.twitterFollowersCountProof,
+        twitterFollowersCountProofABI.abi,
+        signer,
+      );
+      let tx = await twitterFollowersCountProof.verifyProof(
+        a,
+        b,
+        c,
+        publicInputs,
+      );
+      console.log('tx', tx);
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Sent proof for on-chain verification`,
+      });
       const receipt = await tx.wait();
-      console.log("receipt", receipt);
+      console.log('receipt', receipt);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
-
-      console.log(`Updating verification SBTs...`);
-      await showVerificationSBTs();
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });

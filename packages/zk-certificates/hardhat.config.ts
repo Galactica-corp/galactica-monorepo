@@ -35,6 +35,10 @@ const config: HardhatUserConfig = {
       url: 'https://evm-rpc-http-andromeda.galactica.com/',
       accounts: getAccounts(),
     },
+    galaReticulum: {
+      url: 'https://evm-rpc-http-reticulum.galactica.com/',
+      accounts: getAccounts(),
+    },
   },
   etherscan: {
     apiKey: {

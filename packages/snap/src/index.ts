@@ -28,10 +28,10 @@ import {
 import { getMerkleProof } from './merkleProofSelection';
 import {
   checkZkKycProofRequest,
-  checkTwitterFollowersThresholdProofRequest,
+  checkTwitterFollowersCountProofRequest,
   createProofConfirmationPrompt,
   generateZkKycProof,
-  generateTwitterFollowersThresholdProof,
+  generateTwitterFollowersCountProof,
 } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
@@ -133,10 +133,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
       return proof;
     }
 
-    case RpcMethods.GenTwitterFollowersThresholdProof: {
+    case RpcMethods.GenTwitterFollowersCountProof: {
       // parse ZKP inputs
       const genParams = request.params as unknown as GenZkProofParams<any>;
-      checkTwitterFollowersThresholdProofRequest(genParams);
+      checkTwitterFollowersCountProofRequest(genParams);
 
       const zkCert = await selectZkCert(
         snap,
@@ -175,7 +175,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         }
       }
 
-      const proof = await generateTwitterFollowersThresholdProof(
+      const proof = await generateTwitterFollowersCountProof(
         genParams,
         zkCert,
         holder,

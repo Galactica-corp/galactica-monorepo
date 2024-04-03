@@ -51,7 +51,7 @@ export const zkKYCPublicInputDescriptions = [
 ];
 
 
-export const twitterFollowersThresholdProofPublicInputDescriptions = [
+export const twitterFollowersCountProofPublicInputDescriptions = [
   'proof valid',
   'verification SBT expiration',
   'merkle root',
