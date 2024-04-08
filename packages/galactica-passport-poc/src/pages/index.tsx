@@ -378,7 +378,7 @@ const Index = () => {
             content={{
               title: 'Install',
               description:
-                'Snaps is pre-release software only available in MetaMask Flask, a canary distribution for developers with access to upcoming features.',
+                'Snaps is pre-release software only available in MetaMask Flask, a canary distribution for developers with access to upcoming features. This test front-end uses flask so that you can connect to locally built Snaps.',
               button: <InstallFlaskButton />,
             }}
             fullWidth
@@ -394,6 +394,7 @@ const Index = () => {
                 <ConnectSnapButton
                   onClick={handleSnapConnectClick}
                   disabled={!state.isFlask}
+                  text={"Connect to Snap"}
                 />
               ),
             }}
@@ -403,9 +404,9 @@ const Index = () => {
         {shouldDisplayReconnectButton(state.installedSnap) && (
           <Card
             content={{
-              title: 'Reconnect to Galactica Snap',
+              title: 'Reconnect to Snap',
               description:
-                'While connected to a local running snap this button will always be displayed in order to update the snap if a change is made.',
+                `You can reconnect to update the snap after making changes. Connected to snap "${state.installedSnap?.id}"`,
               button: (
                 <ReconnectButton
                   onClick={handleSnapConnectClick}
@@ -419,7 +420,7 @@ const Index = () => {
         {state.isFlask && state.installedSnap && (
           <Card
             content={{
-              title: 'Connect to Metamask',
+              title: 'Connect to Wallet',
               description:
                 `Standard Metamask connection to send transactions.`,
               button: (

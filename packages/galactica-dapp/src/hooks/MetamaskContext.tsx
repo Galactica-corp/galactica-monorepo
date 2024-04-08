@@ -26,7 +26,7 @@ const initialState: MetamaskState = {
   isFlask: false,
   error: undefined,
   info: undefined,
-  signer: "Connect",
+  signer: "Connect to Wallet",
   proofData: undefined,
   verificationSbts: [],
   guardianNameMap: new Map<string[2], string>(),
