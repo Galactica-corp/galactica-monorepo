@@ -9,6 +9,7 @@ import {
   getGuardianNameMap,
   handleSnapConnectClick,
   handleWalletConnectClick,
+  changeSnapSelection,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -37,7 +38,7 @@ import {
   updateMerkleProof,
   MerkleProofUpdateRequestParams,
 } from '@galactica-net/snap-api';
-import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions } from '../../../galactica-dapp/src/config/snap';
+import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions, npmSnapOrigin } from '../../../galactica-dapp/src/config/snap';
 
 const Container = styled.div`
   display: flex;
@@ -344,6 +345,22 @@ const Index = () => {
             fullWidth
           />
         )}
+        {/* {(
+          <Card
+            content={{
+              title: 'Snap selector',
+              description:
+                `What Snap ID to connect with?`,
+              button: (
+                <div onChange={async (event) => await changeSnapSelection(event, dispatch)}>
+                  <input type="radio" value={defaultSnapOrigin} name="snapIdRadio" /> {defaultSnapOrigin} <br></br>
+                  <input type="radio" value={npmSnapOrigin} name="snapIdRadio" /> {npmSnapOrigin}
+                </div>
+              ),
+            }}
+            disabled={!state.isFlask}
+          />
+        )} */}
         {!state.installedSnap && (
           <Card
             content={{
