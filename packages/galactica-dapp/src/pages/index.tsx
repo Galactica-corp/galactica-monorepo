@@ -14,7 +14,7 @@ import {
   ReconnectButton,
   Card,
   GeneralButton,
-  ConnectMMButton,
+  ConnectWalletButton,
 } from '../components';
 import { ethers } from 'ethers';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
@@ -374,7 +374,7 @@ const Index = () => {
               description:
                 `Standard Metamask connection to send transactions.`,
               button: (
-                <ConnectMMButton
+                <ConnectWalletButton
                   onClick={handleMMConnectClick}
                   id={"connectMM"}
                   text={state.signer}

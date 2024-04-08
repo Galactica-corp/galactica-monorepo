@@ -26,13 +26,13 @@ const initialState: MetamaskState = {
   isFlask: false,
   error: undefined,
   info: undefined,
-  signer: "Connect to Wallet",
+  signer: undefined,
   proofData: undefined,
   verificationSbts: [],
   guardianNameMap: new Map<string[2], string>(),
 };
 
-type MetamaskDispatch = { type: MetamaskActions; payload: any };
+export type MetamaskDispatch = { type: MetamaskActions; payload: any };
 
 export const MetaMaskContext = createContext<
   [MetamaskState, Dispatch<MetamaskDispatch>]
