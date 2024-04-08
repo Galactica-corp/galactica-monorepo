@@ -7,8 +7,9 @@ import {
   useReducer,
 } from 'react';
 import { Snap } from '../types';
-import { isFlask, SBT } from '../utils';
+import { detectSignerAddress, isFlask, SBT } from '../utils';
 import { getSnap } from '@galactica-net/snap-api';
+import { defaultSnapOrigin } from '../../../galactica-dapp/src/config/snap';
 
 
 export type MetamaskState = {
@@ -127,19 +128,32 @@ export const MetaMaskProvider = ({ children }: { children: ReactNode }) => {
       });
     }
 
+    detectFlask();
+  }, [state.isFlask, window.ethereum]);
+
+  useEffect(() => {
     async function detectSnapInstalled() {
-      const installedSnap = await getSnap();
+      const installedSnap = await getSnap(defaultSnapOrigin);
+      console.log('installedSnap', JSON.stringify(installedSnap), defaultSnapOrigin);
       dispatch({
         type: MetamaskActions.SetInstalled,
         payload: installedSnap,
       });
     }
 
-    detectFlask();
+    detectSnapInstalled();
+  }, [state.isFlask, window.ethereum]);
 
-    if (state.isFlask) {
-      detectSnapInstalled();
+  useEffect(() => {
+    async function detectConnectedWallet() {
+      const signer = await detectSignerAddress();
+      dispatch({
+        type: MetamaskActions.SetConnected,
+        payload: signer,
+      });
     }
+
+    detectConnectedWallet();
   }, [state.isFlask, window.ethereum]);
 
   useEffect(() => {
