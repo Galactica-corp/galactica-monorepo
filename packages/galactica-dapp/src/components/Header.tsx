@@ -1,11 +1,14 @@
 import { useContext } from 'react';
 import styled, { useTheme } from 'styled-components';
-import { MetamaskActions, MetaMaskContext } from '../hooks';
+import { MetaMaskContext } from '../hooks';
 import { getThemePreference } from '../utils';
-import { connectSnap, getSnap } from '@galactica-net/snap-api';
 import { HeaderButtons } from './Buttons';
 import { SnapLogo } from './SnapLogo';
 import { Toggle } from './Toggle';
+import {
+  handleSnapConnectClick,
+  handleWalletConnectClick,
+} from '../utils';
 
 const HeaderWrapper = styled.header`
   display: flex;
@@ -46,20 +49,6 @@ export const Header = ({
   const theme = useTheme();
   const [state, dispatch] = useContext(MetaMaskContext);
 
-  const handleConnectClick = async () => {
-    try {
-      await connectSnap();
-      const installedSnap = await getSnap();
-
-      dispatch({
-        type: MetamaskActions.SetInstalled,
-        payload: installedSnap,
-      });
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
   return (
     <HeaderWrapper>
       <LogoWrapper>
@@ -71,7 +60,7 @@ export const Header = ({
           onToggle={handleToggleClick}
           defaultChecked={getThemePreference()}
         />
-        <HeaderButtons state={state} onConnectClick={handleConnectClick} />
+        <HeaderButtons state={state} onSnapConnectClick={async () => await handleSnapConnectClick(dispatch)} onWalletConnectClick={async () => await handleWalletConnectClick(dispatch)} />
       </RightContainer>
     </HeaderWrapper>
   );
