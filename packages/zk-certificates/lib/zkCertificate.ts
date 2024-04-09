@@ -345,8 +345,7 @@ export class ZKCertificate implements ZkCertData {
     dAppAddress: string,
   ): HumanIDProofInput {
     return {
-      dAppAddress,
-      humanID: this.getHumanID(dAppAddress),
+      dAppAddress
     };
   }
 }

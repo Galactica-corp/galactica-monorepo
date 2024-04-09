@@ -33,7 +33,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   const data = JSON.parse(fs.readFileSync(args.kycDataFile, 'utf-8'));
   const eddsa = await buildEddsa();
-  const zkKYCFields = prepareKYCFields(eddsa, data);
+  const [zkKYCFields, expirationDate] = prepareKYCFields(eddsa, data);
 
   // read holder commitment file
   const holderCommitmentFile = JSON.parse(
@@ -50,6 +50,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     ZkCertStandard.ZkKYC,
     eddsa,
     randomSalt,
+    expirationDate,
     zkKYCFields,
   );
 
@@ -85,8 +86,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `Revoked the zkKYC certificate ${args.leafHash} on-chain at index ${
-        args.index as number
+      `Revoked the zkKYC certificate ${args.leafHash} on-chain at index ${args.index as number
       }`,
     ),
   );
@@ -100,8 +100,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${
-        args.index as number
+      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${args.index as number
       } with new expiration date ${args.newExpirationDate as number}`,
     ),
   );

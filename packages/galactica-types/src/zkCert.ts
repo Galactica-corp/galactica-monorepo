@@ -45,10 +45,9 @@ export type FraudInvestigationDataEncryptionProofInput = {
   encryptedData: string[];
 };
 
-// / Data required for a ZK proof of someone's DApp specific HumanID
+// / Data required for a ZK proof of someone's DApp specific HumanID, except the KYC data
 export type HumanIDProofInput = {
   dAppAddress: string;
-  humanID: string;
 };
 
 // / Data contained in a ZK certificate

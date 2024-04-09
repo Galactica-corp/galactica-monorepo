@@ -107,7 +107,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     authorization.ay <== ay;
     authorization.s <== s2;
     authorization.r8x <== r8x2;
-    authorization.r8y <== r8y2; 
+    authorization.r8y <== r8y2;
 
     // content hash for zkKYC data
     component contentHash = Poseidon(13);

@@ -107,7 +107,6 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     zkKYC.town <== town;
     zkKYC.region <== region;
     zkKYC.country <== country;
-    zkKYC.passportID <== passportID;
     zkKYC.citizenship <== citizenship;
     zkKYC.userPrivKey <== userPrivKey;
     for (var i = 0; i < shamirN; i++) {

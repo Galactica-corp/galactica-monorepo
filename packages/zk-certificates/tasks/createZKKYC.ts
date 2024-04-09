@@ -35,7 +35,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   // read KYC data file
   const data = JSON.parse(fs.readFileSync(args.kycDataFile, 'utf-8'));
-  const zkKYCFields = prepareKYCFields(eddsa, data);
+  const [zkKYCFields, expirationDate] = prepareKYCFields(eddsa, data);
 
   // read holder commitment file
   const holderCommitmentFile = JSON.parse(
@@ -53,6 +53,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     ZkCertStandard.ZkKYC,
     eddsa,
     randomSalt,
+    expirationDate,
     zkKYCFields,
   );
 
