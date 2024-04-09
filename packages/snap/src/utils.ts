@@ -17,3 +17,13 @@ export async function fetchWithTimeout(resource: string, options: any = {}) {
   clearTimeout(id);
   return response;
 }
+
+/**
+ * Remove the protocol from a URL.
+ * Implemented because the snap blocks http:// in dialogs, breaking some confirmation messages when testing locally.
+ * @param url - URL to prune.
+ * @returns URL without protocol prefix.
+ */
+export function stripURLProtocol(url: string): string {
+  return url.replace(/(^\w+:|^)\/\//, '');
+}
