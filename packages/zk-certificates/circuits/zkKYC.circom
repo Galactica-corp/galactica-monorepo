@@ -179,7 +179,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
 
         // encrypt shamir shares for each of the receiving institutions
         for (var i = 0; i < shamirN; i++) {
-            encryptionProof[i] = encryptionProof();
+            encryptionProof[i] = EncryptionProof();
             encryptionProof[i].senderPrivKey <== userPrivKey;
             encryptionProof[i].receiverPubKey[0] <== investigationInstitutionPubKey[i][0];
             encryptionProof[i].receiverPubKey[1] <== investigationInstitutionPubKey[i][1];

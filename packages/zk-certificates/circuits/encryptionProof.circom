@@ -12,7 +12,7 @@ include "mimcEncrypt.circom";
 
   In Galactica's zkKYC, this is used to proof that the KYC holder provides encrypted information for eventual fraud investigation.
 */
-template encryptionProof(){
+template EncryptionProof(){
     signal input senderPrivKey;
     signal input receiverPubKey[2]; //should be public input
     signal input msg[2];
