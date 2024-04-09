@@ -1,0 +1,125 @@
+Deployment summary:
+PoseidonT3: "0x34cc717fdEC304F307B4517e9d02A184a529a71f"
+
+KYCGuardianRegistry: "0x2547a64b4CDe45ad691BC393aBe20D405cD5139D"
+KYCRecordRegistry: "0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5"
+VerificationSBT: "0x5A040bA7C0eA4ae51b07Fd247a16BA767D716A75"
+
+MockGalacticaInstitution1: "0x6f318e025977BEb146CBa6376cc642ffe142EB00"
+MockGalacticaInstitution2: "0x6E5eeD7b04532C33E3689aEFd5596E98Cb694bF5"
+MockGalacticaInstitution3: "0xc05e8FA7FB5Ff3c8F9fAe95a62c751498EFFF3E7"
+
+ZkKYCVerifier: "0x564BeC07B6b09027FbAC2F337dfdfF6E9a9fFEF7"
+ZkKYC: "0x249c63682a93e4044467eD4C4EABF2D010425735"
+
+ExampleMockDAppVerifier: "0x538209Ca8ccA04e1548995B0F89B1f829718c2e0"
+AgeProofZkKYC: "0xdA651B29318Ca44d5f99DFA102483fBF8ab6Fd32"
+MockDApp: "0xfF5d3db206D4972Ba6057797B9862F3207678c4d"
+
+BasicKYCExampleDApp: "0x200aE9f8D04c152128D78856E3e95d200915F69E"
+RepeatableZKPTest: "0x099c91224A1D07a3F63E37F759797cF59D121534"
+
+DevnetGuardian: "0x3AFF448DdF6F75d3D92DC46A47e230181d174614"
+  
+
+
+logs:
+zwilling@buterin:~/occ/monorepo/packages/zk-certificates$ yarn hardhat run scripts/deployCompleteTestSetup.ts --network reticulum
+Using account 0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2 to deploy contracts
+Account balance: 10000000000000000000
+Using institutions ["0x00B66cd7c825446d37CA8433B2cb35FCe0c3fF2f","0xCB1962EEb9218d5c61F25d35F189E73fffA8eB37","0xa3b7bA180A6E5e8df494F202D7FfB3a8E179E37A"] for fraud investigation
+Deploying PoseidonT3...
+PoseidonT3 deployed to 0x34cc717fdEC304F307B4517e9d02A184a529a71f
+constructorArgs: undefined
+Deploying GuardianRegistry...
+GuardianRegistry deployed to 0x2547a64b4CDe45ad691BC393aBe20D405cD5139D
+constructorArgs: undefined
+Skipping automatic verification of GuardianRegistry because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Deploying KYCRecordRegistryTest...
+KYCRecordRegistryTest deployed to 0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5
+constructorArgs: ["0x2547a64b4CDe45ad691BC393aBe20D405cD5139D"]
+Skipping automatic verification of KYCRecordRegistryTest because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Deploying ExampleMockDAppVerifier...
+ExampleMockDAppVerifier deployed to 0x538209Ca8ccA04e1548995B0F89B1f829718c2e0
+constructorArgs: undefined
+Skipping automatic verification of ExampleMockDAppVerifier because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Deploying MockGalacticaInstitution...
+MockGalacticaInstitution deployed to 0x6f318e025977BEb146CBa6376cc642ffe142EB00
+constructorArgs: undefined
+Skipping automatic verification of MockGalacticaInstitution because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Institution pubkey:  [
+  '6943875219392246818224048178137237213042961423382598214182373250778338141910',
+  '766334620801360827252543305894629637078027928369662721656091412064518533635'
+]
+Deploying MockGalacticaInstitution...
+MockGalacticaInstitution deployed to 0x6E5eeD7b04532C33E3689aEFd5596E98Cb694bF5
+constructorArgs: undefined
+Skipping automatic verification of MockGalacticaInstitution because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Institution pubkey:  [
+  '1579067971514443622257974618586282297587059021900739969981127756742088223538',
+  '4139836117455488102802086227259159711453756667457442244312919626288623916372'
+]
+Deploying MockGalacticaInstitution...
+MockGalacticaInstitution deployed to 0xc05e8FA7FB5Ff3c8F9fAe95a62c751498EFFF3E7
+constructorArgs: undefined
+Skipping automatic verification of MockGalacticaInstitution because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Institution pubkey:  [
+  '8433649026385582911421932004677457478198540335852811853306258774693985521300',
+  '13623402046806564631713944992854854242048074679295993371149649720706179935861'
+]
+Deploying AgeProofZkKYC...
+AgeProofZkKYC deployed to 0xdA651B29318Ca44d5f99DFA102483fBF8ab6Fd32
+constructorArgs: ["0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2","0x538209Ca8ccA04e1548995B0F89B1f829718c2e0","0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5",["0x6f318e025977BEb146CBa6376cc642ffe142EB00","0x6E5eeD7b04532C33E3689aEFd5596E98Cb694bF5","0xc05e8FA7FB5Ff3c8F9fAe95a62c751498EFFF3E7"]]
+Skipping automatic verification of AgeProofZkKYC because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Deploying VerificationSBT...
+VerificationSBT deployed to 0x5A040bA7C0eA4ae51b07Fd247a16BA767D716A75
+constructorArgs: undefined
+Skipping automatic verification of VerificationSBT because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Using account 0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2 to deploy contracts
+Account balance: 9999858083699267551
+Deploying MockDApp...
+MockDApp deployed to 0xfF5d3db206D4972Ba6057797B9862F3207678c4d
+constructorArgs: ["0x5A040bA7C0eA4ae51b07Fd247a16BA767D716A75","0xdA651B29318Ca44d5f99DFA102483fBF8ab6Fd32"]
+Skipping automatic verification of MockDApp because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Deploying contracts/mock/MockToken.sol:MockToken...
+contracts/mock/MockToken.sol:MockToken deployed to 0xe21F38E2D07Bc1EFE4413FeB5b11FBfcdeE59455
+constructorArgs: ["0xfF5d3db206D4972Ba6057797B9862F3207678c4d"]
+Skipping automatic verification of contracts/mock/MockToken.sol:MockToken because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Deploying contracts/mock/MockToken.sol:MockToken...
+contracts/mock/MockToken.sol:MockToken deployed to 0x571619d791D68Bd8f45A7b9498bfbe8D6Fb01401
+constructorArgs: ["0xfF5d3db206D4972Ba6057797B9862F3207678c4d"]
+Skipping automatic verification of contracts/mock/MockToken.sol:MockToken because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Using account 0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2 to deploy contracts
+Account balance: 9999837690035466844
+Deploying ZkKYCVerifier...
+ZkKYCVerifier deployed to 0x564BeC07B6b09027FbAC2F337dfdfF6E9a9fFEF7
+constructorArgs: undefined
+Skipping automatic verification of ZkKYCVerifier because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Deploying ZkKYC...
+ZkKYC deployed to 0x249c63682a93e4044467eD4C4EABF2D010425735
+constructorArgs: ["0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2","0x564BeC07B6b09027FbAC2F337dfdfF6E9a9fFEF7","0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5",[]]
+Skipping automatic verification of ZkKYC because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Deploying RepeatableZKPTest...
+RepeatableZKPTest deployed to 0x099c91224A1D07a3F63E37F759797cF59D121534
+constructorArgs: ["0x5A040bA7C0eA4ae51b07Fd247a16BA767D716A75","0x249c63682a93e4044467eD4C4EABF2D010425735"]
+Skipping automatic verification of RepeatableZKPTest because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Using account 0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2 to deploy contracts
+Account balance: 9999822527526751832
+Deploying BasicKYCExampleDApp...
+BasicKYCExampleDApp deployed to 0x200aE9f8D04c152128D78856E3e95d200915F69E
+constructorArgs: ["0x5A040bA7C0eA4ae51b07Fd247a16BA767D716A75","0x249c63682a93e4044467eD4C4EABF2D010425735"]
+Skipping automatic verification of BasicKYCExampleDApp because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+Using account 0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2 to deploy contracts
+Account balance: 9999819114826080347
+Deploying DevnetGuardian...
+DevnetGuardian deployed to 0x3AFF448DdF6F75d3D92DC46A47e230181d174614
+constructorArgs: ["0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5"]
+Skipping automatic verification of DevnetGuardian because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.
+DevnetGuardian deployed to: 0x3AFF448DdF6F75d3D92DC46A47e230181d174614
+DevnetGuardian whitelisted as KYC Guardian in GuardianRegistry
+Using account 0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2 for controlling whitelist
+Account balance: 9999817976356969559
+
+Whitelisting guardian 0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2 with name Galactica Test Guardian and pubkey ["5020193338611863004095502341160609003323126002347826555774497611602886778574","8272040872207888880717356773730935212440388338505052070830207190132776525135"]
+Adding 0xd1cC3696cB5Cc0f7ceE42b185B2fd6FF0563A2c2 as guardian...
+Done
