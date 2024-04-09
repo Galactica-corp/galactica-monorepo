@@ -25,5 +25,5 @@ export async function fetchWithTimeout(resource: string, options: any = {}) {
  * @returns URL without protocol prefix.
  */
 export function stripURLProtocol(url: string): string {
-  return url.replace(/(^\w+:|^)\/\//, '');
+  return url.replace(/(^\w+:|^)\/\//u, '');
 }

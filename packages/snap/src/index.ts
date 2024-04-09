@@ -32,12 +32,12 @@ import {
 } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
+import { stripURLProtocol } from './utils';
 import {
   getZkCertStorageHashes,
   getZkCertStorageOverview,
 } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
-import { stripURLProtocol } from './utils';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
@@ -139,7 +139,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           content: panel([
             heading('Clear zkCert and holder storage?'),
             text(
-              `Do you want to delete the zkCertificates stored in Metamask? (requested by ${stripURLProtocol(origin)})`,
+              `Do you want to delete the zkCertificates stored in Metamask? (requested by ${stripURLProtocol(
+                origin,
+              )})`,
             ),
           ]),
         },
@@ -257,7 +259,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           content: panel([
             heading('Export zkCert?'),
             text(
-              `Do you want to export a zkCert ? (provided to ${stripURLProtocol(origin)} for saving it to a file)`,
+              `Do you want to export a zkCert ? (provided to ${stripURLProtocol(
+                origin,
+              )} for saving it to a file)`,
             ),
           ]),
         },
@@ -304,7 +308,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
           type: 'confirmation',
           content: panel([
             heading('Provide holder commitment?'),
-            text(`Do you want to provide your holder commitment to ${stripURLProtocol(origin)}?`),
+            text(
+              `Do you want to provide your holder commitment to ${stripURLProtocol(
+                origin,
+              )}?`,
+            ),
           ]),
         },
       });
@@ -334,7 +342,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
               'Provide the list of your zkCertificates to the application',
             ),
             text(
-              `The application "${stripURLProtocol(origin)}" requests to get an overview of zkCertificates stored in your MetaMask.This overview does not contain personal information, only metadata(expiration date of the document, issue, and verification level).`,
+              `The application "${stripURLProtocol(
+                origin,
+              )}" requests to get an overview of zkCertificates stored in your MetaMask.This overview does not contain personal information, only metadata(expiration date of the document, issue, and verification level).`,
             ),
           ]),
         },
@@ -363,7 +373,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           content: panel([
             heading('Provide zkCert hash?'),
             text(
-              `Do you want to provide the leaf hashes of your zkCerts to ${stripURLProtocol(origin)}?`,
+              `Do you want to provide the leaf hashes of your zkCerts to ${stripURLProtocol(
+                origin,
+              )}?`,
             ),
             text(
               `We suggest doing this only to update Merkle proofs.Only Do this on sites you trust to handle the unique ID of your zkCert confidentially.`,
@@ -393,7 +405,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           content: panel([
             heading('Update Merkle proofs?'),
             text(
-              `Do you want to update the merkle proofs of your zkCerts as suggested by ${stripURLProtocol(origin)}?`,
+              `Do you want to update the merkle proofs of your zkCerts as suggested by ${stripURLProtocol(
+                origin,
+              )}?`,
             ),
           ]),
         },
