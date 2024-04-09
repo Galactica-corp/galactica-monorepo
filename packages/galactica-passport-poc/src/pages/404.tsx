@@ -1,0 +1,1 @@
+../../../galactica-dapp/src/pages/404.tsx

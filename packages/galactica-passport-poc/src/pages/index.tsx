@@ -19,7 +19,21 @@ import {
 import { ethers } from 'ethers';
 import { useContext } from 'react';
 import styled from 'styled-components';
+<<<<<<< HEAD
 
+=======
+import { MetamaskActions, MetaMaskContext } from '../../../galactica-dapp/src/hooks';
+import {
+  shouldDisplayReconnectButton,
+  queryVerificationSBTs,
+  formatVerificationSBTs,
+  getUserAddress,
+  getGuardianNameMap,
+  handleSnapConnectClick,
+  handleWalletConnectClick,
+  changeSnapSelection,
+} from '../utils';
+>>>>>>> main
 import {
   ConnectSnapButton,
   InstallFlaskButton,
@@ -27,12 +41,13 @@ import {
   Card,
   GeneralButton,
   SelectAndImportButton,
-  ConnectMMButton,
+  ConnectWalletButton,
 } from '../../../galactica-dapp/src/components';
 import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
 import twitterFollowersCountProofABI from '../../../galactica-dapp/src/config/abi/TwitterFollowersCountProof.json';
 import addresses from '../../../galactica-dapp/src/config/addresses';
 import {
+<<<<<<< HEAD
   defaultSnapOrigin,
   zkKYCAgeProofPublicInputDescriptions,
   twitterFollowersCountProofPublicInputDescriptions
@@ -58,6 +73,20 @@ import {
   getGuardianNameMap,
 } from '../utils';
 
+=======
+  clearStorage,
+  deleteZkCert,
+  importZkCert,
+  exportZkCert,
+  generateZKProof,
+  getHolderCommitment,
+  ZkCertStandard,
+  ZkCertProof,
+  updateMerkleProof,
+  MerkleProofUpdateRequestParams,
+} from '@galactica-net/snap-api';
+import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions, npmSnapOrigin } from '../../../galactica-dapp/src/config/snap';
+>>>>>>> main
 
 const Container = styled.div`
   display: flex;
@@ -164,24 +193,6 @@ const InfoMessage = styled.div`
 const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
 
-  const handleSnapConnectClick = async () => {
-    console.log(`inside handleSnapConnectClick`);
-    console.log(`defaultSnapOrigin is ${defaultSnapOrigin}`);
-    try {
-      await connectSnap(defaultSnapOrigin);
-      const installedSnap = await getSnap(defaultSnapOrigin);
-
-      dispatch({
-        type: MetamaskActions.SetInstalled,
-        payload: installedSnap,
-      });
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Connected to Galactica Snap` });
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
-
   /**
    * Converts response object from Snap to string to show to the user.
    *
@@ -193,28 +204,6 @@ const Index = () => {
     console.log('Response from snap', msg);
     dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${msg} ` });
   }
-
-  const handleMMConnectClick = async () => {
-    try {
-      //@ts-ignore https://github.com/metamask/providers/issues/200
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-
-      // Will open the MetaMask UI
-      window.ethereum.request({ method: 'eth_requestAccounts' });
-      // TODO: You should disable this button while the request is pending!
-      const signer = provider.getSigner();
-      console.log('Connected with Metamask 2 to', await signer.getAddress());
-
-      dispatch({
-        type: MetamaskActions.SetConnected,
-        payload: await signer.getAddress(),
-      });
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Connected to Metamask` });
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
 
   const handleSnapCallClick = async (method: (snapOrigin: string) => Promise<any>) => {
     try {
@@ -251,9 +240,8 @@ const Index = () => {
   const getHolderCommitmentClick = async () => {
     try {
       console.log('sending request to snap...');
-      const res = await getHolderCommitment(defaultSnapOrigin);
-      console.log('Response from snap', JSON.stringify(res));
-      const holderCommitmentData = res as HolderCommitmentData;
+      const holderCommitmentData = await getHolderCommitment(defaultSnapOrigin);
+      console.log('Response from snap', JSON.stringify(holderCommitmentData));
       dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
 
       // save to file as placeholder
@@ -476,12 +464,28 @@ const Index = () => {
             content={{
               title: 'Install',
               description:
-                'Snaps is pre-release software only available in MetaMask Flask, a canary distribution for developers with access to upcoming features.',
+                'Snaps is pre-release software only available in MetaMask Flask, a canary distribution for developers with access to upcoming features. This test front-end uses flask so that you can connect to locally built Snaps.',
               button: <InstallFlaskButton />,
             }}
             fullWidth
           />
         )}
+        {/* {(
+          <Card
+            content={{
+              title: 'Snap selector',
+              description:
+                `What Snap ID to connect with?`,
+              button: (
+                <div onChange={async (event) => await changeSnapSelection(event, dispatch)}>
+                  <input type="radio" value={defaultSnapOrigin} name="snapIdRadio" /> {defaultSnapOrigin} <br></br>
+                  <input type="radio" value={npmSnapOrigin} name="snapIdRadio" /> {npmSnapOrigin}
+                </div>
+              ),
+            }}
+            disabled={!state.isFlask}
+          />
+        )} */}
         {!state.installedSnap && (
           <Card
             content={{
@@ -490,8 +494,9 @@ const Index = () => {
                 'Get started by connecting to and installing the Galactica proof generation snap.',
               button: (
                 <ConnectSnapButton
-                  onClick={handleSnapConnectClick}
+                  onClick={async () => await handleSnapConnectClick(dispatch)}
                   disabled={!state.isFlask}
+                  text={"Connect Snap"}
                 />
               ),
             }}
@@ -501,12 +506,12 @@ const Index = () => {
         {shouldDisplayReconnectButton(state.installedSnap) && (
           <Card
             content={{
-              title: 'Reconnect to Galactica Snap',
+              title: 'Reconnect Snap',
               description:
-                'While connected to a local running snap this button will always be displayed in order to update the snap if a change is made.',
+                `You can reconnect to update the snap after making changes. Connected to snap "${state.installedSnap?.id}"`,
               button: (
                 <ReconnectButton
-                  onClick={handleSnapConnectClick}
+                  onClick={async () => await handleSnapConnectClick(dispatch)}
                   disabled={!state.installedSnap}
                 />
               ),
@@ -517,14 +522,13 @@ const Index = () => {
         {state.isFlask && state.installedSnap && (
           <Card
             content={{
-              title: 'Connect to Metamask',
+              title: 'Connect Wallet',
               description:
-                `Standard Metamask connection to send transactions.`,
+                `Standard Metamask connection to send transactions. Connected to address "${state.signer}"`,
               button: (
-                <ConnectMMButton
-                  onClick={handleMMConnectClick}
+                <ConnectWalletButton
+                  onClick={async () => await handleWalletConnectClick(dispatch)}
                   id={"connectMM"}
-                  text={state.signer}
                 />
               ),
             }}
