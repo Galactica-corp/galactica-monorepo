@@ -81,7 +81,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input providerAx;
     signal input providerAy;
 
-    signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
+    signal output userPubKey[2]; // required in case of fraud investigation to generate symmetric EDDSA key for decryption
     signal output valid;
     signal output verificationExpiration; 
 
