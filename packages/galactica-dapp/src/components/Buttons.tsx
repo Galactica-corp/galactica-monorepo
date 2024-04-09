@@ -84,7 +84,7 @@ export const ConnectSnapButton = (props: ComponentProps<typeof Button>) => {
   return (
     <Button {...props}>
       <FlaskFox />
-      <ButtonText>Connect</ButtonText>
+      <ButtonText>Connect2</ButtonText>
     </Button>
   );
 };

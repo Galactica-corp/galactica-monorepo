@@ -81,14 +81,14 @@ There are some scripts for deployment of the basic infrastructure and example dA
 Before running it, you need to configure the deployer wallet in the environment variables used in `hardhat.config.ts` adn fund the account.
 
 ```shell
-yarn hardhat run scripts/deployInfrastructure.ts --network galaAndromeda
+yarn hardhat run scripts/deployInfrastructure.ts --network reticulum
 ```
 
 You can find the addresses of the deployed contracts in the console output.
 If you also want to deploy example contracts, you can enter them in the following script before running it.
 
 ```shell
-yarn hardhat run scripts/deployExampleDApp.ts --network galaAndromeda
+yarn hardhat run scripts/deployExampleDApp.ts --network reticulum
 ```
 
 ## Create and issue zkCertificates
@@ -97,7 +97,7 @@ First collect the certificate data and holder commitment from the user. For exam
 Then you can sign it using the following hardhat task (replace holder commitment and file)
 
 ```shell
-yarn hardhat createZkCertificate --holder-file example/holderCommitment.json --zk-certificate-data-file example/kycFields.json --zk-certificate-type zkKYC --random-salt 1773 --registry-address 0xAbb654092b5BCaeca2E854550c5C972602eF7dA8 --network galaAndromeda 
+yarn hardhat createZkCertificate --holder-file example/holderCommitment.json --zk-certificate-data-file example/kycFields.json --zk-certificate-type zkKYC --random-salt 1773 --registry-address 0xAbb654092b5BCaeca2E854550c5C972602eF7dA8 --network galaAndromeda
 ```
 
 The task issues the resulting zkCert on-chain and provides a merkle proof for it.

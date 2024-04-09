@@ -140,8 +140,10 @@ const Index = () => {
 
   const handleSnapConnectClick = async () => {
     try {
-      await connectSnap(defaultSnapOrigin);
-      const installedSnap = await getSnap(defaultSnapOrigin);
+      console.log(`inside handleSnapConnectClick`);
+      console.log(`defaultSnapOrigin is ${defaultSnapOrigin}`);
+      await connectSnap("local:http://localhost:8080");
+      const installedSnap = await getSnap("local:http://localhost:8080");
 
       dispatch({
         type: MetamaskActions.SetInstalled,
@@ -149,6 +151,8 @@ const Index = () => {
       });
       dispatch({ type: MetamaskActions.SetInfo, payload: `Connected to Galactica Snap` });
     } catch (e) {
+      console.log(`inside handleSnapConnectClick`);
+      console.log(`defaultSnapOrigin is ${defaultSnapOrigin}`);
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }
@@ -164,6 +168,7 @@ const Index = () => {
       // TODO: You should disable this button while the request is pending!
       const signer = provider.getSigner();
       console.log('Connected with Metamask to', await signer.getAddress());
+      console.log(`defaultSnapOrigin is ${defaultSnapOrigin}`);
 
       dispatch({
         type: MetamaskActions.SetConnected,

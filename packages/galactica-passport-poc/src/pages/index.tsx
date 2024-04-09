@@ -165,6 +165,8 @@ const Index = () => {
   const [state, dispatch] = useContext(MetaMaskContext);
 
   const handleSnapConnectClick = async () => {
+    console.log(`inside handleSnapConnectClick`);
+    console.log(`defaultSnapOrigin is ${defaultSnapOrigin}`);
     try {
       await connectSnap(defaultSnapOrigin);
       const installedSnap = await getSnap(defaultSnapOrigin);
@@ -201,7 +203,7 @@ const Index = () => {
       window.ethereum.request({ method: 'eth_requestAccounts' });
       // TODO: You should disable this button while the request is pending!
       const signer = provider.getSigner();
-      console.log('Connected with Metamask to', await signer.getAddress());
+      console.log('Connected with Metamask 2 to', await signer.getAddress());
 
       dispatch({
         type: MetamaskActions.SetConnected,
