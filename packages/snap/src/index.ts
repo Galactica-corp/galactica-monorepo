@@ -433,7 +433,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         }
         if (!foundZkCert) {
           throw new Error(
-            `The zkCert with leaf hash ${update.proof.leaf} was not found in the wallet.Please import it before updating the Merkle proof.`,
+            `The zkCert with leaf hash ${update.proof.leaf} was not found in the wallet. Please import it before updating the Merkle proof.`,
           );
         }
       }
