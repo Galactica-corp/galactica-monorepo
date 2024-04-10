@@ -52,7 +52,7 @@ const config: HardhatUserConfig = {
       },
       {
         network: 'reticulum',
-        chainId: 9301,
+        chainId: 9302,
         urls: {
           apiURL: 'https://explorer-reticulum.galactica.com/api',
           browserURL: 'https://explorer-reticulum.galactica.com/',
