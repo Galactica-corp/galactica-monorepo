@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { 
-  twitterZkCertificateContentFields, 
-  zkKYCContentFields, 
-  ZkCertStandard  
+import {
+  twitterZkCertificateContentFields,
+  zkKYCContentFields,
+  ZkCertStandard
 } from '@galactica-net/galactica-types';
 import type { ZkCertRegistered } from '@galactica-net/snap-api';
 import { RpcResponseErr } from '@galactica-net/snap-api';
@@ -126,9 +126,9 @@ export async function selectZkCert(
     selected = filteredCerts[indexSelection];
   }
 
-  const contentFields = 
+  const contentFields =
     selected.zkCertStandard === ZkCertStandard.TwitterZkCertificate
-      ? twitterZkCertificateContentFields 
+      ? twitterZkCertificateContentFields
       : zkKYCContentFields;
 
   const eddsa = await buildEddsa();

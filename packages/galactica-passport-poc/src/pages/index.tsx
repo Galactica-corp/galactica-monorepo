@@ -13,16 +13,11 @@ import {
   getHolderCommitment,
   ZkCertStandard,
   updateMerkleProof,
-  connectSnap,
-  getSnap,
 } from '@galactica-net/snap-api';
+
 import { ethers } from 'ethers';
 import { useContext } from 'react';
 import styled from 'styled-components';
-<<<<<<< HEAD
-
-=======
-import { MetamaskActions, MetaMaskContext } from '../../../galactica-dapp/src/hooks';
 import {
   shouldDisplayReconnectButton,
   queryVerificationSBTs,
@@ -33,7 +28,6 @@ import {
   handleWalletConnectClick,
   changeSnapSelection,
 } from '../utils';
->>>>>>> main
 import {
   ConnectSnapButton,
   InstallFlaskButton,
@@ -47,7 +41,6 @@ import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
 import twitterFollowersCountProofABI from '../../../galactica-dapp/src/config/abi/TwitterFollowersCountProof.json';
 import addresses from '../../../galactica-dapp/src/config/addresses';
 import {
-<<<<<<< HEAD
   defaultSnapOrigin,
   zkKYCAgeProofPublicInputDescriptions,
   twitterFollowersCountProofPublicInputDescriptions
@@ -65,28 +58,7 @@ import {
   getProver,
   prepareProofInput,
 } from '../../../galactica-dapp/src/utils/zkp';
-import {
-  shouldDisplayReconnectButton,
-  queryVerificationSBTs,
-  formatVerificationSBTs,
-  getUserAddress,
-  getGuardianNameMap,
-} from '../utils';
 
-=======
-  clearStorage,
-  deleteZkCert,
-  importZkCert,
-  exportZkCert,
-  generateZKProof,
-  getHolderCommitment,
-  ZkCertStandard,
-  ZkCertProof,
-  updateMerkleProof,
-  MerkleProofUpdateRequestParams,
-} from '@galactica-net/snap-api';
-import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions, npmSnapOrigin } from '../../../galactica-dapp/src/config/snap';
->>>>>>> main
 
 const Container = styled.div`
   display: flex;
