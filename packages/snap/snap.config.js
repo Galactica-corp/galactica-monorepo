@@ -1,6 +1,11 @@
 module.exports = {
-  cliOptions: {
-    src: './src/index.ts',
-    port: 8080,
+  input: "src/index.ts",
+  output: {
+      path: "dist",
+  },
+  server: {
+      port: 8080,
   },
 };
+
+

@@ -73,6 +73,7 @@ export const generateZKProof2 = async (
   params: GenZkProofParams<ZkCertInputType>,
   snapOrigin: string = sdkConfig.defaultSnapOrigin,
 ) => {
+
   const response: ZkCertProof = await invokeSnap(
     {
       method: RpcMethods.GenTwitterFollowersCountProof,
@@ -80,6 +81,8 @@ export const generateZKProof2 = async (
     },
     snapOrigin,
   );
+
+  console.log(`finsihed invoking snap`);
 
   return response;
 };

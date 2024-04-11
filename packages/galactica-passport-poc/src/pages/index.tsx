@@ -330,14 +330,14 @@ const Index = () => {
       const proofInput = {
         currentTime: await getCurrentBlockTime(),
         // specific inputs to prove that the twitterZkCertificate with at least 100 followers
-        FollowersCount: '100',
+        followersCountThreshold: '200',
       };
 
       const res: any = await generateZKProof2(
         {
           input: proofInput,
           prover: await getProver(
-            'https://galactica-trusted-setup.s3.eu-central-1.amazonaws.com/exampleMockDApp.json',
+            'provers/twitterFollowersCountProof.json',
           ),
           requirements: {
             zkCertStandard: ZkCertStandard.TwitterZkCertificate,
@@ -392,6 +392,7 @@ const Index = () => {
       console.log('receipt', receipt);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
     } catch (e) {
+      console.log('found an error');
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }

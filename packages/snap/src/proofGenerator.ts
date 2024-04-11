@@ -111,18 +111,6 @@ export const generateTwitterFollowersCountProof = async (
     params.userAddress,
   );
 
-  // Generate private key for sending encrypted messages to institutions
-  // It should be different if the ZKP is sent from another address
-  // Therefore generating it from the private holder eddsa key and the user address
-  const eddsa = await buildEddsa();
-  const encryptionHashBase = eddsa.poseidon.F.toObject(
-    eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
-  ).toString();
-  const encryptionPrivKey = formatPrivKeyForBabyJub(
-    encryptionHashBase,
-    eddsa,
-  ).toString();
-
   const inputs: any = {
     ...processedParams.input,
 
@@ -145,17 +133,17 @@ export const generateTwitterFollowersCountProof = async (
     root: merkleProof.root,
     pathElements: merkleProof.pathElements,
     leafIndex: merkleProof.leafIndex,
-
-    userPrivKey: encryptionPrivKey,
   };
 
   try {
+    console.log(`starting proof generation`);
     const { proof, publicSignals } = await groth16.fullProveMemory(
       inputs,
       processedParams.prover.wasm,
       processedParams.prover.zkeyHeader,
       processedParams.prover.zkeySections,
     );
+    console.log(`proof generation finished`);
 
     // console.log('Calculated proof: ');
     // console.log(JSON.stringify(proof, null, 1));
