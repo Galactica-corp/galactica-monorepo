@@ -40,8 +40,12 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     // Next leaf index (number of inserted leaves in the current tree)
     uint256 public nextLeafIndex;
 
-    // The Merkle root
-    bytes32 public merkleRoot;
+    // array of all merkle roots
+    bytes32[] public merkleRoots;
+    // and from which index the merkle roots are still valid
+    uint256 public merkleRootValidIndex;
+    // store to each zkCertificateHash the merkle root index at the moment of addition
+    mapping (bytes32 => uint) public hashToMerkleRootIndex;
 
     // The Merkle path to the leftmost leaf upon initialization. It *should
     // not* be modified after it has been set by the initialize function.
@@ -68,6 +72,13 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         string memory _description
     ) initializer {
       initializeZkCertificateRegistry(GuardianRegistry_, _description);
+    }
+
+    /**
+    * @notice return the current merkle root which is the last one in the merkleRoots array
+    */ 
+    function merkleRoot() public view returns (bytes32) {
+      return merkleRoots[merkleRoots.length - 1];
     }
 
     /**
@@ -110,7 +121,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         }
 
         // Set merkle root
-        merkleRoot = currentZero;
+        merkleRoots.push(currentZero);
         _GuardianRegistry = GuardianRegistry(GuardianRegistry_);
     }
 
@@ -131,6 +142,12 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             _GuardianRegistry.isWhitelisted(msg.sender),
             'ZkCertificateRegistry: not a Guardian'
         );
+
+        require(
+          hashToMerkleRootIndex[zkCertificateHash] == 0,
+          'ZkCertificateRegistry: zkCertificate already exists'
+        );
+
         _changeLeafHash(
             leafIndex,
             currentLeafHash,
@@ -138,6 +155,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             merkleProof
         );
         ZkCertificateToGuardian[zkCertificateHash] = msg.sender;
+        hashToMerkleRootIndex[zkCertificateHash] = merkleRoots.length - 1;
         emit zkCertificateAddition(zkCertificateHash, msg.sender, leafIndex);
     }
 
@@ -160,6 +178,10 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         );
         _changeLeafHash(leafIndex, zkCertificateHash, newLeafHash, merkleProof);
         ZkCertificateToGuardian[zkCertificateHash] = address(0);
+        // update the valid index if necessary
+        if (hashToMerkleRootIndex[zkCertificateHash] >= merkleRootValidIndex) {
+          merkleRootValidIndex = hashToMerkleRootIndex[zkCertificateHash];
+        } 
         emit zkCertificateRevocation(zkCertificateHash, msg.sender, leafIndex);
     }
 
@@ -176,11 +198,11 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         bytes32[] memory merkleProof
     ) internal {
         require(
-            validate(merkleProof, index, currentLeafHash, merkleRoot),
+            validate(merkleProof, index, currentLeafHash, merkleRoot()),
             'merkle proof is not valid'
         );
         // we update the merkle tree accordingly
-        merkleRoot = compute(merkleProof, index, newLeafHash);
+        merkleRoots.push(compute(merkleProof, index, newLeafHash));
     }
 
     /**
