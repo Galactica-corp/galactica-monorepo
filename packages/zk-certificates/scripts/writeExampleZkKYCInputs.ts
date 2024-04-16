@@ -33,6 +33,30 @@ async function main() {
     JSON.stringify(ageProofZkKYCInput, null, 2),
     'utf8',
   );
+
+
+  // investigatable zkKYC proof with 3 Shamir shares
+  const investigatableZkKYCInput = await generateZkKYCProofInput(zkKYC, 3, '0x0');
+  fs.writeFileSync(
+    './circuits/input/investigatableZkKYC.json',
+    JSON.stringify(investigatableZkKYCInput, null, 2),
+    'utf8',
+  );
+
+  // exampleMockDapp with 3 Shamir shares and age proof
+  const exampleMockDAppInput = {
+    ...investigatableZkKYCInput,
+    currentYear: 2023,
+    currentMonth: 5,
+    currentDay: 9,
+    ageThreshold: 18,
+  };
+
+  fs.writeFileSync(
+    './circuits/input/exampleMockDApp.json',
+    JSON.stringify(exampleMockDAppInput, null, 2),
+    'utf8',
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
