@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { zkKYCContentFields } from '@galactica-net/galactica-types';
+import { zkKYCContentFields, zkKYCOptionalContent } from '@galactica-net/galactica-types';
 import type { Eddsa } from 'circomlibjs';
 
 import { hashStringToFieldNumber } from './helpers';
@@ -35,7 +35,12 @@ export function prepareKYCFields(
     (content) => !exceptions.includes(content),
   )) {
     if (kycData[field] === undefined) {
-      throw new Error(`Field ${field} missing in KYC data`);
+      if (zkKYCOptionalContent.includes(field)) {
+        kycData[field] = '';
+      }
+      else {
+        throw new Error(`Field ${field} missing in KYC data`);
+      }
     }
     if (stringFieldsForHashing.includes(field)) {
       // hashing string data so that it fits into the field used by the circuit

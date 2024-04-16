@@ -67,6 +67,16 @@ export const zkKYCContentFields = [
 ];
 
 /**
+ * List of fields in zkKYC that are optional. They are still included in a zkKYC, but can be empty.
+ */
+export const zkKYCOptionalContent = [
+  'streetAndNumber',
+  'postcode',
+  'town',
+  'region',
+];
+
+/**
  * Ordered list of fields determining the DApp specific Human ID.
  */
 export const humanIDFieldOrder = [

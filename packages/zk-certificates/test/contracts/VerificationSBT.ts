@@ -189,6 +189,8 @@ describe('Verification SBT Smart contract', () => {
     const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
+    const humanID = publicInputs[await ageProofZkKYC.INDEX_HUMAN_ID()];
+
     await mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs);
 
     // check that the verification SBT is created
@@ -198,11 +200,10 @@ describe('Verification SBT Smart contract', () => {
         mockDApp.address,
       ),
     ).to.be.equal(true);
-
     // data is stored for the correct humanID
     expect(
       await mockDApp.hasReceivedToken1(
-        fromHexToBytes32(fromDecToHex(sampleInput.humanID)),
+        fromHexToBytes32(fromDecToHex(humanID)),
       ),
     ).to.be.equal(true);
 
@@ -229,7 +230,7 @@ describe('Verification SBT Smart contract', () => {
     );
     expect(
       await mockDApp.hasReceivedToken2(
-        fromHexToBytes32(fromDecToHex(sampleInput.humanID)),
+        fromHexToBytes32(fromDecToHex(humanID)),
       ),
     ).to.be.true;
 
