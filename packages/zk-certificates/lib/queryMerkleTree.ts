@@ -70,13 +70,13 @@ export async function queryOnChainLeaves(
         break;
       } catch (error) {
         console.error(error);
-        if (errorCounter === 4) {
-          throw Error(
-            `failed to get logs from ${i} to ${maxBlock} after 5 retries`,
-          );
-        }
       }
       console.error(`retrying...`);
+    }
+    if (!leafAddedLogs || !leafRevokedLogs) {
+      throw Error(
+        `failed to get logs from ${i} to ${maxBlock} after 5 retries`,
+      );
     }
 
     for (const log of leafAddedLogs) {
@@ -129,7 +129,6 @@ export async function queryOnChainLeaves(
  * @param recordRegistry - Contract of the registry storing the Merkle tree on-chain.
  * @param provider - Ethers provider.
  * @param merkleDepth - Depth of the Merkle tree.
- * @param firstBlock - First block to query (optional, ideally the contract creation block).
  * @param onProgress - Callback function to be called with the progress in percent.
  * @returns Reconstructed Merkle tree.
  */
@@ -137,9 +136,10 @@ export async function buildMerkleTreeFromRegistry(
   recordRegistry: Contract,
   provider: providers.Provider,
   merkleDepth: number,
-  firstBlock = 1,
   onProgress?: (percent: string) => void,
 ): Promise<SparseMerkleTree> {
+  const firstBlock = (await recordRegistry.initBlockHeight()).toNumber();
+
   const leafLogResults = await queryOnChainLeaves(
     provider,
     recordRegistry as KYCRecordRegistry,

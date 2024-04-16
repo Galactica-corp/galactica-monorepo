@@ -86,7 +86,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     recordRegistry,
     hre.ethers.provider,
     32,
-    1,
     printProgress,
   );
 

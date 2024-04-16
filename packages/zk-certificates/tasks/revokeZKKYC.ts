@@ -46,7 +46,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     recordRegistry,
     hre.ethers.provider,
     32,
-    1,
     printProgress,
   );
 
@@ -60,8 +59,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   console.log(
     chalk.green(
-      `Revoked the zkKYC certificate ${args.leafHash} on-chain at index ${
-        args.index as number
+      `Revoked the zkKYC certificate ${args.leafHash} on-chain at index ${args.index as number
       }`,
     ),
   );
