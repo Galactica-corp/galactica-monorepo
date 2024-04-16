@@ -10,9 +10,9 @@ import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
  */
 async function main() {
   // input
-  const registryAddress = '0x8b7f9322F2CF92908eDB02a76DD8A2cAd6E566B5';
+  const registryAddress = '0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD';
   const leavesToProve = [
-    '18690960663551599851791399135161671587129178295250696532568759418364345741293',
+    '880835428566192188762397152380361633406349765127880297460839764059573809692',
   ];
   const merkleDepth = 32;
 
@@ -26,7 +26,6 @@ async function main() {
     registry,
     ethers.provider,
     merkleDepth,
-    1,
     printProgress,
   );
   // console.log(`Merkle leaves: ${merkleTree.tree[0]}`);
