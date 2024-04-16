@@ -33,7 +33,7 @@ circuits/pot*.ptau
 dist
 
 # ignore created zkKYC files
-issuedZkKYCs/*.json
-merkleProofs/*.json
+issuedZkKYCs/**/*.json
+merkleProofs/**/*.json
 # and files with deployed smart contract addresses
-deployments/*.txt
+deployments/**/*.txt

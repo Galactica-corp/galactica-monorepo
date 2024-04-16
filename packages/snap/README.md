@@ -28,7 +28,7 @@ More context on Galactica can be found here: https://galactica.com/
 
 ### As a user
 
-Visit the [Galactica Passport site](https://app-devnet-v1.galactica.com/).
+Visit the [Galactica Passport site](https://app-reticulum.galactica.com/).
 
 It will guide you through the process of creating your first zkKYC. With it, you can prove and claim your Galactica citizenship on-chain.
 

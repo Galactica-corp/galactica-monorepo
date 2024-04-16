@@ -34,3 +34,18 @@ export function getUserAddress(): string {
   }
   return userAddress;
 }
+
+export async function detectSignerAddress() {
+  // @ts-ignore https://github.com/metamask/providers/issues/200
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  if (!signer) {
+    return undefined;
+  }
+
+  try {
+    return await signer.getAddress();
+  } catch (error) {
+    return undefined;
+  }
+}

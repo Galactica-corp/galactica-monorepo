@@ -15,6 +15,7 @@ import { buildBls12381, buildBn128 } from 'ffjavascript';
 import { groth16 } from 'snarkjs';
 
 import type { HolderData, PanelContent } from './types';
+import { stripURLProtocol } from './utils';
 
 /**
  * GenerateZkKycProof constructs and checks the zkKYC proof.
@@ -111,7 +112,9 @@ export function createProofConfirmationPrompt(
   const proofConfirmDialog = [
     heading('Disclosing zkCertificate Proof'),
     text(
-      `With this action you will create a ${params.requirements.zkCertStandard.toUpperCase()} proof for ${origin}.
+      `With this action you will create a ${params.requirements.zkCertStandard.toUpperCase()} proof for ${stripURLProtocol(
+        origin,
+      )}.
        This action tests whether your personal data fulfills the requirements of the proof.`,
     ),
     divider(),
@@ -120,7 +123,9 @@ export function createProofConfirmationPrompt(
   // Description of disclosures made by the proof have to be provided by the front-end because the snap can not analyze what the prover will do.
   if (params.description) {
     proofConfirmDialog.push(
-      text(`Description of the proof (provided by ${origin}):`),
+      text(
+        `Description of the proof (provided by ${stripURLProtocol(origin)}):`,
+      ),
       text(params.description),
     );
   } else {

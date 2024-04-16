@@ -84,16 +84,16 @@ export const ConnectSnapButton = (props: ComponentProps<typeof Button>) => {
   return (
     <Button {...props}>
       <FlaskFox />
-      <ButtonText>Connect</ButtonText>
+      <ButtonText>{props.text}</ButtonText>
     </Button>
   );
 };
 
-export const ConnectMMButton = (props: ComponentProps<typeof Button>) => {
+export const ConnectWalletButton = (props: ComponentProps<typeof Button>) => {
   return (
     <Button {...props}>
       <FlaskFox />
-      <ButtonText>{props.text}</ButtonText>
+      <ButtonText>Connect Wallet</ButtonText>
     </Button>
   );
 };
@@ -155,21 +155,23 @@ export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
 
 export const HeaderButtons = ({
   state,
-  onConnectClick,
+  onSnapConnectClick,
+  onWalletConnectClick,
 }: {
   state: MetamaskState;
-  onConnectClick(): unknown;
+  onSnapConnectClick(): unknown;
+  onWalletConnectClick(): unknown;
 }) => {
   if (!state.isFlask && !state.installedSnap) {
     return <InstallFlaskButton />;
   }
 
   if (!state.installedSnap) {
-    return <ConnectSnapButton onClick={onConnectClick} />;
+    return <ConnectSnapButton onClick={onSnapConnectClick} text={"Connect Snap"} />;
   }
 
-  if (shouldDisplayReconnectButton(state.installedSnap)) {
-    return <ReconnectButton onClick={onConnectClick} />;
+  if (!state.signer) {
+    return <ConnectWalletButton onClick={onWalletConnectClick} />;
   }
 
   return (
