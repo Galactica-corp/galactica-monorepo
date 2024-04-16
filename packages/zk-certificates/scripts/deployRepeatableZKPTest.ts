@@ -8,8 +8,8 @@ import { deployRepeatableZKPTest } from './deploymentSteps/repeatableZKPTest';
  */
 async function main() {
   // parameters
-  const verificationSBT = '0x7d1A6e0FC5ad5B20250B02fb735B640a4232a061';
-  const zkKYCRegistry = '0xAbb654092b5BCaeca2E854550c5C972602eF7dA8';
+  const verificationSBT = '0x9EA4559bf6d41237dc89A8e78691C4Ea0c2E8eB6';
+  const zkKYCRegistry = '0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD';
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
