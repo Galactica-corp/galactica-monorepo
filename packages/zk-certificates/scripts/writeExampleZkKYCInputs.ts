@@ -34,9 +34,12 @@ async function main() {
     'utf8',
   );
 
-
   // investigatable zkKYC proof with 3 Shamir shares
-  const investigatableZkKYCInput = await generateZkKYCProofInput(zkKYC, 3, '0x0');
+  const investigatableZkKYCInput = await generateZkKYCProofInput(
+    zkKYC,
+    3,
+    '0x0',
+  );
   fs.writeFileSync(
     './circuits/input/investigatableZkKYC.json',
     JSON.stringify(investigatableZkKYCInput, null, 2),

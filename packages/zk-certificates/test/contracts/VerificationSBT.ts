@@ -202,9 +202,7 @@ describe('Verification SBT Smart contract', () => {
     ).to.be.equal(true);
     // data is stored for the correct humanID
     expect(
-      await mockDApp.hasReceivedToken1(
-        fromHexToBytes32(fromDecToHex(humanID)),
-      ),
+      await mockDApp.hasReceivedToken1(fromHexToBytes32(fromDecToHex(humanID))),
     ).to.be.equal(true);
 
     // check the content of the verification SBT
@@ -229,9 +227,7 @@ describe('Verification SBT Smart contract', () => {
       publicInputs,
     );
     expect(
-      await mockDApp.hasReceivedToken2(
-        fromHexToBytes32(fromDecToHex(humanID)),
-      ),
+      await mockDApp.hasReceivedToken2(fromHexToBytes32(fromDecToHex(humanID))),
     ).to.be.true;
 
     // test decryption

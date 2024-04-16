@@ -86,7 +86,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `Revoked the zkKYC certificate ${args.leafHash} on-chain at index ${args.index as number
+      `Revoked the zkKYC certificate ${args.leafHash} on-chain at index ${
+        args.index as number
       }`,
     ),
   );
@@ -100,7 +101,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${args.index as number
+      `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${
+        args.index as number
       } with new expiration date ${args.newExpirationDate as number}`,
     ),
   );
