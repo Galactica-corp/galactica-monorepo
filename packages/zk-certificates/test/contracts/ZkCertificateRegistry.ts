@@ -14,7 +14,7 @@ import {
 } from '../../lib/helpers';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
-describe.only('ZkCertificateRegistry', () => {
+describe('ZkCertificateRegistry', () => {
   let deployer: SignerWithAddress;
 
   beforeEach(async () => {
