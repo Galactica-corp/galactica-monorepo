@@ -53,16 +53,31 @@ export async function queryOnChainLeaves(
     }
 
     // go through all logs adding a verification SBT for the user
-    const leafAddedLogs = await registry.queryFilter(
-      registry.filters.zkKYCRecordAddition(),
-      i,
-      maxBlock,
-    );
-    const leafRevokedLogs = await registry.queryFilter(
-      registry.filters.zkKYCRecordRevocation(),
-      i,
-      maxBlock,
-    );
+    let leafAddedLogs, leafRevokedLogs;
+    // retry on failure
+    for (let errorCounter = 0; errorCounter < 5; errorCounter++) {
+      try {
+        leafAddedLogs = await registry.queryFilter(
+          registry.filters.zkKYCRecordAddition(),
+          i,
+          maxBlock,
+        );
+        leafRevokedLogs = await registry.queryFilter(
+          registry.filters.zkKYCRecordRevocation(),
+          i,
+          maxBlock,
+        );
+        break;
+      } catch (error) {
+        console.error(error);
+        if (errorCounter === 4) {
+          throw Error(
+            `failed to get logs from ${i} to ${maxBlock} after 5 retries`,
+          );
+        }
+      }
+      console.error(`retrying...`);
+    }
 
     for (const log of leafAddedLogs) {
       resAdded.push({
