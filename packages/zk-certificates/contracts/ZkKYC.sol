@@ -82,6 +82,11 @@ contract ZkKYC is Ownable {
         fraudInvestigationInstitutions = _fraudInvestigationInstitutions;
     }
 
+    function verifyMerkleRoot(bytes32 merkleRoot) public view returns (bool) {
+      uint merkleRootIndex = KYCRegistry.merkleRootIndex(merkleRoot);
+      return merkleRootIndex >= KYCRegistry.merkleRootValidIndex();
+    }
+
     //a, b, c are the proof
     // input array contains the public parameters: isValid, root, currentTime
     function verifyProof(
@@ -98,8 +103,8 @@ contract ZkKYC is Ownable {
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
         require(
-            KYCRegistry.merkleRoot() == proofRoot,
-            "the root in the proof doesn't match"
+          verifyMerkleRoot(proofRoot),
+          "invalid merkle root"
         );
 
         uint proofCurrentTime = input[INDEX_CURRENT_TIME];

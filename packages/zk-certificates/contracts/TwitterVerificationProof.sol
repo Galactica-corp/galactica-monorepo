@@ -49,6 +49,11 @@ contract TwitterVerificationProof is Ownable {
         registry = newRegistry;
     }
 
+    function verifyMerkleRoot(bytes32 merkleRoot) public view returns (bool) {
+      uint merkleRootIndex = registry.merkleRootIndex(merkleRoot);
+      return merkleRootIndex >= registry.merkleRootValidIndex();
+    }
+
     //a, b, c are the proof
     // input array contains the public parameters: isValid, verificationExpirationTime, merkleRoot, currentTime, userAddress, providerPubKeyA, providerPubKeyB
     function verifyProof(
@@ -65,8 +70,8 @@ contract TwitterVerificationProof is Ownable {
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
         require(
-            registry.merkleRoot() == proofRoot,
-            "the root in the proof doesn't match"
+          verifyMerkleRoot(proofRoot),
+          "invalid merkle root"
         );
 
         uint proofCurrentTime = input[INDEX_CURRENT_TIME];

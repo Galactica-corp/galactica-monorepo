@@ -14,7 +14,7 @@ import {
 } from '../../lib/helpers';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
-describe('ZkCertificateRegistry', () => {
+describe.only('ZkCertificateRegistry', () => {
   let deployer: SignerWithAddress;
 
   beforeEach(async () => {
@@ -55,6 +55,12 @@ describe('ZkCertificateRegistry', () => {
     };
   }
 
+  function expectEqualArrays(a1, a2) {
+    const length1 = a1.length;
+    const length2 = a2.length;
+    expect(length1).to.be.equal(length2);
+  }
+
   it("shouldn't initialize twice", async () => {
     const { ZkCertificateRegistry, GuardianRegistry } =
       await loadFixture(deploy);
@@ -64,7 +70,7 @@ describe('ZkCertificateRegistry', () => {
     ).to.be.revertedWith('Initializable: contract is not initializing');
   });
 
-  it('should calculate zero values', async () => {
+  it('should initialize values correctly', async () => {
     const { ZkCertificateRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
@@ -77,18 +83,11 @@ describe('ZkCertificateRegistry', () => {
         fromHexToBytes32(fromDecToHex(merkleTree.emptyBranchLevels[i])),
       );
     }
-  });
-
-  it('should calculate empty root', async () => {
-    const { ZkCertificateRegistry } = await loadFixture(deploy);
-
-    const eddsa = await buildEddsa();
-    const treeDepth = 32;
-    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
-
-    // Should initialize empty root correctly
-    expect(await ZkCertificateRegistry.merkleRoot()).to.equal(
-      fromHexToBytes32(fromDecToHex(merkleTree.root)),
+    expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);
+    const merkleRoots = await ZkCertificateRegistry.getMerkleRoots();
+    // normal "expect" doesn't compare arrays so we need to compare length and iterate over elements
+    expectEqualArrays(merkleRoots, 
+      [ fromHexToBytes32(fromDecToHex(merkleTree.root)) ],
     );
   });
 
@@ -107,6 +106,7 @@ describe('ZkCertificateRegistry', () => {
 
     const leafHashes = generateRandomBytes32Array(5);
     const leafIndices = generateRandomNumberArray(5);
+    let merkleRoots = [fromHexToBytes32(fromDecToHex(merkleTree.root))];
     for (let i = 0; i < loops; i += 1) {
       // console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
       // add new zkCertificate and check the root
@@ -125,6 +125,19 @@ describe('ZkCertificateRegistry', () => {
       expect(await ZkCertificateRegistry.merkleRoot()).to.equal(
         fromHexToBytes32(fromDecToHex(merkleTree.root)),
       );
+      merkleRoots.push(fromHexToBytes32(fromDecToHex(merkleTree.root)));
+    }
+
+    // check the merkle root array is correctly set
+    const merkleRootsFromContract = await ZkCertificateRegistry.getMerkleRoots();
+    expectEqualArrays(merkleRootsFromContract, merkleRoots);
+    expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);
+    for (let i = 0; i < merkleRoots.length; i++) {
+      expect(await ZkCertificateRegistry.merkleRootIndex(merkleRoots[i])).to.be.equal(i);
+    }
+
+    for (let i = 0; i < leafHashes.length; i++) {
+      expect(await ZkCertificateRegistry.hashToMerkleRootIndex(leafHashes[i])).to.be.equal(i+1);
     }
   });
 
@@ -161,22 +174,25 @@ describe('ZkCertificateRegistry', () => {
       merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
     }
 
-    // now we will try to nullify the first added leaf
-    const merkleProof = merkleTree.createProof(leafIndices[0]);
+    // now we will try to nullify the third added leaf
+    const leafIndex = 2;
+    const merkleProof = merkleTree.createProof(leafIndices[leafIndex]);
     const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
     await ZkCertificateRegistry.revokeZkCertificate(
-      leafIndices[0],
-      leafHashes[0],
+      leafIndices[leafIndex],
+      leafHashes[leafIndex],
       merkleProofPath,
     );
-    merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[0]]);
+    merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[leafIndex]]);
 
     // Check roots match
     expect(await ZkCertificateRegistry.merkleRoot()).to.equal(
       fromHexToBytes32(fromDecToHex(merkleTree.root)),
     );
+
+    expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(leafIndex + 1);
   });
 
   it('only Guardian can add leaf', async function () {

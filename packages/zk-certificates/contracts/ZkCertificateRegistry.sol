@@ -43,7 +43,10 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     // array of all merkle roots
     bytes32[] public merkleRoots;
     // and from which index the merkle roots are still valid
-    uint256 public merkleRootValidIndex;
+    // we start from 1 because nonexistant merkle roots return 0 in the merkleRootIndex mapping
+    uint256 public merkleRootValidIndex = 1;
+    // we will also store the merkle root index in a mapping for quicker lookup
+    mapping(bytes32 => uint) public merkleRootIndex; 
     // store to each zkCertificateHash the merkle root index at the moment of addition
     mapping (bytes32 => uint) public hashToMerkleRootIndex;
 
@@ -79,6 +82,13 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     */ 
     function merkleRoot() public view returns (bytes32) {
       return merkleRoots[merkleRoots.length - 1];
+    }
+
+    /**
+    * @notice return the whole merkle root array
+     */
+    function getMerkleRoots() public view returns (bytes32[] memory) {
+      return merkleRoots;
     }
 
     /**
@@ -202,7 +212,9 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             'merkle proof is not valid'
         );
         // we update the merkle tree accordingly
-        merkleRoots.push(compute(merkleProof, index, newLeafHash));
+        bytes32 newMerkleRoot = compute(merkleProof, index, newLeafHash);
+        merkleRoots.push(newMerkleRoot);
+        merkleRootIndex[newMerkleRoot] = merkleRoots.length - 1;
     }
 
     /**
