@@ -139,6 +139,76 @@ describe('zkKYC SC', () => {
     await zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
   });
 
+  it('proof with older but still valid merkle root can still be verified', async () => {
+    const { proof, publicSignals } = await groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath,
+    );
+
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+    const publicTime = parseInt(
+      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
+      10,
+    );
+    // set the merkle root to the correct one
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    // add a new merkle root 
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex('0x11')),
+    );
+
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    const [piA, piB, piC] = processProof(proof);
+
+    const publicInputs = processPublicSignals(publicSignals);
+    await zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
+  });
+
+  it('revert for proof with old merkle root', async () => {
+    const { proof, publicSignals } = await groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath,
+    );
+
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+    const publicTime = parseInt(
+      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
+      10,
+    );
+    // set the merkle root to the correct one
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    // add a new merkle root 
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex('0x11')),
+    );
+
+    // increase the merkleRootValidIndex
+    await mockZkCertificateRegistry.setMerkleRootValidIndex(2);
+
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    const [piA, piB, piC] = processProof(proof);
+
+    const publicInputs = processPublicSignals(publicSignals);
+    await expect(
+      zkKYCContract.connect(user).verifyProof(piC, piB, piA, publicInputs),
+    ).to.be.revertedWith('invalid merkle root');
+  });
+
+
   it('incorrect proof failed to be verified', async () => {
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
@@ -204,7 +274,7 @@ describe('zkKYC SC', () => {
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
       zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
-    ).to.be.revertedWith("the root in the proof doesn't match");
+    ).to.be.revertedWith("invalid merkle root");
   });
 
   it('revert if time is too far from current time', async () => {
