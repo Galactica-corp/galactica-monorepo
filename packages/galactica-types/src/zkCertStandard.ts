@@ -24,7 +24,6 @@ export type ZkKYCContent = {
   verificationLevel: string;
 
   streetAndNumber: string;
-  addressSupplement: string;
   postcode: string;
   town: string;
   region: string;

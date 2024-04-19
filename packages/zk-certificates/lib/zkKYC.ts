@@ -12,13 +12,13 @@ import { hashStringToFieldNumber } from './helpers';
  * It hashes all string fields to be representable in zk circuits.
  * @param eddsa - Eddsa object from circomlibjs.
  * @param kycData - Input KYC data to be verified and hashed if necessary.
- * @returns Prepared KYC data, Expiration date for the certificate.
+ * @returns Prepared KYC data.
  * @throws Error if any of the required fields is missing.
  */
 export function prepareKYCFields(
   eddsa: Eddsa,
   kycData: any,
-): [Record<string, any>, number] {
+): Record<string, any> {
   // verify that all the fields are present
   const exceptions = ['holderCommitment'];
   const stringFieldsForHashing = [
@@ -55,9 +55,5 @@ export function prepareKYCFields(
     }
   }
 
-  if (kycData.expirationDate === undefined) {
-    throw new Error('Expiration date missing in KYC data');
-  }
-
-  return [zkKYCFields, kycData.expirationDate];
+  return zkKYCFields;
 }
