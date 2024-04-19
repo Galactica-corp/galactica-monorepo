@@ -28,10 +28,8 @@
     "test": "yarn workspaces foreach -vp run test"
   },
   "resolutions": {
-    "blake-hash": "patch:blake-hash@npm:2.0.0#.yarn/patches/blake-hash-npm-2.0.0-c63b9a2c2d.patch",
-    "circomlibjs": "patch:circomlibjs@npm:0.1.7#.yarn/patches/circomlibjs-npm-0.1.7-92fe3b3421.patch",
-    "ffjavascript": "patch:ffjavascript@npm:0.2.57#.yarn/patches/ffjavascript-npm-0.2.57-a4801c15bf.patch",
-    "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch"
+    "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch",
+    "ffjavascript": "0.3.0"
   },
   "devDependencies": {
     "@metamask/eslint-config": "^12.2.0",
@@ -56,6 +54,6 @@
   },
   "packageManager": "yarn@3.2.1",
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.6.0"
   }
 }

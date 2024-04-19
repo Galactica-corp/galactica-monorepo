@@ -11,8 +11,7 @@ import {
   encryptSafely,
   getEncryptionPublicKey,
 } from '@metamask/eth-sig-util';
-import type { SnapsGlobalObject } from '@metamask/rpc-methods';
-import { Buffer } from 'buffer';
+import type { SnapsGlobalObject } from '@metamask/snaps-types';
 
 import { checkZkCert } from './zkCertHandler';
 
@@ -33,7 +32,6 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
     },
   });
   const privKey = entropy.slice(2); // remove 0x prefix
-  prepareGlobalsForEthSigUtil();
   const publicKey = getEncryptionPublicKey(privKey);
   return { pubKey: publicKey, privKey };
 }
@@ -50,7 +48,6 @@ export function encryptZkCert(
   pubKey: string,
   holderCommitment: string,
 ): EncryptedZkCert {
-  prepareGlobalsForEthSigUtil();
   const encryptedZkCert = encryptSafely({
     publicKey: pubKey,
     data: zkCert,
@@ -71,7 +68,6 @@ export function decryptZkCert(
   encryptedZkCert: EncryptedZkCert,
   privKey: string,
 ): ZkCertRegistered {
-  prepareGlobalsForEthSigUtil();
   const decryptedMessage = decryptSafely({
     encryptedData: encryptedZkCert,
     privateKey: privKey,
@@ -107,12 +103,4 @@ export function checkEncryptedZkCertFormat(encryptedZkCert: EncryptedZkCert) {
       message: 'The imported zkCert does not contain a holder commitment.',
     });
   }
-}
-
-/**
- * Eth-sig-util expects a global Buffer object. I provide it here because I could not figure out how to provide it through the snap build process (webpack).
- */
-function prepareGlobalsForEthSigUtil() {
-  // eslint-disable-next-line no-restricted-globals
-  global.Buffer = Buffer;
 }
