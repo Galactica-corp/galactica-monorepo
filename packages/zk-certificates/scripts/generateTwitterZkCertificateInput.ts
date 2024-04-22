@@ -26,9 +26,12 @@ export const sampleFields = {
 
 /**
  * Generates a sample twitter ZkCertificate object with the given fields.
+ * @param fields - The fields to set in the twitter ZkCertificate object.
  * @returns Twitter ZkCertificate object promise.
  */
-export async function generateSampleTwitterZkCertificate(fields: any = sampleFields): Promise<ZkCertificate> {
+export async function generateSampleTwitterZkCertificate(
+  fields: any = sampleFields,
+): Promise<ZkCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -60,11 +63,12 @@ export async function generateSampleTwitterZkCertificate(fields: any = sampleFie
 /**
  * Generates the twitter ZkCertificate proof input for the twitter ZkCertificate smart contract.
  * @param twitterZkCertificate - The twitter ZkCertificate object.
+ * @param fields - The fields to set in the twitter ZkCertificate object.
  * @returns Zero Knowledge twitter proof input for the twitter ZkCertificate smart contract.
  */
 export async function generateTwitterZkCertificateProofInput(
   twitterZkCertificate: ZkCertificate,
-  fields: any = sampleFields
+  fields: any = sampleFields,
 ): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();

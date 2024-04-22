@@ -1,7 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai from 'chai';
-import { BigNumber } from 'ethers';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
@@ -11,7 +10,7 @@ import {
   processProof,
   processPublicSignals,
 } from '../../lib/helpers';
-import type {ZkCertificate } from '../../lib/zkCertificate';
+import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleTwitterZkCertificate,
   generateTwitterZkCertificateProofInput,
@@ -51,25 +50,29 @@ describe('twitterVerificationProof SC', () => {
     mockZkCertificateRegistry =
       (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
+    const twitterVerificationProofVerifierFactory =
+      await ethers.getContractFactory(
+        'TwitterVerificationProofVerifier',
+        deployer,
+      );
+    twitterVerificationProofVerifier =
+      (await twitterVerificationProofVerifierFactory.deploy()) as TwitterVerificationProofVerifier;
 
-    const twitterVerificationProofVerifierFactory = await ethers.getContractFactory(
-      'TwitterVerificationProofVerifier',
+    const twitterVerificationProofFactory = await ethers.getContractFactory(
+      'TwitterVerificationProof',
       deployer,
     );
-    twitterVerificationProofVerifier = (await twitterVerificationProofVerifierFactory.deploy()) as TwitterVerificationProofVerifier;
-
-    const twitterVerificationProofFactory = await ethers.getContractFactory('TwitterVerificationProof', deployer);
-    twitterVerificationProofContract = (await twitterVerificationProofFactory.deploy(
-      deployer.address,
-      twitterVerificationProofVerifier.address,
-      mockZkCertificateRegistry.address,
-      [],
-    )) as TwitterVerificationProof;
+    twitterVerificationProofContract =
+      (await twitterVerificationProofFactory.deploy(
+        deployer.address,
+        twitterVerificationProofVerifier.address,
+        mockZkCertificateRegistry.address,
+        [],
+      )) as TwitterVerificationProof;
 
     twitterZkCertificate = await generateSampleTwitterZkCertificate();
-    sampleInput = await generateTwitterZkCertificateProofInput(
-      twitterZkCertificate
-    );
+    sampleInput =
+      await generateTwitterZkCertificateProofInput(twitterZkCertificate);
 
     // get signer object authorized to use the zkCertificate record
     user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
@@ -88,11 +91,19 @@ describe('twitterVerificationProof SC', () => {
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
     // owner can change addresses
-    await twitterVerificationProofContract.connect(deployer).setVerifier(user.address);
-    await twitterVerificationProofContract.connect(deployer).setRegistry(user.address);
+    await twitterVerificationProofContract
+      .connect(deployer)
+      .setVerifier(user.address);
+    await twitterVerificationProofContract
+      .connect(deployer)
+      .setRegistry(user.address);
 
-    expect(await twitterVerificationProofContract.verifier()).to.be.equal(user.address);
-    expect(await twitterVerificationProofContract.registry()).to.be.equal(user.address);
+    expect(await twitterVerificationProofContract.verifier()).to.be.equal(
+      user.address,
+    );
+    expect(await twitterVerificationProofContract.registry()).to.be.equal(
+      user.address,
+    );
   });
 
   it('correct proof can be verified onchain', async () => {
@@ -102,9 +113,12 @@ describe('twitterVerificationProof SC', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     const publicTime = parseInt(
-      publicSignals[await twitterVerificationProofContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+      ],
       10,
     );
     // set the merkle root to the correct one
@@ -120,7 +134,9 @@ describe('twitterVerificationProof SC', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
 
-    await twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
+    await twitterVerificationProofContract
+      .connect(user)
+      .verifyProof(piA, piB, piC, publicInputs);
   });
 
   it('proof with older but still valid merkle root can still be verified', async () => {
@@ -130,9 +146,12 @@ describe('twitterVerificationProof SC', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     const publicTime = parseInt(
-      publicSignals[await twitterVerificationProofContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+      ],
       10,
     );
     // set the merkle root to the correct one
@@ -140,7 +159,7 @@ describe('twitterVerificationProof SC', () => {
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
-    // add a new merkle root 
+    // add a new merkle root
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex('0x11')),
     );
@@ -152,7 +171,9 @@ describe('twitterVerificationProof SC', () => {
     const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    await twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
+    await twitterVerificationProofContract
+      .connect(user)
+      .verifyProof(piA, piB, piC, publicInputs);
   });
 
   it('revert for proof with old merkle root', async () => {
@@ -162,9 +183,12 @@ describe('twitterVerificationProof SC', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     const publicTime = parseInt(
-      publicSignals[await twitterVerificationProofContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+      ],
       10,
     );
     // set the merkle root to the correct one
@@ -172,7 +196,7 @@ describe('twitterVerificationProof SC', () => {
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
-    // add a new merkle root 
+    // add a new merkle root
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex('0x11')),
     );
@@ -188,7 +212,9 @@ describe('twitterVerificationProof SC', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      twitterVerificationProofContract.connect(user).verifyProof(piC, piB, piA, publicInputs),
+      twitterVerificationProofContract
+        .connect(user)
+        .verifyProof(piC, piB, piA, publicInputs),
     ).to.be.revertedWith('invalid merkle root');
   });
 
@@ -199,7 +225,8 @@ describe('twitterVerificationProof SC', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
@@ -210,7 +237,9 @@ describe('twitterVerificationProof SC', () => {
 
     // switch c, a to get an incorrect proof
     await expect(
-      twitterVerificationProofContract.connect(user).verifyProof(piC, piB, piA, publicInputs),
+      twitterVerificationProofContract
+        .connect(user)
+        .verifyProof(piC, piB, piA, publicInputs),
     ).to.be.reverted;
   });
 
@@ -220,16 +249,16 @@ describe('twitterVerificationProof SC', () => {
     // make the twitterZkCertificate record expire leading to invalid proof output
     forgedInput.currentTime = Number(forgedInput.expirationTime) + 1;
 
-
     const { proof, publicSignals } = await groth16.fullProve(
       forgedInput,
       circuitWasmPath,
       circuitZkeyPath,
     );
-    expect(publicSignals[await twitterVerificationProofContract.INDEX_IS_VALID()]).to.be.equal(
-      '0',
-    );
-    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+    expect(
+      publicSignals[await twitterVerificationProofContract.INDEX_IS_VALID()],
+    ).to.be.equal('0');
+    const publicRoot =
+      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     // set the merkle root to the correct one
 
     await mockZkCertificateRegistry.setMerkleRoot(
@@ -240,7 +269,9 @@ describe('twitterVerificationProof SC', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+      twitterVerificationProofContract
+        .connect(user)
+        .verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith('the proof output is not valid');
   });
 
@@ -258,8 +289,10 @@ describe('twitterVerificationProof SC', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
-    ).to.be.revertedWith("invalid merkle root");
+      twitterVerificationProofContract
+        .connect(user)
+        .verifyProof(piA, piB, piC, publicInputs),
+    ).to.be.revertedWith('invalid merkle root');
   });
 
   it('revert if time is too far from current time', async () => {
@@ -269,9 +302,12 @@ describe('twitterVerificationProof SC', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     const publicTime = parseInt(
-      publicSignals[await twitterVerificationProofContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+      ],
       10,
     );
     // set the merkle root to the correct one
@@ -289,7 +325,9 @@ describe('twitterVerificationProof SC', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+      twitterVerificationProofContract
+        .connect(user)
+        .verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith('the current time is incorrect');
   });
 
@@ -300,9 +338,12 @@ describe('twitterVerificationProof SC', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     const publicTime = parseInt(
-      publicSignals[await twitterVerificationProofContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+      ],
       10,
     );
     // set the merkle root to the correct one
@@ -326,7 +367,6 @@ describe('twitterVerificationProof SC', () => {
   });
 
   it('unverified twitter account returns incorrect proof', async () => {
-
     const fields = {
       accountId: '23742384',
       creationTime: '23234234',
@@ -339,15 +379,20 @@ describe('twitterVerificationProof SC', () => {
       expirationTime: 1769736098,
     };
 
-    const twitterZkCertificateUnverified = await generateSampleTwitterZkCertificate(fields);
-    const sampleInputUnverified = await generateTwitterZkCertificateProofInput(twitterZkCertificateUnverified, fields);
+    const twitterZkCertificateUnverified =
+      await generateSampleTwitterZkCertificate(fields);
+    const sampleInputUnverified = await generateTwitterZkCertificateProofInput(
+      twitterZkCertificateUnverified,
+      fields,
+    );
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInputUnverified,
       circuitWasmPath,
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
@@ -356,9 +401,10 @@ describe('twitterVerificationProof SC', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
 
-
     await expect(
-      twitterVerificationProofContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+      twitterVerificationProofContract
+        .connect(user)
+        .verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith('the proof output is not valid');
   });
 });

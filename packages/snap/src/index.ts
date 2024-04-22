@@ -203,7 +203,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
       return proof;
     }
 
-
     case RpcMethods.ClearStorage: {
       confirm = await snap.request({
         method: 'snap_dialog',

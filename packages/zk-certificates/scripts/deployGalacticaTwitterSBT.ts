@@ -16,7 +16,8 @@ async function main() {
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   const issuer = '0xD8fd391410FDEA9da4e899770860EaE2db09Deab';
-  const uri = 'https://quicknode.quicknode-ipfs.com/ipfs/QmbBJ6huNN6CHKpFoNoPBWJsKq6CwPH7VvKpw6Re5GAsRB';
+  const uri =
+    'https://quicknode.quicknode-ipfs.com/ipfs/QmbBJ6huNN6CHKpFoNoPBWJsKq6CwPH7VvKpw6Re5GAsRB';
   const owner = deployer.address;
   const nftName = 'Genesis SBT';
   const nftSymbol = 'XNET';
@@ -29,7 +30,6 @@ async function main() {
     nftSymbol,
   ]);
   console.log(`The address of the contract is ${GalacticaTwitterSBT.address}`);
-
 }
 
 // We recommend this pattern to be able to use async/await everywhere

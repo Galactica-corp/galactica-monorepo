@@ -55,7 +55,12 @@ describe('ZkCertificateRegistry', () => {
     };
   }
 
-  function expectEqualArrays(a1, a2) {
+  /**
+   * Tests the equality of two arrays.
+   * @param a1 - The first array to compare.
+   * @param a2 - The second array to compare.
+   */
+  function expectEqualArrays(a1: any[], a2: any[]) {
     const length1 = a1.length;
     const length2 = a2.length;
     expect(length1).to.be.equal(length2);
@@ -86,9 +91,9 @@ describe('ZkCertificateRegistry', () => {
     expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);
     const merkleRoots = await ZkCertificateRegistry.getMerkleRoots();
     // normal "expect" doesn't compare arrays so we need to compare length and iterate over elements
-    expectEqualArrays(merkleRoots, 
-      [ fromHexToBytes32(fromDecToHex(merkleTree.root)) ],
-    );
+    expectEqualArrays(merkleRoots, [
+      fromHexToBytes32(fromDecToHex(merkleTree.root)),
+    ]);
   });
 
   it('should insert elements', async function () {
@@ -106,7 +111,7 @@ describe('ZkCertificateRegistry', () => {
 
     const leafHashes = generateRandomBytes32Array(5);
     const leafIndices = generateRandomNumberArray(5);
-    let merkleRoots = [fromHexToBytes32(fromDecToHex(merkleTree.root))];
+    const merkleRoots = [fromHexToBytes32(fromDecToHex(merkleTree.root))];
     for (let i = 0; i < loops; i += 1) {
       // console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
       // add new zkCertificate and check the root
@@ -129,15 +134,20 @@ describe('ZkCertificateRegistry', () => {
     }
 
     // check the merkle root array is correctly set
-    const merkleRootsFromContract = await ZkCertificateRegistry.getMerkleRoots();
+    const merkleRootsFromContract =
+      await ZkCertificateRegistry.getMerkleRoots();
     expectEqualArrays(merkleRootsFromContract, merkleRoots);
     expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);
     for (let i = 0; i < merkleRoots.length; i++) {
-      expect(await ZkCertificateRegistry.merkleRootIndex(merkleRoots[i])).to.be.equal(i);
+      expect(
+        await ZkCertificateRegistry.merkleRootIndex(merkleRoots[i]),
+      ).to.be.equal(i);
     }
 
     for (let i = 0; i < leafHashes.length; i++) {
-      expect(await ZkCertificateRegistry.hashToMerkleRootIndex(leafHashes[i])).to.be.equal(i+1);
+      expect(
+        await ZkCertificateRegistry.hashToMerkleRootIndex(leafHashes[i]),
+      ).to.be.equal(i + 1);
     }
   });
 
@@ -192,7 +202,9 @@ describe('ZkCertificateRegistry', () => {
       fromHexToBytes32(fromDecToHex(merkleTree.root)),
     );
 
-    expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(leafIndex + 1);
+    expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(
+      leafIndex + 1,
+    );
   });
 
   it('only Guardian can add leaf', async function () {

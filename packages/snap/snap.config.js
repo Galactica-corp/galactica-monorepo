@@ -1,9 +1,9 @@
 module.exports = {
-  input: "src/index.ts",
+  input: 'src/index.ts',
   output: {
-      path: "dist",
+    path: 'dist',
   },
   server: {
-      port: 8080,
+    port: 8080,
   },
 };

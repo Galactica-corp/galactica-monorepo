@@ -33,7 +33,10 @@ const config: HardhatUserConfig = {
     },
     galaReticulum: {
       url: 'https://evm-rpc-http-reticulum.galactica.com/',
-      accounts: getAccounts(),
+      accounts: [
+        process.env.GalaTestnetDeployerPrivateKey,
+        process.env.ReticulumGuardianPrivateKey,
+      ],
     },
   },
   etherscan: {
@@ -215,6 +218,12 @@ function getAccounts(): string[] {
     accounts.push(process.env.GalaTestnetInstitution3PrivateKey);
   } else {
     console.warn(`GalaTestnetInstitution3PrivateKey${warningMsg}`);
+    accounts.push(Wallet.createRandom().privateKey);
+  }
+  if (process.env.ReticulumGuardianPrivateKey) {
+    accounts.push(process.env.ReticulumGuardianPrivateKey);
+  } else {
+    console.warn(`ReticulumGuardian${warningMsg}`);
     accounts.push(Wallet.createRandom().privateKey);
   }
   return accounts;

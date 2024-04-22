@@ -156,7 +156,7 @@ describe('zkKYC SC', () => {
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
-    // add a new merkle root 
+    // add a new merkle root
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex('0x11')),
     );
@@ -188,7 +188,7 @@ describe('zkKYC SC', () => {
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
-    // add a new merkle root 
+    // add a new merkle root
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex('0x11')),
     );
@@ -207,7 +207,6 @@ describe('zkKYC SC', () => {
       zkKYCContract.connect(user).verifyProof(piC, piB, piA, publicInputs),
     ).to.be.revertedWith('invalid merkle root');
   });
-
 
   it('incorrect proof failed to be verified', async () => {
     const { proof, publicSignals } = await groth16.fullProve(
@@ -274,7 +273,7 @@ describe('zkKYC SC', () => {
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
       zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
-    ).to.be.revertedWith("invalid merkle root");
+    ).to.be.revertedWith('invalid merkle root');
   });
 
   it('revert if time is too far from current time', async () => {

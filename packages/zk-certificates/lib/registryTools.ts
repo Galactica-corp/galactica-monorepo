@@ -41,7 +41,7 @@ export async function issueZkCert(
     ),
   );
   await tx.wait();
-  const provider = contractToCall.provider;
+  const { provider } = contractToCall;
   const txReceipt = await provider.getTransactionReceipt(tx.hash);
   if (txReceipt.status !== 1) {
     throw Error('Transaction failed');

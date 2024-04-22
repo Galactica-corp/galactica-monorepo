@@ -60,7 +60,6 @@ export const generateZKProof = async (
   return response;
 };
 
-
 /**
  * GenerateZKProof2 prepares and executes the call to generate a ZKP in the Galactica snap.
  * You can use it to generate various kinds of proofs, depending on the input you pass.
@@ -73,7 +72,6 @@ export const generateZKProof2 = async (
   params: GenZkProofParams<ZkCertInputType>,
   snapOrigin: string = sdkConfig.defaultSnapOrigin,
 ) => {
-
   const response: ZkCertProof = await invokeSnap(
     {
       method: RpcMethods.GenTwitterFollowersCountProof,

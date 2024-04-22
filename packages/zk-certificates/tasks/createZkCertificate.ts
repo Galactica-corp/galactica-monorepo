@@ -15,7 +15,6 @@ import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { issueZkCert } from '../lib/registryTools';
 import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
-import { encryptZkCert } from `@galactica-net/snap/src/encryption`;
 
 /**
  * Script for creating a zkCertificate, issuing it and adding a merkle proof for it.
@@ -43,10 +42,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     zkCertificateType = ZkCertStandard.TwitterZkCertificate;
   } else {
     throw new Error(
-      `ZkCertStandard type ${args.zkCertificateType} is unsupported`
+      `ZkCertStandard type ${args.zkCertificateType} is unsupported`,
     );
   }
-  const zkCertificateFields = prepareZkCertificateFields(eddsa, data, zkCertificateType);
+  const zkCertificateFields = prepareZkCertificateFields(
+    eddsa,
+    data,
+    zkCertificateType,
+  );
 
   // read holder commitment file
   const holderCommitmentFile = JSON.parse(
@@ -61,7 +64,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   } else {
     randomSalt = parseInt(args.randomSalt, 10);
   }
-
 
   console.log('Creating zkCertificate...');
   // TODO: create ZkKYC subclass requiring all the other fields
@@ -82,20 +84,20 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   if (args.registryAddress === undefined) {
     console.log(
-      'zkCertificate', JSON.stringify(zkCertificate.exportRaw(), null, 2),
+      'zkCertificate',
+      JSON.stringify(zkCertificate.exportRaw(), null, 2),
     );
     console.log(
       chalk.yellow(
         "Parameter 'registry-address' is missing. The zkCertificate has not been issued on chain",
       ),
     );
-    return;
   } else {
     const recordRegistry = await hre.ethers.getContractAt(
       'ZkCertificateRegistry',
       args.registryAddress,
     );
-  
+
     console.log(
       'Generating merkle proof. This might take a while because it needs to query on-chain data...',
     );
@@ -107,7 +109,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       1,
       printProgress,
     );
-  
+
     console.log('Issuing zkCertificate...');
     const { merkleProof, registration } = await issueZkCert(
       zkCertificate,
@@ -120,7 +122,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
         `Issued the zkCertificate certificate ${zkCertificate.did} on chain at index ${registration.leafIndex}`,
       ),
     );
-  
+
     // print to console for developers and testers, not necessary for production
     const rawJSON = {
       ...zkCertificate.exportRaw(),
@@ -128,7 +130,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       registration,
     };
     console.log(JSON.stringify(rawJSON, null, 2));
-  
+
     console.log(chalk.green('This ZkCertificate can be imported in a wallet'));
     // write encrypted zkCertificate output to file
     const output = zkCertificate.exportJson(
@@ -136,18 +138,23 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       merkleProof,
       registration,
     );
-  
+
     const outputFileName: string =
       args.outputFile || `issuedZkCertificates/${zkCertificate.leafHash}.json`;
     fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
     fs.writeFileSync(outputFileName, output);
-    console.log(chalk.green(`Written ZkCertificate to output file ${outputFileName}`));
+    console.log(
+      chalk.green(`Written ZkCertificate to output file ${outputFileName}`),
+    );
 
     console.log(chalk.green('done'));
   }
 }
 
-task('createZkCertificate', 'Task to create a zkKYC certificate with input parameters')
+task(
+  'createZkCertificate',
+  'Task to create a zkKYC certificate with input parameters',
+)
   .addParam(
     'holderFile',
     'Path to the file containing the encryption key and the holder commitment fixing the address of the holder without disclosing it to the provider',

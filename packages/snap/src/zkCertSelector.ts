@@ -2,7 +2,7 @@
 import {
   twitterZkCertificateContentFields,
   zkKYCContentFields,
-  ZkCertStandard
+  ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import type { ZkCertRegistered } from '@galactica-net/snap-api';
 import { RpcResponseErr } from '@galactica-net/snap-api';

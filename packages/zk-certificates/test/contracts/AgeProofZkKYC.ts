@@ -153,7 +153,7 @@ describe('ageProofZkKYC SC', () => {
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
-    // add a new merkle root 
+    // add a new merkle root
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex('0x11')),
     );
@@ -185,7 +185,7 @@ describe('ageProofZkKYC SC', () => {
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
-    // add a new merkle root 
+    // add a new merkle root
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex('0x11')),
     );
@@ -272,7 +272,7 @@ describe('ageProofZkKYC SC', () => {
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
       ageProofZkKYC.connect(user).verifyProof(piC, piB, piA, publicInputs),
-    ).to.be.revertedWith("invalid merkle root");
+    ).to.be.revertedWith('invalid merkle root');
   });
 
   it('revert if time is too far from current time', async () => {

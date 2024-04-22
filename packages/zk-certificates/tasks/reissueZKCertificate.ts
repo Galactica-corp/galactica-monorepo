@@ -36,15 +36,20 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // read certificate data file
   const data = JSON.parse(fs.readFileSync(args.zkCertificateDataFile, 'utf-8'));
   let zkCertificateType;
-  if (args.zkCertificateType == 'zkKYC') {
+  if (args.zkCertificateType === 'zkKYC') {
     zkCertificateType = ZkCertStandard.ZkKYC;
-  } else if (args.zkCertificateType == `twitterZkCertificate`) {
+  } else if (args.zkCertificateType === `twitterZkCertificate`) {
     zkCertificateType = ZkCertStandard.TwitterZkCertificate;
   } else {
-    throw new Error(`ZkCertStandard type ${args.zkCertificateType} is unsupported`);
+    throw new Error(
+      `ZkCertStandard type ${args.zkCertificateType} is unsupported`,
+    );
   }
-  const zkCertificateFields = prepareZkCertificateFields(eddsa, data, zkCertificateType);
-
+  const zkCertificateFields = prepareZkCertificateFields(
+    eddsa,
+    data,
+    zkCertificateType,
+  );
 
   // read holder commitment file
   const holderCommitmentFile = JSON.parse(
@@ -138,7 +143,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.outputFile || `issuedZkCertificates/${newZkCertificate.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
   fs.writeFileSync(outputFileName, output);
-  console.log(chalk.green(`Written ZkCertificate to output file ${outputFileName}`));
+  console.log(
+    chalk.green(`Written ZkCertificate to output file ${outputFileName}`),
+  );
 
   console.log(chalk.green('done'));
 }

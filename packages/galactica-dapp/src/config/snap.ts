@@ -51,7 +51,6 @@ export const zkKYCPublicInputDescriptions = [
   'zkKYC guardian pubkey Ay',
 ];
 
-
 export const twitterFollowersCountProofPublicInputDescriptions = [
   'proof valid',
   'verification SBT expiration',
