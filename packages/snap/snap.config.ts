@@ -16,6 +16,10 @@ const config: SnapConfig = {
         definePlugin.definitions['process.env.DEBUG;'] = '"false";';
       }
     }
+    // if (res.optimization) {
+    //   // simplify debugging the bundle.js
+    //   res.optimization.minimize = false;
+    // }
     return res;
   },
   input: resolve(__dirname, 'src/index.ts'),

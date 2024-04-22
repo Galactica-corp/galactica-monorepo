@@ -29,7 +29,8 @@
   },
   "resolutions": {
     "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch",
-    "ffjavascript": "0.3.0"
+    "ffjavascript": "0.3.0",
+    "ejs": "patch:ejs@npm:3.1.9#.yarn/patches/ejs-npm-3.1.9-e201b2088c.patch"
   },
   "devDependencies": {
     "@metamask/eslint-config": "^12.2.0",
