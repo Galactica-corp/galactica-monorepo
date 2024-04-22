@@ -3730,7 +3730,7 @@ __metadata:
     "@metamask/eslint-config-nodejs": ^12.1.0
     "@metamask/eslint-config-typescript": ^12.1.0
     "@metamask/eth-sig-util": ^7.0.1
-    "@metamask/providers": ^16.0.0
+    "@metamask/providers": ^13.0.0
     "@metamask/rpc-methods": ^3.0.0
     "@metamask/snaps-cli": ^6.1.0
     "@metamask/snaps-sdk": ^4.0.1
