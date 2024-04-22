@@ -16,12 +16,13 @@ template CalculateZkCertHash(){
     signal input providerR8y;
     signal input holderCommitment;
     signal input randomSalt;
+    signal input expirationDate;
 
     // zkCertHash as output
     signal output zkCertHash;
 
     // calculation using a Poseidon component
-    component _zkCertHash = Poseidon(8);
+    component _zkCertHash = Poseidon(9);
     _zkCertHash.inputs[0] <== contentHash;
     _zkCertHash.inputs[1] <== providerAx;
     _zkCertHash.inputs[2] <== providerAy;
@@ -30,6 +31,7 @@ template CalculateZkCertHash(){
     _zkCertHash.inputs[5] <== providerR8y;
     _zkCertHash.inputs[6] <== holderCommitment;
     _zkCertHash.inputs[7] <== randomSalt;
+    _zkCertHash.inputs[8] <== expirationDate;
 
     zkCertHash <== _zkCertHash.out;
 }

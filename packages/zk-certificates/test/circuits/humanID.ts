@@ -46,7 +46,7 @@ describe('HumanID Component', () => {
       'main.yearOfBirth',
       sampleInput.yearOfBirth.toString(),
     );
-    assert.propertyVal(witness, 'main.passportID', sampleInput.passportID);
+    assert.propertyVal(witness, 'main.citizenship', sampleInput.citizenship);
     assert.propertyVal(witness, 'main.dAppAddress', sampleInput.dAppAddress);
     // check resulting output
     assert.propertyVal(witness, 'main.humanID', expectedID);

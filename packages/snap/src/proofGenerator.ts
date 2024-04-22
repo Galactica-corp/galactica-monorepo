@@ -55,6 +55,7 @@ export const generateZkKycProof = async (
 
     ...zkCert.content,
     randomSalt: zkCert.randomSalt,
+    expirationDate: zkCert.expirationDate,
 
     ...zkCert.getOwnershipProofInput(holder.eddsaKey),
 
@@ -74,8 +75,6 @@ export const generateZkKycProof = async (
     leafIndex: merkleProof.leafIndex,
 
     userPrivKey: encryptionPrivKey,
-
-    humanID: zkCert.getHumanID(processedParams.input.dAppAddress),
   };
 
   try {

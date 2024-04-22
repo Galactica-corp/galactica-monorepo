@@ -44,12 +44,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // generate random number as salt for new zkKYC
   const randomSalt = Math.floor(Math.random() * 2 ** 32);
 
-  zkKYCFields.expirationDate = args.newExpirationDate;
   const newZkKYC = new ZKCertificate(
     holderCommitmentFile.holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
     randomSalt,
+    args.expirationDate,
     zkKYCFields,
   );
 
@@ -70,7 +70,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     recordRegistry,
     hre.ethers.provider,
     32,
-    1,
     printProgress,
   );
 
@@ -102,7 +101,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     chalk.green(
       `reissued the zkKYC certificate ${newZkKYC.did} on chain at index ${
         args.index as number
-      } with new expiration date ${args.newExpirationDate as number}`,
+      } with new expiration date ${args.expirationDate as number}`,
     ),
   );
 
@@ -142,7 +141,13 @@ task(
     types.int,
     true,
   )
-  .addParam('newExpirationDate', 'new expiration date', 0, types.int, true)
+  .addParam(
+    'expirationDate',
+    'New expiration date how long the zkCert should be valid (as Unix timestamp)',
+    0,
+    types.int,
+    true,
+  )
   .addParam(
     'holderFile',
     'Path to the file containing the encryption key and the holder commitment fixing the address of the holder without disclosing it to the provider',

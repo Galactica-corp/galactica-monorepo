@@ -7,7 +7,6 @@ component main {public [
   currentTime, 
   userAddress, 
   investigationInstitutionPubKey, 
-  humanID, 
   dAppAddress,
   providerAx,
   providerAy

@@ -16,6 +16,7 @@ include "./zkKYC.circom";
 template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input holderCommitment;
     signal input randomSalt;
+    signal input expirationDate;
 
     // zkKYC data fields
     signal input surname;
@@ -25,14 +26,12 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input monthOfBirth;
     signal input dayOfBirth;
     signal input verificationLevel;
-    signal input expirationDate;
     signal input streetAndNumber;
     signal input postcode;
     signal input town;
     signal input region;
     signal input country;
     signal input citizenship;
-    signal input passportID;
 
     // variables related to the merkle proof
     signal input pathElements[levels];
@@ -68,9 +67,9 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     //inputs for encryption of fraud investigation data (rest is below because of variable length)
     signal input userPrivKey;
 
-    //humanID related variable
-    //humanID as public input, so dApp can use it
-    signal input humanID;
+    // humanID for uniquly  counting and identifying persons
+    signal output humanID;
+
     //dAppAddress is public so it can be checked by the dApp
     signal input dAppAddress;
 
@@ -84,7 +83,7 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input providerR8y;
 
     // final result
-    signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
+    signal output userPubKey[2]; // required in case of fraud investigation to generate symmetric EDDSA key for decryption
     signal output valid;
     signal output verificationExpiration; 
 
@@ -95,6 +94,7 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     component zkKYC = ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN);
     zkKYC.holderCommitment <== holderCommitment;
     zkKYC.randomSalt <== randomSalt;
+    zkKYC.expirationDate <== expirationDate;
     zkKYC.surname <== surname;
     zkKYC.forename <== forename;
     zkKYC.middlename <== middlename;
@@ -102,13 +102,11 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     zkKYC.monthOfBirth <== monthOfBirth;
     zkKYC.dayOfBirth <== dayOfBirth;
     zkKYC.verificationLevel <== verificationLevel;
-    zkKYC.expirationDate <== expirationDate;
     zkKYC.streetAndNumber <== streetAndNumber;
     zkKYC.postcode <== postcode;
     zkKYC.town <== town;
     zkKYC.region <== region;
     zkKYC.country <== country;
-    zkKYC.passportID <== passportID;
     zkKYC.citizenship <== citizenship;
     zkKYC.userPrivKey <== userPrivKey;
     for (var i = 0; i < shamirN; i++) {
@@ -135,7 +133,6 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     zkKYC.s2 <== s2;
     zkKYC.r8x2 <== r8x2;
     zkKYC.r8y2 <== r8y2;
-    zkKYC.humanID <== humanID;
     zkKYC.dAppAddress <== dAppAddress;
     userPubKey[0] <== zkKYC.userPubKey[0];
     userPubKey[1] <== zkKYC.userPubKey[1];
@@ -144,6 +141,7 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
         encryptedData[i][1] <== zkKYC.encryptedData[i][1];
     }
     verificationExpiration <== zkKYC.verificationExpiration;
+    humanID <== zkKYC.humanID;
 
     component ageProof = AgeProof();
     ageProof.yearOfBirth <== yearOfBirth;

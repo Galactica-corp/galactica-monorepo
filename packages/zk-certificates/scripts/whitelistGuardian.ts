@@ -9,7 +9,7 @@ import { whitelistGuardian } from './deploymentSteps/whitelistGuardian';
 async function main() {
   // parameters
   const [deployer] = await ethers.getSigners();
-  const centerRegistryAddr = '0xeF1D3A76AC69bc8861f18d41Ef10D2C74A646cA6';
+  const centerRegistryAddr = '0x45Da9c7a3B497757DCc07327507029535D9A3097';
   const guardian = deployer;
   const guardianName = 'Galactica Test Guardian';
 

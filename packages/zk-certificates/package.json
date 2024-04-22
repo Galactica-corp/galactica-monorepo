@@ -44,13 +44,12 @@
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
     "ethers": "^5.7.2",
-    "ffjavascript": "^0.2.57",
-    "hardhat-circom": "^3.3.2",
+    "ffjavascript": "^0.3.0",
     "keccak256": "^1.0.6",
     "snarkjs": "^0.5.0"
   },
   "devDependencies": {
-    "@metamask/eth-sig-util": "^6.0.0",
+    "@metamask/eth-sig-util": "^7.0.1",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.4",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.3",
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
@@ -67,6 +66,7 @@
     "download": "^8.0.0",
     "eslint": "^8.53.0",
     "hardhat": "^2.10.1",
+    "hardhat-circom": "^3.3.2",
     "hardhat-gas-reporter": "^1.0.8",
     "solidity-coverage": "^0.7.21",
     "ts-node": "^10.9.1",

@@ -44,6 +44,8 @@ export class ZKCertificate implements ZkCertData {
 
   public randomSalt: number;
 
+  public expirationDate: number;
+
   public content: Record<string, any>;
 
   public providerData: ProviderData;
@@ -54,6 +56,7 @@ export class ZKCertificate implements ZkCertData {
    * @param zkCertStandard - ZkCert standard to use.
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
+   * @param expirationDate - Expiration date of the zkCert.
    * @param content - ZKCertificate parameters, can be set later.
    * @param providerData - Provider data, can be set later.
    */
@@ -62,6 +65,7 @@ export class ZKCertificate implements ZkCertData {
     zkCertStandard: ZkCertStandard,
     eddsa: Eddsa,
     randomSalt: number,
+    expirationDate: number,
     content: Record<string, any> = {}, // standardize field definitions
     providerData: ProviderData = {
       ax: '0',
@@ -77,6 +81,7 @@ export class ZKCertificate implements ZkCertData {
     this.fieldPoseidon = this.poseidon.F;
     this.eddsa = eddsa;
     this.randomSalt = randomSalt;
+    this.expirationDate = expirationDate;
     this.content = content;
     this.providerData = providerData;
   }
@@ -103,6 +108,7 @@ export class ZKCertificate implements ZkCertData {
           this.providerData.r8y,
           this.holderCommitment,
           this.randomSalt,
+          this.expirationDate,
         ],
         undefined,
         1,
@@ -170,6 +176,7 @@ export class ZKCertificate implements ZkCertData {
       contentHash: this.contentHash,
       providerData: this.providerData,
       randomSalt: this.randomSalt,
+      expirationDate: this.expirationDate,
     };
     return doc;
   }
@@ -334,14 +341,9 @@ export class ZKCertificate implements ZkCertData {
     ).toString();
   }
 
-  public getHumanIDProofInput(
-    dAppAddress: string,
-    passportID: string,
-  ): HumanIDProofInput {
+  public getHumanIDProofInput(dAppAddress: string): HumanIDProofInput {
     return {
       dAppAddress,
-      passportID,
-      humanID: this.getHumanID(dAppAddress),
     };
   }
 }

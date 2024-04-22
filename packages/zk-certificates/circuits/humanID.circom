@@ -18,7 +18,7 @@ template HumanID(){
     signal input yearOfBirth;
     signal input monthOfBirth;
     signal input dayOfBirth;
-    signal input passportID; // KYC providers should ensure that only passports are accepted, so that there are no other card ids for the same person, e.g. drivers license
+    signal input citizenship;
     signal input dAppAddress;
 
     // zkCertHash as output
@@ -31,7 +31,7 @@ template HumanID(){
     hash.inputs[3] <== yearOfBirth;
     hash.inputs[4] <== monthOfBirth;
     hash.inputs[5] <== dayOfBirth;
-    hash.inputs[6] <== passportID;
+    hash.inputs[6] <== citizenship;
     hash.inputs[7] <== dAppAddress;
 
     humanID <== hash.out;

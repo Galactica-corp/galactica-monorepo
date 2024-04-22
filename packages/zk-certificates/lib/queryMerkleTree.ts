@@ -53,16 +53,31 @@ export async function queryOnChainLeaves(
     }
 
     // go through all logs adding a verification SBT for the user
-    const leafAddedLogs = await registry.queryFilter(
-      registry.filters.zkKYCRecordAddition(),
-      i,
-      maxBlock,
-    );
-    const leafRevokedLogs = await registry.queryFilter(
-      registry.filters.zkKYCRecordRevocation(),
-      i,
-      maxBlock,
-    );
+    let leafAddedLogs, leafRevokedLogs;
+    // retry on failure
+    for (let errorCounter = 0; errorCounter < 5; errorCounter++) {
+      try {
+        leafAddedLogs = await registry.queryFilter(
+          registry.filters.zkKYCRecordAddition(),
+          i,
+          maxBlock,
+        );
+        leafRevokedLogs = await registry.queryFilter(
+          registry.filters.zkKYCRecordRevocation(),
+          i,
+          maxBlock,
+        );
+        break;
+      } catch (error) {
+        console.error(error);
+      }
+      console.error(`retrying...`);
+    }
+    if (!leafAddedLogs || !leafRevokedLogs) {
+      throw Error(
+        `failed to get logs from ${i} to ${maxBlock} after 5 retries`,
+      );
+    }
 
     for (const log of leafAddedLogs) {
       resAdded.push({
@@ -114,7 +129,6 @@ export async function queryOnChainLeaves(
  * @param recordRegistry - Contract of the registry storing the Merkle tree on-chain.
  * @param provider - Ethers provider.
  * @param merkleDepth - Depth of the Merkle tree.
- * @param firstBlock - First block to query (optional, ideally the contract creation block).
  * @param onProgress - Callback function to be called with the progress in percent.
  * @returns Reconstructed Merkle tree.
  */
@@ -122,9 +136,10 @@ export async function buildMerkleTreeFromRegistry(
   recordRegistry: Contract,
   provider: providers.Provider,
   merkleDepth: number,
-  firstBlock = 1,
   onProgress?: (percent: string) => void,
 ): Promise<SparseMerkleTree> {
+  const firstBlock = (await recordRegistry.initBlockHeight()).toNumber();
+
   const leafLogResults = await queryOnChainLeaves(
     provider,
     recordRegistry as KYCRecordRegistry,

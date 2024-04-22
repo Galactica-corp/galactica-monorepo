@@ -53,6 +53,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     ZkCertStandard.ZkKYC,
     eddsa,
     randomSalt,
+    args.expirationDate,
     zkKYCFields,
   );
 
@@ -85,7 +86,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     recordRegistry,
     hre.ethers.provider,
     32,
-    1,
     printProgress,
   );
 
@@ -140,6 +140,13 @@ task('createZkKYC', 'Task to create a zkKYC certificate with input parameters')
     'The file containing the KYC data',
     undefined,
     types.string,
+    false,
+  )
+  .addParam(
+    'expirationDate',
+    'How long should the zkCert be valid? (as Unix timestamp)',
+    undefined,
+    types.int,
     false,
   )
   .addParam(

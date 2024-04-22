@@ -44,9 +44,9 @@ export function getZkCertStorageOverview(
         ax: zkCert.providerData.ax,
         ay: zkCert.providerData.ay,
       },
+      expirationDate: zkCert.expirationDate,
     };
     if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
-      disclosureData.expirationDate = zkCert.content.expirationDate;
       disclosureData.verificationLevel = zkCert.content.verificationLevel;
     }
     sharedZkCerts[zkCert.zkCertStandard].push(disclosureData);
