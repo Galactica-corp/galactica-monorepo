@@ -18,10 +18,10 @@ const config: SnapConfig = {
         definePlugin.definitions['process.env.DEBUG;'] = '"false";';
       }
     }
-    if (res.optimization) {
-      // simplify debugging the bundle.js
-      res.optimization.minimize = false;
-    }
+    // if (res.optimization) {
+    //   // simplify debugging the bundle.js
+    //   res.optimization.minimize = false;
+    // }
     return res;
   },
   // eslint-disable-next-line no-restricted-globals
