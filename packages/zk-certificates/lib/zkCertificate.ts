@@ -44,6 +44,8 @@ export class ZkCertificate implements ZkCertData {
 
   public randomSalt: number;
 
+  public expirationDate: number;
+
   public content: Record<string, any>;
 
   public providerData: ProviderData;
@@ -57,6 +59,7 @@ export class ZkCertificate implements ZkCertData {
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
    * @param contentFields - Names of fields making up the content, default to be ZkKYC.
+   * @param expirationDate - Expiration date of the zkCert.
    * @param content - ZKCertificate parameters, can be set later.
    * @param providerData - Provider data, can be set later.
    */
@@ -65,6 +68,7 @@ export class ZkCertificate implements ZkCertData {
     zkCertStandard: ZkCertStandard,
     eddsa: Eddsa,
     randomSalt: number,
+    expirationDate: number,
     contentFields: string[] = zkKYCContentFields,
     content: Record<string, any> = {}, // standardize field definitions
     providerData: ProviderData = {
@@ -81,6 +85,7 @@ export class ZkCertificate implements ZkCertData {
     this.fieldPoseidon = this.poseidon.F;
     this.eddsa = eddsa;
     this.randomSalt = randomSalt;
+    this.expirationDate = expirationDate;
     this.content = content;
     this.providerData = providerData;
     this.contentFields = contentFields;
@@ -108,6 +113,7 @@ export class ZkCertificate implements ZkCertData {
           this.providerData.r8y,
           this.holderCommitment,
           this.randomSalt,
+          this.expirationDate,
         ],
         undefined,
         1,
@@ -175,6 +181,7 @@ export class ZkCertificate implements ZkCertData {
       contentHash: this.contentHash,
       providerData: this.providerData,
       randomSalt: this.randomSalt,
+      expirationDate: this.expirationDate,
     };
     return doc;
   }
@@ -339,14 +346,9 @@ export class ZkCertificate implements ZkCertData {
     ).toString();
   }
 
-  public getHumanIDProofInput(
-    dAppAddress: string,
-    passportID: string,
-  ): HumanIDProofInput {
+  public getHumanIDProofInput(dAppAddress: string): HumanIDProofInput {
     return {
       dAppAddress,
-      passportID,
-      humanID: this.getHumanID(dAppAddress),
     };
   }
 }

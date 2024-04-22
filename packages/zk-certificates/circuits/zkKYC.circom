@@ -23,6 +23,7 @@ include "./shamirsSecretSharing.circom";
 template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input holderCommitment;
     signal input randomSalt;
+    signal input expirationDate;
 
     // zkKYC data fields
     signal input surname;
@@ -32,14 +33,12 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input monthOfBirth;
     signal input dayOfBirth;
     signal input verificationLevel;
-    signal input expirationDate;
     signal input streetAndNumber;
     signal input postcode;
     signal input town;
     signal input region;
     signal input country;
     signal input citizenship;
-    signal input passportID;
 
     // provider's EdDSA signature of the leaf hash
     signal input providerS;
@@ -72,9 +71,8 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     //inputs for encryption of fraud investigation data (rest is below because of variable length)
     signal input userPrivKey;
 
-    //humanID related variable
-    //humanID as public input, so dApp can use it
-    signal input humanID;
+    // humanID for uniquly  counting and identifying persons
+    signal output humanID;
 
     //dAppAddress is public so it can be checked by the dApp
     signal input dAppAddress;
@@ -83,7 +81,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     signal input providerAx;
     signal input providerAy;
 
-    signal output userPubKey[2]; // becomes public as part of the output to check that it corresponds to user address
+    signal output userPubKey[2]; // required in case of fraud investigation to generate symmetric EDDSA key for decryption
     signal output valid;
     signal output verificationExpiration; 
 
@@ -109,10 +107,10 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     authorization.ay <== ay;
     authorization.s <== s2;
     authorization.r8x <== r8x2;
-    authorization.r8y <== r8y2; 
+    authorization.r8y <== r8y2;
 
     // content hash for zkKYC data
-    component contentHash = Poseidon(15);
+    component contentHash = Poseidon(13);
     contentHash.inputs[0] <== surname;
     contentHash.inputs[1] <== forename;
     contentHash.inputs[2] <== middlename;
@@ -120,14 +118,12 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     contentHash.inputs[4] <== monthOfBirth;
     contentHash.inputs[5] <== dayOfBirth;
     contentHash.inputs[6] <== verificationLevel;
-    contentHash.inputs[7] <== expirationDate;
-    contentHash.inputs[8] <== streetAndNumber;
-    contentHash.inputs[9] <== postcode;
-    contentHash.inputs[10] <== town;
-    contentHash.inputs[11] <== region;
-    contentHash.inputs[12] <== country;
-    contentHash.inputs[13] <== citizenship;
-    contentHash.inputs[14] <== passportID;
+    contentHash.inputs[7] <== streetAndNumber;
+    contentHash.inputs[8] <== postcode;
+    contentHash.inputs[9] <== town;
+    contentHash.inputs[10] <== region;
+    contentHash.inputs[11] <== country;
+    contentHash.inputs[12] <== citizenship;
 
     // provider signature verification
     component providerSignatureCheck = ProviderSignatureCheck();
@@ -149,6 +145,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     zkCertHash.providerR8y <== providerR8y;
     zkCertHash.holderCommitment <== holderCommitment;
     zkCertHash.randomSalt <== randomSalt;
+    zkCertHash.expirationDate <== expirationDate;
 
     // use the merkle proof component to calculate the root
     component merkleProof = MerkleProof(levels);
@@ -182,7 +179,7 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
 
         // encrypt shamir shares for each of the receiving institutions
         for (var i = 0; i < shamirN; i++) {
-            encryptionProof[i] = encryptionProof();
+            encryptionProof[i] = EncryptionProof();
             encryptionProof[i].senderPrivKey <== userPrivKey;
             encryptionProof[i].receiverPubKey[0] <== investigationInstitutionPubKey[i][0];
             encryptionProof[i].receiverPubKey[1] <== investigationInstitutionPubKey[i][1];
@@ -204,10 +201,10 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     calculateHumanId.yearOfBirth <== yearOfBirth;
     calculateHumanId.monthOfBirth <== monthOfBirth;
     calculateHumanId.dayOfBirth <== dayOfBirth;
-    calculateHumanId.passportID <== passportID;
+    calculateHumanId.citizenship <== citizenship;
     calculateHumanId.dAppAddress <== dAppAddress;
     
-    calculateHumanId.humanID === humanID;
+    humanID <== calculateHumanId.humanID;
 
     // check that the time has not expired
     component timeHasntPassed = GreaterThan(128);

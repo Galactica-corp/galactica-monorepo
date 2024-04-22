@@ -1,0 +1,14 @@
+diff --git a/lib/ejs.js b/lib/ejs.js
+index 65590eaed0d7fdf600b08fdc51e90083f5960595..1a314e6321b9126da3cd864321c6b62a71409319 100755
+--- a/lib/ejs.js
++++ b/lib/ejs.js
+@@ -106,7 +106,8 @@ exports.localsName = _DEFAULT_LOCALS_NAME;
+  * @public
+  */
+ 
+-exports.promiseImpl = (new Function('return this;'))().Promise;
++// PATCHED to make it pass through snap evaluation for SES
++exports.promiseImpl = (new Function('return this;'))() ? (new Function('return this;'))().Promise : undefined;
+ 
+ /**
+  * Get the path to the included file from the parent file path and the

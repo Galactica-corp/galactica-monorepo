@@ -8,6 +8,7 @@ export const defaultSnapOrigin =
 export const npmSnapOrigin = `npm:@galactica-net/snap`;
 
 export const zkKYCAgeProofPublicInputDescriptions = [
+  'human id',
   'user pubkey Ax',
   'user pubkey Ay',
   'proof valid',
@@ -25,7 +26,6 @@ export const zkKYCAgeProofPublicInputDescriptions = [
   'current month',
   'current day',
   'age threshold',
-  'human id',
   'dapp address',
   'zkKYC guardian pubkey Ax',
   'zkKYC guardian pubkey Ay',
@@ -38,6 +38,7 @@ export const zkKYCAgeProofPublicInputDescriptions = [
 ];
 
 export const zkKYCPublicInputDescriptions = [
+  'human id',
   'user pubkey Ax',
   'user pubkey Ay',
   'proof valid',
@@ -45,7 +46,6 @@ export const zkKYCPublicInputDescriptions = [
   'merkle root',
   'current time',
   'user address',
-  'human id',
   'dapp address',
   'zkKYC guardian pubkey Ax',
   'zkKYC guardian pubkey Ay',

@@ -50,6 +50,10 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     // store to each zkCertificateHash the merkle root index at the moment of addition
     mapping (bytes32 => uint) public hashToMerkleRootIndex;
 
+    // Block height at which the contract was initialized
+    // You can use it to speed up finding all logs of the contract by starting from this block
+    uint256 public initBlockHeight;
+
     // The Merkle path to the leftmost leaf upon initialization. It *should
     // not* be modified after it has been set by the initialize function.
     // Caching these values is essential to efficient appends.
@@ -102,18 +106,18 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
 
     description = _description;
         /*
-    To initialize the Merkle tree, we need to calculate the Merkle root
-    assuming that each leaf is the zero value.
-    H(H(a,b), H(c,d))
-      /          \
-    H(a,b)     H(c,d)
-    /   \       /  \
-    a    b     c    d
-    `zeros` and `filledSubTrees` will come in handy later when we do
-    inserts or updates. e.g when we insert a value in index 1, we will
-    need to look up values from those arrays to recalculate the Merkle
-    root.
-    */
+        To initialize the Merkle tree, we need to calculate the Merkle root
+        assuming that each leaf is the zero value.
+        H(H(a,b), H(c,d))
+        /          \
+        H(a,b)     H(c,d)
+        /   \       /  \
+        a    b     c    d
+        `zeros` and `filledSubTrees` will come in handy later when we do
+        inserts or updates. e.g when we insert a value in index 1, we will
+        need to look up values from those arrays to recalculate the Merkle
+        root.
+        */
 
         // Calculate zero values
         zeros[0] = ZERO_VALUE;
@@ -133,6 +137,9 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         // Set merkle root
         merkleRoots.push(currentZero);
         _GuardianRegistry = GuardianRegistry(GuardianRegistry_);
+
+        // Set the block height at which the contract was initialized
+        initBlockHeight = block.number;
     }
 
     /**

@@ -20,14 +20,12 @@ export const fields = {
   monthOfBirth: 5,
   dayOfBirth: 28,
   verificationLevel: '1',
-  expirationDate: 1769736098,
   streetAndNumber: '23423453234234',
   postcode: '23423453234234',
   town: '23423453234234',
   region: '23423453234234',
   country: '23423453234234',
   citizenship: '23423453234234',
-  passportID: '3095472098',
 };
 
 /**
@@ -50,6 +48,7 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
     ZkCertStandard.ZkKYC,
     eddsa,
     1773,
+    1769736098,
   );
 
   // set the fields in zkKYC object
@@ -111,10 +110,7 @@ export async function generateZkKYCProofInput(
 
   const encryptionPrivKey = await getEddsaKeyFromEthSigner(encryptionAccount);
 
-  const humanIDProofInput = zkKYC.getHumanIDProofInput(
-    dAppAddress,
-    fields.passportID,
-  );
+  const humanIDProofInput = zkKYC.getHumanIDProofInput(dAppAddress);
 
   // initiate an empty merkle tree
   const merkleTree = new MerkleTree(32, eddsa.poseidon);
@@ -129,6 +125,7 @@ export async function generateZkKYCProofInput(
   // general zkCert fields
   zkKYCInput.holderCommitment = zkKYC.holderCommitment;
   zkKYCInput.randomSalt = zkKYC.randomSalt;
+  zkKYCInput.expirationDate = zkKYC.expirationDate;
 
   zkKYCInput.pathElements = merkleProof.pathElements;
   zkKYCInput.leafIndex = merkleProof.leafIndex;
@@ -170,7 +167,6 @@ export async function generateZkKYCProofInput(
 
   // add humanID data
   zkKYCInput.dAppAddress = humanIDProofInput.dAppAddress;
-  zkKYCInput.humanID = humanIDProofInput.humanID;
 
   return zkKYCInput;
 }

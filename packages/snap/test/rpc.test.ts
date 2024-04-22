@@ -405,7 +405,7 @@ describe('Test rpc handler function', function () {
       expect(
         res[zkCert.zkCertStandard][0].expirationDate,
         'testing expiration date of 0',
-      ).to.equal(zkCert.content.expirationDate);
+      ).to.equal(zkCert.expirationDate);
     });
 
     it('should update a zkCert if a renewed version is imported at the same position in the Merkle tree', async function () {
@@ -419,7 +419,7 @@ describe('Test rpc handler function', function () {
 
       const renewedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
       // some made up content analog to a renewed zkCert
-      renewedZkCert.content.expirationDate += 20;
+      renewedZkCert.expirationDate += 20;
       renewedZkCert.leafHash = zkCert2.leafHash;
       // note that the merkle path indices and registry address stay the same
 
@@ -698,11 +698,11 @@ describe('Test rpc handler function', function () {
       expect(
         res[zkCert.zkCertStandard][0].expirationDate,
         'testing expiration date of 0',
-      ).to.equal(zkCert.content.expirationDate);
+      ).to.equal(zkCert.expirationDate);
       expect(
         res[zkCert.zkCertStandard][1].expirationDate,
         'testing expiration date of 1',
-      ).to.equal(zkCert2.content.expirationDate);
+      ).to.equal(zkCert2.expirationDate);
       expect(
         res[zkCert.zkCertStandard][1].verificationLevel,
         'testing verification level',
@@ -980,7 +980,7 @@ describe('Test rpc handler function', function () {
       const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.DeleteZkCert, {
           zkCertStandard: zkCert.zkCertStandard,
-          expirationDate: zkCert.content.expirationDate,
+          expirationDate: zkCert.expirationDate,
         }),
         snapProvider,
         ethereumProvider,

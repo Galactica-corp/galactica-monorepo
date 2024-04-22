@@ -21,14 +21,10 @@ export type ZkKYCContent = {
   birthDay: string;
 
   citizenship: string;
-  passportID: string;
 
   verificationLevel: string;
 
-  expirationDate: string;
-
   streetAndNumber: string;
-  addressSupplement: string;
   postcode: string;
   town: string;
   region: string;
@@ -47,6 +43,7 @@ export const zkCertCommonFields = [
   'providerR8y',
   'holderCommitment',
   'randomSalt',
+  'expirationDate',
 ];
 
 /**
@@ -61,14 +58,22 @@ export const zkKYCContentFields = [
   'monthOfBirth',
   'dayOfBirth',
   'verificationLevel',
-  'expirationDate',
   'streetAndNumber',
   'postcode',
   'town',
   'region',
   'country',
   'citizenship',
-  'passportID',
+];
+
+/**
+ * List of fields in zkKYC that are optional. They are still included in a zkKYC, but can be empty.
+ */
+export const zkKYCOptionalContent = [
+  'streetAndNumber',
+  'postcode',
+  'town',
+  'region',
 ];
 
 /**
@@ -81,7 +86,7 @@ export const humanIDFieldOrder = [
   'yearOfBirth',
   'monthOfBirth',
   'dayOfBirth',
-  'passportID',
+  'citizenship',
   'dAppAddress',
 ];
 

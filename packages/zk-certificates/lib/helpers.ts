@@ -47,10 +47,15 @@ export function fromHexToDec(hexInput: string): string {
  * @returns Hex string.
  */
 export function fromDecToHex(decInput: string, withPrefix = false): string {
-  if (withPrefix) {
-    return `0x${new BigNumber(decInput, 10).toString(16)}`;
+  let hexDigits = new BigNumber(decInput, 10).toString(16);
+  if (hexDigits.length % 2) {
+    // make sure the hex string has even number of digits
+    hexDigits = `0${hexDigits}`;
   }
-  return new BigNumber(decInput, 10).toString(16);
+  if (withPrefix) {
+    return `0x${hexDigits}`;
+  }
+  return hexDigits;
 }
 
 /**

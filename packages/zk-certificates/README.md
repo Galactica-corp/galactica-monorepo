@@ -97,7 +97,7 @@ First collect the certificate data and holder commitment from the user. For exam
 Then you can sign it using the following hardhat task (replace holder commitment and file)
 
 ```shell
-yarn hardhat createZkCertificate --holder-file example/holderCommitment.json --zk-certificate-data-file example/kycFields.json --zk-certificate-type zkKYC --random-salt 1773 --registry-address 0xAbb654092b5BCaeca2E854550c5C972602eF7dA8 --network galaAndromeda
+yarn hardhat createZkKYC --holder-file example/holderCommitment.json --kyc-data-file example/test.json --registry-address 0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD --expiration-date 2344658820 --network reticulum
 ```
 
 The task issues the resulting zkCert on-chain and provides a merkle proof for it.

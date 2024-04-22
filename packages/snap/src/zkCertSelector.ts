@@ -39,10 +39,10 @@ export async function selectZkCert(
       (value.zkCertStandard === zkCertStandard ||
         zkCertStandard === undefined) &&
       // not expired (if zkCert has expiration date) or same as filtered
-      (value.content.expirationDate === undefined ||
-        (value.content.expirationDate >= Date.now() / 1000 &&
+      (value.expirationDate === undefined ||
+        (value.expirationDate >= Date.now() / 1000 &&
           expirationDate === undefined) ||
-        value.content.expirationDate === expirationDate) &&
+        value.expirationDate === expirationDate) &&
       // same provider, if defined as filter
       (providerAx === undefined || value.providerData.ax === providerAx) &&
       (registryAddress === undefined ||
@@ -86,7 +86,7 @@ export async function selectZkCert(
       // custom information to display depending on the type of zkCert
       if (zkCertStandard === 'gip69') {
         const certExpirationDate = new Date(
-          filteredCerts[i].content.expirationDate * 1000,
+          filteredCerts[i].expirationDate * 1000,
         );
         zkCertDisplay.push(
           text(`Valid until: ${certExpirationDate.toDateString()}`),
@@ -144,6 +144,7 @@ export async function selectZkCert(
     eddsa,
     selected.randomSalt,
     contentFields,
+    selected.expirationDate,
     selected.content,
     selected.providerData,
   );

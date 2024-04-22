@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./Ownable.sol";
-import "./interfaces/IZkKYCVerifier.sol";
-import "./interfaces/IZkCertificateRegistry.sol";
-import "./interfaces/IGalacticaInstitution.sol";
+import './Ownable.sol';
+import './interfaces/IZkKYCVerifier.sol';
+import './interfaces/IKYCRegistry.sol';
+import './interfaces/IGalacticaInstitution.sol';
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of ZkKYC record existence
@@ -12,7 +12,7 @@ contract ZkKYC is Ownable {
     IZkKYCVerifier public verifier;
     IZkCertificateRegistry public KYCRegistry;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;
-    uint256 public constant timeDifferenceTolerance = 30*60; // the maximal difference between the onchain time and public input current time
+    uint256 public constant timeDifferenceTolerance = 30 * 60; // the maximal difference between the onchain time and public input current time
 
     // indices of the ZKP public input array
     uint8 public immutable INDEX_USER_PUBKEY_AX;
@@ -45,20 +45,20 @@ contract ZkKYC is Ownable {
         }
 
         // set public input indices according to the number of institutions
-        INDEX_USER_PUBKEY_AX = 0;
-        INDEX_USER_PUBKEY_AY = 1;
-        INDEX_IS_VALID = 2;
-        INDEX_VERIFICATION_EXPIRATION = 3;
+        INDEX_HUMAN_ID = 0;
+        INDEX_USER_PUBKEY_AX = 1;
+        INDEX_USER_PUBKEY_AY = 2;
+        INDEX_IS_VALID = 3;
+        INDEX_VERIFICATION_EXPIRATION = 4;
 
         // for each institution there are two fields containing the encrypted data of the shamir shares
-        START_INDEX_ENCRYPTED_DATA = 4;
+        START_INDEX_ENCRYPTED_DATA = 5;
         uint8 institutionKeyEntries = 2 *
             uint8(fraudInvestigationInstitutions.length);
 
-        INDEX_ROOT = 4 + institutionKeyEntries;
-        INDEX_CURRENT_TIME = 5 + institutionKeyEntries;
-        INDEX_USER_ADDRESS = 6 + institutionKeyEntries;
-        INDEX_HUMAN_ID = 7 + institutionKeyEntries;
+        INDEX_ROOT = 5 + institutionKeyEntries;
+        INDEX_CURRENT_TIME = 6 + institutionKeyEntries;
+        INDEX_USER_ADDRESS = 7 + institutionKeyEntries;
         INDEX_DAPP_ID = 8 + institutionKeyEntries;
         INDEX_PROVIDER_PUBKEY_AX = 9 + institutionKeyEntries;
         INDEX_PROVIDER_PUBKEY_AY = 10 + institutionKeyEntries;
@@ -97,9 +97,9 @@ contract ZkKYC is Ownable {
     ) public view returns (bool) {
         require(
             input.length == 11 + 4 * fraudInvestigationInstitutions.length,
-            "the public proof input has an incorrect length (also considering the amount of investigation institutions)"
+            'the public proof input has an incorrect length (also considering the amount of investigation institutions)'
         );
-        require(input[INDEX_IS_VALID] == 1, "the proof output is not valid");
+        require(input[INDEX_IS_VALID] == 1, 'the proof output is not valid');
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
         require(
@@ -116,13 +116,13 @@ contract ZkKYC is Ownable {
         }
         require(
             timeDiff <= timeDifferenceTolerance,
-            "the current time is incorrect"
+            'the current time is incorrect'
         );
 
         // dev note: if we ever use proof hash, make sure to pay attention to this truncation to uint160 as it can violate uniqueness
         require(
             tx.origin == address(uint160(input[INDEX_USER_ADDRESS])),
-            "transaction submitter is not authorized to use this proof"
+            'transaction submitter is not authorized to use this proof'
         );
 
         // check that the institution public keys corresponds to the onchain ones;
@@ -130,16 +130,16 @@ contract ZkKYC is Ownable {
             require(
                 fraudInvestigationInstitutions[i].institutionPubKey(0) ==
                     input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2 * i],
-                "the first part of institution pubkey is incorrect"
+                'the first part of institution pubkey is incorrect'
             );
             require(
                 fraudInvestigationInstitutions[i].institutionPubKey(1) ==
                     input[START_INDEX_INVESTIGATION_INSTITUTIONS + 2 * i + 1],
-                "the second part of institution pubkey is incorrect"
+                'the second part of institution pubkey is incorrect'
             );
         }
 
-        require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
+        require(verifier.verifyProof(a, b, c, input), 'the proof is incorrect');
         return true;
     }
 
