@@ -34,8 +34,8 @@ const config: HardhatUserConfig = {
     galaReticulum: {
       url: 'https://evm-rpc-http-reticulum.galactica.com/',
       accounts: [
-        process.env.GalaTestnetDeployerPrivateKey,
-        process.env.ReticulumGuardianPrivateKey,
+        process.env.GalaTestnetDeployerPrivateKey ?? '',
+        process.env.ReticulumGuardianPrivateKey ?? '',
       ],
     },
   },
