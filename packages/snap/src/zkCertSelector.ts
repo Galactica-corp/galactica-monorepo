@@ -73,7 +73,7 @@ export async function selectZkCert(
       ];
 
       // custom information to display depending on the type of zkCert
-      if (zkCertStandard === 'gip69') {
+      if (zkCertStandard === 'gip1') {
         const certExpirationDate = new Date(
           filteredCerts[i].expirationDate * 1000,
         );

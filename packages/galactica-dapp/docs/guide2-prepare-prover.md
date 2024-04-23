@@ -41,7 +41,7 @@ export type GenZkKycRequestParams<ProofInputType> = {
 
 // requirements on the type of zkCert that is used as proof input
 export type ZkCertRequirements = {
-  // identifier of the zkCert standard (e.g. gip69 for zkKYC)
+  // identifier of the zkCert standard (e.g. gip1 for zkKYC)
   zkCertStandard: string;
 };
 ```
