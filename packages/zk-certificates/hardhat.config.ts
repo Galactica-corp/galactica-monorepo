@@ -8,7 +8,7 @@ import type { HardhatUserConfig } from 'hardhat/config';
 
 import './tasks/createZkCertificate';
 import './tasks/smartCircuitBuild';
-import './tasks/revokeZkCertificate';
+import './tasks/revokeZKCertificate';
 import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
 

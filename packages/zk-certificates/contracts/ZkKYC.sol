@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import './Ownable.sol';
 import './interfaces/IZkKYCVerifier.sol';
-import './interfaces/IKYCRegistry.sol';
+import './interfaces/IZkCertificateRegistry.sol';
 import './interfaces/IGalacticaInstitution.sol';
 
 /// @author Galactica dev team
