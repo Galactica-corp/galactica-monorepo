@@ -47,7 +47,7 @@ export const generateProof = async (
         params: {
           input: proofInput,
           requirements: {
-            zkCertStandard: 'gip69',
+            zkCertStandard: 'gip1',
           },
           wasm: proverData.wasm,
           zkeyHeader: proverData.zkeyHeader,
@@ -87,7 +87,7 @@ const res: any = await generateProof(
 );
 ```
 
-This sends the proof request to the Galactica Snap. The user can view what data is disclosed by the proof and accept or reject it. The generation is automatically rejected, if the user has not setup and imported a matching zkCert, in this example a `gip69` zkKYC.
+This sends the proof request to the Galactica Snap. The user can view what data is disclosed by the proof and accept or reject it. The generation is automatically rejected, if the user has not setup and imported a matching zkCert, in this example a `gip1` zkKYC.
 
 If the request fails, it throws an error. It might also happen that the prover is unable to find a proof for the given input. The error then contains a backtrace to the Circom component that fails to satisfy an assertion. This component can give a hint on what condition fails. This could be for example:
 
