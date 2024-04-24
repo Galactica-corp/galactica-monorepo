@@ -87,7 +87,7 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     authorization.r8y <== r8y2;
 
     // content hash for twitter ZkCertificate data
-    component contentHash = Poseidon(9);
+    component contentHash = Poseidon(8);
     contentHash.inputs[0] <== accountId;
     contentHash.inputs[1] <== creationTime;
     contentHash.inputs[2] <== location;
@@ -96,7 +96,6 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     contentHash.inputs[5] <== friendsCount;
     contentHash.inputs[6] <== likesCount;
     contentHash.inputs[7] <== postsCount;
-    contentHash.inputs[8] <== expirationTime;
 
     // provider signature verification
     component providerSignatureCheck = ProviderSignatureCheck();
@@ -118,6 +117,7 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     zkCertHash.providerR8y <== providerR8y;
     zkCertHash.holderCommitment <== holderCommitment;
     zkCertHash.randomSalt <== randomSalt;
+    zkCertHash.expirationDate <== expirationTime;
 
     // use the merkle proof component to calculate the root
     component merkleProof = MerkleProof(levels);
