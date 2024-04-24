@@ -3,12 +3,21 @@ pragma solidity ^0.8.9;
 
 import "./interfaces/IVerificationSBT.sol";
 import "./interfaces/IVerifierWrapper.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /// @author Galactica dev team
-/// @title A global smart contract that store verification SBT, minted by dApp for users submitting zk proofs
-contract VerificationSBT is IVerificationSBT {
+/// @title A global smart contract that store verification SBTs, minted by dApp for users submitting zk proofs
+contract VerificationSBT is IVerificationSBT, IERC721 {
     // mapping to store verification SBT
     mapping(bytes32 => VerificationSBTInfo) public VerificationSBTMapping;
+    // number of SBTs minted for each user address
+    mapping(address => uint256) public balances;
+    // token id counter
+    uint256 public tokenCounter;
+    // token id to owner
+    mapping(uint256 => address) public tokenIdToOwner;
+    // token id to dApp
+    mapping(uint256 => address) public tokenIdToDApp;
 
     /// Block number at which the contract was created, so that the frontend can search for logs from here instead of searching from genesis.
     uint64 public deploymentBlock;
@@ -33,6 +42,7 @@ contract VerificationSBT is IVerificationSBT {
         bytes32 _humanID,
         uint256[2] calldata _providerPubKey
     ) external {
+        uint tokenId = tokenCounter;
         // The function is public so anyone can call it, but the msg.sender is included in the key, so that each dApp can only mint SBTs corresponding to it. When we search for relevant SBTs we only care about the corresponding mapping keys.
         VerificationSBTMapping[
             keccak256(abi.encode(user, msg.sender))
@@ -44,9 +54,16 @@ contract VerificationSBT is IVerificationSBT {
             encryptedData: _encryptedData,
             userPubKey: _userPubKey,
             humanID: _humanID,
-            providerPubKey: _providerPubKey
+            providerPubKey: _providerPubKey,
+            tokenId: tokenId
         });
-        emit VerificationSBTMinted(msg.sender, user, _humanID);
+
+        tokenIdToOwner[tokenId] = user;
+        tokenIdToDApp[tokenId] = msg.sender;
+        tokenCounter += 1;
+        balances[user] += 1;
+        // emit VerificationSBTMinted(msg.sender, user, _humanID);
+        emit Transfer(address(0), user, tokenId);
     }
 
     function isVerificationSBTValid(
@@ -81,4 +98,27 @@ contract VerificationSBT is IVerificationSBT {
         return
             VerificationSBTMapping[keccak256(abi.encode(user, dApp))].humanID;
     }
+
+    function balanceOf(address user) external view returns (uint256 balance) {
+      balance = balances[user];
+    }
+
+    function ownerOf(uint256 tokenId) external view returns (address) {
+        return tokenIdToOwner[tokenId];
+    }
+
+
+    // functions required by ERC721 interface but not used in this contract
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external {
+      revert();
+    }
+    function safeTransferFrom(address from, address to, uint256 tokenId) external {
+      revert();
+    };
+    function transferFrom(address from, address to, uint256 tokenId) external {
+      revert();
+    };
+    function setApprovalForAll(address operator, bool approved) external {
+      revert();
+    };
 }
