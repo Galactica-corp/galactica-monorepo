@@ -69,6 +69,7 @@
   },
   "registration": {
     "address": "0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD",
+    "chainID": 9302,
     "revocable": true,
     "leafIndex": 2
   }

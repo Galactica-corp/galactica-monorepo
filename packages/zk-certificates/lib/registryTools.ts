@@ -50,6 +50,7 @@ export async function issueZkCert(
     merkleProof: leafInsertedMerkleProof,
     registration: {
       address: recordRegistry.address,
+      chainID: (await recordRegistry.provider.getNetwork()).chainId,
       revocable: true,
       leafIndex: chosenLeafIndex,
     },

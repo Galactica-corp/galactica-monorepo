@@ -69,6 +69,8 @@ export type ZkCertData = {
  */
 export type ZkCertRegistration = {
   address: string;
+  // EVM chain ID the registration smart contract is deployed on
+  chainID: number;
   revocable: boolean;
   leafIndex: number;
 };
