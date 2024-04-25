@@ -37,7 +37,7 @@ import {
   getZkCertStorageHashes,
   getZkCertStorageOverview,
 } from './zkCertHandler';
-import { selectZkCert } from './zkCertSelector';
+import { selectZkCert, filterZkCerts } from './zkCertSelector';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
@@ -67,12 +67,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const genParams = request.params as unknown as GenZkProofParams<any>;
       checkZkKycProofRequest(genParams);
 
-      const zkCert = await selectZkCert(
-        snap,
-        state.zkCerts,
-        genParams.requirements.zkCertStandard,
-        genParams.requirements.registryAddress,
-      );
+      const zkCert = await selectZkCert(snap, state.zkCerts, {
+        zkCertStandard: genParams.requirements.zkCertStandard,
+        registryAddress: genParams.requirements.registryAddress,
+      });
       holder = getHolder(zkCert.holderCommitment, state.holders);
 
       const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts);
@@ -277,10 +275,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const zkCertForExport = await selectZkCert(
         snap,
         state.zkCerts,
-        exportParams.zkCertStandard,
-        exportParams.registryAddress,
-        exportParams.expirationDate,
-        exportParams.providerAx,
+        exportParams,
       );
       const zkCertStorageData = getZkCert(
         zkCertForExport.leafHash,
@@ -331,6 +326,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
     }
 
     case RpcMethods.ListZkCerts: {
+      const listParams = request.params as ZkCertSelectionParams;
+
       // This method returns a list of zkCertificate details so that a front-end can help the user to identify imported zkCerts and whether they are still valid.
       // The data contains expiration date, issuer and verification level. We ask for confirmation to prevent tracking of users.
       confirm = await snap.request({
@@ -355,8 +352,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
           message: RpcResponseErr.RejectedConfirm,
         });
       }
-
-      return getZkCertStorageOverview(state.zkCerts);
+      const filteredCerts = filterZkCerts(state.zkCerts, listParams);
+      return getZkCertStorageOverview(filteredCerts);
     }
 
     case RpcMethods.GetZkCertStorageHashes: {
@@ -451,10 +448,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const zkCertToDelete = await selectZkCert(
         snap,
         state.zkCerts,
-        deleteParams.zkCertStandard,
-        deleteParams.registryAddress,
-        deleteParams.expirationDate,
-        deleteParams.providerAx,
+        deleteParams,
       );
 
       confirm = await snap.request({
