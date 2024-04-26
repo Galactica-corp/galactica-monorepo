@@ -26,8 +26,8 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
     // See https://docs.openzeppelin.com/learn/upgrading-smart-contracts#upgrading
 
     // The tree depth and size
-    uint256 internal constant TREE_DEPTH = 32;
-    uint256 internal constant TREE_SIZE = 2 ** 32;
+    uint256 public treeDepth;
+    uint256 public treeSize;
 
     // Tree zero value
     bytes32 public constant ZERO_VALUE =
@@ -42,11 +42,6 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
     // Block height at which the contract was initialized
     // You can use it to speed up finding all logs of the contract by starting from this block
     uint256 public initBlockHeight;
-
-    // The Merkle path to the leftmost leaf upon initialization. It *should
-    // not* be modified after it has been set by the initialize function.
-    // Caching these values is essential to efficient appends.
-    bytes32[TREE_DEPTH] public zeros;
 
     // a mapping to store which KYC center manages which ZKKYCRecords
     mapping(bytes32 => address) public ZKKYCRecordToCenter;
@@ -68,7 +63,8 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
      * @dev OpenZeppelin initializer ensures this can only be called once
      */
     function initializeKYCRecordRegistry(
-        address GuardianRegistry_
+        address GuardianRegistry_,
+        uint256 treeDepth_
     ) internal onlyInitializing {
         /*
         To initialize the Merkle tree, we need to calculate the Merkle root
@@ -78,23 +74,15 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
         H(a,b)     H(c,d)
         /   \       /  \
         a    b     c    d
-        `zeros` and `filledSubTrees` will come in handy later when we do
-        inserts or updates. e.g when we insert a value in index 1, we will
-        need to look up values from those arrays to recalculate the Merkle
-        root.
         */
-
-        // Calculate zero values
-        zeros[0] = ZERO_VALUE;
+        treeDepth = treeDepth_;
+        treeSize = 2 ** treeDepth;
 
         // Store the current zero value for the level we just calculated it for
         bytes32 currentZero = ZERO_VALUE;
 
         // Loop through each level
-        for (uint256 i = 0; i < TREE_DEPTH; i += 1) {
-            // Push it to zeros array
-            zeros[i] = currentZero;
-
+        for (uint256 i = 0; i < treeDepth; i += 1) {
             // Calculate the zero value for this level
             currentZero = hashLeftRight(currentZero, currentZero);
         }
@@ -197,7 +185,7 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
         uint256 index,
         bytes32 leafHash,
         bytes32 _merkleRoot
-    ) internal pure returns (bool) {
+    ) internal view returns (bool) {
         return (compute(merkleProof, index, leafHash) == _merkleRoot);
     }
 
@@ -205,11 +193,11 @@ contract KYCRecordRegistry is Initializable, IKYCRegistry {
         bytes32[] memory merkleProof,
         uint256 index,
         bytes32 leafHash
-    ) internal pure returns (bytes32) {
-        require(index < TREE_SIZE, '_index bigger than tree size');
-        require(merkleProof.length == TREE_DEPTH, 'Invalid _proofs length');
+    ) internal view returns (bytes32) {
+        require(index < treeSize, '_index bigger than tree size');
+        require(merkleProof.length == treeDepth, 'Invalid _proofs length');
 
-        for (uint256 d = 0; d < TREE_DEPTH; d++) {
+        for (uint256 d = 0; d < treeDepth; d++) {
             if ((index & 1) == 1) {
                 leafHash = hashLeftRight(merkleProof[d], leafHash);
             } else {
