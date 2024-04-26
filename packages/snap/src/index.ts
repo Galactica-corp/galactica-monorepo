@@ -15,7 +15,7 @@ import {
   GenericError,
   URLUpdateError,
 } from '@galactica-net/snap-api';
-import type { OnRpcRequestHandler } from '@metamask/snaps-types';
+import type { OnHomePageHandler, OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { basicURLParse } from 'whatwg-url';
 
@@ -38,6 +38,7 @@ import {
   getZkCertStorageOverview,
 } from './zkCertHandler';
 import { selectZkCert } from './zkCertSelector';
+import { generateHomePage } from './homePage';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
@@ -559,4 +560,14 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   // forward to common function shared with unit tests
   // passing global objects object from snap environment
   return await processRpcRequest({ origin, request }, snap, ethereum);
+};
+
+/**
+ * Handle incoming home page requests from the MetaMask clients.
+ *
+ * @returns A static panel rendered with custom UI.
+ * @see https://docs.metamask.io/snaps/reference/exports/#onhomepage
+ */
+export const onHomePage: OnHomePageHandler = async () => {
+  return generateHomePage(snap);
 };
