@@ -32,7 +32,7 @@ export const fields = {
  * Generates a sample ZkKYC object with the given fields.
  * @returns ZkKYC object promise.
  */
-export async function generateSampleZkKYC(): Promise<ZKCertificate> {
+export async function generateSampleZkKYC(): Promise<ZkCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -70,7 +70,7 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
  * @returns Zero Knowledge KYC proof input for the zkKYC smart contract.
  */
 export async function generateZkKYCProofInput(
-  zkKYC: ZKCertificate,
+  zkKYC: ZkCertificate,
   amountInstitutions: number,
   dAppAddress: string,
 ): Promise<any> {

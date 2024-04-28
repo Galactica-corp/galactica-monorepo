@@ -69,6 +69,7 @@ describe('zkCertificate followers count proof', () => {
       )) as TwitterZkCertificate;
 
     twitterZkCertificate = await generateSampleTwitterZkCertificate();
+
     sampleInput =
       await generateTwitterZkCertificateProofInput(twitterZkCertificate);
 

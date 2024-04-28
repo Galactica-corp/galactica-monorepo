@@ -46,6 +46,7 @@ export async function generateSampleTwitterZkCertificate(
     ZkCertStandard.TwitterZkCertificate,
     eddsa,
     1773,
+    1769736098,
     twitterZkCertificateContentFields,
   );
 
@@ -101,6 +102,7 @@ export async function generateTwitterZkCertificateProofInput(
 
   // calculate twitterZkCertificate leaf hash
   const { leafHash } = twitterZkCertificate;
+
 
   // initiate an empty merkle tree
   const merkleTree = new MerkleTree(32, eddsa.poseidon);

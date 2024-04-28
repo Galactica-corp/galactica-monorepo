@@ -116,6 +116,8 @@ describe('ageProofZkKYC SC', () => {
       circuitZkeyPath,
     );
 
+    console.log(publicSignals);
+
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
     const publicTime = parseInt(
       publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
