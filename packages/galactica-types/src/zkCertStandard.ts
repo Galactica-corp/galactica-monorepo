@@ -4,8 +4,8 @@
  * Enum for zkCert standards
  */
 export enum ZkCertStandard {
-  ZkKYC = 'gip69',
-  TwitterZkCertificate = 'gip70',
+  ZkKYC = 'gip1',
+  TwitterZkCertificate = 'gip2',
 }
 
 /**
