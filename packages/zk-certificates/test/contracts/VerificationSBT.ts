@@ -151,7 +151,7 @@ describe.only('Verification SBT Smart contract', () => {
     circuitZkeyPath = './circuits/build/exampleMockDApp.zkey';
   });
 
-  it.only('if the proof is correct the verification SBT is minted', async () => {
+  it('if the proof is correct the verification SBT is minted', async () => {
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
@@ -191,7 +191,31 @@ describe.only('Verification SBT Smart contract', () => {
     const publicInputs = processPublicSignals(publicSignals);
     const humanID = publicInputs[await ageProofZkKYC.INDEX_HUMAN_ID()];
 
-    await mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs);
+    const currentTokenId = await verificationSBT.tokenCounter();
+    const previousUserBalance = await verificationSBT.balanceOf(user.address);
+
+    // test that the transfer event is emitted
+    await expect(
+      mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs),
+    )
+    .to.emit(verificationSBT, 'Transfer')
+      .withArgs(
+        '0x0000000000000000000000000000000000000000',
+        user.address,
+        currentTokenId,
+      );
+
+    // test that the token counter has been increased
+    expect(await verificationSBT.tokenCounter()).to.be.equal(currentTokenId + 1);
+    expect(await verificationSBT.balanceOf(user.address)).to.be.equal(
+      previousUserBalance + 1,
+    );
+    expect(await verificationSBT.tokenIdToOwner(currentTokenId)).to.be.equal(
+      user.address,
+    );
+    expect(await verificationSBT.tokenIdToDApp(currentTokenId)).to.be.equal(
+      mockDApp.address,
+    );
 
     // check that the verification SBT is created
     expect(
@@ -200,10 +224,10 @@ describe.only('Verification SBT Smart contract', () => {
         mockDApp.address,
       ),
     ).to.be.equal(true);
-    /* // data is stored for the correct humanID
+    // data is stored for the correct humanID
     expect(
       await mockDApp.hasReceivedToken1(fromHexToBytes32(fromDecToHex(humanID))),
-    ).to.be.equal(true); */
+    ).to.be.equal(true);
 
     // check the content of the verification SBT
     const verificationSBTInfo = await verificationSBT.getVerificationSBTInfo(
@@ -226,6 +250,7 @@ describe.only('Verification SBT Smart contract', () => {
       [0, 0],
       publicInputs,
     );
+
     expect(
       await mockDApp.hasReceivedToken2(fromHexToBytes32(fromDecToHex(humanID))),
     ).to.be.true;

@@ -62,7 +62,7 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
         tokenIdToDApp[tokenId] = msg.sender;
         tokenCounter += 1;
         balances[user] += 1;
-        // emit VerificationSBTMinted(msg.sender, user, _humanID);
+        emit VerificationSBTMinted(msg.sender, user, _humanID);
         emit Transfer(address(0), user, tokenId);
     }
 
@@ -89,6 +89,10 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
         address dApp
     ) public view returns (VerificationSBTInfo memory) {
         return VerificationSBTMapping[keccak256(abi.encode(user, dApp))];
+    }
+
+    function getVerificationSBTInfoById(uint256 tokenId) public view returns (VerificationSBTInfo memory) {
+        return getVerificationSBTInfo(tokenIdToOwner[tokenId], tokenIdToDApp[tokenId]);
     }
 
     function getHumanID(
