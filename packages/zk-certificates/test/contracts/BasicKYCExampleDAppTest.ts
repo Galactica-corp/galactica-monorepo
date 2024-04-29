@@ -10,7 +10,7 @@ import {
   processProof,
   processPublicSignals,
 } from '../../lib/helpers';
-import type { ZKCertificate } from '../../lib/zkCertificate';
+import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
@@ -35,7 +35,7 @@ describe('BasicKYCExampleDApp', () => {
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
-  let zkKYC: ZKCertificate;
+  let zkKYC: ZkCertificate;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {

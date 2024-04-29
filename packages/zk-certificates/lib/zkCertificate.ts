@@ -53,14 +53,14 @@ export class ZkCertificate implements ZkCertData {
   public contentFields: string[];
 
   /**
-   * Create a ZKCertificate.
+   * Create a ZkCertificate.
    * @param holderCommitment - Commitment fixing the holder eddsa key without revealing it to the provider.
    * @param zkCertStandard - ZkCert standard to use.
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
    * @param expirationDate - Expiration date of the zkCert.
    * @param contentFields - Names of fields making up the content, default to be ZkKYC.
-   * @param content - ZKCertificate parameters, can be set later.
+   * @param content - ZkCertificate parameters, can be set later.
    * @param providerData - Provider data, can be set later.
    */
   constructor(

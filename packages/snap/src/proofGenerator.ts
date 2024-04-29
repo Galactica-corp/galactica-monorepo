@@ -7,7 +7,7 @@ import type {
   ZkCertProof,
 } from '@galactica-net/snap-api';
 import { GenZKPError } from '@galactica-net/snap-api';
-import type { ZKCertificate } from '@galactica-net/zk-certificates';
+import type { ZkCertificate } from '@galactica-net/zk-certificates';
 import { formatPrivKeyForBabyJub } from '@galactica-net/zk-certificates';
 import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
@@ -28,7 +28,7 @@ import { stripURLProtocol } from './utils';
  */
 export const generateZkKycProof = async (
   params: GenZkProofParams<ZkCertInputType>,
-  zkCert: ZKCertificate,
+  zkCert: ZkCertificate,
   holder: HolderData,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> => {
@@ -99,7 +99,7 @@ export const generateZkKycProof = async (
 
 export const generateTwitterFollowersCountProof = async (
   params: GenZkProofParams<ZkCertInputType>,
-  zkCert: ZKCertificate,
+  zkCert: ZkCertificate,
   holder: HolderData,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> => {

@@ -13,7 +13,7 @@ import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { issueZkCert, revokeZkCert } from '../lib/registryTools';
-import { ZKCertificate } from '../lib/zkCertificate';
+import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
 /**
@@ -61,7 +61,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const randomSalt = Math.floor(Math.random() * 2 ** 32);
 
   zkCertificateFields.expirationDate = args.newExpirationDate;
-  const newZkCertificate = new ZKCertificate(
+  const newZkCertificate = new ZkCertificate(
     holderCommitmentData.holderCommitment,
     zkCertificateType,
     eddsa,

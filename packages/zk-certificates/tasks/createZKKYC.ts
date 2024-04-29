@@ -13,7 +13,7 @@ import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { issueZkCert } from '../lib/registryTools';
-import { ZKCertificate } from '../lib/zkCertificate';
+import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareKYCFields } from '../lib/zkKYC';
 
 /**
@@ -48,7 +48,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   console.log('Creating zkKYC...');
   // TODO: create ZkKYC subclass requiring all the other fields
-  const zkKYC = new ZKCertificate(
+  const zkKYC = new ZkCertificate(
     holderCommitmentData.holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
