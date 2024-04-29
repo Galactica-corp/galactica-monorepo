@@ -45,6 +45,7 @@ describe('KYCRecordRegistry', () => {
     );
     const KYCRecordRegistry = await KYCRecordRegistryTest.deploy(
       GuardianRegistry.address,
+      32,
     );
 
     return {
@@ -57,7 +58,7 @@ describe('KYCRecordRegistry', () => {
     const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
 
     await expect(
-      KYCRecordRegistry.doubleInit(GuardianRegistry.address),
+      KYCRecordRegistry.doubleInit(GuardianRegistry.address, 32),
     ).to.be.revertedWith('Initializable: contract is not initializing');
   });
 
