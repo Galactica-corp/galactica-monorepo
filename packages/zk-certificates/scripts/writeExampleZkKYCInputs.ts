@@ -60,6 +60,15 @@ async function main() {
     JSON.stringify(exampleMockDAppInput, null, 2),
     'utf8',
   );
+
+  // Input for smaller Merkle tree
+  const smallZkKYCInput = await generateZkKYCProofInput(zkKYC, 0, '0x0', 20);
+
+  fs.writeFileSync(
+    './circuits/input/smallZkKYC.json',
+    JSON.stringify(smallZkKYCInput, null, 2),
+    'utf8',
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

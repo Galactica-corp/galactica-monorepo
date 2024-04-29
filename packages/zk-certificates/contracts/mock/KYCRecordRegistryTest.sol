@@ -6,17 +6,24 @@ pragma abicoder v2;
 import {KYCRecordRegistry} from '../KYCRecordRegistry.sol';
 
 contract KYCRecordRegistryTest is KYCRecordRegistry {
-    constructor(address GuardianRegistry) {
-        initializeKYCRecordRegistryTest(GuardianRegistry);
+    constructor(address GuardianRegistry, uint256 treeDepth_) {
+        initializeKYCRecordRegistryTest(GuardianRegistry, treeDepth_);
     }
 
-    function doubleInit(address GuardianRegistry) external {
-        KYCRecordRegistry.initializeKYCRecordRegistry(GuardianRegistry);
+    function doubleInit(address GuardianRegistry, uint256 treeDepth_) external {
+        KYCRecordRegistry.initializeKYCRecordRegistry(
+            GuardianRegistry,
+            treeDepth_
+        );
     }
 
     function initializeKYCRecordRegistryTest(
-        address GuardianRegistry
+        address GuardianRegistry,
+        uint256 treeDepth_
     ) internal initializer {
-        KYCRecordRegistry.initializeKYCRecordRegistry(GuardianRegistry);
+        KYCRecordRegistry.initializeKYCRecordRegistry(
+            GuardianRegistry,
+            treeDepth_
+        );
     }
 }
