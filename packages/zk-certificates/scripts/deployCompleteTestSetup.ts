@@ -19,11 +19,9 @@ async function main() {
   const [deployer, institution1, institution2, institution3] =
     await hre.ethers.getSigners();
 
-  const infrastructure = await deployInfrastructure(deployer, [
-    institution1,
-    institution2,
-    institution3,
-  ],
+  const infrastructure = await deployInfrastructure(
+    deployer,
+    [institution1, institution2, institution3],
     20, // Merkle tree depth lowered to circumvent an inefficient implementation in the Go guardian SDK before we have the merkle proof service running.
   );
   const exampleDApp = await deployExampleDApp(
