@@ -47,7 +47,7 @@ describe('Verification SBT Smart contract', () => {
   let user: SignerWithAddress;
   let encryptionAccount: SignerWithAddress;
   const institutions: SignerWithAddress[] = [];
-  let zkKYC: ZKCertificate;
+  let zkKYC: ZkCertificate;
   let sampleInput: any;
   let circuitWasmPath: string;
   let circuitZkeyPath: string;

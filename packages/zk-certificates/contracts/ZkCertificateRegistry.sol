@@ -195,10 +195,8 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         );
         _changeLeafHash(leafIndex, zkCertificateHash, newLeafHash, merkleProof);
         ZkCertificateToGuardian[zkCertificateHash] = address(0);
-        // update the valid index if necessary
-        if (hashToMerkleRootIndex[zkCertificateHash] >= merkleRootValidIndex) {
-          merkleRootValidIndex = hashToMerkleRootIndex[zkCertificateHash];
-        } 
+        // update the valid index
+        merkleRootValidIndex = merkleRoots.length - 1;
         emit zkCertificateRevocation(zkCertificateHash, msg.sender, leafIndex);
     }
 

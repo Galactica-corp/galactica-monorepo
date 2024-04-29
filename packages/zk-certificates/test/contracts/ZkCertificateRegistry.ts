@@ -203,7 +203,7 @@ describe('ZkCertificateRegistry', () => {
     );
 
     expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(
-      leafIndex + 1,
+      loops + 1,
     );
   });
 
