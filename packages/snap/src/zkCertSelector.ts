@@ -52,13 +52,7 @@ export async function selectZkCert(
 
   if (filteredCerts.length === 0) {
     throw new Error(
-      `No such zkCerts available investigating address ${
-        availableCerts[0].registration.address
-      }, expiration date ${
-        availableCerts[0].content.expirationDate
-      }, provider ax ${
-        availableCerts[0].providerData.ax
-      }. Filter used ${JSON.stringify({
+      `No such zkCerts available. Filter used ${JSON.stringify({
         zkCertStandard,
         registryAddress,
         expirationDate,
@@ -143,8 +137,8 @@ export async function selectZkCert(
     selected.zkCertStandard,
     eddsa,
     selected.randomSalt,
-    contentFields,
     selected.expirationDate,
+    contentFields,
     selected.content,
     selected.providerData,
   );
