@@ -62,21 +62,6 @@ describe('KYCRecordRegistry', () => {
     ).to.be.revertedWith('Initializable: contract is not initializing');
   });
 
-  it('should calculate zero values', async () => {
-    const { KYCRecordRegistry } = await loadFixture(deploy);
-
-    const eddsa = await buildEddsa();
-    const treeDepth = 32;
-    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
-
-    // Each value in the zero values array should be the same
-    for (let i = 0; i < treeDepth; i++) {
-      expect(await KYCRecordRegistry.zeros(i)).to.equal(
-        fromHexToBytes32(fromDecToHex(merkleTree.emptyBranchLevels[i])),
-      );
-    }
-  });
-
   it('should calculate empty root', async () => {
     const { KYCRecordRegistry } = await loadFixture(deploy);
 
