@@ -7,7 +7,7 @@ import type { ZkCertificate } from '../../lib';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZKKYCInput';
+} from '../../scripts/generateZkKYCInput';
 
 describe('Age Proof combined with zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;

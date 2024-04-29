@@ -14,7 +14,7 @@ import type { ZKCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZKKYCInput';
+} from '../../scripts/generateZkKYCInput';
 import type { BasicKYCExampleDApp } from '../../typechain-types/contracts/BasicKYCExampleDApp';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';

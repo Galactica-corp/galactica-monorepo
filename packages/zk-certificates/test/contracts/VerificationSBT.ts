@@ -17,11 +17,11 @@ import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 import { queryVerificationSBTs } from '../../lib/queryVerificationSBT';
 import { decryptFraudInvestigationData } from '../../lib/SBTData';
 import { reconstructShamirSecret } from '../../lib/shamirTools';
-import type { ZKCertificate } from '../../lib/zkCertificate';
+import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZKKYCInput';
+} from '../../scripts/generateZkKYCInput';
 import type { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
 import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
