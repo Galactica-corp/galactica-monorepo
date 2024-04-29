@@ -58,12 +58,12 @@ export async function queryOnChainLeaves(
     for (let errorCounter = 0; errorCounter < 5; errorCounter++) {
       try {
         leafAddedLogs = await registry.queryFilter(
-          registry.filters.zkKYCRecordAddition(),
+          registry.filters.zkCertificateAddition(),
           i,
           maxBlock,
         );
         leafRevokedLogs = await registry.queryFilter(
-          registry.filters.zkKYCRecordRevocation(),
+          registry.filters.zkCertificateRevocation(),
           i,
           maxBlock,
         );
