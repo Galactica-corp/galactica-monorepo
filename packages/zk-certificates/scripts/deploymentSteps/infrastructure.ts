@@ -45,7 +45,7 @@ export async function deployInfrastructure(
     'ZkKYC GuardianRegistry',
   ]);
   const recordRegistry = await deploySC(
-    'KYCRecordRegistryTest',
+    'ZkCertificateRegistryTest',
     true,
     {
       libraries: {
