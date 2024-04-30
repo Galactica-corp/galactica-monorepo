@@ -240,7 +240,7 @@ export function checkZkKycProofRequest(
       message: `userAddress missing in request parameters.`,
     });
   }
-  if (params.requirements.zkCertStandard !== ZkCertStandard.ZkKYC) {
+  if (params.requirements.zkCertStandard === undefined) {
     throw new GenZKPError({
       name: 'MissingInputParams',
       message: `ZkCert standard missing in request parameters.`,
