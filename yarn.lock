@@ -14243,6 +14243,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fastfile@patch:fastfile@npm:0.0.20#.yarn/patches/fastfile-npm-0.0.20-4263a2b353.patch::locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A.":
+  version: 0.0.20
+  resolution: "fastfile@patch:fastfile@npm%3A0.0.20#.yarn/patches/fastfile-npm-0.0.20-4263a2b353.patch::version=0.0.20&hash=f1e714&locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A."
+  checksum: 00528d18b9d9d54e09b58e72a9184ffbba1c70fe731c177dcf8c2da5e972ed392e3e98565257c10a4786e150ff9e600901e814ba876461a7aa1f492c6e308ad6
+  languageName: node
+  linkType: hard
+
 "fastq@npm:^1.13.0, fastq@npm:^1.6.0":
   version: 1.15.0
   resolution: "fastq@npm:1.15.0"
