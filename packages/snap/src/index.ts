@@ -174,15 +174,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
         holder.encryptionPrivKey,
       );
 
-      let zkCertificateName: string; // Default name
-      if (zkCert.zkCertStandard === ZkCertStandard.TwitterZkCertificate) {
-        zkCertificateName = 'Twitter ZK Certificate';
-      } else if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
-        zkCertificateName = 'ZkKYC';
-      } else {
-        throw new Error(`Unsupported zkCertificate type`);
-      }
-
       // prevent uploading the same zkCert again (it is fine on different registries though)
       const searchedZkCert = state.zkCerts.find(
         (candidate) =>
@@ -198,7 +189,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const prompt: PanelContent = [
         heading('Import your zkCertificate into your MetaMask'),
         text(
-          `With this action you are importing your ${zkCertificateName} in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
+          `With this action you are importing your ${zkCert.zkCertStandard} in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
         ),
       ];
       if (importParams.listZkCerts === true) {
