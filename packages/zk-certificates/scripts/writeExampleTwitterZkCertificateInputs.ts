@@ -27,7 +27,7 @@ async function main() {
   };
 
   fs.writeFileSync(
-    './circuits/input/twiiterFollowersCountProof.json',
+    './circuits/input/twitterFollowersCountProof.json',
     JSON.stringify(twitterFollowersCountProofInput, null, 2),
     'utf8',
   );

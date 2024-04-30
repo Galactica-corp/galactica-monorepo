@@ -102,7 +102,6 @@ export type TwitterZkCertificateContent = {
   friendsCount: string;
   likesCount: string;
   postsCount: string;
-  expirationTime: string;
 };
 
 /**
@@ -118,5 +117,4 @@ export const twitterZkCertificateContentFields = [
   'friendsCount',
   'likesCount',
   'postsCount',
-  'expirationTime',
 ];

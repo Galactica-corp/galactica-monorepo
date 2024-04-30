@@ -21,7 +21,6 @@ export const sampleFields = {
   friendsCount: 28,
   likesCount: 10,
   postsCount: 22,
-  expirationTime: 1769736098,
 };
 
 /**
@@ -117,6 +116,8 @@ export async function generateTwitterZkCertificateProofInput(
   twitterZkCertificateInput.holderCommitment =
     twitterZkCertificate.holderCommitment;
   twitterZkCertificateInput.randomSalt = twitterZkCertificate.randomSalt;
+  twitterZkCertificateInput.expirationDate =
+    twitterZkCertificate.expirationDate;
 
   twitterZkCertificateInput.pathElements = merkleProof.pathElements;
   twitterZkCertificateInput.leafIndex = merkleProof.leafIndex;

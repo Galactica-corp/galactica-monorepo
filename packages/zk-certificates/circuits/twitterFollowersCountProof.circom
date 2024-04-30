@@ -24,7 +24,7 @@ template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
     signal input likesCount;
     signal input postsCount;
 
-    signal input expirationTime;
+    signal input expirationDate;
 
     // provider's EdDSA signature of the leaf hash
     signal input providerS;
@@ -79,7 +79,7 @@ template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
     twitterZkCertificate.likesCount <== likesCount;
     twitterZkCertificate.postsCount <== postsCount;
 
-    twitterZkCertificate.expirationTime <== expirationTime;
+    twitterZkCertificate.expirationDate <== expirationDate;
 
     // provider's EdDSA signature of the leaf hash
     twitterZkCertificate.providerS <== providerS;

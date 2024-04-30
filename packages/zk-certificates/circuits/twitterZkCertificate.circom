@@ -29,7 +29,7 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     signal input likesCount;
     signal input postsCount;
 
-    signal input expirationTime;
+    signal input expirationDate;
 
     // provider's EdDSA signature of the leaf hash
     signal input providerS;
@@ -87,7 +87,7 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     authorization.r8y <== r8y2;
 
     // content hash for twitter ZkCertificate data
-    component contentHash = Poseidon(9);
+    component contentHash = Poseidon(8);
     contentHash.inputs[0] <== accountId;
     contentHash.inputs[1] <== creationTime;
     contentHash.inputs[2] <== location;
@@ -96,7 +96,6 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     contentHash.inputs[5] <== friendsCount;
     contentHash.inputs[6] <== likesCount;
     contentHash.inputs[7] <== postsCount;
-    contentHash.inputs[8] <== expirationTime;
 
     // provider signature verification
     component providerSignatureCheck = ProviderSignatureCheck();
@@ -118,7 +117,7 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     zkCertHash.providerR8y <== providerR8y;
     zkCertHash.holderCommitment <== holderCommitment;
     zkCertHash.randomSalt <== randomSalt;
-    zkCertHash.expirationDate <== expirationTime;
+    zkCertHash.expirationDate <== expirationDate;
 
     // use the merkle proof component to calculate the root
     component merkleProof = MerkleProof(levels);
@@ -134,14 +133,14 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
 
     // check that the time has not expired
     component timeHasntPassed = GreaterThan(128);
-    timeHasntPassed.in[0] <== expirationTime;
+    timeHasntPassed.in[0] <== expirationDate;
     timeHasntPassed.in[1] <== currentTime;
 
     // the expiration date of the resulting Verification SBT should not equal the expiration date
     // of the twitter zkCertificate data to leak less information that could make it possible to trace the user
     // So we take a date a fixed time in the future, but latest at the twitter zkCertificate expiration
     var verificationExpirationMax = currentTime + maxExpirationLengthDays * 24 * 60 * 60;
-    verificationExpiration <-- expirationTime < verificationExpirationMax ? expirationTime : verificationExpirationMax;
+    verificationExpiration <-- expirationDate < verificationExpirationMax ? expirationDate : verificationExpirationMax;
     component verificationExpirationMaxCheck = LessEqThan(32); // 32 bits are enough for unix timestamps until year 2106
     verificationExpirationMaxCheck.in[0] <== verificationExpiration;
     verificationExpirationMaxCheck.in[1] <== verificationExpiration;

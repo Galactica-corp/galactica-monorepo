@@ -115,6 +115,7 @@ export const generateTwitterFollowersCountProof = async (
 
     ...zkCert.content,
     randomSalt: zkCert.randomSalt,
+    expirationDate: zkCert.expirationDate,
 
     ...zkCert.getOwnershipProofInput(holder.eddsaKey),
 

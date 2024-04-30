@@ -56,7 +56,7 @@ describe('twitterZkCertificate Circuit Component', () => {
 
   it('the proof is not valid if the expiration time has passed', async () => {
     const forgedInput = { ...sampleInput };
-    forgedInput.currentTime = Number(forgedInput.expirationTime) + 1;
+    forgedInput.currentTime = Number(forgedInput.expirationDate) + 1;
     const witness = await circuit.calculateLabeledWitness(
       forgedInput,
       sanityCheck,

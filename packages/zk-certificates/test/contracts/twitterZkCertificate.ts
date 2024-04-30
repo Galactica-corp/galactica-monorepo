@@ -239,7 +239,7 @@ describe('zkCertificate SC', () => {
     const forgedInput = { ...sampleInput };
 
     // make the twitterZkCertificate record expire leading to invalid proof output
-    forgedInput.currentTime = Number(forgedInput.expirationTime) + 1;
+    forgedInput.currentTime = Number(forgedInput.expirationDate) + 1;
 
     const { proof, publicSignals } = await groth16.fullProve(
       forgedInput,
