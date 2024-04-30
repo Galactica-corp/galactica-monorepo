@@ -182,7 +182,7 @@ task(
     'random salt, default to be randomly chosen by the system',
     undefined,
     types.string,
-    false,
+    true,
   )
   .addParam(
     'expirationDate',
