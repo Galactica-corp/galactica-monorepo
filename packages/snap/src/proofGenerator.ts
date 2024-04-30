@@ -19,14 +19,14 @@ import type { HolderData, PanelContent } from './types';
 import { stripURLProtocol } from './utils';
 
 /**
- * GenerateZkKycProof constructs and checks the zkKYC proof.
+ * GenerateZkCertProof constructs and checks the zkCert proof.
  * @param params - Parameters defining the proof to be generated.
  * @param zkCert - ZkCert to be used for the proof.
  * @param holder - Holder data needed to derive private proof inputs.
  * @param merkleProof - Merkle proof of the zkCert in the zkCert registry.
- * @returns Generated ZKKYC proof.
+ * @returns Generated ZkCert proof.
  */
-export const generateZkKycProof = async (
+export const generateZkCertProof = async (
   params: GenZkProofParams<ZkCertInputType>,
   zkCert: ZkCertificate,
   holder: HolderData,
@@ -38,18 +38,6 @@ export const generateZkKycProof = async (
     holder.eddsaKey,
     params.userAddress,
   );
-
-  // Generate private key for sending encrypted messages to institutions
-  // It should be different if the ZKP is sent from another address
-  // Therefore generating it from the private holder eddsa key and the user address
-  const eddsa = await buildEddsa();
-  const encryptionHashBase = eddsa.poseidon.F.toObject(
-    eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
-  ).toString();
-  const encryptionPrivKey = formatPrivKeyForBabyJub(
-    encryptionHashBase,
-    eddsa,
-  ).toString();
 
   const inputs: any = {
     ...processedParams.input,
@@ -74,76 +62,31 @@ export const generateZkKycProof = async (
     root: merkleProof.root,
     pathElements: merkleProof.pathElements,
     leafIndex: merkleProof.leafIndex,
-
-    userPrivKey: encryptionPrivKey,
   };
 
-  try {
-    const { proof, publicSignals } = await groth16.fullProveMemory(
-      inputs,
-      processedParams.prover.wasm,
-      processedParams.prover.zkeyHeader,
-      processedParams.prover.zkeySections,
-    );
+  if (params.zkInputRequiresPrivKey) {
+    // Generate private key for sending encrypted messages to institutions
+    // It should be different if the ZKP is sent from another address
+    // Therefore generating it from the private holder eddsa key and the user address
+    const eddsa = await buildEddsa();
+    const encryptionHashBase = eddsa.poseidon.F.toObject(
+      eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
+    ).toString();
+    const encryptionPrivKey = formatPrivKeyForBabyJub(
+      encryptionHashBase,
+      eddsa,
+    ).toString();
 
-    // console.log('Calculated proof: ');
-    // console.log(JSON.stringify(proof, null, 1));
-
-    return { proof, publicSignals };
-  } catch (error) {
-    console.log('proof generation failed');
-    console.log(error.stack);
-    throw error;
+    inputs.userPrivKey = encryptionPrivKey;
   }
-};
-
-export const generateTwitterFollowersCountProof = async (
-  params: GenZkProofParams<ZkCertInputType>,
-  zkCert: ZkCertificate,
-  holder: HolderData,
-  merkleProof: MerkleProof,
-): Promise<ZkCertProof> => {
-  const processedParams = await preprocessInput(params);
-
-  const authorizationProof = zkCert.getAuthorizationProofInput(
-    holder.eddsaKey,
-    params.userAddress,
-  );
-
-  const inputs: any = {
-    ...processedParams.input,
-
-    ...zkCert.content,
-    randomSalt: zkCert.randomSalt,
-    expirationDate: zkCert.expirationDate,
-
-    ...zkCert.getOwnershipProofInput(holder.eddsaKey),
-
-    userAddress: authorizationProof.userAddress,
-    s2: authorizationProof.s,
-    r8x2: authorizationProof.r8x,
-    r8y2: authorizationProof.r8y,
-
-    providerAx: zkCert.providerData.ax,
-    providerAy: zkCert.providerData.ay,
-    providerS: zkCert.providerData.s,
-    providerR8x: zkCert.providerData.r8x,
-    providerR8y: zkCert.providerData.r8y,
-
-    root: merkleProof.root,
-    pathElements: merkleProof.pathElements,
-    leafIndex: merkleProof.leafIndex,
-  };
 
   try {
-    console.log(`starting proof generation`);
     const { proof, publicSignals } = await groth16.fullProveMemory(
       inputs,
       processedParams.prover.wasm,
       processedParams.prover.zkeyHeader,
       processedParams.prover.zkeySections,
     );
-    console.log(`proof generation finished`);
 
     // console.log('Calculated proof: ');
     // console.log(JSON.stringify(proof, null, 1));
@@ -315,40 +258,10 @@ export function checkZkKycProofRequest(
       message: `Missing prover data.`,
     });
   }
-}
-
-/**
- * Check validity of the ZKP generation request.
- * @param params - Parameters defining the proof to be generated.
- * @throws an error if the request is invalid.
- */
-export function checkTwitterFollowersCountProofRequest(
-  params: GenZkProofParams<ZkCertInputType>,
-) {
-  if (params.userAddress === undefined) {
+  if (params.zkInputRequiresPrivKey === undefined) {
     throw new GenZKPError({
       name: 'MissingInputParams',
-      message: `userAddress missing in request parameters.`,
-    });
-  }
-  if (
-    params.requirements.zkCertStandard !== ZkCertStandard.TwitterZkCertificate
-  ) {
-    throw new GenZKPError({
-      name: 'MissingInputParams',
-      message: `ZkCert standard missing in request parameters.`,
-    });
-  }
-  if (params.requirements.registryAddress === undefined) {
-    throw new GenZKPError({
-      name: 'MissingInputParams',
-      message: `Registry address missing in request parameters.`,
-    });
-  }
-  if (params.prover === undefined || params.prover.wasm === undefined) {
-    throw new GenZKPError({
-      name: 'MissingInputParams',
-      message: `Missing prover data.`,
+      message: `Missing field 'zkInputRequiresPrivKey' in GenZkProofParams.`,
     });
   }
 }

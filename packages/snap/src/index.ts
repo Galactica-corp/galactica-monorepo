@@ -27,11 +27,9 @@ import {
 } from './encryption';
 import { getMerkleProof } from './merkleProofSelection';
 import {
-  checkZkKycProofRequest,
-  checkTwitterFollowersCountProofRequest,
+  checkZkKycProofRequest as checkZkCertProofRequest,
   createProofConfirmationPrompt,
-  generateZkKycProof,
-  generateTwitterFollowersCountProof,
+  generateZkCertProof,
 } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
@@ -68,7 +66,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
     case RpcMethods.GenZkKycProof: {
       // parse ZKP inputs
       const genParams = request.params as unknown as GenZkProofParams<any>;
-      checkZkKycProofRequest(genParams);
+      checkZkCertProofRequest(genParams);
 
       const zkCert = await selectZkCert(
         snap,
@@ -107,76 +105,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         }
       }
 
-      const proof = await generateZkKycProof(
-        genParams,
-        zkCert,
-        holder,
-        merkleProof,
-      );
-
-      const proofConfirmDialog = createProofConfirmationPrompt(
-        genParams,
-        proof,
-        origin,
-      );
-      confirm = await snap.request({
-        method: 'snap_dialog',
-        params: {
-          type: 'confirmation',
-          content: panel(proofConfirmDialog),
-        },
-      });
-
-      if (!confirm) {
-        throw new Error(RpcResponseErr.RejectedConfirm);
-      }
-
-      return proof;
-    }
-
-    case RpcMethods.GenTwitterFollowersCountProof: {
-      // parse ZKP inputs
-      const genParams = request.params as unknown as GenZkProofParams<any>;
-      checkTwitterFollowersCountProofRequest(genParams);
-
-      const zkCert = await selectZkCert(
-        snap,
-        state.zkCerts,
-        genParams.requirements.zkCertStandard,
-        genParams.requirements.registryAddress,
-      );
-      holder = getHolder(zkCert.holderCommitment, state.holders);
-
-      const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts);
-
-      const merkleProof = await getMerkleProof(
-        searchedZkCert,
-        searchedZkCert.registration.address,
-        ethereum,
-        state.merkleServiceURL,
-      );
-      // save merkle proof in zkCert for later use
-      searchedZkCert.merkleProof = merkleProof;
-      await saveState(snap, state);
-
-      try {
-        await snap.request({
-          method: 'snap_notify',
-          params: {
-            type: 'native',
-            message: `ZK proof generation running...`,
-          },
-        });
-      } catch (error) {
-        // Ignore errors due to rate limiting, the notification is not essential
-        if (error.message.includes('currently rate-limited')) {
-          console.log('snap_notify failed due to rate limit');
-        } else {
-          throw error;
-        }
-      }
-
-      const proof = await generateTwitterFollowersCountProof(
+      const proof = await generateZkCertProof(
         genParams,
         zkCert,
         holder,

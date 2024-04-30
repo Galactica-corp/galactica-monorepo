@@ -1,6 +1,5 @@
 import type {
   ZkCertProof,
-  HolderCommitmentData,
   MerkleProofUpdateRequestParams,
 } from '@galactica-net/snap-api';
 import {
@@ -9,7 +8,6 @@ import {
   importZkCert,
   exportZkCert,
   generateZKProof,
-  generateZKProof2,
   getHolderCommitment,
   ZkCertStandard,
   updateMerkleProof,
@@ -263,7 +261,7 @@ const Index = () => {
     }
   };
 
-  const bigProofGenerationClick = async () => {
+  const bigKYCProofGenClick = async () => {
     try {
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
 
@@ -287,6 +285,7 @@ const Index = () => {
         userAddress: getUserAddress(),
         description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
         publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
+        zkInputRequiresPrivKey: true,
       }, defaultSnapOrigin);
       console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
@@ -320,7 +319,7 @@ const Index = () => {
     }
   };
 
-  const bigProofGenerationClick2 = async () => {
+  const twitterProofGenClick = async () => {
     try {
       dispatch({
         type: MetamaskActions.SetInfo,
@@ -333,7 +332,7 @@ const Index = () => {
         followersCountThreshold: '200',
       };
 
-      const res: any = await generateZKProof2(
+      const res: any = await generateZKProof(
         {
           input: proofInput,
           prover: await getProver(
@@ -349,6 +348,7 @@ const Index = () => {
             'This proof discloses that you hold a valid twitterZkCertificate and that your follower count is at least 100.',
           publicInputDescriptions:
             twitterFollowersCountProofPublicInputDescriptions,
+          zkInputRequiresPrivKey: false,
         },
         defaultSnapOrigin,
       );
@@ -531,7 +531,7 @@ const Index = () => {
               '1. Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old. 2. Send proof tx for on-chain verification.',
             button: (
               <GeneralButton
-                onClick={bigProofGenerationClick}
+                onClick={bigKYCProofGenClick}
                 disabled={false}
                 text="Generate & Submit"
               />
@@ -541,14 +541,14 @@ const Index = () => {
           fullWidth={false}
         />
 
-<Card
+        <Card
           content={{
             title: 'twitter + follower threshold proof',
             description:
               '1. Call Metamask Snap to generate a proof that you hold a twitter ZkCertificate and has more than a certain number of followers. 2. Send proof tx for on-chain verification.',
             button: (
               <GeneralButton
-                onClick={bigProofGenerationClick2}
+                onClick={twitterProofGenClick}
                 disabled={false}
                 text="Generate & Submit"
               />
