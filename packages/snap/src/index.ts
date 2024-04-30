@@ -63,7 +63,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
   let response: ConfirmationResponse;
 
   switch (request.method as RpcMethods) {
-    case RpcMethods.GenZkKycProof: {
+    case RpcMethods.GenZkCertProof: {
       // parse ZKP inputs
       const genParams = request.params as unknown as GenZkProofParams<any>;
       checkZkCertProofRequest(genParams);

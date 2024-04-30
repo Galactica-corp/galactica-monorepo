@@ -54,7 +54,7 @@ export const generateZKProof = async (
 ) => {
   const response: ZkCertProof = await invokeSnap(
     {
-      method: RpcMethods.GenZkKycProof,
+      method: RpcMethods.GenZkCertProof,
       params,
     },
     snapOrigin,
