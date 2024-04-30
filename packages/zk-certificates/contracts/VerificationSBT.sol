@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /// @author Galactica dev team
 /// @title A global smart contract that store verification SBTs, minted by dApp for users submitting zk proofs
-contract VerificationSBT is IVerificationSBT, IERC721 {
+contract VerificationSBT is IVerificationSBT{
     // mapping to store verification SBT
     mapping(bytes32 => VerificationSBTInfo) public VerificationSBTMapping;
     // number of SBTs minted for each user address
@@ -19,6 +19,9 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
     // token id to dApp
     mapping(uint256 => address) public tokenIdToDApp;
 
+    // base URI for NFTs
+    string public baseURI;
+
     /// Block number at which the contract was created, so that the frontend can search for logs from here instead of searching from genesis.
     uint64 public deploymentBlock;
 
@@ -29,8 +32,9 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
         bytes32 indexed humanID
     );
 
-    constructor() {
+    constructor(string memory uri) {
         deploymentBlock = uint64(block.number);
+        baseURI = uri;
     }
 
     function mintVerificationSBT(
@@ -111,31 +115,25 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
         return tokenIdToOwner[tokenId];
     }
 
-
-    // functions required by ERC721 interface but not used in this contract
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external {
-      revert();
-    }
-    function safeTransferFrom(address from, address to, uint256 tokenId) external {
-      revert();
-    }
-    function transferFrom(address from, address to, uint256 tokenId) external {
-      revert();
-    }
-    function setApprovalForAll(address operator, bool approved) external {
-      revert();
-    }
-    function approve(address to, uint256 tokenId) external {
-      revert();
-    }
-    function getApproved(uint256 tokenId) external view returns (address operator) {
-      revert();
-    }
-    function isApprovedForAll(address owner, address operator) external view returns (bool) {
-      revert();
-    }
-    function supportsInterface(bytes4 interfaceId) public view returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
         return
             interfaceId == type(IERC721).interfaceId;
+    }
+
+    function _exists(uint256 tokenId) internal view returns (bool) {
+        return ownerOf(tokenId) != address(0);
+    }
+
+    function _requireMinted(uint256 tokenId) internal view {
+        require(_exists(tokenId), "ERC721: invalid token ID");
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
+        _requireMinted(tokenId);
+        // concatinate base URI with holder address
+        // address will be lower case and not have checksum encoding
+        return baseURI;
     }
 }
