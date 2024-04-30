@@ -72,6 +72,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     zkCertificateType,
     eddsa,
     randomSalt,
+    args.expirationDate,
     Object.keys(zkCertificateFields),
     zkCertificateFields,
   );
@@ -181,6 +182,13 @@ task(
     'random salt, default to be randomly chosen by the system',
     undefined,
     types.string,
+    false,
+  )
+  .addParam(
+    'expirationDate',
+    'How long should the zkCert be valid? (as Unix timestamp)',
+    undefined,
+    types.int,
     false,
   )
   .addParam(
