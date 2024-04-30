@@ -20,7 +20,7 @@ const config: SnapConfig = {
     }
     if (res.optimization) {
       // simplify debugging the bundle.js
-      res.optimization.minimize = false;
+      res.optimization.minimize = true;
     }
     return res;
   },
