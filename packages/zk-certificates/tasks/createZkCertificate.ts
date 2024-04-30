@@ -140,7 +140,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     );
 
     const outputFileName: string =
-      args.outputFile || `issuedZkCertificates/${zkCertificate.zkCertStandard}_${zkCertificate.leafHash}.json`;
+      args.outputFile ||
+      `issuedZkCertificates/${zkCertificate.zkCertStandard}_${zkCertificate.leafHash}.json`;
     fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
     fs.writeFileSync(outputFileName, output);
     console.log(
