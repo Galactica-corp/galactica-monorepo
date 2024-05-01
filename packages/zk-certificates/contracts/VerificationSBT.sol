@@ -136,7 +136,7 @@ contract VerificationSBT is IVerificationSBT{
 
     function tokenURI(
         uint256 tokenId
-    ) public view virtual override returns (string memory) {
+    ) public view returns (string memory) {
         _requireMinted(tokenId);
         return baseURI;
     }
