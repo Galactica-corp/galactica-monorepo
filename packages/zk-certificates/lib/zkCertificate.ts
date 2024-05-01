@@ -30,7 +30,7 @@ import { encryptFraudInvestigationData } from './SBTData';
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
  * Specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac .
  */
-export class ZKCertificate implements ZkCertData {
+export class ZkCertificate implements ZkCertData {
   // Field of the curve used by Poseidon
   protected poseidon: Poseidon;
 
@@ -50,14 +50,17 @@ export class ZKCertificate implements ZkCertData {
 
   public providerData: ProviderData;
 
+  public contentFields: string[];
+
   /**
-   * Create a ZKCertificate.
+   * Create a ZkCertificate.
    * @param holderCommitment - Commitment fixing the holder eddsa key without revealing it to the provider.
    * @param zkCertStandard - ZkCert standard to use.
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
    * @param expirationDate - Expiration date of the zkCert.
-   * @param content - ZKCertificate parameters, can be set later.
+   * @param contentFields - Names of fields making up the content, default to be ZkKYC.
+   * @param content - ZkCertificate parameters, can be set later.
    * @param providerData - Provider data, can be set later.
    */
   constructor(
@@ -66,6 +69,7 @@ export class ZKCertificate implements ZkCertData {
     eddsa: Eddsa,
     randomSalt: number,
     expirationDate: number,
+    contentFields: string[] = zkKYCContentFields,
     content: Record<string, any> = {}, // standardize field definitions
     providerData: ProviderData = {
       ax: '0',
@@ -84,12 +88,13 @@ export class ZKCertificate implements ZkCertData {
     this.expirationDate = expirationDate;
     this.content = content;
     this.providerData = providerData;
+    this.contentFields = contentFields;
   }
 
   get contentHash(): string {
     return this.poseidon.F.toObject(
       this.poseidon(
-        zkKYCContentFields.map((field) => this.content[field]),
+        this.contentFields.map((field) => this.content[field]),
         undefined,
         1,
       ),

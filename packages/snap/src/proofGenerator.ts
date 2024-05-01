@@ -6,7 +6,7 @@ import type {
   ZkCertProof,
 } from '@galactica-net/snap-api';
 import { GenZKPError } from '@galactica-net/snap-api';
-import type { ZKCertificate } from '@galactica-net/zk-certificates';
+import type { ZkCertificate } from '@galactica-net/zk-certificates';
 import { formatPrivKeyForBabyJub } from '@galactica-net/zk-certificates';
 import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
@@ -18,16 +18,16 @@ import type { HolderData, PanelContent } from './types';
 import { stripURLProtocol } from './utils';
 
 /**
- * GenerateZkKycProof constructs and checks the zkKYC proof.
+ * GenerateZkCertProof constructs and checks the zkCert proof.
  * @param params - Parameters defining the proof to be generated.
  * @param zkCert - ZkCert to be used for the proof.
  * @param holder - Holder data needed to derive private proof inputs.
  * @param merkleProof - Merkle proof of the zkCert in the zkCert registry.
- * @returns Generated ZKKYC proof.
+ * @returns Generated ZkCert proof.
  */
-export const generateZkKycProof = async (
+export const generateZkCertProof = async (
   params: GenZkProofParams<ZkCertInputType>,
-  zkCert: ZKCertificate,
+  zkCert: ZkCertificate,
   holder: HolderData,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> => {
@@ -37,18 +37,6 @@ export const generateZkKycProof = async (
     holder.eddsaKey,
     params.userAddress,
   );
-
-  // Generate private key for sending encrypted messages to institutions
-  // It should be different if the ZKP is sent from another address
-  // Therefore generating it from the private holder eddsa key and the user address
-  const eddsa = await buildEddsa();
-  const encryptionHashBase = eddsa.poseidon.F.toObject(
-    eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
-  ).toString();
-  const encryptionPrivKey = formatPrivKeyForBabyJub(
-    encryptionHashBase,
-    eddsa,
-  ).toString();
 
   const inputs: any = {
     ...processedParams.input,
@@ -73,9 +61,23 @@ export const generateZkKycProof = async (
     root: merkleProof.root,
     pathElements: merkleProof.pathElements,
     leafIndex: merkleProof.leafIndex,
-
-    userPrivKey: encryptionPrivKey,
   };
+
+  if (params.zkInputRequiresPrivKey) {
+    // Generate private key for sending encrypted messages to institutions
+    // It should be different if the ZKP is sent from another address
+    // Therefore generating it from the private holder eddsa key and the user address
+    const eddsa = await buildEddsa();
+    const encryptionHashBase = eddsa.poseidon.F.toObject(
+      eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
+    ).toString();
+    const encryptionPrivKey = formatPrivKeyForBabyJub(
+      encryptionHashBase,
+      eddsa,
+    ).toString();
+
+    inputs.userPrivKey = encryptionPrivKey;
+  }
 
   try {
     const { proof, publicSignals } = await groth16.fullProveMemory(
@@ -253,6 +255,12 @@ export function checkZkKycProofRequest(
     throw new GenZKPError({
       name: 'MissingInputParams',
       message: `Missing prover data.`,
+    });
+  }
+  if (params.zkInputRequiresPrivKey === undefined) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `Missing field 'zkInputRequiresPrivKey' in GenZkProofParams.`,
     });
   }
 }

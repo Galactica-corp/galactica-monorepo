@@ -11,7 +11,7 @@ import {
   createHolderCommitment,
   getEddsaKeyFromEthSigner,
 } from '../../lib/keyManagement';
-import { ZKCertificate } from '../../lib/zkCertificate';
+import { ZkCertificate } from '../../lib/zkCertificate';
 
 use(chaiAsPromised);
 
@@ -63,7 +63,7 @@ describe('Authorization Component', () => {
     const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
     const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
     const { userAddress } = sampleInput;
-    const zkKYC = new ZKCertificate(
+    const zkKYC = new ZkCertificate(
       holderCommitment,
       ZkCertStandard.ZkKYC,
       eddsa,

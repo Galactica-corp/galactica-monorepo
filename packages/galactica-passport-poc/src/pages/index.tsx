@@ -1,6 +1,21 @@
+import type {
+  ZkCertProof,
+  MerkleProofUpdateRequestParams,
+} from '@galactica-net/snap-api';
+import {
+  clearStorage,
+  deleteZkCert,
+  importZkCert,
+  exportZkCert,
+  generateZKProof,
+  getHolderCommitment,
+  ZkCertStandard,
+  updateMerkleProof,
+} from '@galactica-net/snap-api';
+
+import { ethers } from 'ethers';
 import { useContext } from 'react';
 import styled from 'styled-components';
-import { MetamaskActions, MetaMaskContext } from '../../../galactica-dapp/src/hooks';
 import {
   shouldDisplayReconnectButton,
   queryVerificationSBTs,
@@ -20,25 +35,28 @@ import {
   SelectAndImportButton,
   ConnectWalletButton,
 } from '../../../galactica-dapp/src/components';
-import { ethers } from 'ethers';
-import { processProof, processPublicSignals } from '../../../galactica-dapp/src/utils/proofProcessing';
-
-import addresses from '../../../galactica-dapp/src/config/addresses';
 import mockDAppABI from '../../../galactica-dapp/src/config/abi/MockDApp.json';
-import { getProver, prepareProofInput } from '../../../galactica-dapp/src/utils/zkp';
+import twitterFollowersCountProofABI from '../../../galactica-dapp/src/config/abi/TwitterFollowersCountProof.json';
+import addresses from '../../../galactica-dapp/src/config/addresses';
 import {
-  clearStorage,
-  deleteZkCert,
-  importZkCert,
-  exportZkCert,
-  generateZKProof,
-  getHolderCommitment,
-  ZkCertStandard,
-  ZkCertProof,
-  updateMerkleProof,
-  MerkleProofUpdateRequestParams,
-} from '@galactica-net/snap-api';
-import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions, npmSnapOrigin } from '../../../galactica-dapp/src/config/snap';
+  defaultSnapOrigin,
+  zkKYCAgeProofPublicInputDescriptions,
+  twitterFollowersCountProofPublicInputDescriptions
+} from '../../../galactica-dapp/src/config/snap';
+import {
+  MetamaskActions,
+  MetaMaskContext,
+} from '../../../galactica-dapp/src/hooks';
+import { getCurrentBlockTime } from '../../../galactica-dapp/src/utils/metamask';
+import {
+  processProof,
+  processPublicSignals
+} from '../../../galactica-dapp/src/utils/proofProcessing';
+import {
+  getProver,
+  prepareProofInput,
+} from '../../../galactica-dapp/src/utils/zkp';
+
 
 const Container = styled.div`
   display: flex;
@@ -147,7 +165,7 @@ const Index = () => {
 
   /**
    * Converts response object from Snap to string to show to the user.
-   * 
+   *
    * @param res - Object returned by Snap.
    */
   const communicateResponse = (res: any) => {
@@ -171,7 +189,7 @@ const Index = () => {
   const handleExportClick = async () => {
     try {
       console.log('sending request to snap...');
-      const res = await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin);
+      const res = await exportZkCert({}, defaultSnapOrigin);
       console.log('Response from snap', JSON.stringify(res));
       dispatch({ type: MetamaskActions.SetInfo, payload: `Downloading zkCert...` });
 
@@ -243,7 +261,7 @@ const Index = () => {
     }
   };
 
-  const bigProofGenerationClick = async () => {
+  const bigKYCProofGenClick = async () => {
     try {
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
 
@@ -267,6 +285,7 @@ const Index = () => {
         userAddress: getUserAddress(),
         description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
         publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
+        zkInputRequiresPrivKey: true,
       }, defaultSnapOrigin);
       console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
@@ -295,6 +314,85 @@ const Index = () => {
       console.log(`Updating verification SBTs...`);
       await showVerificationSBTs();
     } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const twitterProofGenClick = async () => {
+    try {
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `ZK proof generation in Snap running...`,
+      });
+
+      const proofInput = {
+        currentTime: await getCurrentBlockTime(),
+        // specific inputs to prove that the twitterZkCertificate with at least 100 followers
+        followersCountThreshold: '200',
+      };
+
+      const res: any = await generateZKProof(
+        {
+          input: proofInput,
+          prover: await getProver(
+            'provers/twitterFollowersCountProof.json',
+          ),
+          requirements: {
+            zkCertStandard: ZkCertStandard.TwitterZkCertificate,
+            // eslint-disable-next-line import/no-named-as-default-member
+            registryAddress: addresses.twitterZkCertificateRegistry,
+          },
+          userAddress: getUserAddress(),
+          description:
+            'This proof discloses that you hold a valid twitterZkCertificate and that your follower count is at least 100.',
+          publicInputDescriptions:
+            twitterFollowersCountProofPublicInputDescriptions,
+          zkInputRequiresPrivKey: false,
+        },
+        defaultSnapOrigin,
+      );
+      console.log('Response from snap', JSON.stringify(res));
+      const zkp = res as ZkCertProof;
+
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Proof generation successful.`,
+      });
+      dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
+      // send proof directly on chain
+      // eslint-disable-next-line id-length
+      const [a, b, c] = processProof(zkp.proof);
+      const publicInputs = processPublicSignals(zkp.publicSignals);
+
+      console.log(`Sending proof for on-chain verification...`);
+      // this is the on-chain function that requires a ZKP
+      // @ts-expect-error https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      // get contracts
+      const twitterFollowersCountProof = new ethers.Contract(
+        // eslint-disable-next-line import/no-named-as-default-member
+        addresses.twitterFollowersCountProof,
+        twitterFollowersCountProofABI.abi,
+        signer,
+      );
+      let tx = await twitterFollowersCountProof.verifyProof(
+        a,
+        b,
+        c,
+        publicInputs,
+      );
+      console.log('tx', tx);
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Sent proof for on-chain verification`,
+      });
+      const receipt = await tx.wait();
+      console.log('receipt', receipt);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
+    } catch (e) {
+      console.log('found an error');
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
     }
@@ -433,7 +531,24 @@ const Index = () => {
               '1. Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old. 2. Send proof tx for on-chain verification.',
             button: (
               <GeneralButton
-                onClick={bigProofGenerationClick}
+                onClick={bigKYCProofGenClick}
+                disabled={false}
+                text="Generate & Submit"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+
+        <Card
+          content={{
+            title: 'twitter + follower threshold proof',
+            description:
+              '1. Call Metamask Snap to generate a proof that you hold a twitter ZkCertificate and has more than a certain number of followers. 2. Send proof tx for on-chain verification.',
+            button: (
+              <GeneralButton
+                onClick={twitterProofGenClick}
                 disabled={false}
                 text="Generate & Submit"
               />
@@ -526,7 +641,9 @@ const Index = () => {
               'Delete a zkCert from the Metamask snap storage.',
             button: (
               <GeneralButton
-                onClick={() => handleSnapCallClick(() => deleteZkCert({ zkCertStandard: ZkCertStandard.ZkKYC }, defaultSnapOrigin))}
+                onClick={() =>
+                  handleSnapCallClick(() => deleteZkCert({}, defaultSnapOrigin))
+                }
                 disabled={false}
                 text="Export"
               />

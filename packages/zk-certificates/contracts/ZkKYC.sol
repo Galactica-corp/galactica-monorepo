@@ -3,14 +3,14 @@ pragma solidity ^0.8.0;
 
 import './Ownable.sol';
 import './interfaces/IZkKYCVerifier.sol';
-import './interfaces/IKYCRegistry.sol';
+import './interfaces/IZkCertificateRegistry.sol';
 import './interfaces/IGalacticaInstitution.sol';
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of ZkKYC record existence
 contract ZkKYC is Ownable {
     IZkKYCVerifier public verifier;
-    IKYCRegistry public KYCRegistry;
+    IZkCertificateRegistry public KYCRegistry;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;
     uint256 public constant timeDifferenceTolerance = 30 * 60; // the maximal difference between the onchain time and public input current time
 
@@ -37,7 +37,7 @@ contract ZkKYC is Ownable {
         address[] memory _fraudInvestigationInstitutions
     ) Ownable(_owner) {
         verifier = IZkKYCVerifier(_verifier);
-        KYCRegistry = IKYCRegistry(_KYCRegistry);
+        KYCRegistry = IZkCertificateRegistry(_KYCRegistry);
         for (uint i = 0; i < _fraudInvestigationInstitutions.length; i++) {
             fraudInvestigationInstitutions.push(
                 IGalacticaInstitution(_fraudInvestigationInstitutions[i])
@@ -72,7 +72,7 @@ contract ZkKYC is Ownable {
         verifier = newVerifier;
     }
 
-    function setKYCRegistry(IKYCRegistry newKYCRegistry) public onlyOwner {
+    function setKYCRegistry(IZkCertificateRegistry newKYCRegistry) public onlyOwner {
         KYCRegistry = newKYCRegistry;
     }
 
@@ -80,6 +80,11 @@ contract ZkKYC is Ownable {
         IGalacticaInstitution[] calldata _fraudInvestigationInstitutions
     ) public onlyOwner {
         fraudInvestigationInstitutions = _fraudInvestigationInstitutions;
+    }
+
+    function verifyMerkleRoot(bytes32 merkleRoot) public view returns (bool) {
+      uint merkleRootIndex = KYCRegistry.merkleRootIndex(merkleRoot);
+      return merkleRootIndex >= KYCRegistry.merkleRootValidIndex();
     }
 
     //a, b, c are the proof
@@ -98,8 +103,8 @@ contract ZkKYC is Ownable {
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
         require(
-            KYCRegistry.merkleRoot() == proofRoot,
-            "the root in the proof doesn't match"
+          verifyMerkleRoot(proofRoot),
+          "invalid merkle root"
         );
 
         uint proofCurrentTime = input[INDEX_CURRENT_TIME];

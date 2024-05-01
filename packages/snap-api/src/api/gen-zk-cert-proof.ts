@@ -31,6 +31,9 @@ export type GenZkProofParams<ProofInputType> = {
   description: string;
   // Short description of each public input the proof is disclosing
   publicInputDescriptions: string[];
+
+  // Whether the private input for the ZK proof generation requires to set the EdDSA private key (e.g. for fraud investigation)
+  zkInputRequiresPrivKey: boolean;
 };
 
 type GenZKPErrorName = 'MissingInputParams';
@@ -51,7 +54,7 @@ export const generateZKProof = async (
 ) => {
   const response: ZkCertProof = await invokeSnap(
     {
-      method: RpcMethods.GenZkKycProof,
+      method: RpcMethods.GenZkCertProof,
       params,
     },
     snapOrigin,

@@ -1,0 +1,26 @@
+diff --git a/build/main.cjs b/build/main.cjs
+index 1cb3bac69a4626f937863a4771c37e176092c520..88cd7ead1883ff76f5e6b637ca0ced7eecfcd7f0 100644
+--- a/build/main.cjs
++++ b/build/main.cjs
+@@ -949,7 +949,7 @@ async function readExisting$2(o, b, c) {
+             data: o
+         };
+     }
+-    if (process.browser) {
++    if (false) { // patched because in SES there is no global process variable
+         if (typeof o === "string") {
+             const buff = await fetch(o).then( function(res) {
+                 return res.arrayBuffer();
+diff --git a/src/fastfile.js b/src/fastfile.js
+index 25db11e36c0c255d40d9e0bd879d4b6c23ae7256..efb946114dce9f09025874ba6a9294c52cd04d96 100644
+--- a/src/fastfile.js
++++ b/src/fastfile.js
+@@ -55,7 +55,7 @@ export async function readExisting(o, b, c) {
+             data: o
+         };
+     }
+-    if (process.browser) {
++    if (false) { // patched because in SES there is no global process variable
+         if (typeof o === "string") {
+             const buff = await fetch(o).then( function(res) {
+                 return res.arrayBuffer();
