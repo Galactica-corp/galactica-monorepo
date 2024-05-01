@@ -17,17 +17,17 @@ import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 import { queryVerificationSBTs } from '../../lib/queryVerificationSBT';
 import { decryptFraudInvestigationData } from '../../lib/SBTData';
 import { reconstructShamirSecret } from '../../lib/shamirTools';
-import type { ZKCertificate } from '../../lib/zkCertificate';
+import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZKKYCInput';
+} from '../../scripts/generateZkKYCInput';
 import type { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
-import type { ExampleMockDAppVerifier } from '../../typechain-types/contracts/ExampleMockDAppVerifier';
 import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
-import type { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { ExampleMockDAppVerifier } from '../../typechain-types/contracts/zkpVerifiers/ExampleMockDAppVerifier';
 
 use(chaiAsPromised);
 
@@ -36,7 +36,7 @@ chai.config.includeStack = true;
 describe('Verification SBT Smart contract', () => {
   let ageProofZkKYC: AgeProofZkKYC;
   let exampleMockDAppVerifier: ExampleMockDAppVerifier;
-  let mockKYCRegistry: MockKYCRegistry;
+  let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let mockGalacticaInstitutions: MockGalacticaInstitution[];
   const amountInstitutions = 3;
   let mockDApp: MockDApp;
@@ -47,7 +47,7 @@ describe('Verification SBT Smart contract', () => {
   let user: SignerWithAddress;
   let encryptionAccount: SignerWithAddress;
   const institutions: SignerWithAddress[] = [];
-  let zkKYC: ZKCertificate;
+  let zkKYC: ZkCertificate;
   let sampleInput: any;
   let circuitWasmPath: string;
   let circuitZkeyPath: string;
@@ -62,12 +62,12 @@ describe('Verification SBT Smart contract', () => {
     }
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    const mockKYCRegistryFactory = await ethers.getContractFactory(
-      'MockKYCRegistry',
+    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+      'MockZkCertificateRegistry',
       deployer,
     );
-    mockKYCRegistry =
-      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
+    mockZkCertificateRegistry =
+      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
       'MockGalacticaInstitution',
@@ -94,7 +94,7 @@ describe('Verification SBT Smart contract', () => {
     ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
       deployer.address,
       exampleMockDAppVerifier.address,
-      mockKYCRegistry.address,
+      mockZkCertificateRegistry.address,
       mockGalacticaInstitutions.map((inst) => inst.address),
     )) as AgeProofZkKYC;
 
@@ -164,7 +164,7 @@ describe('Verification SBT Smart contract', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
@@ -191,7 +191,33 @@ describe('Verification SBT Smart contract', () => {
     const publicInputs = processPublicSignals(publicSignals);
     const humanID = publicInputs[await ageProofZkKYC.INDEX_HUMAN_ID()];
 
-    await mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs);
+    const currentTokenId = await verificationSBT.tokenCounter();
+    const previousUserBalance = await verificationSBT.balanceOf(user.address);
+
+    // test that the transfer event is emitted
+    await expect(
+      mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs),
+    )
+      .to.emit(verificationSBT, 'Transfer')
+      .withArgs(
+        '0x0000000000000000000000000000000000000000',
+        user.address,
+        currentTokenId,
+      );
+
+    // test that the token counter has been increased
+    expect(await verificationSBT.tokenCounter()).to.be.equal(
+      currentTokenId + 1,
+    );
+    expect(await verificationSBT.balanceOf(user.address)).to.be.equal(
+      previousUserBalance + 1,
+    );
+    expect(await verificationSBT.tokenIdToOwner(currentTokenId)).to.be.equal(
+      user.address,
+    );
+    expect(await verificationSBT.tokenIdToDApp(currentTokenId)).to.be.equal(
+      mockDApp.address,
+    );
 
     // check that the verification SBT is created
     expect(
@@ -226,6 +252,7 @@ describe('Verification SBT Smart contract', () => {
       [0, 0],
       publicInputs,
     );
+
     expect(
       await mockDApp.hasReceivedToken2(fromHexToBytes32(fromDecToHex(humanID))),
     ).to.be.true;
@@ -289,7 +316,7 @@ describe('Verification SBT Smart contract', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
