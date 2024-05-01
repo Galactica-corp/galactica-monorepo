@@ -32,6 +32,12 @@ contract VerificationSBT is IVerificationSBT{
         bytes32 indexed humanID
     );
 
+    event Transfer(
+        address indexed from,
+        address indexed to,
+        uint256 indexed tokenId
+    );
+
     constructor(string memory uri) {
         deploymentBlock = uint64(block.number);
         baseURI = uri;
@@ -111,7 +117,7 @@ contract VerificationSBT is IVerificationSBT{
       balance = balances[user];
     }
 
-    function ownerOf(uint256 tokenId) external view returns (address) {
+    function ownerOf(uint256 tokenId) public view returns (address) {
         return tokenIdToOwner[tokenId];
     }
 
@@ -132,8 +138,6 @@ contract VerificationSBT is IVerificationSBT{
         uint256 tokenId
     ) public view virtual override returns (string memory) {
         _requireMinted(tokenId);
-        // concatinate base URI with holder address
-        // address will be lower case and not have checksum encoding
         return baseURI;
     }
 }
