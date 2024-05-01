@@ -198,7 +198,7 @@ describe('Verification SBT Smart contract', () => {
     await expect(
       mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs),
     )
-    .to.emit(verificationSBT, 'Transfer')
+      .to.emit(verificationSBT, 'Transfer')
       .withArgs(
         '0x0000000000000000000000000000000000000000',
         user.address,
@@ -206,7 +206,9 @@ describe('Verification SBT Smart contract', () => {
       );
 
     // test that the token counter has been increased
-    expect(await verificationSBT.tokenCounter()).to.be.equal(currentTokenId + 1);
+    expect(await verificationSBT.tokenCounter()).to.be.equal(
+      currentTokenId + 1,
+    );
     expect(await verificationSBT.balanceOf(user.address)).to.be.equal(
       previousUserBalance + 1,
     );
