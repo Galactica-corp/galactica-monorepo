@@ -143,7 +143,6 @@ describe('ZkCertificateRegistry', () => {
         await ZkCertificateRegistry.merkleRootIndex(merkleRoots[i]),
       ).to.be.equal(i);
     }
-
   });
 
   it('should be able to nullify a leaf', async function () {
