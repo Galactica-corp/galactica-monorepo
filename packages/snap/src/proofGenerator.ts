@@ -230,7 +230,7 @@ async function getCurveForSnarkJS(name: string): Promise<any> {
  * @param params - Parameters defining the proof to be generated.
  * @throws an error if the request is invalid.
  */
-export function checkZkKycProofRequest(
+export function checkZkCertProofRequest(
   params: GenZkProofParams<ZkCertInputType>,
 ) {
   if (params.userAddress === undefined) {

@@ -26,7 +26,7 @@ import {
 } from './encryption';
 import { getMerkleProof } from './merkleProofSelection';
 import {
-  checkZkKycProofRequest as checkZkCertProofRequest,
+  checkZkCertProofRequest,
   createProofConfirmationPrompt,
   generateZkCertProof,
 } from './proofGenerator';
