@@ -34,7 +34,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
 
   // read certificate data file
-  const data = JSON.parse(fs.readFileSync(args.zkCertificateDataFile, 'utf-8'));
+  const data = JSON.parse(fs.readFileSync(args.dataFile, 'utf-8'));
   let zkCertificateType;
   if (args.zkCertificateType === 'zkKYC') {
     zkCertificateType = ZkCertStandard.ZkKYC;
@@ -177,7 +177,7 @@ task(
     false,
   )
   .addParam(
-    'zkCertificateDataFile',
+    'dataFile',
     'The file containing the KYC data',
     undefined,
     types.string,

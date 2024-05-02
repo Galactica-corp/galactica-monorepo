@@ -47,8 +47,6 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     uint256 public merkleRootValidIndex = 1;
     // we will also store the merkle root index in a mapping for quicker lookup
     mapping(bytes32 => uint) public merkleRootIndex; 
-    // store to each zkCertificateHash the merkle root index at the moment of addition
-    mapping (bytes32 => uint) public hashToMerkleRootIndex;
 
     // Block height at which the contract was initialized
     // You can use it to speed up finding all logs of the contract by starting from this block
@@ -161,7 +159,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         );
 
         require(
-          hashToMerkleRootIndex[zkCertificateHash] == 0,
+          ZkCertificateToGuardian[zkCertificateHash] == address(0),
           'ZkCertificateRegistry: zkCertificate already exists'
         );
 
@@ -172,7 +170,6 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             merkleProof
         );
         ZkCertificateToGuardian[zkCertificateHash] = msg.sender;
-        hashToMerkleRootIndex[zkCertificateHash] = merkleRoots.length - 1;
         emit zkCertificateAddition(zkCertificateHash, msg.sender, leafIndex);
     }
 

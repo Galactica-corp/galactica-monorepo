@@ -144,11 +144,6 @@ describe('ZkCertificateRegistry', () => {
       ).to.be.equal(i);
     }
 
-    for (let i = 0; i < leafHashes.length; i++) {
-      expect(
-        await ZkCertificateRegistry.hashToMerkleRootIndex(leafHashes[i]),
-      ).to.be.equal(i + 1);
-    }
   });
 
   it('should be able to nullify a leaf', async function () {

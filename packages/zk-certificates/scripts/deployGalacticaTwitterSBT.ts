@@ -22,14 +22,13 @@ async function main() {
   const nftName = 'Genesis SBT';
   const nftSymbol = 'XNET';
 
-  const GalacticaTwitterSBT = await deploySC('GalacticaTwitterSBT', true, {}, [
+  await deploySC('GalacticaTwitterSBT', true, {}, [
     issuer,
     uri,
     owner,
     nftName,
     nftSymbol,
   ]);
-  console.log(`The address of the contract is ${GalacticaTwitterSBT.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

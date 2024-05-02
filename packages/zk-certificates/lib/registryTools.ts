@@ -81,7 +81,7 @@ export async function revokeZkCert(
   }
   const leafHashAsBytes = fromHexToBytes32(fromDecToHex(zkCertLeafHash));
   if (
-    (await recordRegistry.ZKKYCRecordToCenter(leafHashAsBytes)) !==
+    (await recordRegistry.ZkCertificateToGuardian(leafHashAsBytes)) !==
     (await issuer.getAddress())
   ) {
     throw Error('Only the issuer of the zkCert can revoke it.');
@@ -89,7 +89,7 @@ export async function revokeZkCert(
 
   const merkleProof = merkleTree.createProof(leafIndex);
 
-  const tx = await recordRegistry.connect(issuer).revokeZkKYCRecord(
+  const tx = await recordRegistry.connect(issuer).revokeZkCertificate(
     leafIndex,
     leafHashAsBytes,
     merkleProof.pathElements.map((value) =>
