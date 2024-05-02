@@ -23,4 +23,9 @@ contract MockZkCertificateRegistry is IZkCertificateRegistry {
     function setMerkleRootValidIndex(uint256 newValue) public {
       merkleRootValidIndex = newValue;
     }
+
+    function verifyMerkleRoot(bytes32 _merkleRoot) external view returns (bool) {
+      uint _merkleRootIndex = merkleRootIndex[_merkleRoot];
+      return _merkleRootIndex >= merkleRootValidIndex;
+    }
 }
