@@ -52,12 +52,6 @@ contract TwitterFollowersCountProof is Ownable {
         registry = newRegistry;
     }
 
-
-    function verifyMerkleRoot(bytes32 merkleRoot) public view returns (bool) {
-      uint merkleRootIndex = registry.merkleRootIndex(merkleRoot);
-      return merkleRootIndex >= registry.merkleRootValidIndex();
-    }
-
     //a, b, c are the proof
     // input array contains the public parameters: isValid, verificationExpirationTime, merkleRoot, currentTime, userAddress, providerPubKeyA, providerPubKeyB
     function verifyProof(
@@ -74,7 +68,7 @@ contract TwitterFollowersCountProof is Ownable {
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
         require(
-          verifyMerkleRoot(proofRoot),
+          registry.verifyMerkleRoot(proofRoot),
           "invalid merkle root"
         );
 

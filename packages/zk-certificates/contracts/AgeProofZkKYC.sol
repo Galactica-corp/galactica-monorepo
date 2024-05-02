@@ -88,11 +88,6 @@ contract AgeProofZkKYC is Ownable {
         KYCRegistry = newKYCRegistry;
     }
 
-    function verifyMerkleRoot(bytes32 merkleRoot) public view returns (bool) {
-      uint merkleRootIndex = KYCRegistry.merkleRootIndex(merkleRoot);
-      return merkleRootIndex >= KYCRegistry.merkleRootValidIndex();
-    }
-
     function setGalacticaInstituion(
         IGalacticaInstitution[] calldata _fraudInvestigationInstitutions
     ) public onlyOwner {
@@ -114,7 +109,7 @@ contract AgeProofZkKYC is Ownable {
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
         require(
-          verifyMerkleRoot(proofRoot),
+          KYCRegistry.verifyMerkleRoot(proofRoot),
           "invalid merkle root"
         );
 
