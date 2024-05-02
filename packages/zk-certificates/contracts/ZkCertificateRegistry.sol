@@ -265,4 +265,9 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         }
         return leafHash;
     }
+
+    function verifyMerkleRoot(bytes32 _merkleRoot) public view returns (bool) {
+      uint _merkleRootIndex = merkleRootIndex[_merkleRoot];
+      return _merkleRootIndex >= merkleRootValidIndex;
+    }
 }
