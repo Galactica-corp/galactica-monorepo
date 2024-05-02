@@ -207,10 +207,10 @@ describe('Verification SBT Smart contract', () => {
 
     // test that the token counter has been increased
     expect(await verificationSBT.tokenCounter()).to.be.equal(
-      currentTokenId + 1,
+      currentTokenId.add(1),
     );
     expect(await verificationSBT.balanceOf(user.address)).to.be.equal(
-      previousUserBalance + 1,
+      previousUserBalance.add(1),
     );
     expect(await verificationSBT.tokenIdToOwner(currentTokenId)).to.be.equal(
       user.address,
