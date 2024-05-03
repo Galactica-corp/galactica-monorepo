@@ -30,8 +30,8 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     string public description;
 
     // The tree depth and size
-    uint256 public treeDepth;
-    uint256 public treeSize;
+    uint256 public immutable treeDepth;
+    uint256 public immutable treeSize;
 
     // Tree zero value
     bytes32 public constant ZERO_VALUE =
@@ -72,11 +72,9 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         uint256 treeDepth_,
         string memory description_
     ) initializer {
-        initializeZkCertificateRegistry(
-            GuardianRegistry_,
-            treeDepth_,
-            description_
-        );
+        treeDepth = treeDepth_;
+        treeSize = 2 ** treeDepth;
+        initializeZkCertificateRegistry(GuardianRegistry_, description_);
     }
 
     /**
@@ -99,7 +97,6 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
      */
     function initializeZkCertificateRegistry(
         address GuardianRegistry_,
-        uint256 treeDepth_,
         string memory description_
     ) internal onlyInitializing {
         description = description_;
@@ -112,8 +109,6 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         /   \       /  \
         a    b     c    d
         */
-        treeDepth = treeDepth_;
-        treeSize = 2 ** treeDepth;
 
         // Store the current zero value for the level we just calculated it for
         bytes32 currentZero = ZERO_VALUE;

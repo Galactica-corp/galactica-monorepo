@@ -11,21 +11,18 @@ contract ZkCertificateRegistryTest is ZkCertificateRegistry {
         uint256 treeDepth
     ) ZkCertificateRegistry(GuardianRegistry, treeDepth, 'Test Registry') {}
 
-    function doubleInit(address GuardianRegistry, uint256 treeDepth) external {
+    function doubleInit(address GuardianRegistry) external {
         ZkCertificateRegistry.initializeZkCertificateRegistry(
             GuardianRegistry,
-            treeDepth,
             'Test Registry'
         );
     }
 
     function initializeZkCertificateRegistryTest(
-        address GuardianRegistry,
-        uint256 treeDepth
+        address GuardianRegistry
     ) internal initializer {
         ZkCertificateRegistry.initializeZkCertificateRegistry(
             GuardianRegistry,
-            treeDepth,
             'Test Registry'
         );
     }

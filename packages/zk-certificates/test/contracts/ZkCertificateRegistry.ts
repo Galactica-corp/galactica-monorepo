@@ -72,7 +72,7 @@ describe('ZkCertificateRegistry', () => {
       await loadFixture(deploy);
 
     await expect(
-      ZkCertificateRegistry.doubleInit(GuardianRegistry.address, 32),
+      ZkCertificateRegistry.doubleInit(GuardianRegistry.address),
     ).to.be.revertedWith('Initializable: contract is not initializing');
   });
 
