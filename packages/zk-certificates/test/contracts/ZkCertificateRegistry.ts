@@ -143,10 +143,6 @@ describe('ZkCertificateRegistry', () => {
         await ZkCertificateRegistry.merkleRootIndex(merkleRoots[i]),
       ).to.be.equal(i);
     }
-<<<<<<< HEAD
-=======
-
->>>>>>> 6813e49 (remove redundant mapping)
   });
 
   it('should be able to nullify a leaf', async function () {

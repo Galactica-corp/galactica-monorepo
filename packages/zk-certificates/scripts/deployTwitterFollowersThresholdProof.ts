@@ -31,10 +31,6 @@ async function main() {
     guardianRegistry = await deploySC('GuardianRegistry', true, {}, [
       description,
     ]);
-<<<<<<< HEAD
-=======
-
->>>>>>> 6813e49 (remove redundant mapping)
   } else {
     const guardianRegistryAddress =
       '0x2B943d59498BC1759505bFa4CA78E12D7704f75D';
