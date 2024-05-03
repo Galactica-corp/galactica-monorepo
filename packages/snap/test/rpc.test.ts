@@ -658,7 +658,7 @@ describe('Test rpc handler function', function () {
         });
 
       const callPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.ListZkCerts, testZkpParams),
+        buildRPCRequest(RpcMethods.ListZkCerts, {}),
         snapProvider,
         ethereumProvider,
       );
@@ -708,6 +708,47 @@ describe('Test rpc handler function', function () {
         'testing verification level',
       ).to.equal(zkCert2.content.verificationLevel);
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+    });
+
+    it('should filter list according to parameters', async function () {
+      const zkCert2OnOtherChain = JSON.parse(JSON.stringify(zkCert2));
+      zkCert2OnOtherChain.registration.chainID = 12345;
+
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert, zkCert2OnOtherChain],
+        });
+      snapProvider.rpcStubs.snap_dialog
+        .withArgs(match.has('type', 'confirmation'))
+        .resolves(true);
+
+      // filter for chainId 12345 to get only one
+      let res: any = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ListZkCerts, { chainID: 12345 }),
+        snapProvider,
+        ethereumProvider,
+      );
+      expect(res[zkCert.zkCertStandard].length).to.equal(1);
+
+      // filter type to get both
+      res = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ListZkCerts, {
+          zkCertStandard: ZkCertStandard.ZkKYC,
+        }),
+        snapProvider,
+        ethereumProvider,
+      );
+      expect(res[zkCert.zkCertStandard].length).to.equal(2);
+
+      // filter for garbage to get none
+      res = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ListZkCerts, { registryAddress: '0x00' }),
+        snapProvider,
+        ethereumProvider,
+      );
+      expect(res).to.not.have.key(zkCert.zkCertStandard);
     });
   });
 

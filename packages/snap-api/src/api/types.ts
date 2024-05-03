@@ -1,3 +1,5 @@
+import type { ZkCertStandard } from '@galactica-net/galactica-types';
+
 export type {
   ProviderData,
   MerkleProof,
@@ -41,8 +43,9 @@ export type ZkCertProof = {
  * Because the website does not know IDs for zkCerts, it can provide an optional list of filters to simplify selecting the zkCert.
  */
 export type ZkCertSelectionParams = {
-  zkCertStandard?: string;
+  zkCertStandard?: ZkCertStandard;
   registryAddress?: string;
+  chainID?: number;
   expirationDate?: number;
   providerAx?: string;
 };
