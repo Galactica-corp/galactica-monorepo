@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type {
-  ZkCertRegistered,
-  ZkCertSelectionParams,
-} from '@galactica-net/snap-api';
 import {
   twitterZkCertificateContentFields,
   zkKYCContentFields,
   ZkCertStandard,
 } from '@galactica-net/galactica-types';
+import type {
+  ZkCertRegistered,
+  ZkCertSelectionParams,
+} from '@galactica-net/snap-api';
 import { RpcResponseErr } from '@galactica-net/snap-api';
 import { ZkCertificate } from '@galactica-net/zk-certificates';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
