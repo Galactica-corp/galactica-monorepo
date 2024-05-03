@@ -14,7 +14,7 @@ import {
 } from '../../lib/helpers';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
-describe('KYCRecordRegistry', () => {
+describe('ZkCertificateRegistry', () => {
   let deployer: SignerWithAddress;
 
   beforeEach(async () => {
@@ -33,36 +33,50 @@ describe('KYCRecordRegistry', () => {
 
     const GuardianRegistryFactory =
       await ethers.getContractFactory('GuardianRegistry');
-    const GuardianRegistry = await GuardianRegistryFactory.deploy();
+    const GuardianRegistry = await GuardianRegistryFactory.deploy(
+      'Test Guardian Registry',
+    );
 
-    const KYCRecordRegistryTest = await ethers.getContractFactory(
-      'KYCRecordRegistryTest',
+    const ZkCertificateRegistryTest = await ethers.getContractFactory(
+      'ZkCertificateRegistryTest',
       {
         libraries: {
           PoseidonT3: poseidonT3.address,
         },
       },
     );
-    const KYCRecordRegistry = await KYCRecordRegistryTest.deploy(
+    const ZkCertificateRegistry = await ZkCertificateRegistryTest.deploy(
       GuardianRegistry.address,
     );
 
     return {
-      KYCRecordRegistry,
+      ZkCertificateRegistry,
       GuardianRegistry,
     };
   }
 
+  /**
+   * Tests the equality of two arrays.
+   * @param a1 - The first array to compare.
+   * @param a2 - The second array to compare.
+   */
+  function expectEqualArrays(a1: any[], a2: any[]) {
+    const length1 = a1.length;
+    const length2 = a2.length;
+    expect(length1).to.be.equal(length2);
+  }
+
   it("shouldn't initialize twice", async () => {
-    const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
+    const { ZkCertificateRegistry, GuardianRegistry } =
+      await loadFixture(deploy);
 
     await expect(
-      KYCRecordRegistry.doubleInit(GuardianRegistry.address),
+      ZkCertificateRegistry.doubleInit(GuardianRegistry.address),
     ).to.be.revertedWith('Initializable: contract is not initializing');
   });
 
-  it('should calculate zero values', async () => {
-    const { KYCRecordRegistry } = await loadFixture(deploy);
+  it('should initialize values correctly', async () => {
+    const { ZkCertificateRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -70,29 +84,23 @@ describe('KYCRecordRegistry', () => {
 
     // Each value in the zero values array should be the same
     for (let i = 0; i < treeDepth; i++) {
-      expect(await KYCRecordRegistry.zeros(i)).to.equal(
+      expect(await ZkCertificateRegistry.zeros(i)).to.equal(
         fromHexToBytes32(fromDecToHex(merkleTree.emptyBranchLevels[i])),
       );
     }
-  });
-
-  it('should calculate empty root', async () => {
-    const { KYCRecordRegistry } = await loadFixture(deploy);
-
-    const eddsa = await buildEddsa();
-    const treeDepth = 32;
-    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
-
-    // Should initialize empty root correctly
-    expect(await KYCRecordRegistry.merkleRoot()).to.equal(
+    expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);
+    const merkleRoots = await ZkCertificateRegistry.getMerkleRoots();
+    // normal "expect" doesn't compare arrays so we need to compare length and iterate over elements
+    expectEqualArrays(merkleRoots, [
       fromHexToBytes32(fromDecToHex(merkleTree.root)),
-    );
+    ]);
   });
 
   it('should insert elements', async function () {
     const loops = 5;
 
-    const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
+    const { ZkCertificateRegistry, GuardianRegistry } =
+      await loadFixture(deploy);
 
     // add deployer as a Guardian
     await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
@@ -103,14 +111,15 @@ describe('KYCRecordRegistry', () => {
 
     const leafHashes = generateRandomBytes32Array(5);
     const leafIndices = generateRandomNumberArray(5);
+    const merkleRoots = [fromHexToBytes32(fromDecToHex(merkleTree.root))];
     for (let i = 0; i < loops; i += 1) {
       // console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
-      // add new zkKYCRecord and check the root
+      // add new zkCertificate and check the root
       const merkleProof = merkleTree.createProof(leafIndices[i]);
       const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
-      await KYCRecordRegistry.addZkKYCRecord(
+      await ZkCertificateRegistry.addZkCertificate(
         leafIndices[i],
         leafHashes[i],
         merkleProofPath,
@@ -118,16 +127,29 @@ describe('KYCRecordRegistry', () => {
       merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
 
       // Check roots match
-      expect(await KYCRecordRegistry.merkleRoot()).to.equal(
+      expect(await ZkCertificateRegistry.merkleRoot()).to.equal(
         fromHexToBytes32(fromDecToHex(merkleTree.root)),
       );
+      merkleRoots.push(fromHexToBytes32(fromDecToHex(merkleTree.root)));
+    }
+
+    // check the merkle root array is correctly set
+    const merkleRootsFromContract =
+      await ZkCertificateRegistry.getMerkleRoots();
+    expectEqualArrays(merkleRootsFromContract, merkleRoots);
+    expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);
+    for (let i = 0; i < merkleRoots.length; i++) {
+      expect(
+        await ZkCertificateRegistry.merkleRootIndex(merkleRoots[i]),
+      ).to.be.equal(i);
     }
   });
 
   it('should be able to nullify a leaf', async function () {
     const loops = 5;
 
-    const { KYCRecordRegistry, GuardianRegistry } = await loadFixture(deploy);
+    const { ZkCertificateRegistry, GuardianRegistry } =
+      await loadFixture(deploy);
 
     // add deployer as a Guardian
     await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
@@ -148,7 +170,7 @@ describe('KYCRecordRegistry', () => {
       const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
-      await KYCRecordRegistry.addZkKYCRecord(
+      await ZkCertificateRegistry.addZkCertificate(
         leafIndices[i],
         leafHashes[i],
         merkleProofPath,
@@ -156,26 +178,31 @@ describe('KYCRecordRegistry', () => {
       merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
     }
 
-    // now we will try to nullify the first added leaf
-    const merkleProof = merkleTree.createProof(leafIndices[0]);
+    // now we will try to nullify the third added leaf
+    const leafIndex = 2;
+    const merkleProof = merkleTree.createProof(leafIndices[leafIndex]);
     const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
-    await KYCRecordRegistry.revokeZkKYCRecord(
-      leafIndices[0],
-      leafHashes[0],
+    await ZkCertificateRegistry.revokeZkCertificate(
+      leafIndices[leafIndex],
+      leafHashes[leafIndex],
       merkleProofPath,
     );
-    merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[0]]);
+    merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[leafIndex]]);
 
     // Check roots match
-    expect(await KYCRecordRegistry.merkleRoot()).to.equal(
+    expect(await ZkCertificateRegistry.merkleRoot()).to.equal(
       fromHexToBytes32(fromDecToHex(merkleTree.root)),
+    );
+
+    expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(
+      loops + 1,
     );
   });
 
-  it('only KYC Center can add leaf', async function () {
-    const { KYCRecordRegistry } = await loadFixture(deploy);
+  it('only Guardian can add leaf', async function () {
+    const { ZkCertificateRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -183,17 +210,17 @@ describe('KYCRecordRegistry', () => {
 
     const leafHashes = generateRandomBytes32Array(1);
     const leafIndices = generateRandomNumberArray(1);
-    // add new zkKYCRecord and check the root
+    // add new zkCertificate and check the root
     const merkleProof = merkleTree.createProof(leafIndices[0]);
     const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
     await expect(
-      KYCRecordRegistry.addZkKYCRecord(
+      ZkCertificateRegistry.addZkCertificate(
         leafIndices[0],
         leafHashes[0],
         merkleProofPath,
       ),
-    ).to.be.revertedWith('KYCRecordRegistry: not a KYC Center');
+    ).to.be.revertedWith('ZkCertificateRegistry: not a Guardian');
   });
 });

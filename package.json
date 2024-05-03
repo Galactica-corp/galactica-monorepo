@@ -30,7 +30,8 @@
   "resolutions": {
     "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch",
     "ffjavascript": "0.3.0",
-    "ejs": "patch:ejs@npm:3.1.9#.yarn/patches/ejs-npm-3.1.9-e201b2088c.patch"
+    "ejs": "patch:ejs@npm:3.1.9#.yarn/patches/ejs-npm-3.1.9-e201b2088c.patch",
+    "fastfile@0.0.20": "patch:fastfile@npm:0.0.20#.yarn/patches/fastfile-npm-0.0.20-4263a2b353.patch"
   },
   "devDependencies": {
     "@metamask/eslint-config": "^12.2.0",

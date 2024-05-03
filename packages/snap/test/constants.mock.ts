@@ -92,6 +92,7 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeProofInput> = {
     'institution 3 pubkey Ax',
     'institution 3 pubkey Ay',
   ],
+  zkInputRequiresPrivKey: true,
 };
 
 export const merkleProofServiceURL =

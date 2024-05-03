@@ -462,7 +462,7 @@ describe('Test rpc handler function', function () {
         });
 
       const callPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
       );
@@ -483,7 +483,7 @@ describe('Test rpc handler function', function () {
         });
 
       const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
       )) as ZkCertProof;
@@ -513,7 +513,7 @@ describe('Test rpc handler function', function () {
         });
 
       const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
       )) as ZkCertProof;
@@ -535,7 +535,7 @@ describe('Test rpc handler function', function () {
         .resolves(null); // user clicked reject or entered nothing before pressing accept
 
       const callPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
       );
@@ -565,7 +565,7 @@ describe('Test rpc handler function', function () {
         .resolves(null); // user clicked reject or entered nothing before pressing accept
 
       const callPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
       );
@@ -598,7 +598,7 @@ describe('Test rpc handler function', function () {
         });
 
       const callPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
       );
@@ -624,7 +624,7 @@ describe('Test rpc handler function', function () {
         });
 
       const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.GenZkKycProof, testZkpParams),
+        buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
       )) as ZkCertProof;

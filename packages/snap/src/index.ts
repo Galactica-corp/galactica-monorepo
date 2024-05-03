@@ -26,9 +26,9 @@ import {
 } from './encryption';
 import { getMerkleProof } from './merkleProofSelection';
 import {
-  checkZkKycProofRequest,
+  checkZkCertProofRequest,
   createProofConfirmationPrompt,
-  generateZkKycProof,
+  generateZkCertProof,
 } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
@@ -62,10 +62,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
   let response: ConfirmationResponse;
 
   switch (request.method as RpcMethods) {
-    case RpcMethods.GenZkKycProof: {
+    case RpcMethods.GenZkCertProof: {
       // parse ZKP inputs
       const genParams = request.params as unknown as GenZkProofParams<any>;
-      checkZkKycProofRequest(genParams);
+      checkZkCertProofRequest(genParams);
 
       const zkCert = await selectZkCert(
         snap,
@@ -104,7 +104,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         }
       }
 
-      const proof = await generateZkKycProof(
+      const proof = await generateZkCertProof(
         genParams,
         zkCert,
         holder,
@@ -160,6 +160,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
     case RpcMethods.ImportZkCert: {
       const importParams = request.params as ImportZkCertParams;
+
       checkEncryptedZkCertFormat(importParams.encryptedZkCert);
 
       holder = getHolder(
@@ -176,7 +177,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const searchedZkCert = state.zkCerts.find(
         (candidate) =>
           candidate.leafHash === zkCert.leafHash &&
-          candidate.registration.address === zkCert.registration.address,
+          candidate.registration.address === zkCert.registration.address &&
+          candidate.zkCertStandard === zkCert.zkCertStandard,
       );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };
@@ -186,7 +188,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const prompt: PanelContent = [
         heading('Import your zkCertificate into your MetaMask'),
         text(
-          `With this action you are importing your zkKYC in your MetaMask in order to generate ZK proofs.ZK proofs are generated using the Galactica Snap.`,
+          `With this action you are importing your ${zkCert.zkCertStandard} in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
         ),
       ];
       if (importParams.listZkCerts === true) {
@@ -217,7 +219,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
         (candidate) =>
           candidate.holderCommitment === zkCert.holderCommitment &&
           candidate.merkleProof.leafIndex === zkCert.merkleProof.leafIndex &&
-          candidate.registration.address === zkCert.registration.address,
+          candidate.registration.address === zkCert.registration.address &&
+          candidate.zkCertStandard === zkCert.zkCertStandard,
       );
       if (oldVersion) {
         const confirmRenewal = await snap.request({
