@@ -12,17 +12,17 @@ import { printProgress } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { issueZkCert } from '../lib/registryTools';
-import { ZKCertificate } from '../lib/zkCertificate';
-import { prepareKYCFields } from '../lib/zkKYC';
+import { issueZkCert, revokeZkCert } from '../lib/registryTools';
+import { ZkCertificate } from '../lib/zkCertificate';
+import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
 /**
- * Script for creating a zkKYC certificate, issuing it and adding a merkle proof for it.
- * @param args - See task definition below or 'npx hardhat createZkKYC --help'.
+ * Script for reissuing a zkCertificate with current time stamp and adding a new merkle proof for it.
+ * @param args - See task definition below or 'npx hardhat reissueZkCertificate --help'.
  * @param hre - Hardhat runtime environment.
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
-  console.log('Creating zkKYC certificate');
+  console.log('Reissuing zkCertificate');
 
   const eddsa = await buildEddsa();
 
@@ -30,12 +30,26 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(
     `Using provider ${chalk.yellow(
       issuer.address.toString(),
-    )} to sign the zkKYC certificate`,
+    )} to sign the zkCertificate`,
   );
 
-  // read KYC data file
-  const data = JSON.parse(fs.readFileSync(args.kycDataFile, 'utf-8'));
-  const zkKYCFields = prepareKYCFields(eddsa, data);
+  // read certificate data file
+  const data = JSON.parse(fs.readFileSync(args.dataFile, 'utf-8'));
+  let zkCertificateType;
+  if (args.zkCertificateType === 'zkKYC') {
+    zkCertificateType = ZkCertStandard.ZkKYC;
+  } else if (args.zkCertificateType === `twitterZkCertificate`) {
+    zkCertificateType = ZkCertStandard.TwitterZkCertificate;
+  } else {
+    throw new Error(
+      `ZkCertStandard type ${args.zkCertificateType} is unsupported`,
+    );
+  }
+  const zkCertificateFields = prepareZkCertificateFields(
+    eddsa,
+    data,
+    zkCertificateType,
+  );
 
   // read holder commitment file
   const holderCommitmentFile = JSON.parse(
@@ -46,42 +60,29 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // generate random number as salt for new zkKYC
   const randomSalt = Math.floor(Math.random() * 2 ** 32);
 
-  console.log('Creating zkKYC...');
-  // TODO: create ZkKYC subclass requiring all the other fields
-  const zkKYC = new ZKCertificate(
+  zkCertificateFields.expirationDate = args.newExpirationDate;
+  const newZkCertificate = new ZkCertificate(
     holderCommitmentData.holderCommitment,
-    ZkCertStandard.ZkKYC,
+    zkCertificateType,
     eddsa,
     randomSalt,
     args.expirationDate,
-    zkKYCFields,
+    Object.keys(zkCertificateFields),
+    zkCertificateFields,
   );
 
-  // let provider sign the zkKYC
+  // let provider sign the zkCertificate
   const providerEdDSAKey = await getEddsaKeyFromEthSigner(issuer);
-  zkKYC.signWithProvider(providerEdDSAKey);
-
-  console.log(chalk.green(`created the zkKYC certificate ${zkKYC.did}`));
-
-  if (args.registryAddress === undefined) {
-    console.log('zkKYC', JSON.stringify(zkKYC.exportRaw(), null, 2));
-    console.log(
-      chalk.yellow(
-        "Parameter 'registry-address' is missing. The zkKYC has not been issued on chain",
-      ),
-    );
-    return;
-  }
+  newZkCertificate.signWithProvider(providerEdDSAKey);
 
   const recordRegistry = await hre.ethers.getContractAt(
-    'KYCRecordRegistry',
+    'ZkCertificateRegistry',
     args.registryAddress,
   );
 
   console.log(
     'Generating merkle proof. This might take a while because it needs to query on-chain data...',
   );
-
   const merkleTreeDepth = await recordRegistry.treeDepth();
   // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
   const merkleTree = await buildMerkleTreeFromRegistry(
@@ -91,45 +92,84 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     printProgress,
   );
 
-  console.log('Issuing zkKYC...');
-  const { merkleProof, registration } = await issueZkCert(
-    zkKYC,
+  // reissue = revoke + issue
+  console.log('revoking previous entry...');
+  await revokeZkCert(
+    merkleTree.retrieveLeaf(0, args.index),
+    args.index,
     recordRegistry,
     issuer,
     merkleTree,
   );
   console.log(
     chalk.green(
-      `Issued the zkKYC certificate ${zkKYC.did} on chain at index ${registration.leafIndex}`,
+      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${
+        args.index as number
+      }`,
+    ),
+  );
+
+  console.log('Issuing zkCertificate...');
+  const { merkleProof, registration } = await issueZkCert(
+    newZkCertificate,
+    recordRegistry,
+    issuer,
+    merkleTree,
+  );
+  console.log(
+    chalk.green(
+      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${
+        args.index as number
+      } with new expiration date ${args.expirationDate as number}`,
     ),
   );
 
   // print to console for developers and testers, not necessary for production
   const rawJSON = {
-    ...zkKYC.exportRaw(),
+    ...newZkCertificate.exportRaw(),
     merkleProof,
     registration,
   };
   console.log(JSON.stringify(rawJSON, null, 2));
 
-  console.log(chalk.green('This ZkKYC can be imported in a wallet'));
-  // write encrypted zkKYC output to file
-  const output = zkKYC.exportJson(
+  console.log(chalk.green('This ZkCertificate can be imported in a wallet'));
+  // write encrypted zkCertificate output to file
+  const output = newZkCertificate.exportJson(
     holderCommitmentData.encryptionPubKey,
     merkleProof,
     registration,
   );
 
   const outputFileName: string =
-    args.outputFile || `issuedZkKYCs/${zkKYC.leafHash}.json`;
+    args.outputFile ||
+    `issuedZkCertificates/${newZkCertificate.zkCertStandard}_${newZkCertificate.leafHash}.json`;
   fs.mkdirSync(path.dirname(outputFileName), { recursive: true });
   fs.writeFileSync(outputFileName, output);
-  console.log(chalk.green(`Written ZkKYC to output file ${outputFileName}`));
+  console.log(
+    chalk.green(`Written ZkCertificate to output file ${outputFileName}`),
+  );
 
   console.log(chalk.green('done'));
 }
 
-task('createZkKYC', 'Task to create a zkKYC certificate with input parameters')
+task(
+  'reissueZkCertificate',
+  'Task to reissue a zkCertificate with later expiration date',
+)
+  .addParam(
+    'index',
+    'index of the zkCertificate to be updated',
+    0,
+    types.int,
+    true,
+  )
+  .addParam(
+    'expirationDate',
+    'New expiration date how long the zkCert should be valid (as Unix timestamp)',
+    0,
+    types.int,
+    true,
+  )
   .addParam(
     'holderFile',
     'Path to the file containing the encryption key and the holder commitment fixing the address of the holder without disclosing it to the provider',
@@ -138,24 +178,31 @@ task('createZkKYC', 'Task to create a zkKYC certificate with input parameters')
     false,
   )
   .addParam(
-    'kycDataFile',
+    'dataFile',
     'The file containing the KYC data',
     undefined,
     types.string,
     false,
   )
   .addParam(
-    'expirationDate',
-    'How long should the zkCert be valid? (as Unix timestamp)',
+    'zkCertificateType',
+    'type of zkCertificate, default to be zkKYC',
     undefined,
-    types.int,
+    types.string,
     false,
   )
   .addParam(
     'registryAddress',
-    'The smart contract address where zkKYCs are registered',
+    'The smart contract address where zkCertificates are registered',
     undefined,
     types.string,
+    false,
+  )
+  .addParam(
+    'merkleProof',
+    'Should the script also create a merkle proof?',
+    true,
+    types.boolean,
     true,
   )
   .addParam(

@@ -17,17 +17,17 @@ import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 import { queryVerificationSBTs } from '../../lib/queryVerificationSBT';
 import { decryptFraudInvestigationData } from '../../lib/SBTData';
 import { reconstructShamirSecret } from '../../lib/shamirTools';
-import type { ZKCertificate } from '../../lib/zkCertificate';
+import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZKKYCInput';
+} from '../../scripts/generateZkKYCInput';
 import type { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
-import type { ExampleMockDAppVerifier } from '../../typechain-types/contracts/ExampleMockDAppVerifier';
 import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
-import type { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { ExampleMockDAppVerifier } from '../../typechain-types/contracts/zkpVerifiers/ExampleMockDAppVerifier';
 
 use(chaiAsPromised);
 
@@ -36,7 +36,7 @@ chai.config.includeStack = true;
 describe('Verification SBT Smart contract', () => {
   let ageProofZkKYC: AgeProofZkKYC;
   let exampleMockDAppVerifier: ExampleMockDAppVerifier;
-  let mockKYCRegistry: MockKYCRegistry;
+  let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let mockGalacticaInstitutions: MockGalacticaInstitution[];
   const amountInstitutions = 3;
   let mockDApp: MockDApp;
@@ -47,7 +47,7 @@ describe('Verification SBT Smart contract', () => {
   let user: SignerWithAddress;
   let encryptionAccount: SignerWithAddress;
   const institutions: SignerWithAddress[] = [];
-  let zkKYC: ZKCertificate;
+  let zkKYC: ZkCertificate;
   let sampleInput: any;
   let circuitWasmPath: string;
   let circuitZkeyPath: string;
@@ -62,12 +62,12 @@ describe('Verification SBT Smart contract', () => {
     }
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    const mockKYCRegistryFactory = await ethers.getContractFactory(
-      'MockKYCRegistry',
+    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+      'MockZkCertificateRegistry',
       deployer,
     );
-    mockKYCRegistry =
-      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
+    mockZkCertificateRegistry =
+      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
       'MockGalacticaInstitution',
@@ -94,7 +94,7 @@ describe('Verification SBT Smart contract', () => {
     ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
       deployer.address,
       exampleMockDAppVerifier.address,
-      mockKYCRegistry.address,
+      mockZkCertificateRegistry.address,
       mockGalacticaInstitutions.map((inst) => inst.address),
     )) as AgeProofZkKYC;
 
@@ -164,7 +164,7 @@ describe('Verification SBT Smart contract', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
@@ -289,7 +289,7 @@ describe('Verification SBT Smart contract', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 

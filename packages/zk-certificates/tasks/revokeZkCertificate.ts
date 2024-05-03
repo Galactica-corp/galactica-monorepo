@@ -9,32 +9,32 @@ import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { revokeZkCert } from '../lib/registryTools';
 
 /**
- * Script for revoking a zkKYC certificate, issuing it and adding a merkle proof for it.
- * @param args - See task definition below or 'npx hardhat createZkKYC --help'.
+ * Script for revoking a zkCertificate, issuing it and adding a merkle proof for it.
+ * @param args - See task definition below or 'npx hardhat revokeZkCertificate --help'.
  * @param hre - Hardhat runtime environment.
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
-  console.log('Revoking zkKYC certificate');
+  console.log('Revoking zkCertificate');
 
   const [provider] = await hre.ethers.getSigners();
   console.log(
     `Using provider ${chalk.yellow(
       provider.address.toString(),
-    )} to revoke the zkKYC certificate`,
+    )} to revoke the zkCertificate`,
   );
 
   if (args.registryAddress === undefined) {
     console.log(
       chalk.yellow(
-        "Parameter 'registry-address' is missing. The zkKYC has not been issued on chain",
+        "Parameter 'registry-address' is missing. Revocation cannot proceed",
       ),
     );
     return;
   }
 
-  console.log('Revoking zkKYC...');
+  console.log('Revoking zkCertificate...');
   const recordRegistry = await hre.ethers.getContractAt(
-    'KYCRecordRegistry',
+    'ZkCertificateRegistry',
     args.registryAddress,
   );
 
@@ -60,7 +60,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   console.log(
     chalk.green(
-      `Revoked the zkKYC certificate ${args.leafHash} on-chain at index ${
+      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${
         args.index as number
       }`,
     ),
@@ -68,12 +68,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 }
 
 task(
-  'revokeZkKYC',
-  'Task to revoke a zkKYC certificate with leaf hash and merkle tree',
+  'revokeZkCertificate',
+  'Task to revoke a zkCertificate with leaf hash and merkle tree',
 )
   .addParam(
     'leafHash',
-    'leaf hash of the zkKYC record in the merkle tree',
+    'leaf hash of the zkCertificate record in the merkle tree',
     undefined,
     string,
     false,
@@ -81,7 +81,7 @@ task(
   .addParam('index', 'index of the leaf in the merkle tree', 0, types.int, true)
   .addParam(
     'registryAddress',
-    'The smart contract address where zkKYCs are registered',
+    'The smart contract address where zkCertificates are registered',
     undefined,
     types.string,
     true,

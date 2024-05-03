@@ -43,7 +43,7 @@ export const generateProof = async (
     params: {
       snapId: defaultSnapOrigin,
       request: {
-        method: RpcMethods.GenZkKycProof,
+        method: RpcMethods.GenZkCertProof,
         params: {
           input: proofInput,
           requirements: {

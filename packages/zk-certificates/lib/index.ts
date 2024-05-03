@@ -15,6 +15,6 @@ export * from './SBTData';
 export * from './shamirTools';
 export * from './sparseMerkleTree';
 export * from './zkCertificate';
-export * from './zkKYC';
+export * from './zkCertificateDataProcessing';
 export type { ZkKYCContent } from '@galactica-net/galactica-types';
 export { ZkCertStandard } from '@galactica-net/galactica-types';

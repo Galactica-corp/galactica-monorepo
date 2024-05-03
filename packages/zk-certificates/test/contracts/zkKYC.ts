@@ -11,15 +11,15 @@ import {
   processProof,
   processPublicSignals,
 } from '../../lib/helpers';
-import type { ZKCertificate } from '../../lib/zkCertificate';
+import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZKKYCInput';
+} from '../../scripts/generateZkKYCInput';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
-import type { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
-import type { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
+import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
 
 chai.config.includeStack = true;
 
@@ -30,14 +30,14 @@ describe('zkKYC SC', () => {
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKYCContract: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
-  let mockKYCRegistry: MockKYCRegistry;
+  let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let mockGalacticaInstitutions: MockGalacticaInstitution[];
   const amountInstitutions = 3;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
   let randomUser: SignerWithAddress;
-  let zkKYC: ZKCertificate;
+  let zkKYC: ZkCertificate;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
@@ -47,12 +47,12 @@ describe('zkKYC SC', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
-    const mockKYCRegistryFactory = await ethers.getContractFactory(
-      'MockKYCRegistry',
+    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+      'MockZkCertificateRegistry',
       deployer,
     );
-    mockKYCRegistry =
-      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
+    mockZkCertificateRegistry =
+      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
       'MockGalacticaInstitution',
@@ -75,7 +75,7 @@ describe('zkKYC SC', () => {
     zkKYCContract = (await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
-      mockKYCRegistry.address,
+      mockZkCertificateRegistry.address,
       [],
     )) as ZkKYC;
 
@@ -123,8 +123,42 @@ describe('zkKYC SC', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    const [piA, piB, piC] = processProof(proof);
+
+    const publicInputs = processPublicSignals(publicSignals);
+    console.log(`public inputs are`);
+    console.log(publicInputs);
+    await zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
+  });
+
+  it('proof with older but still valid merkle root can still be verified', async () => {
+    const { proof, publicSignals } = await groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath,
+    );
+
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+    const publicTime = parseInt(
+      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
+      10,
+    );
+    // set the merkle root to the correct one
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    // add a new merkle root
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex('0x11')),
     );
 
     // set time to the public time
@@ -137,6 +171,43 @@ describe('zkKYC SC', () => {
     await zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
   });
 
+  it('revert for proof with old merkle root', async () => {
+    const { proof, publicSignals } = await groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath,
+    );
+
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+    const publicTime = parseInt(
+      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
+      10,
+    );
+    // set the merkle root to the correct one
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    // add a new merkle root
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex('0x11')),
+    );
+
+    // increase the merkleRootValidIndex
+    await mockZkCertificateRegistry.setMerkleRootValidIndex(2);
+
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    const [piA, piB, piC] = processProof(proof);
+
+    const publicInputs = processPublicSignals(publicSignals);
+    await expect(
+      zkKYCContract.connect(user).verifyProof(piC, piB, piA, publicInputs),
+    ).to.be.revertedWith('invalid merkle root');
+  });
+
   it('incorrect proof failed to be verified', async () => {
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
@@ -146,7 +217,7 @@ describe('zkKYC SC', () => {
 
     const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     const [piA, piB, piC] = processProof(proof);
@@ -175,7 +246,7 @@ describe('zkKYC SC', () => {
     const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
@@ -202,7 +273,7 @@ describe('zkKYC SC', () => {
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
       zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
-    ).to.be.revertedWith("the root in the proof doesn't match");
+    ).to.be.revertedWith('invalid merkle root');
   });
 
   it('revert if time is too far from current time', async () => {
@@ -219,7 +290,7 @@ describe('zkKYC SC', () => {
     );
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
@@ -249,7 +320,7 @@ describe('zkKYC SC', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
@@ -287,7 +358,7 @@ describe('zkKYC SC', () => {
     const investigatableZkKYC = await zkKYCFactory.deploy(
       deployer.address,
       verifierSC.address,
-      mockKYCRegistry.address,
+      mockZkCertificateRegistry.address,
       mockGalacticaInstitutions.map((inst) => inst.address),
     );
 
@@ -316,7 +387,7 @@ describe('zkKYC SC', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 

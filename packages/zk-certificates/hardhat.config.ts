@@ -6,10 +6,10 @@ import 'hardhat-circom';
 import { Wallet } from 'ethers';
 import type { HardhatUserConfig } from 'hardhat/config';
 
-import './tasks/createZKKYC';
+import './tasks/createZkCertificate';
 import './tasks/smartCircuitBuild';
-import './tasks/revokeZKKYC';
-import './tasks/reissueZKKYC';
+import './tasks/revokeZkCertificate';
+import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
 
 const config: HardhatUserConfig = {
@@ -33,7 +33,12 @@ const config: HardhatUserConfig = {
     },
     reticulum: {
       url: 'https://evm-rpc-http-reticulum.galactica.com/',
-      accounts: getAccounts(),
+      accounts: [
+        process.env.GalaTestnetDeployerPrivateKey ??
+          Wallet.createRandom().privateKey,
+        process.env.ReticulumGuardianPrivateKey ??
+          Wallet.createRandom().privateKey,
+      ],
     },
   },
   etherscan: {
@@ -161,6 +166,21 @@ const config: HardhatUserConfig = {
         input: 'input/exampleMockDApp.json',
       },
       {
+        name: 'twitterZkCertificate',
+        circuit: 'test/test_twitterZkCertificate.circom',
+        input: 'input/twitterZkCertificate.json',
+      },
+      {
+        name: 'twitterFollowersCountProof',
+        circuit: 'test/test_twitterFollowersCountProof.circom',
+        input: 'input/twitterFollowersCountProof.json',
+      },
+      {
+        name: 'twitterVerificationProof',
+        circuit: 'test/test_twitterVerificationProof.circom',
+        input: 'input/twitterZkCertificate.json',
+      },
+      {
         name: 'poseidonSponge',
         circuit: 'test/test_poseidonSponge.circom',
         input: 'input/poseidonSponge.json',
@@ -205,6 +225,12 @@ function getAccounts(): string[] {
     accounts.push(process.env.GalaTestnetInstitution3PrivateKey);
   } else {
     console.warn(`GalaTestnetInstitution3PrivateKey${warningMsg}`);
+    accounts.push(Wallet.createRandom().privateKey);
+  }
+  if (process.env.ReticulumGuardianPrivateKey) {
+    accounts.push(process.env.ReticulumGuardianPrivateKey);
+  } else {
+    console.warn(`ReticulumGuardian${warningMsg}`);
     accounts.push(Wallet.createRandom().privateKey);
   }
   return accounts;

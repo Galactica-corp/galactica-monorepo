@@ -9,7 +9,7 @@ import {
   getEddsaKeyFromEthSigner,
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
-import { ZKCertificate } from '../lib/zkCertificate';
+import { ZkCertificate } from '../lib/zkCertificate';
 
 // sample field inputs
 export const fields = {
@@ -32,7 +32,7 @@ export const fields = {
  * Generates a sample ZkKYC object with the given fields.
  * @returns ZkKYC object promise.
  */
-export async function generateSampleZkKYC(): Promise<ZKCertificate> {
+export async function generateSampleZkKYC(): Promise<ZkCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -43,7 +43,7 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
 
   const holderEdDSAKey = await getEddsaKeyFromEthSigner(holder);
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
-  const zkKYC = new ZKCertificate(
+  const zkKYC = new ZkCertificate(
     holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
@@ -71,7 +71,7 @@ export async function generateSampleZkKYC(): Promise<ZKCertificate> {
  * @returns Zero Knowledge KYC proof input for the zkKYC smart contract.
  */
 export async function generateZkKYCProofInput(
-  zkKYC: ZKCertificate,
+  zkKYC: ZkCertificate,
   amountInstitutions: number,
   dAppAddress: string,
   merkleTreeDepth = 32,

@@ -3,12 +3,12 @@ import { buildPoseidon } from 'circomlibjs';
 import type { Contract, providers } from 'ethers';
 
 import { SparseMerkleTree } from './sparseMerkleTree';
-import type { KYCRecordRegistry } from '../typechain-types/contracts/KYCRecordRegistry';
+import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
 
 /**
  * Query the on-chain Merkle tree leaves needed as input for the Merkle tree
  * @param ethers - Ethers instance
- * @param contractAddr - Address of the KYCRecordRegistry contract
+ * @param contractAddr - Address of the ZkCertificateRegistry contract
  * @param firstBlock - First block to query (ideally the contract creation block)
  * @returns Promise of an array of Merkle tree leaves
  */
@@ -27,7 +27,7 @@ export type LeafLogResult = {
  */
 export async function queryOnChainLeaves(
   provider: providers.Provider,
-  registry: KYCRecordRegistry,
+  registry: ZkCertificateRegistry,
   firstBlock = 1,
   onProgress?: (percent: string) => void,
 ): Promise<LeafLogResult[]> {
@@ -58,12 +58,12 @@ export async function queryOnChainLeaves(
     for (let errorCounter = 0; errorCounter < 5; errorCounter++) {
       try {
         leafAddedLogs = await registry.queryFilter(
-          registry.filters.zkKYCRecordAddition(),
+          registry.filters.zkCertificateAddition(),
           i,
           maxBlock,
         );
         leafRevokedLogs = await registry.queryFilter(
-          registry.filters.zkKYCRecordRevocation(),
+          registry.filters.zkCertificateRevocation(),
           i,
           maxBlock,
         );
@@ -142,7 +142,7 @@ export async function buildMerkleTreeFromRegistry(
 
   const leafLogResults = await queryOnChainLeaves(
     provider,
-    recordRegistry as KYCRecordRegistry,
+    recordRegistry as ZkCertificateRegistry,
     firstBlock,
     onProgress,
   );
