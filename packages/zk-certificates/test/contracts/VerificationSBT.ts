@@ -102,8 +102,9 @@ describe('Verification SBT Smart contract', () => {
       'VerificationSBT',
       deployer,
     );
-    verificationSBT =
-      (await verificationSBTFactory.deploy()) as VerificationSBT;
+    verificationSBT = (await verificationSBTFactory.deploy(
+      'test URI',
+    )) as VerificationSBT;
 
     const mockDAppFactory = await ethers.getContractFactory(
       'MockDApp',
