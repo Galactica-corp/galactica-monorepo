@@ -13,11 +13,13 @@ const { log } = console;
  * Deploys the infrastructure for zkKYC.
  * @param deployer - The deployer wallet.
  * @param institutions - The institutions wallets for fraud investigation.
+ * @param merkleTreeDepth - The depth of the Registration merkle tree.
  * @returns The deployed contracts.
  */
 export async function deployInfrastructure(
   deployer: SignerWithAddress,
   institutions: SignerWithAddress[],
+  merkleTreeDepth = 32,
 ): Promise<{
   poseidonT3: any;
   guardianRegistry: any;
@@ -52,7 +54,7 @@ export async function deployInfrastructure(
         PoseidonT3: poseidonT3.address,
       },
     },
-    [guardianRegistry.address],
+    [guardianRegistry.address, merkleTreeDepth],
   );
   const zkpVerifier = await deploySC('ExampleMockDAppVerifier', true);
 

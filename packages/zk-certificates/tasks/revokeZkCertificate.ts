@@ -41,11 +41,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log(
     'Generating merkle tree. This might take a while because it needs to query on-chain data...',
   );
+  const merkleTreeDepth = await recordRegistry.treeDepth();
   // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
   const merkleTree = await buildMerkleTreeFromRegistry(
     recordRegistry,
     hre.ethers.provider,
-    32,
+    merkleTreeDepth,
     printProgress,
   );
 

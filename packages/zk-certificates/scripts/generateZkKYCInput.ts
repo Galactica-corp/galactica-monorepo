@@ -67,12 +67,14 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
  * @param zkKYC - The zkKYC object.
  * @param amountInstitutions - The amount of institutions to use for fraud investigation.
  * @param dAppAddress - The address of the DApp smart contract.
+ * @param merkleTreeDepth - The depth of the registration Merkle tree.
  * @returns Zero Knowledge KYC proof input for the zkKYC smart contract.
  */
 export async function generateZkKYCProofInput(
   zkKYC: ZkCertificate,
   amountInstitutions: number,
   dAppAddress: string,
+  merkleTreeDepth = 32,
 ): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
@@ -113,7 +115,7 @@ export async function generateZkKYCProofInput(
   const humanIDProofInput = zkKYC.getHumanIDProofInput(dAppAddress);
 
   // initiate an empty merkle tree
-  const merkleTree = new MerkleTree(32, eddsa.poseidon);
+  const merkleTree = new MerkleTree(merkleTreeDepth, eddsa.poseidon);
 
   // add leaf hash as a leaf to this merkle tree
   merkleTree.insertLeaves([leafHash]);

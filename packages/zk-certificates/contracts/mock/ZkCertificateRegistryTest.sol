@@ -6,15 +6,24 @@ pragma abicoder v2;
 import {ZkCertificateRegistry} from '../ZkCertificateRegistry.sol';
 
 contract ZkCertificateRegistryTest is ZkCertificateRegistry {
-    constructor(address GuardianRegistry) ZkCertificateRegistry(GuardianRegistry, "Test Registry"){}
+    constructor(
+        address GuardianRegistry,
+        uint256 treeDepth
+    ) ZkCertificateRegistry(GuardianRegistry, treeDepth, 'Test Registry') {}
 
     function doubleInit(address GuardianRegistry) external {
-        ZkCertificateRegistry.initializeZkCertificateRegistry(GuardianRegistry, "Test Registry");
+        ZkCertificateRegistry.initializeZkCertificateRegistry(
+            GuardianRegistry,
+            'Test Registry'
+        );
     }
 
     function initializeZkCertificateRegistryTest(
         address GuardianRegistry
     ) internal initializer {
-        ZkCertificateRegistry.initializeZkCertificateRegistry(GuardianRegistry, "Test Registry");
+        ZkCertificateRegistry.initializeZkCertificateRegistry(
+            GuardianRegistry,
+            'Test Registry'
+        );
     }
 }

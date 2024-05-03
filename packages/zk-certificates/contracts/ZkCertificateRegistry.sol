@@ -30,8 +30,8 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     string public description;
 
     // The tree depth and size
-    uint256 internal constant TREE_DEPTH = 32;
-    uint256 internal constant TREE_SIZE = 2 ** 32;
+    uint256 public immutable treeDepth;
+    uint256 public immutable treeSize;
 
     // Tree zero value
     bytes32 public constant ZERO_VALUE =
@@ -46,16 +46,11 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     // we start from 1 because nonexistant merkle roots return 0 in the merkleRootIndex mapping
     uint256 public merkleRootValidIndex = 1;
     // we will also store the merkle root index in a mapping for quicker lookup
-    mapping(bytes32 => uint) public merkleRootIndex; 
+    mapping(bytes32 => uint) public merkleRootIndex;
 
     // Block height at which the contract was initialized
     // You can use it to speed up finding all logs of the contract by starting from this block
     uint256 public initBlockHeight;
-
-    // The Merkle path to the leftmost leaf upon initialization. It *should
-    // not* be modified after it has been set by the initialize function.
-    // Caching these values is essential to efficient appends.
-    bytes32[TREE_DEPTH] public zeros;
 
     // a mapping to store which Guardian manages which ZkCertificate
     mapping(bytes32 => address) public ZkCertificateToGuardian;
@@ -74,23 +69,26 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
 
     constructor(
         address GuardianRegistry_,
-        string memory _description
+        uint256 treeDepth_,
+        string memory description_
     ) initializer {
-      initializeZkCertificateRegistry(GuardianRegistry_, _description);
+        treeDepth = treeDepth_;
+        treeSize = 2 ** treeDepth;
+        initializeZkCertificateRegistry(GuardianRegistry_, description_);
     }
 
     /**
-    * @notice return the current merkle root which is the last one in the merkleRoots array
-    */ 
+     * @notice return the current merkle root which is the last one in the merkleRoots array
+     */
     function merkleRoot() public view returns (bytes32) {
-      return merkleRoots[merkleRoots.length - 1];
+        return merkleRoots[merkleRoots.length - 1];
     }
 
     /**
-    * @notice return the whole merkle root array
+     * @notice return the whole merkle root array
      */
     function getMerkleRoots() public view returns (bytes32[] memory) {
-      return merkleRoots;
+        return merkleRoots;
     }
 
     /**
@@ -99,10 +97,9 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
      */
     function initializeZkCertificateRegistry(
         address GuardianRegistry_,
-        string memory _description
+        string memory description_
     ) internal onlyInitializing {
-
-    description = _description;
+        description = description_;
         /*
         To initialize the Merkle tree, we need to calculate the Merkle root
         assuming that each leaf is the zero value.
@@ -111,23 +108,13 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         H(a,b)     H(c,d)
         /   \       /  \
         a    b     c    d
-        `zeros` and `filledSubTrees` will come in handy later when we do
-        inserts or updates. e.g when we insert a value in index 1, we will
-        need to look up values from those arrays to recalculate the Merkle
-        root.
         */
-
-        // Calculate zero values
-        zeros[0] = ZERO_VALUE;
 
         // Store the current zero value for the level we just calculated it for
         bytes32 currentZero = ZERO_VALUE;
 
         // Loop through each level
-        for (uint256 i = 0; i < TREE_DEPTH; i += 1) {
-            // Push it to zeros array
-            zeros[i] = currentZero;
-
+        for (uint256 i = 0; i < treeDepth; i += 1) {
             // Calculate the zero value for this level
             currentZero = hashLeftRight(currentZero, currentZero);
         }
@@ -159,8 +146,8 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         );
 
         require(
-          ZkCertificateToGuardian[zkCertificateHash] == address(0),
-          'ZkCertificateRegistry: zkCertificate already exists'
+            ZkCertificateToGuardian[zkCertificateHash] == address(0),
+            'ZkCertificateRegistry: zkCertificate already exists'
         );
 
         _changeLeafHash(
@@ -240,7 +227,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         uint256 index,
         bytes32 leafHash,
         bytes32 _merkleRoot
-    ) internal pure returns (bool) {
+    ) internal view returns (bool) {
         return (compute(merkleProof, index, leafHash) == _merkleRoot);
     }
 
@@ -248,11 +235,11 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         bytes32[] memory merkleProof,
         uint256 index,
         bytes32 leafHash
-    ) internal pure returns (bytes32) {
-        require(index < TREE_SIZE, '_index bigger than tree size');
-        require(merkleProof.length == TREE_DEPTH, 'Invalid _proofs length');
+    ) internal view returns (bytes32) {
+        require(index < treeSize, '_index bigger than tree size');
+        require(merkleProof.length == treeDepth, 'Invalid _proofs length');
 
-        for (uint256 d = 0; d < TREE_DEPTH; d++) {
+        for (uint256 d = 0; d < treeDepth; d++) {
             if ((index & 1) == 1) {
                 leafHash = hashLeftRight(merkleProof[d], leafHash);
             } else {
@@ -264,7 +251,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     }
 
     function verifyMerkleRoot(bytes32 _merkleRoot) public view returns (bool) {
-      uint _merkleRootIndex = merkleRootIndex[_merkleRoot];
-      return _merkleRootIndex >= merkleRootValidIndex;
+        uint _merkleRootIndex = merkleRootIndex[_merkleRoot];
+        return _merkleRootIndex >= merkleRootValidIndex;
     }
 }

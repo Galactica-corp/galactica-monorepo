@@ -47,6 +47,7 @@ describe('ZkCertificateRegistry', () => {
     );
     const ZkCertificateRegistry = await ZkCertificateRegistryTest.deploy(
       GuardianRegistry.address,
+      32,
     );
 
     return {
@@ -82,12 +83,6 @@ describe('ZkCertificateRegistry', () => {
     const treeDepth = 32;
     const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
-    // Each value in the zero values array should be the same
-    for (let i = 0; i < treeDepth; i++) {
-      expect(await ZkCertificateRegistry.zeros(i)).to.equal(
-        fromHexToBytes32(fromDecToHex(merkleTree.emptyBranchLevels[i])),
-      );
-    }
     expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);
     const merkleRoots = await ZkCertificateRegistry.getMerkleRoots();
     // normal "expect" doesn't compare arrays so we need to compare length and iterate over elements
