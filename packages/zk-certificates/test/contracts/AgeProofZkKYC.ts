@@ -11,14 +11,14 @@ import {
   processProof,
   processPublicSignals,
 } from '../../lib/helpers';
-import type { ZKCertificate } from '../../lib/zkCertificate';
+import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZKKYCInput';
+} from '../../scripts/generateZkKYCInput';
 import type { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
 import type { AgeProofZkKYCVerifier } from '../../typechain-types/contracts/AgeProofZkKYCVerifier';
-import type { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -28,12 +28,12 @@ describe('ageProofZkKYC SC', () => {
   /* await hre.network.provider.send('hardhat_reset'); */
   let ageProofZkKYC: AgeProofZkKYC;
   let ageProofZkKYCVerifier: AgeProofZkKYCVerifier;
-  let mockKYCRegistry: MockKYCRegistry;
+  let mockZkCertificateRegistry: MockZkCertificateRegistry;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
   let randomUser: SignerWithAddress;
-  let zkKYC: ZKCertificate;
+  let zkKYC: ZkCertificate;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
@@ -43,12 +43,12 @@ describe('ageProofZkKYC SC', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    const mockKYCRegistryFactory = await ethers.getContractFactory(
-      'MockKYCRegistry',
+    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+      'MockZkCertificateRegistry',
       deployer,
     );
-    mockKYCRegistry =
-      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
+    mockZkCertificateRegistry =
+      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     const ageProofZkKYCVerifierFactory = await ethers.getContractFactory(
       'AgeProofZkKYCVerifier',
@@ -64,7 +64,7 @@ describe('ageProofZkKYC SC', () => {
     ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
       deployer.address,
       ageProofZkKYCVerifier.address,
-      mockKYCRegistry.address,
+      mockZkCertificateRegistry.address,
       [],
     )) as AgeProofZkKYC;
     await ageProofZkKYCVerifier.deployed();
@@ -116,13 +116,15 @@ describe('ageProofZkKYC SC', () => {
       circuitZkeyPath,
     );
 
+    console.log(publicSignals);
+
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
     const publicTime = parseInt(
       publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
@@ -136,6 +138,75 @@ describe('ageProofZkKYC SC', () => {
     await ageProofZkKYC.connect(user).verifyProof(piA, piB, piC, publicInputs);
   });
 
+  it('proof with older but still valid merkle root can still be verified', async () => {
+    const { proof, publicSignals } = await groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath,
+    );
+
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(
+      publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
+      10,
+    );
+    // set the merkle root to the correct one
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    // add a new merkle root
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex('0x11')),
+    );
+
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    const [piA, piB, piC] = processProof(proof);
+
+    const publicInputs = processPublicSignals(publicSignals);
+    await ageProofZkKYC.connect(user).verifyProof(piA, piB, piC, publicInputs);
+  });
+
+  it('revert for proof with old merkle root', async () => {
+    const { proof, publicSignals } = await groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath,
+    );
+
+    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicTime = parseInt(
+      publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
+      10,
+    );
+    // set the merkle root to the correct one
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    // add a new merkle root
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex('0x11')),
+    );
+
+    // increase the merkleRootValidIndex
+    await mockZkCertificateRegistry.setMerkleRootValidIndex(2);
+
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    const [piA, piB, piC] = processProof(proof);
+
+    const publicInputs = processPublicSignals(publicSignals);
+    await expect(
+      ageProofZkKYC.connect(user).verifyProof(piC, piB, piA, publicInputs),
+    ).to.be.revertedWith('invalid merkle root');
+  });
+
   it('incorrect proof failed to be verified', async () => {
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
@@ -146,7 +217,7 @@ describe('ageProofZkKYC SC', () => {
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     const [piA, piB, piC] = processProof(proof);
@@ -176,7 +247,7 @@ describe('ageProofZkKYC SC', () => {
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
@@ -203,7 +274,7 @@ describe('ageProofZkKYC SC', () => {
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
       ageProofZkKYC.connect(user).verifyProof(piC, piB, piA, publicInputs),
-    ).to.be.revertedWith("the root in the proof doesn't match");
+    ).to.be.revertedWith('invalid merkle root');
   });
 
   it('revert if time is too far from current time', async () => {
@@ -220,7 +291,7 @@ describe('ageProofZkKYC SC', () => {
     );
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
@@ -250,7 +321,7 @@ describe('ageProofZkKYC SC', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
@@ -287,7 +358,7 @@ describe('ageProofZkKYC SC', () => {
     );
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time

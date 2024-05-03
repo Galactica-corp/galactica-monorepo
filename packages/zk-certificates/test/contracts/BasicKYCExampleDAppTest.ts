@@ -10,13 +10,13 @@ import {
   processProof,
   processPublicSignals,
 } from '../../lib/helpers';
-import type { ZKCertificate } from '../../lib/zkCertificate';
+import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZKKYCInput';
+} from '../../scripts/generateZkKYCInput';
 import type { BasicKYCExampleDApp } from '../../typechain-types/contracts/BasicKYCExampleDApp';
-import type { MockKYCRegistry } from '../../typechain-types/contracts/mock/MockKYCRegistry';
+import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
@@ -29,13 +29,13 @@ describe('BasicKYCExampleDApp', () => {
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKycSC: ZkKYC;
   let zkKYCVerifier: ZkKYCVerifier;
-  let mockKYCRegistry: MockKYCRegistry;
+  let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let verificationSBT: VerificationSBT;
   let basicExampleDApp: BasicKYCExampleDApp;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
-  let zkKYC: ZKCertificate;
+  let zkKYC: ZkCertificate;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
@@ -46,12 +46,12 @@ describe('BasicKYCExampleDApp', () => {
     [deployer, user] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    const mockKYCRegistryFactory = await ethers.getContractFactory(
-      'MockKYCRegistry',
+    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+      'MockZkCertificateRegistry',
       deployer,
     );
-    mockKYCRegistry =
-      (await mockKYCRegistryFactory.deploy()) as MockKYCRegistry;
+    mockZkCertificateRegistry =
+      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
       'ZkKYCVerifier',
@@ -63,7 +63,7 @@ describe('BasicKYCExampleDApp', () => {
     zkKycSC = (await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
-      mockKYCRegistry.address,
+      mockZkCertificateRegistry.address,
       [],
     )) as ZkKYC;
     await zkKYCVerifier.deployed();
@@ -116,7 +116,7 @@ describe('BasicKYCExampleDApp', () => {
       10,
     );
     // set the merkle root to the correct one
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
 
@@ -193,7 +193,7 @@ describe('BasicKYCExampleDApp', () => {
     const publicRoot = publicSignals[await zkKycSC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
-    await mockKYCRegistry.setMerkleRoot(
+    await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     const [piA, piB, piC] = processProof(proof);

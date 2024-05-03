@@ -8,12 +8,18 @@ export const galacticaInstitutions = [
 ];
 export const repeatableZkKYCTest = '0xC1B9000A2f963f7dA9BE2A6Deabe073ec6A8B5C1';
 
+export const twitterFollowersCountProof =
+  '0x172cb6C095A3708c4F5f424f3f5d170cf8556A1D';
+export const twitterZkCertificateRegistry =
+  '0xFa74c5025EaCC1CE76c90a19fF479e7135d3ccAA';
 const addresses = {
   mockDApp,
   verificationSBT,
   galacticaInstitutions,
   repeatableZkKYCTest,
   zkKYCRegistry,
+  twitterFollowersCountProof,
+  twitterZkCertificateRegistry,
 };
 
 export default addresses;

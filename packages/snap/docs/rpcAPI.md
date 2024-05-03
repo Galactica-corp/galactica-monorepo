@@ -86,7 +86,7 @@ import { getHolderCommitment } from '@galactica-net/snap-api';
 const holderCommitmentData = getHolderCommitment();
 ```
 
-### `genZkKycProof`
+### `GenZkCertProof`
 
 #### Description
 

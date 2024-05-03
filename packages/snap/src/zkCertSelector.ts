@@ -3,8 +3,13 @@ import type {
   ZkCertRegistered,
   ZkCertSelectionParams,
 } from '@galactica-net/snap-api';
+import {
+  twitterZkCertificateContentFields,
+  zkKYCContentFields,
+  ZkCertStandard,
+} from '@galactica-net/galactica-types';
 import { RpcResponseErr } from '@galactica-net/snap-api';
-import { ZKCertificate } from '@galactica-net/zk-certificates';
+import { ZkCertificate } from '@galactica-net/zk-certificates';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
 import { divider, heading, panel, text } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
@@ -52,7 +57,7 @@ export async function selectZkCert(
   snap: SnapsGlobalObject,
   availableCerts: ZkCertRegistered[],
   filter?: ZkCertSelectionParams,
-): Promise<ZKCertificate> {
+): Promise<ZkCertificate> {
   if (availableCerts.length === 0) {
     throw new Error('No zkCerts available. Please import it first.');
   }
@@ -130,13 +135,19 @@ export async function selectZkCert(
     selected = filteredCerts[indexSelection];
   }
 
+  const contentFields =
+    selected.zkCertStandard === ZkCertStandard.TwitterZkCertificate
+      ? twitterZkCertificateContentFields
+      : zkKYCContentFields;
+
   const eddsa = await buildEddsa();
-  const zkCert = new ZKCertificate(
+  const zkCert = new ZkCertificate(
     selected.holderCommitment,
     selected.zkCertStandard,
     eddsa,
     selected.randomSalt,
     selected.expirationDate,
+    contentFields,
     selected.content,
     selected.providerData,
   );

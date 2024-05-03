@@ -152,6 +152,7 @@ template AgeProofZkKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     ageProof.currentDay <== currentDay;
     ageProof.ageThreshold <== ageThreshold;
 
+
     component and = AND();
     and.a <== zkKYC.valid;
     and.b <== ageProof.valid;

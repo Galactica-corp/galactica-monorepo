@@ -4,7 +4,7 @@
  */
 export enum RpcMethods {
   GetHolderCommitment = 'getHolderCommitment',
-  GenZkKycProof = 'genZkKycProof',
+  GenZkCertProof = 'genZkCertProof',
   ClearStorage = 'clearStorage',
   ImportZkCert = 'importZkCert',
   ExportZkCert = 'exportZkCert',

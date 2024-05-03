@@ -8,11 +8,11 @@ import type { Signer, Contract } from 'ethers';
 
 import { fromDecToHex, fromHexToBytes32 } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
-import type { ZKCertificate } from './zkCertificate';
+import type { ZkCertificate } from './zkCertificate';
 
 /**
  * Issues zkCert record on-chain and updates the merkle tree.
- * @param zkCert - ZKCertificate to issue on-chain.
+ * @param zkCert - ZkCertificate to issue on-chain.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert (guardian).
  * @param merkleTree - Merkle tree of the registry (passed to not reconstruct it repeatedly).
@@ -20,7 +20,7 @@ import type { ZKCertificate } from './zkCertificate';
  * @returns MerkleProof of the new leaf in the tree and registration data.
  */
 export async function issueZkCert(
-  zkCert: ZKCertificate,
+  zkCert: ZkCertificate,
   recordRegistry: Contract,
   issuer: Signer,
   merkleTree: SparseMerkleTree,
@@ -33,7 +33,7 @@ export async function issueZkCert(
 
   const contractToCall = devnetGuardian ?? recordRegistry;
   // now we have the merkle proof to add a new leaf
-  const tx = await contractToCall.connect(issuer).addZkKYCRecord(
+  const tx = await contractToCall.connect(issuer).addZkCertificate(
     chosenLeafIndex,
     leafBytes,
     leafEmptyMerkleProof.pathElements.map((value) =>
@@ -41,6 +41,11 @@ export async function issueZkCert(
     ),
   );
   await tx.wait();
+  const { provider } = contractToCall;
+  const txReceipt = await provider.getTransactionReceipt(tx.hash);
+  if (txReceipt.status !== 1) {
+    throw Error('Transaction failed');
+  }
 
   // update the merkle tree according to the new leaf
   merkleTree.insertLeaves([zkCert.leafHash], [chosenLeafIndex]);
@@ -77,7 +82,7 @@ export async function revokeZkCert(
   }
   const leafHashAsBytes = fromHexToBytes32(fromDecToHex(zkCertLeafHash));
   if (
-    (await recordRegistry.ZKKYCRecordToCenter(leafHashAsBytes)) !==
+    (await recordRegistry.ZkCertificateToGuardian(leafHashAsBytes)) !==
     (await issuer.getAddress())
   ) {
     throw Error('Only the issuer of the zkCert can revoke it.');
@@ -85,7 +90,7 @@ export async function revokeZkCert(
 
   const merkleProof = merkleTree.createProof(leafIndex);
 
-  const tx = await recordRegistry.connect(issuer).revokeZkKYCRecord(
+  const tx = await recordRegistry.connect(issuer).revokeZkCertificate(
     leafIndex,
     leafHashAsBytes,
     merkleProof.pathElements.map((value) =>

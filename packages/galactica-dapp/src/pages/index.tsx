@@ -140,7 +140,7 @@ const Index = () => {
 
   /**
    * Converts response object from Snap to string to show to the user.
-   * 
+   *
    * @param res - Object returned by Snap.
    */
   const communicateResponse = (res: any) => {
@@ -174,6 +174,7 @@ const Index = () => {
         userAddress: getUserAddress(),
         description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
         publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
+        zkInputRequiresPrivKey: true,
       }, defaultSnapOrigin);
       console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
@@ -221,6 +222,7 @@ const Index = () => {
         userAddress: getUserAddress(),
         description: "This ZKP discloses that you hold a valid zkKYC. It has no other disclosures.",
         publicInputDescriptions: zkKYCPublicInputDescriptions,
+        zkInputRequiresPrivKey: true,
       }, defaultSnapOrigin);
 
       console.log('Response from snap', JSON.stringify(res));

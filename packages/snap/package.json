@@ -27,7 +27,8 @@
     "serve": "mm-snap serve",
     "start": "mm-snap watch",
     "test": "yarn run test:unit",
-    "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\""
+    "test:unit": "mocha --colors -r ts-node/register \"test/*.test.ts\"",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@galactica-net/galactica-types": "workspace:^",
@@ -76,6 +77,8 @@
     "ffjavascript": "^0.3.0",
     "js-sha3": "^0.8.0",
     "mocha": "^10.2.0",
+    "patch-package": "^8.0.0",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.0.3",
     "prettier-plugin-packagejson": "^2.4.6",
     "rimraf": "^5.0.0",
