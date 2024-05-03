@@ -49,6 +49,7 @@ contract TwitterVerificationProof is Ownable {
         registry = newRegistry;
     }
 
+
     //a, b, c are the proof
     // input array contains the public parameters: isValid, verificationExpirationTime, merkleRoot, currentTime, userAddress, providerPubKeyA, providerPubKeyB
     function verifyProof(

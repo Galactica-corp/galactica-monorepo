@@ -25,15 +25,11 @@ async function main() {
   // initialize the contract
   const guardianRegistryAddress = '0x41e20898EbecC78DbE6d638BB331C70BA4E30346';
   const description = 'twitter ZkCertificate';
-  const ZkCertificateRegistry = await deploySC(
+  await deploySC(
     'ZkCertificateRegistry',
     true,
     { libraries: { PoseidonT3: poseidonT3.address } },
     [guardianRegistryAddress, description],
-  );
-
-  console.log(
-    `The address of the contract is ${ZkCertificateRegistry.address}`,
   );
 }
 

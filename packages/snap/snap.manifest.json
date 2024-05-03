@@ -7,7 +7,7 @@
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
   "source": {
-    "shasum": "empE+n8pVisfyn5CWp2rhj78lTjRcLsgkKZRWojkUaE=",
+    "shasum": "Vg3RfYxJ0qlELAhhfseNDIhzY6AJHYpXYNK2P77KvyQ=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -20,9 +20,7 @@
   "initialPermissions": {
     "endowment:rpc": {
       "dapps": true,
-      "snaps": false
-    },
-    "endowment:transaction-insight": {
+      "snaps": false,
       "maxRequestTime": 180000
     },
     "endowment:ethereum-provider": {},

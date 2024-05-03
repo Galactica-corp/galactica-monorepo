@@ -31,9 +31,6 @@ async function main() {
     guardianRegistry = await deploySC('GuardianRegistry', true, {}, [
       description,
     ]);
-    console.log(
-      `deployed a new guardian registry with description ${description} at ${guardianRegistry.address}`,
-    );
   } else {
     const guardianRegistryAddress =
       '0x2B943d59498BC1759505bFa4CA78E12D7704f75D';
