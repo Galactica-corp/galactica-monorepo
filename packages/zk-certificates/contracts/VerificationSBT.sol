@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /// @author Galactica dev team
 /// @title A global smart contract that store verification SBTs, minted by dApp for users submitting zk proofs
-contract VerificationSBT is IVerificationSBT{
+contract VerificationSBT is IVerificationSBT, IERC721 {
     // mapping to store verification SBT
     mapping(bytes32 => VerificationSBTInfo) public VerificationSBTMapping;
     // number of SBTs minted for each user address
@@ -18,6 +18,8 @@ contract VerificationSBT is IVerificationSBT{
     mapping(uint256 => address) public tokenIdToOwner;
     // token id to dApp
     mapping(uint256 => address) public tokenIdToDApp;
+
+    error NotAllowedForSBT();
 
     // base URI for NFTs
     string public baseURI;
@@ -139,5 +141,33 @@ contract VerificationSBT is IVerificationSBT{
     ) public view returns (string memory) {
         _requireMinted(tokenId);
         return baseURI;
+    }
+
+    function approve(address, uint256) external {
+        revert NotAllowedForSBT();
+    }
+
+    function getApproved(uint256) external view returns (address) {
+        revert NotAllowedForSBT();
+    }
+
+    function setApprovalForAll(address, bool) external {
+        revert NotAllowedForSBT();
+    }
+
+    function isApprovedForAll(address, address) external view returns (bool) {
+        revert NotAllowedForSBT();
+    }
+
+    function safeTransferFrom(address, address, uint256) external {
+        revert NotAllowedForSBT();
+    }
+
+    function safeTransferFrom(address, address, uint256, bytes calldata) external {
+        revert NotAllowedForSBT();
+    }
+
+    function transferFrom(address, address, uint256) external {
+        revert NotAllowedForSBT();
     }
 }
