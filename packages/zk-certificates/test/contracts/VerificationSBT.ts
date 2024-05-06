@@ -102,8 +102,9 @@ describe('Verification SBT Smart contract', () => {
       'VerificationSBT',
       deployer,
     );
-    verificationSBT =
-      (await verificationSBTFactory.deploy()) as VerificationSBT;
+    verificationSBT = (await verificationSBTFactory.deploy(
+      'test URI',
+    )) as VerificationSBT;
 
     const mockDAppFactory = await ethers.getContractFactory(
       'MockDApp',
@@ -191,7 +192,33 @@ describe('Verification SBT Smart contract', () => {
     const publicInputs = processPublicSignals(publicSignals);
     const humanID = publicInputs[await ageProofZkKYC.INDEX_HUMAN_ID()];
 
-    await mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs);
+    const currentTokenId = await verificationSBT.tokenCounter();
+    const previousUserBalance = await verificationSBT.balanceOf(user.address);
+
+    // test that the transfer event is emitted
+    await expect(
+      mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs),
+    )
+      .to.emit(verificationSBT, 'Transfer')
+      .withArgs(
+        '0x0000000000000000000000000000000000000000',
+        user.address,
+        currentTokenId,
+      );
+
+    // test that the token counter has been increased
+    expect(await verificationSBT.tokenCounter()).to.be.equal(
+      currentTokenId.add(1),
+    );
+    expect(await verificationSBT.balanceOf(user.address)).to.be.equal(
+      previousUserBalance.add(1),
+    );
+    expect(await verificationSBT.tokenIdToOwner(currentTokenId)).to.be.equal(
+      user.address,
+    );
+    expect(await verificationSBT.tokenIdToDApp(currentTokenId)).to.be.equal(
+      mockDApp.address,
+    );
 
     // check that the verification SBT is created
     expect(
@@ -226,6 +253,7 @@ describe('Verification SBT Smart contract', () => {
       [0, 0],
       publicInputs,
     );
+
     expect(
       await mockDApp.hasReceivedToken2(fromHexToBytes32(fromDecToHex(humanID))),
     ).to.be.true;

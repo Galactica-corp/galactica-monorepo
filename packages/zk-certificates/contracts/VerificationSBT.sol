@@ -3,12 +3,26 @@ pragma solidity ^0.8.9;
 
 import "./interfaces/IVerificationSBT.sol";
 import "./interfaces/IVerifierWrapper.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /// @author Galactica dev team
-/// @title A global smart contract that store verification SBT, minted by dApp for users submitting zk proofs
-contract VerificationSBT is IVerificationSBT {
+/// @title A global smart contract that store verification SBTs, minted by dApp for users submitting zk proofs
+contract VerificationSBT is IVerificationSBT, IERC721 {
     // mapping to store verification SBT
     mapping(bytes32 => VerificationSBTInfo) public VerificationSBTMapping;
+    // number of SBTs minted for each user address
+    mapping(address => uint256) public balances;
+    // token id counter
+    uint256 public tokenCounter;
+    // token id to owner
+    mapping(uint256 => address) public tokenIdToOwner;
+    // token id to dApp
+    mapping(uint256 => address) public tokenIdToDApp;
+
+    error NotAllowedForSBT();
+
+    // base URI for NFTs
+    string public baseURI;
 
     /// Block number at which the contract was created, so that the frontend can search for logs from here instead of searching from genesis.
     uint64 public deploymentBlock;
@@ -20,8 +34,9 @@ contract VerificationSBT is IVerificationSBT {
         bytes32 indexed humanID
     );
 
-    constructor() {
+    constructor(string memory uri) {
         deploymentBlock = uint64(block.number);
+        baseURI = uri;
     }
 
     function mintVerificationSBT(
@@ -33,6 +48,7 @@ contract VerificationSBT is IVerificationSBT {
         bytes32 _humanID,
         uint256[2] calldata _providerPubKey
     ) external {
+        uint tokenId = tokenCounter;
         // The function is public so anyone can call it, but the msg.sender is included in the key, so that each dApp can only mint SBTs corresponding to it. When we search for relevant SBTs we only care about the corresponding mapping keys.
         VerificationSBTMapping[
             keccak256(abi.encode(user, msg.sender))
@@ -44,9 +60,16 @@ contract VerificationSBT is IVerificationSBT {
             encryptedData: _encryptedData,
             userPubKey: _userPubKey,
             humanID: _humanID,
-            providerPubKey: _providerPubKey
+            providerPubKey: _providerPubKey,
+            tokenId: tokenId
         });
+
+        tokenIdToOwner[tokenId] = user;
+        tokenIdToDApp[tokenId] = msg.sender;
+        tokenCounter += 1;
+        balances[user] += 1;
         emit VerificationSBTMinted(msg.sender, user, _humanID);
+        emit Transfer(address(0), user, tokenId);
     }
 
     function isVerificationSBTValid(
@@ -74,11 +97,71 @@ contract VerificationSBT is IVerificationSBT {
         return VerificationSBTMapping[keccak256(abi.encode(user, dApp))];
     }
 
+    function getVerificationSBTInfoById(uint256 tokenId) public view returns (VerificationSBTInfo memory) {
+        return getVerificationSBTInfo(tokenIdToOwner[tokenId], tokenIdToDApp[tokenId]);
+    }
+
     function getHumanID(
         address user,
         address dApp
     ) public view returns (bytes32) {
         return
             VerificationSBTMapping[keccak256(abi.encode(user, dApp))].humanID;
+    }
+
+    function balanceOf(address user) external view returns (uint256 balance) {
+      balance = balances[user];
+    }
+
+    function ownerOf(uint256 tokenId) public view returns (address) {
+        return tokenIdToOwner[tokenId];
+    }
+
+    function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
+        return
+            interfaceId == type(IERC721).interfaceId;
+    }
+
+    function _exists(uint256 tokenId) internal view returns (bool) {
+        return ownerOf(tokenId) != address(0);
+    }
+
+    function _requireMinted(uint256 tokenId) internal view {
+        require(_exists(tokenId), "ERC721: invalid token ID");
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    ) public view returns (string memory) {
+        _requireMinted(tokenId);
+        return baseURI;
+    }
+
+    function approve(address, uint256) external {
+        revert NotAllowedForSBT();
+    }
+
+    function getApproved(uint256) external view returns (address) {
+        revert NotAllowedForSBT();
+    }
+
+    function setApprovalForAll(address, bool) external {
+        revert NotAllowedForSBT();
+    }
+
+    function isApprovedForAll(address, address) external view returns (bool) {
+        revert NotAllowedForSBT();
+    }
+
+    function safeTransferFrom(address, address, uint256) external {
+        revert NotAllowedForSBT();
+    }
+
+    function safeTransferFrom(address, address, uint256, bytes calldata) external {
+        revert NotAllowedForSBT();
+    }
+
+    function transferFrom(address, address, uint256) external {
+        revert NotAllowedForSBT();
     }
 }

@@ -82,7 +82,9 @@ export async function deployInfrastructure(
     recordRegistry.address,
     institutionContracts.map((contract) => contract.address),
   ]);
-  const verificationSBT = await deploySC('VerificationSBT', true);
+  const verificationSBT = await deploySC('VerificationSBT', true, {}, [
+    'https://quicknode.quicknode-ipfs.com/ipfs/QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs',
+  ]);
 
   return {
     poseidonT3,
