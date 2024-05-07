@@ -50,6 +50,10 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     printProgress,
   );
 
+  if (args.index === undefined) {
+    args.index = merkleTree.getLeafIndex(args.leafHash);
+  }
+
   await revokeZkCert(
     args.leafHash,
     args.index,
@@ -78,7 +82,13 @@ task(
     string,
     false,
   )
-  .addParam('index', 'index of the leaf in the merkle tree', 0, types.int, true)
+  .addParam(
+    'index',
+    'index of the leaf in the merkle tree',
+    undefined,
+    types.int,
+    true,
+  )
   .addParam(
     'registryAddress',
     'The smart contract address where zkCertificates are registered',

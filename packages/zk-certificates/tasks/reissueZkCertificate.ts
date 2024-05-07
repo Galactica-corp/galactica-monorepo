@@ -60,7 +60,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // generate random number as salt for new zkKYC
   const randomSalt = Math.floor(Math.random() * 2 ** 32);
 
-  zkCertificateFields.expirationDate = args.newExpirationDate;
   const newZkCertificate = new ZkCertificate(
     holderCommitmentData.holderCommitment,
     zkCertificateType,
@@ -159,9 +158,9 @@ task(
   .addParam(
     'index',
     'index of the zkCertificate to be updated',
-    0,
+    undefined,
     types.int,
-    true,
+    false,
   )
   .addParam(
     'expirationDate',
