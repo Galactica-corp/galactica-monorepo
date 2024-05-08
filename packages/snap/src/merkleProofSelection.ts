@@ -62,9 +62,10 @@ export async function getMerkleProof(
 
     const resJson = await response.json();
     if (
-      resJson.root === undefined ||
-      resJson.indices === undefined ||
-      resJson.path === undefined
+      resJson.proof === undefined ||
+      resJson.proof.root === undefined ||
+      resJson.proof.index === undefined ||
+      resJson.proof.path === undefined
     ) {
       throw new GenericError({
         name: 'MerkleProofUpdateFailed',
@@ -76,10 +77,10 @@ export async function getMerkleProof(
 
     // Format into MerkleProof object
     const merkleProof: MerkleProof = {
-      root: resJson.root,
+      root: resJson.proof.root,
       leaf: zkCert.leafHash,
-      pathElements: resJson.path,
-      leafIndex: resJson.indices,
+      pathElements: resJson.proof.path,
+      leafIndex: resJson.proof.index,
     };
     return merkleProof;
   } catch (error) {

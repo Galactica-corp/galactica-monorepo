@@ -87,9 +87,11 @@ async function verifyProof(result: ZkCertProof) {
  */
 function merkleProofToServiceResponse(merkleProof: MerkleProof): any {
   return {
-    root: merkleProof.root,
-    indices: merkleProof.leafIndex,
-    path: merkleProof.pathElements,
+    proof: {
+      root: merkleProof.root,
+      index: merkleProof.leafIndex,
+      path: merkleProof.pathElements,
+    },
   };
 }
 
