@@ -91,6 +91,7 @@ async function createCircuitData(
     userAddress: '0x0',
     description: 'test',
     publicInputDescriptions: [],
+    zkInputRequiresPrivKey: true,
   };
   return params;
 }
