@@ -33,5 +33,5 @@ export const sdkConfig: SdkConfig = {
     devnetGuardian: '0x71d80ea7744302E5b1cFD61a7a26153FF221ca9E',
   },
   defaultSnapOrigin: 'npm:@galactica-net/snap',
-  defaultSnapVersion: '0.6.1',
+  defaultSnapVersion: '0.7.0',
 };
