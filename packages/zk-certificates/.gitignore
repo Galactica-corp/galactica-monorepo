@@ -37,4 +37,4 @@ issuedZkKYCs/**/*.json
 issuedZkCertificates/**/*.json
 merkleProofs/**/*.json
 # and files with deployed smart contract addresses
-deployments/**/*.txt
+deployments
