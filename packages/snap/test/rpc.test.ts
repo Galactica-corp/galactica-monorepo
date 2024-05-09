@@ -112,11 +112,15 @@ describe('Test rpc handler function', function () {
 
     // setting up merkle proof service for testing
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.address}/${zkCert.leafHash}`,
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
+        zkCert.registration.address
+      }/${zkCert.leafHash}`,
       merkleProofToServiceResponse(zkCert.merkleProof),
     );
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert2.registration.address}/${zkCert2.leafHash}`,
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
+        zkCert2.registration.address
+      }/${zkCert2.leafHash}`,
       merkleProofToServiceResponse(zkCert2.merkleProof),
     );
   });
@@ -585,7 +589,9 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       fetchMock.restore();
       fetchMock.get(
-        `${merkleProofServiceURL}${zkCert.registration.address}/${zkCert.leafHash}`,
+        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
+          zkCert.registration.address
+        }/${zkCert.leafHash}`,
         404,
       );
 
