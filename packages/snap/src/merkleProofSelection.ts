@@ -46,7 +46,7 @@ export async function getMerkleProof(
   // Because the registry is revocable, the merkle tree has probably changed since last time the zkCert was issued/used.
   // Therefore, we need to fetch the merkle proof from the node or regenerate the tree to calculate it.
   let merkleProofFetchURL = merkleServiceURL ?? getDefaultMerkleServiceURL();
-  merkleProofFetchURL += `${
+  merkleProofFetchURL += `${zkCert.registration.chainID.toString()}/${
     MERKLE_PROOF_SERVICE_PATH + zkCert.registration.address
   }/${zkCert.leafHash}`;
 
@@ -62,9 +62,10 @@ export async function getMerkleProof(
 
     const resJson = await response.json();
     if (
-      resJson.root === undefined ||
-      resJson.indices === undefined ||
-      resJson.path === undefined
+      resJson.proof === undefined ||
+      resJson.proof.root === undefined ||
+      resJson.proof.index === undefined ||
+      resJson.proof.path === undefined
     ) {
       throw new GenericError({
         name: 'MerkleProofUpdateFailed',
@@ -76,10 +77,10 @@ export async function getMerkleProof(
 
     // Format into MerkleProof object
     const merkleProof: MerkleProof = {
-      root: resJson.root,
+      root: resJson.proof.root,
       leaf: zkCert.leafHash,
-      pathElements: resJson.path,
-      leafIndex: resJson.indices,
+      pathElements: resJson.proof.path,
+      leafIndex: resJson.proof.index,
     };
     return merkleProof;
   } catch (error) {
@@ -100,5 +101,5 @@ function getDefaultMerkleServiceURL(): string {
   // Placeholder until more decentralized and customizable solution is in place.
   // In principle every Galactica node could be addressed.
   // We provide a default here because Metamask does not disclose the URL used for the RPC calls.
-  return 'https://test-node.galactica.com:1317/';
+  return 'https://merkle-proof-service.galactica.com/v1/galactica/';
 }

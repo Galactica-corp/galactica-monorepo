@@ -1,6 +1,7 @@
 import type {
   ZkCertProof,
   MerkleProofUpdateRequestParams,
+  MerkleProofURLUpdateParams,
 } from '@galactica-net/snap-api';
 import {
   clearStorage,
@@ -11,6 +12,7 @@ import {
   getHolderCommitment,
   ZkCertStandard,
   updateMerkleProof,
+  updateMerkleProofURL,
 } from '@galactica-net/snap-api';
 
 import { ethers } from 'ethers';
@@ -254,6 +256,21 @@ const Index = () => {
 
       console.log('sending request to snap...');
       const res = await updateMerkleProof(merkleUpdates, defaultSnapOrigin);
+      communicateResponse(res);
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const updateMerkleProofURLClick = async () => {
+    try {
+      const update: MerkleProofURLUpdateParams = {
+        url: 'http://localhost:8480/v1/galactica/',
+      };
+
+      console.log('sending request to snap...');
+      const res = await updateMerkleProofURL(update, defaultSnapOrigin);
       communicateResponse(res);
     } catch (e) {
       console.error(e);
@@ -662,6 +679,22 @@ const Index = () => {
                 fileSelectAction={updateSelectedMerkleProof}
                 disabled={false}
                 text="Select & Import"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Update Merkle Proof Indexer URL',
+            description:
+              'Changes indexer url for testing using localhost as default.',
+            button: (
+              <GeneralButton
+                onClick={updateMerkleProofURLClick}
+                disabled={false}
+                text="Change URL"
               />
             ),
           }}
