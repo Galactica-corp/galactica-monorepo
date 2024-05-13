@@ -54,6 +54,10 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
 
     // a mapping to store which Guardian manages which ZkCertificate
     mapping(bytes32 => address) public ZkCertificateToGuardian;
+    uint256 constant public QUEUE_EXPIRATION_TIME = 60*60; // Guardian has at least one hour to add ZkCertificate after registration to the queue
+    bytes32[] public ZkCertificateQueue;
+    uint256 public currentQueuePointer;
+    mapping(bytes32 => uint) public queueIndexToTime;
 
     GuardianRegistry public _GuardianRegistry;
     event zkCertificateAddition(
@@ -182,6 +186,31 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         // update the valid index
         merkleRootValidIndex = merkleRoots.length - 1;
         emit zkCertificateRevocation(zkCertificateHash, msg.sender, leafIndex);
+    }
+
+    /** @notice Register a zkCertificate to the queue
+     * @param zkCertificateHash - hash of the zkCertificate record leaf
+     */
+    function registerToQueue(bytes32 zkCertificateHash) public {
+        require(
+            _GuardianRegistry.isWhitelisted(msg.sender),
+            'ZkCertificateRegistry: not a Guardian'
+        );
+        // we need to determine the time until which the Guardian needs to add/revoke the zkCertificate after registration to the queue
+        uint256 expirationTime;
+        // if the pointer is one slot after the end of the queue
+        // this means there is no other ZkCertificate pending, so the Guardian has QUEUE_EXPIRATION_TIME from current time
+        // the strict inequality should never happen
+        if (currentQueuePointer >= ZkCertificateQueue.length) {
+            expirationTime = block.timestamp + QUEUE_EXPIRATION_TIME;
+        // in the other case there is some other ZkCertificate pending
+        // the Guardian has QUEUE_EXPIRATION_TIME after the time of the last registered ZkCertificate 
+        } else {
+            expirationTime = queueIndexToTime[ZkCertificateQueue[currentQueuePointer - 1]] + QUEUE_EXPIRATION_TIME;
+        }
+        // we register the time and push the zkCertificateHash to the queue
+        queueIndexToTime[zkCertificateHash] = block.timestamp;
+        ZkCertificateQueue.push(zkCertificateHash);
     }
 
     /** @notice Function change the leaf content at a certain index
