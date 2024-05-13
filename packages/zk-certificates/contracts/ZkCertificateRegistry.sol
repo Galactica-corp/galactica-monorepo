@@ -57,6 +57,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     uint256 constant public QUEUE_EXPIRATION_TIME = 60*60; // Guardian has at least one hour to add ZkCertificate after registration to the queue
     bytes32[] public ZkCertificateQueue;
     uint256 public currentQueuePointer;
+    mapping(bytes32 => uint) public ZkCertificateHashToIndexInQueue;
     mapping(bytes32 => uint) public queueIndexToTime;
 
     GuardianRegistry public _GuardianRegistry;
@@ -210,7 +211,22 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         }
         // we register the time and push the zkCertificateHash to the queue
         queueIndexToTime[zkCertificateHash] = block.timestamp;
+        ZkCertificateHashToIndexInQueue[zkCertificateHash] = ZkCertificateQueue.length;
         ZkCertificateQueue.push(zkCertificateHash);
+    }
+
+    function checkZkCertificateHashInQueue(bytes32 zkCertificateHash) public view returns (bool) {
+        uint256 index = ZkCertificateHashToIndexInQueue[zkCertificateHash];
+        // if the queue pointer points to the zkCertificateHash then the operation can proceed
+        require(index < currentQueuePointer, 'ZkCertificateRegistry: pointer has already passed this zkCertificateHash');
+        if (index == currentQueuePointer) {
+            return true;
+        // if the expiration time of the previous zkCertificateHash has passed
+        // the operation can proceed
+        } else {
+            bytes32 previousZkCertificateHash = ZkCertificateQueue[index - 1];
+            return queueIndexToTime[previousZkCertificateHash] < block.timestamp;
+        }
     }
 
     /** @notice Function change the leaf content at a certain index
