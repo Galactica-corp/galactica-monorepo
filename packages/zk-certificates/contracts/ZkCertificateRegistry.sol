@@ -155,6 +155,11 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             'ZkCertificateRegistry: zkCertificate already exists'
         );
 
+        require(
+            checkZkCertificateHashInQueue(zkCertificateHash),
+            'ZkCertificateRegistry: zkCertificate is not in turn'
+        );
+
         _changeLeafHash(
             leafIndex,
             currentLeafHash,
@@ -162,6 +167,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             merkleProof
         );
         ZkCertificateToGuardian[zkCertificateHash] = msg.sender;
+        currentQueuePointer += ZkCertificateHashToIndexInQueue[zkCertificateHash] + 1;
         emit zkCertificateAddition(zkCertificateHash, msg.sender, leafIndex);
     }
 
@@ -182,10 +188,15 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             ZkCertificateToGuardian[zkCertificateHash] == msg.sender,
             'ZkCertificateRegistry: not the corresponding Guardian'
         );
+        require(
+            checkZkCertificateHashInQueue(zkCertificateHash),
+            'ZkCertificateRegistry: zkCertificate is not in turn'
+        );
         _changeLeafHash(leafIndex, zkCertificateHash, newLeafHash, merkleProof);
         ZkCertificateToGuardian[zkCertificateHash] = address(0);
         // update the valid index
         merkleRootValidIndex = merkleRoots.length - 1;
+        currentQueuePointer += ZkCertificateHashToIndexInQueue[zkCertificateHash] + 1;
         emit zkCertificateRevocation(zkCertificateHash, msg.sender, leafIndex);
     }
 
