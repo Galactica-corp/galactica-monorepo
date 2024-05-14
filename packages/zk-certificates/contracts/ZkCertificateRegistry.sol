@@ -58,7 +58,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     bytes32[] public ZkCertificateQueue;
     uint256 public currentQueuePointer;
     mapping(bytes32 => uint) public ZkCertificateHashToIndexInQueue;
-    mapping(bytes32 => uint) public queueIndexToTime;
+    mapping(bytes32 => uint) public ZkCertificateHashToQueueTime;
 
     GuardianRegistry public _GuardianRegistry;
     event zkCertificateAddition(
@@ -167,7 +167,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             merkleProof
         );
         ZkCertificateToGuardian[zkCertificateHash] = msg.sender;
-        currentQueuePointer += ZkCertificateHashToIndexInQueue[zkCertificateHash] + 1;
+        currentQueuePointer = ZkCertificateHashToIndexInQueue[zkCertificateHash] + 1;
         emit zkCertificateAddition(zkCertificateHash, msg.sender, leafIndex);
     }
 
@@ -196,7 +196,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         ZkCertificateToGuardian[zkCertificateHash] = address(0);
         // update the valid index
         merkleRootValidIndex = merkleRoots.length - 1;
-        currentQueuePointer += ZkCertificateHashToIndexInQueue[zkCertificateHash] + 1;
+        currentQueuePointer = ZkCertificateHashToIndexInQueue[zkCertificateHash] + 1;
         emit zkCertificateRevocation(zkCertificateHash, msg.sender, leafIndex);
     }
 
@@ -218,10 +218,10 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         // in the other case there is some other ZkCertificate pending
         // the Guardian has QUEUE_EXPIRATION_TIME after the time of the last registered ZkCertificate 
         } else {
-            expirationTime = queueIndexToTime[ZkCertificateQueue[currentQueuePointer - 1]] + QUEUE_EXPIRATION_TIME;
+            expirationTime = ZkCertificateHashToQueueTime[ZkCertificateQueue[currentQueuePointer - 1]] + QUEUE_EXPIRATION_TIME;
         }
         // we register the time and push the zkCertificateHash to the queue
-        queueIndexToTime[zkCertificateHash] = block.timestamp;
+        ZkCertificateHashToQueueTime[zkCertificateHash] = block.timestamp;
         ZkCertificateHashToIndexInQueue[zkCertificateHash] = ZkCertificateQueue.length;
         ZkCertificateQueue.push(zkCertificateHash);
     }
@@ -229,14 +229,14 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     function checkZkCertificateHashInQueue(bytes32 zkCertificateHash) public view returns (bool) {
         uint256 index = ZkCertificateHashToIndexInQueue[zkCertificateHash];
         // if the queue pointer points to the zkCertificateHash then the operation can proceed
-        require(index < currentQueuePointer, 'ZkCertificateRegistry: pointer has already passed this zkCertificateHash');
+        require(index >= currentQueuePointer, 'ZkCertificateRegistry: pointer has already passed this zkCertificateHash');
         if (index == currentQueuePointer) {
             return true;
         // if the expiration time of the previous zkCertificateHash has passed
         // the operation can proceed
         } else {
             bytes32 previousZkCertificateHash = ZkCertificateQueue[index - 1];
-            return queueIndexToTime[previousZkCertificateHash] < block.timestamp;
+            return ZkCertificateHashToQueueTime[previousZkCertificateHash] < block.timestamp;
         }
     }
 

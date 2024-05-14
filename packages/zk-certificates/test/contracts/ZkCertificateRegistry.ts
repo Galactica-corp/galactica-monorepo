@@ -14,7 +14,7 @@ import {
 } from '../../lib/helpers';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
-describe('ZkCertificateRegistry', () => {
+describe.only('ZkCertificateRegistry', () => {
   let deployer: SignerWithAddress;
 
   beforeEach(async () => {
@@ -114,6 +114,11 @@ describe('ZkCertificateRegistry', () => {
       const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
+      await ZkCertificateRegistry.registerToQueue(leafHashes[i]);
+      console.log(`leaf hash index in queue is ${await ZkCertificateRegistry.ZkCertificateHashToIndexInQueue(leafHashes[i])}`);
+      console.log(`current index queue pointer is ${await ZkCertificateRegistry.currentQueuePointer()}`);
+      console.log(`check index validity ${await ZkCertificateRegistry.checkZkCertificateHashInQueue(leafHashes[i])}`);
+
       await ZkCertificateRegistry.addZkCertificate(
         leafIndices[i],
         leafHashes[i],
@@ -165,6 +170,8 @@ describe('ZkCertificateRegistry', () => {
       const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
+      // firstly we need to register the hash to the queue
+      await ZkCertificateRegistry.registerToQueue(leafHashes[i]);
       await ZkCertificateRegistry.addZkCertificate(
         leafIndices[i],
         leafHashes[i],
@@ -179,6 +186,9 @@ describe('ZkCertificateRegistry', () => {
     const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
+    // we need to register the zkCertificate hash to the queue
+    await ZkCertificateRegistry.registerToQueue(leafHashes[leafIndex]);
+
     await ZkCertificateRegistry.revokeZkCertificate(
       leafIndices[leafIndex],
       leafHashes[leafIndex],
