@@ -16,9 +16,10 @@ import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
 describe.only('ZkCertificateRegistry', () => {
   let deployer: SignerWithAddress;
+  let user: SignerWithAddress;
 
   beforeEach(async () => {
-    [deployer] = await hre.ethers.getSigners();
+    [deployer, user] = await hre.ethers.getSigners();
   });
 
   /**
@@ -92,6 +93,7 @@ describe.only('ZkCertificateRegistry', () => {
   });
 
   it('should insert elements', async function () {
+    // we also check that queue variables are updated correctly
     const loops = 5;
 
     const { ZkCertificateRegistry, GuardianRegistry } =
@@ -108,22 +110,23 @@ describe.only('ZkCertificateRegistry', () => {
     const leafIndices = generateRandomNumberArray(5);
     const merkleRoots = [fromHexToBytes32(fromDecToHex(merkleTree.root))];
     for (let i = 0; i < loops; i += 1) {
-      // console.log(`trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`);
       // add new zkCertificate and check the root
       const merkleProof = merkleTree.createProof(leafIndices[i]);
       const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
       await ZkCertificateRegistry.registerToQueue(leafHashes[i]);
-      console.log(`leaf hash index in queue is ${await ZkCertificateRegistry.ZkCertificateHashToIndexInQueue(leafHashes[i])}`);
-      console.log(`current index queue pointer is ${await ZkCertificateRegistry.currentQueuePointer()}`);
-      console.log(`check index validity ${await ZkCertificateRegistry.checkZkCertificateHashInQueue(leafHashes[i])}`);
+      expect(await ZkCertificateRegistry.ZkCertificateHashToIndexInQueue(leafHashes[i])).to.be.equal(i);
+      expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(i);
+      expect(await ZkCertificateRegistry.checkZkCertificateHashInQueue(leafHashes[i])).to.be.equal(true);
 
       await ZkCertificateRegistry.addZkCertificate(
         leafIndices[i],
         leafHashes[i],
         merkleProofPath,
       );
+      expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(i+1);
+
       merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
 
       // Check roots match
@@ -188,12 +191,17 @@ describe.only('ZkCertificateRegistry', () => {
     );
     // we need to register the zkCertificate hash to the queue
     await ZkCertificateRegistry.registerToQueue(leafHashes[leafIndex]);
+    expect(await ZkCertificateRegistry.ZkCertificateHashToIndexInQueue(leafHashes[leafIndex])).to.be.equal(loops);
+    expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(loops);
+    expect(await ZkCertificateRegistry.checkZkCertificateHashInQueue(leafHashes[leafIndex])).to.be.equal(true);
 
     await ZkCertificateRegistry.revokeZkCertificate(
       leafIndices[leafIndex],
       leafHashes[leafIndex],
       merkleProofPath,
     );
+    expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(loops+1);
+
     merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[leafIndex]]);
 
     // Check roots match
@@ -206,8 +214,8 @@ describe.only('ZkCertificateRegistry', () => {
     );
   });
 
-  it('only Guardian can add leaf', async function () {
-    const { ZkCertificateRegistry } = await loadFixture(deploy);
+  it('only Guardian can register to the queue and add leaf', async function () {
+    const { ZkCertificateRegistry, GuardianRegistry } = await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -220,12 +228,103 @@ describe.only('ZkCertificateRegistry', () => {
     const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
+
     await expect(
-      ZkCertificateRegistry.addZkCertificate(
+      ZkCertificateRegistry.registerToQueue(
+        leafHashes[0]
+      ),
+    ).to.be.revertedWith('ZkCertificateRegistry: not a Guardian');
+
+    // add deployer as a Guardian
+    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
+
+    // now the deployer can register to the queue
+    await ZkCertificateRegistry.registerToQueue(
+      leafHashes[0]
+    );
+    
+    // but a random user cannot add ZkCertificate, even if it's already in the queue
+    await expect(
+      ZkCertificateRegistry.connect(user).addZkCertificate(
         leafIndices[0],
         leafHashes[0],
         merkleProofPath,
       ),
     ).to.be.revertedWith('ZkCertificateRegistry: not a Guardian');
+  });
+
+  
+  it.only('elements in the queue cannot be skipped before expiration time', async function () {
+    // we also check that queue variables are updated correctly
+    const loops = 5;
+
+    const { ZkCertificateRegistry, GuardianRegistry } =
+      await loadFixture(deploy);
+
+    // add deployer as a Guardian
+    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
+
+    const eddsa = await buildEddsa();
+    const treeDepth = 32;
+    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
+
+    const leafHashes = generateRandomBytes32Array(5);
+    const leafIndices = generateRandomNumberArray(5);
+    // we register the ZkCertificateHashes to the queue but add them yet
+    for (let i = 0; i < loops; i += 1) {
+      await ZkCertificateRegistry.registerToQueue(leafHashes[i]);
+    }
+
+    const QUEUE_EXPIRATION_TIME = (await ZkCertificateRegistry.QUEUE_EXPIRATION_TIME()).toNumber();
+
+    
+    // we check that the expiration time is set correctly
+    for (let i = 1; i < loops; i += 1) {
+      const expirationTime1 = await ZkCertificateRegistry.ZkCertificateHashToQueueTime(leafHashes[i-1]);
+      const expirationTime2 = await ZkCertificateRegistry.ZkCertificateHashToQueueTime(leafHashes[i]);
+      expect(expirationTime2 - expirationTime1).to.be.equal(QUEUE_EXPIRATION_TIME);
+    }
+    // we don't intend to add the first (loops - 1) so we need to make a merkle proof without them
+    merkleTree.insertLeaves([leafHashes[loops-1]], [leafIndices[loops-1]]);
+
+    let merkleProof = merkleTree.createProof(leafIndices[loops-1]);
+    let merkleProofPath = merkleProof.pathElements.map((value) =>
+      fromHexToBytes32(fromDecToHex(value)),
+    );
+
+    await expect(
+      ZkCertificateRegistry.addZkCertificate(
+        leafIndices[loops-1],
+        leafHashes[loops-1],
+        merkleProofPath,
+      ),
+    ).to.be.revertedWith('ZkCertificateRegistry: zkCertificate is not in turn');
+
+    // now we forward the time to make all earlier elements in the queue expire
+    const timestamp = (await ZkCertificateRegistry.ZkCertificateHashToQueueTime(leafHashes[loops-2])).toNumber();
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [timestamp]);
+    await hre.network.provider.send('evm_mine');
+    await ZkCertificateRegistry.addZkCertificate(
+      leafIndices[loops-1],
+      leafHashes[loops-1],
+      merkleProofPath,
+    );
+    // we also check that the current pointer jumped correctly
+    expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(loops);
+    // since we reached the end of the queue we can also check that if we add another element the expiration time will not be dependent on earlier elements
+    const tx = await ZkCertificateRegistry.registerToQueue(leafHashes[0]);
+    merkleTree.insertLeaves([leafHashes[0]], [leafIndices[0]]);
+
+    merkleProof = merkleTree.createProof(leafIndices[loops-1]);
+    merkleProofPath = merkleProof.pathElements.map((value) =>
+      fromHexToBytes32(fromDecToHex(value)),
+    );
+    const txBlock = await ethers.provider.getBlock(tx.blockNumber);
+    const blocktime = parseInt(txBlock.timestamp, 10);
+    expect(await ZkCertificateRegistry.ZkCertificateHashToQueueTime(leafHashes[0])).to.be.equal(blocktime + QUEUE_EXPIRATION_TIME);
+
+
+
+
   });
 });

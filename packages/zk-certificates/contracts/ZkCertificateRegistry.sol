@@ -218,10 +218,10 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         // in the other case there is some other ZkCertificate pending
         // the Guardian has QUEUE_EXPIRATION_TIME after the time of the last registered ZkCertificate 
         } else {
-            expirationTime = ZkCertificateHashToQueueTime[ZkCertificateQueue[currentQueuePointer - 1]] + QUEUE_EXPIRATION_TIME;
+            expirationTime = ZkCertificateHashToQueueTime[ZkCertificateQueue[ZkCertificateQueue.length - 1]] + QUEUE_EXPIRATION_TIME;
         }
         // we register the time and push the zkCertificateHash to the queue
-        ZkCertificateHashToQueueTime[zkCertificateHash] = block.timestamp;
+        ZkCertificateHashToQueueTime[zkCertificateHash] = expirationTime;
         ZkCertificateHashToIndexInQueue[zkCertificateHash] = ZkCertificateQueue.length;
         ZkCertificateQueue.push(zkCertificateHash);
     }
