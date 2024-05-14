@@ -22,7 +22,7 @@ export type SdkConfig = {
 
 export const sdkConfig = {
   defaultSnapOrigin: 'npm:@galactica-net/snap',
-  defaultSnapVersion: '0.7.0',
+  defaultSnapVersion: '0.7.1',
   contracts: {
     41238: {
       kycGuardianWhitelist: '0xB95314E42d8Da05b1D805039F7b96e3935584543',
