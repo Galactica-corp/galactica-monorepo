@@ -8,7 +8,7 @@ import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
-import { printProgress } from '../lib/helpers';
+import { printProgress, sleep } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
@@ -78,6 +78,29 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     'ZkCertificateRegistry',
     args.registryAddress,
   );
+
+  console.log('Register zkCertificate to the queue...');
+  const { startTime, expirationTime } = await registerZkCert(
+    zkCertificate.leafHash,
+    recordRegistry,
+    issuer,
+  );
+
+  const { provider } = recordRegistry;
+  const currentBlock = await provider.getBlockNumber();
+  const lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+
+  // wait until start time
+  if (lastBlockTime < startTime) {
+    await sleep((startTime - lastBlockTime) / 1000 + 1);
+  }
+  console.log('Start time reached');
+
+  if (lastBlockTime > expirationTime) {
+    throw new Error(
+      `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
+    );
+  }
 
   console.log(
     'Generating merkle proof. This might take a while because it needs to query on-chain data...',

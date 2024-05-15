@@ -200,3 +200,16 @@ export function printProgress(progress: string) {
   process.stdout.write(`${progress}%`);
   /* eslint-enable no-restricted-globals */
 }
+
+/**
+ * Sleep for a given number of seconds.
+ * @param seconds - Number of seconds to sleep.
+ * @returns Promise for completion.
+ */
+export async function sleep(seconds: number): Promise<void> {
+  if (seconds > 0) {
+    console.log(`Waiting for ${seconds} seconds`);
+    return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+  }
+  throw new Error('Invalid sleep time');
+}

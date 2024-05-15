@@ -98,7 +98,32 @@ export async function revokeZkCert(
     ),
   );
   await tx.wait();
+}
 
-  // update the merkle tree according to the new leaf
-  merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndex]);
+/**
+ * Registers zkCert record on-chain and updates the merkle tree.
+ * @param zkCertLeafHash - Leaf hash of the zkCert to register.
+ * @param recordRegistry - Record registry contract.
+ * @param issuer - Issuer of the zkCert (= guardian allowed to register).
+ * @returns MerkleProof of the new leaf in the tree and registration data.
+ */
+export async function registerZkCert(
+  zkCertLeafHash: string,
+  recordRegistry: Contract,
+  issuer: Signer,
+): Promise<any> {
+  const leafHashAsBytes = fromHexToBytes32(fromDecToHex(zkCertLeafHash));
+  if (
+    (await recordRegistry.ZkCertificateToGuardian(leafHashAsBytes)) !==
+    (await issuer.getAddress())
+  ) {
+    throw Error('Only the issuer of the zkCert can revoke it.');
+  }
+
+  const tx = await recordRegistry
+    .connect(issuer)
+    .registerZkCertificate(leafHashAsBytes);
+  await tx.wait();
+
+  return await recordRegistry.getTimeParameter(leafHashAsBytes);
 }

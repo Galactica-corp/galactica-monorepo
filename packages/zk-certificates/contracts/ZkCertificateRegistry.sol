@@ -310,4 +310,18 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         uint _merkleRootIndex = merkleRootIndex[_merkleRoot];
         return _merkleRootIndex >= merkleRootValidIndex;
     }
+
+    // function to return the time parameters of the period where one is allowed to add ZkCertificate
+    function getTimeParameters(bytes32 zkCertificateHash) public view returns (uint, uint) {
+        uint expirationTime = ZkCertificateHashToQueueTime[zkCertificateHash];
+        require(expirationTime != 0, "ZkCertificateRegistry: zkCertificate is not in the queue");
+        require(index >= currentQueuePointer, 'ZkCertificateRegistry: pointer has already passed this zkCertificateHash');
+        uint indexInQueue = ZkCertificateHashToIndexInQueue[zkCertificateHash];
+        if (currentQueuePointer == indexInQueue || indexInQueue == 0) {
+            return block.timestamp, expirationTime;
+        } else {
+            uint startTime = ZkCertificateHashToQueueTime[ZkCertificateQueue[indexInQueue - 1]];
+            return startTime, expirationTime;
+        }
+    }
 }
