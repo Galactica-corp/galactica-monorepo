@@ -28,6 +28,7 @@ export function filterZkCerts(
     return (
       // same zkCert Standard, if defined as filter
       (filter?.zkCertStandard === undefined ||
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
         value.zkCertStandard === filter.zkCertStandard) &&
       // not expired (if zkCert has expiration date) or same as filtered
       (value.expirationDate === undefined ||
