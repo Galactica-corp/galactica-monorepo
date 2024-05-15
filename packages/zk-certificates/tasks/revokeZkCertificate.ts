@@ -45,9 +45,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     issuer,
   );
 
-  const { provider } = recordRegistry;
-  const currentBlock = await provider.getBlockNumber();
-  const lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+  const { networkProvider } = recordRegistry;
+  const currentBlock = await networkProvider.getBlockNumber();
+  const lastBlockTime = (await networkProvider.getBlock(currentBlock)).timestamp;
 
   // wait until start time
   if (lastBlockTime < startTime) {

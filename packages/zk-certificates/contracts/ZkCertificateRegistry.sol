@@ -315,13 +315,13 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     function getTimeParameters(bytes32 zkCertificateHash) public view returns (uint, uint) {
         uint expirationTime = ZkCertificateHashToQueueTime[zkCertificateHash];
         require(expirationTime != 0, "ZkCertificateRegistry: zkCertificate is not in the queue");
-        require(index >= currentQueuePointer, 'ZkCertificateRegistry: pointer has already passed this zkCertificateHash');
         uint indexInQueue = ZkCertificateHashToIndexInQueue[zkCertificateHash];
+        require(indexInQueue >= currentQueuePointer, 'ZkCertificateRegistry: pointer has already passed this zkCertificateHash');
         if (currentQueuePointer == indexInQueue || indexInQueue == 0) {
-            return block.timestamp, expirationTime;
+            return (block.timestamp, expirationTime);
         } else {
             uint startTime = ZkCertificateHashToQueueTime[ZkCertificateQueue[indexInQueue - 1]];
-            return startTime, expirationTime;
+            return (startTime, expirationTime);
         }
     }
 }
