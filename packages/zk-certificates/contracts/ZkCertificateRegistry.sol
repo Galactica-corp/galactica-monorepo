@@ -13,13 +13,15 @@ import {GuardianRegistry, GuardianInfo} from './GuardianRegistry.sol';
 
 import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
 
+import {Ownable} from './Ownable.sol';
+
 /**
  * @title ZkCertificateRegistry
  * @author Galactica dev team
  * @notice Sparse Merkle Tree for revokable ZK certificates records
  * Relevant external contract calls should be in those functions, not here
  */
-contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
+contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry, Ownable {
     // NOTE: The order of instantiation MUST stay the same across upgrades
     // add new variables to the bottom of the list and decrement the __gap
     // variable at the end of this file
@@ -106,6 +108,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         string memory description_
     ) internal onlyInitializing {
         description = description_;
+        owner = msg.sender;
         /*
         To initialize the Merkle tree, we need to calculate the Merkle root
         assuming that each leaf is the zero value.
