@@ -54,7 +54,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
 
     // a mapping to store which Guardian manages which ZkCertificate
     mapping(bytes32 => address) public ZkCertificateToGuardian;
-    uint256 constant public QUEUE_EXPIRATION_TIME = 60*60; // Guardian has at least one hour to add ZkCertificate after registration to the queue
+    uint256 public queueExpirationTime = 60*60; // Guardian has at least one hour to add ZkCertificate after registration to the queue
     bytes32[] public ZkCertificateQueue;
     uint256 public currentQueuePointer;
     mapping(bytes32 => uint) public ZkCertificateHashToIndexInQueue;
@@ -130,6 +130,13 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
 
         // Set the block height at which the contract was initialized
         initBlockHeight = block.number;
+    }
+    /**
+     * @notice Change the time until which the Guardian needs to add/revoke the zkCertificate after registration to the queue
+     * @param newTime - New time
+     */
+    function changeQueueExpirationTime(uint256 newTime) public onlyOwner {
+        queueExpirationTime = newTime;
     }
 
     /**
@@ -211,14 +218,14 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         // we need to determine the time until which the Guardian needs to add/revoke the zkCertificate after registration to the queue
         uint256 expirationTime;
         // if the pointer is one slot after the end of the queue
-        // this means there is no other ZkCertificate pending, so the Guardian has QUEUE_EXPIRATION_TIME from current time
+        // this means there is no other ZkCertificate pending, so the Guardian has queueExpirationTime from current time
         // the strict inequality should never happen
         if (currentQueuePointer >= ZkCertificateQueue.length) {
-            expirationTime = block.timestamp + QUEUE_EXPIRATION_TIME;
+            expirationTime = block.timestamp + queueExpirationTime;
         // in the other case there is some other ZkCertificate pending
-        // the Guardian has QUEUE_EXPIRATION_TIME after the time of the last registered ZkCertificate 
+        // the Guardian has queueExpirationTime after the time of the last registered ZkCertificate 
         } else {
-            expirationTime = ZkCertificateHashToQueueTime[ZkCertificateQueue[ZkCertificateQueue.length - 1]] + QUEUE_EXPIRATION_TIME;
+            expirationTime = ZkCertificateHashToQueueTime[ZkCertificateQueue[ZkCertificateQueue.length - 1]] + queueExpirationTime;
         }
         // we register the time and push the zkCertificateHash to the queue
         ZkCertificateHashToQueueTime[zkCertificateHash] = expirationTime;

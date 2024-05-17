@@ -293,8 +293,8 @@ describe('ZkCertificateRegistry', () => {
       await ZkCertificateRegistry.registerToQueue(leafHashes[i]);
     }
 
-    const QUEUE_EXPIRATION_TIME = (
-      await ZkCertificateRegistry.QUEUE_EXPIRATION_TIME()
+    const queueExpirationTime = (
+      await ZkCertificateRegistry.queueExpirationTime()
     ).toNumber();
 
     // we check that the expiration time is set correctly
@@ -306,7 +306,7 @@ describe('ZkCertificateRegistry', () => {
       const expirationTime2 =
         await ZkCertificateRegistry.ZkCertificateHashToQueueTime(leafHashes[i]);
       expect(expirationTime2 - expirationTime1).to.be.equal(
-        QUEUE_EXPIRATION_TIME,
+        queueExpirationTime,
       );
     }
     // we don't intend to add the first (loops - 1) so we need to make a merkle proof without them
@@ -354,6 +354,6 @@ describe('ZkCertificateRegistry', () => {
     const blocktime = parseInt(txBlock.timestamp, 10);
     expect(
       await ZkCertificateRegistry.ZkCertificateHashToQueueTime(leafHashes[0]),
-    ).to.be.equal(blocktime + QUEUE_EXPIRATION_TIME);
+    ).to.be.equal(blocktime + queueExpirationTime);
   });
 });
