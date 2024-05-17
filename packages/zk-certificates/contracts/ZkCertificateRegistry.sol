@@ -59,6 +59,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
     uint256 public currentQueuePointer;
     mapping(bytes32 => uint) public ZkCertificateHashToIndexInQueue;
     mapping(bytes32 => uint) public ZkCertificateHashToQueueTime;
+    mapping(bytes32 => address) public ZkCertificateHashToCommitedGuardian;
 
     GuardianRegistry public _GuardianRegistry;
     event zkCertificateAddition(
@@ -173,7 +174,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
             zkCertificateHash,
             merkleProof
         );
-        ZkCertificateToGuardian[zkCertificateHash] = msg.sender;
+        ZkCertificateToGuardian[zkCertificateHash] = ZkCertificateHashToCommitedGuardian[zkCertificateHash];
         currentQueuePointer = ZkCertificateHashToIndexInQueue[zkCertificateHash] + 1;
         emit zkCertificateAddition(zkCertificateHash, msg.sender, leafIndex);
     }
@@ -230,6 +231,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry {
         // we register the time and push the zkCertificateHash to the queue
         ZkCertificateHashToQueueTime[zkCertificateHash] = expirationTime;
         ZkCertificateHashToIndexInQueue[zkCertificateHash] = ZkCertificateQueue.length;
+        ZkCertificateHashToCommitedGuardian[zkCertificateHash] = msg.sender;
         ZkCertificateQueue.push(zkCertificateHash);
     }
 
