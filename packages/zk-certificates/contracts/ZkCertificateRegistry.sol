@@ -178,7 +178,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry, Ownable
         );
         ZkCertificateToGuardian[zkCertificateHash] = ZkCertificateHashToCommitedGuardian[zkCertificateHash];
         currentQueuePointer = ZkCertificateHashToIndexInQueue[zkCertificateHash] + 1;
-        emit zkCertificateAddition(zkCertificateHash, msg.sender, leafIndex);
+        emit zkCertificateAddition(zkCertificateHash, ZkCertificateToGuardian[zkCertificateHash], leafIndex);
     }
 
     /**
@@ -203,11 +203,12 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry, Ownable
             'ZkCertificateRegistry: zkCertificate is not in turn'
         );
         _changeLeafHash(leafIndex, zkCertificateHash, newLeafHash, merkleProof);
-        ZkCertificateToGuardian[zkCertificateHash] = address(0);
         // update the valid index
         merkleRootValidIndex = merkleRoots.length - 1;
         currentQueuePointer = ZkCertificateHashToIndexInQueue[zkCertificateHash] + 1;
-        emit zkCertificateRevocation(zkCertificateHash, msg.sender, leafIndex);
+        emit zkCertificateRevocation(zkCertificateHash, ZkCertificateToGuardian[zkCertificateHash], leafIndex);
+        ZkCertificateToGuardian[zkCertificateHash] = address(0);
+
     }
 
     /** @notice Register a zkCertificate to the queue
