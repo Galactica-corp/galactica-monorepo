@@ -112,7 +112,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
     // wait until start time
     if (lastBlockTime < startTime) {
-      await sleep((startTime - lastBlockTime) / 1000 + 1);
+      const secondsToWait = (startTime - lastBlockTime) / 1000 + 1;
+      console.log(
+        `Waiting ${secondsToWait} seconds until start time ${startTime} (current time: ${lastBlockTime})`,
+      );
+      await sleep(secondsToWait);
     }
     console.log('Start time reached');
 
