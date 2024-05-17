@@ -122,7 +122,7 @@ export async function registerZkCert(
 
   const tx = await recordRegistry
     .connect(issuer)
-    .registerZkCertificate(leafHashAsBytes);
+    .registerToQueue(leafHashAsBytes);
   await tx.wait();
 
   return await recordRegistry.getTimeParameter(leafHashAsBytes);
