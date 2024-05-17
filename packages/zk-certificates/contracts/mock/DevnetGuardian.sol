@@ -29,6 +29,9 @@ contract DevnetGuardian {
         bytes32 zkKYCRecordHash,
         bytes32[] memory merkleProof
     ) public {
+        recordRegistry.registerToQueue(
+            zkKYCRecordHash
+        );
         recordRegistry.addZkCertificate(
             leafIndex,
             zkKYCRecordHash,
@@ -54,6 +57,9 @@ contract DevnetGuardian {
             'KYCRecordRegistry (DevNet Test): not the corresponding KYC Center'
         );
         creatorOfIndex[leafIndex] = address(0);
+        recordRegistry.registerToQueue(
+            zkKYCRecordHash
+        );
         recordRegistry.revokeZkCertificate(
             leafIndex,
             zkKYCRecordHash,
