@@ -79,7 +79,7 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry, Ownable
         address GuardianRegistry_,
         uint256 treeDepth_,
         string memory description_
-    ) initializer {
+    ) initializer Ownable(msg.sender){
         treeDepth = treeDepth_;
         treeSize = 2 ** treeDepth;
         initializeZkCertificateRegistry(GuardianRegistry_, description_);
@@ -108,7 +108,6 @@ contract ZkCertificateRegistry is Initializable, IZkCertificateRegistry, Ownable
         string memory description_
     ) internal onlyInitializing {
         description = description_;
-        owner = msg.sender;
         /*
         To initialize the Merkle tree, we need to calculate the Merkle root
         assuming that each leaf is the zero value.
