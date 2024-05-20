@@ -142,11 +142,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
 
   console.log('Register zkCertificate to the queue to readd...');
-  { startTime, expirationTime } = await registerZkCert(
+  let { _startTime, _expirationTime } = await registerZkCert(
     newZkCertificate.leafHash,
     recordRegistry,
     issuer,
   );
+
+  startTime = _startTime;
+  expirationTime = _expirationTime;
 
   currentBlock = await provider.getBlockNumber();
   lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
