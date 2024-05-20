@@ -13,7 +13,11 @@ import { printProgress, sleep } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { issueZkCert, revokeZkCert, registerZkCert } from '../lib/registryTools';
+import {
+  issueZkCert,
+  revokeZkCert,
+  registerZkCert,
+} from '../lib/registryTools';
 import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 

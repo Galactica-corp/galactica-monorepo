@@ -101,7 +101,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     );
 
     console.log('Register zkCertificate to the queue...');
-    let { startTime, expirationTime } = await registerZkCert(
+    let [startTime, expirationTime] = await registerZkCert(
       zkCertificate.leafHash,
       recordRegistry,
       issuer,
@@ -118,10 +118,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       );
       await sleep(10);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { _startTime, _ } = await recordRegistry.getTimeParameter(
+      [startTime, _] = await recordRegistry.getTimeParameter(
         zkCertificate.leafHash,
       );
-      startTime = _startTime;
       lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
     }
     console.log('Start time reached');

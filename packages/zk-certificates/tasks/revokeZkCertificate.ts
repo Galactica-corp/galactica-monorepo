@@ -40,14 +40,15 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
 
   console.log('Register zkCertificate to the queue...');
-  let { startTime, expirationTime } = await registerZkCert(
+  let [startTime, expirationTime] = await registerZkCert(
     args.leafHash,
     recordRegistry,
     issuer,
   );
   const { provider } = recordRegistry;
   const currentBlock = await hre.ethers.provider.getBlockNumber();
-  let lastBlockTime = (await hre.ethers.provider.getBlock(currentBlock)).timestamp;
+  let lastBlockTime = (await hre.ethers.provider.getBlock(currentBlock))
+    .timestamp;
 
   // wait until start time
   while (lastBlockTime < startTime) {
@@ -56,10 +57,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     );
     await sleep(10);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { _startTime, _ } = await recordRegistry.getTimeParameter(
-      args.leafHash,
-    );
-    startTime = _startTime;
+    [startTime, _] = await recordRegistry.getTimeParameter(args.leafHash);
     lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
   }
   console.log('Start time reached');
