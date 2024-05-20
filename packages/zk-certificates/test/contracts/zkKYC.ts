@@ -118,13 +118,15 @@ describe('zkKYC SC', () => {
     );
 
     const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
-    const publicTime = parseInt(
-      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
-      10,
-    );
+
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    const publicTime = parseInt(
+      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
+      10,
     );
 
     // set time to the public time

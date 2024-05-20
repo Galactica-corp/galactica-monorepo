@@ -119,13 +119,15 @@ describe('ageProofZkKYC SC', () => {
     console.log(publicSignals);
 
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
-    const publicTime = parseInt(
-      publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
-      10,
-    );
+
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    const publicTime = parseInt(
+      publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
+      10,
     );
 
     // set time to the public time
@@ -146,13 +148,15 @@ describe('ageProofZkKYC SC', () => {
     );
 
     const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
-    const publicTime = parseInt(
-      publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
-      10,
-    );
+
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    const publicTime = parseInt(
+      publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
+      10,
     );
 
     // add a new merkle root
