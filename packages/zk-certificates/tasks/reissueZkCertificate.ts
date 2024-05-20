@@ -13,7 +13,11 @@ import { printProgress, sleep } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { issueZkCert, revokeZkCert, registerZkCert } from '../lib/registryTools';
+import {
+  issueZkCert,
+  revokeZkCert,
+  registerZkCert,
+} from '../lib/registryTools';
 import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
@@ -97,7 +101,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       `Waiting 10 seconds then check if it is already our turn or not`,
     );
     await sleep(10);
-    [ startTime, expirationTime ] = await recordRegistry.getTimeParameter(
+    [startTime, expirationTime] = await recordRegistry.getTimeParameter(
       newZkCertificate.leafHash,
     );
     lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
@@ -140,7 +144,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
 
   console.log('Register zkCertificate to the queue to readd...');
-  [ startTime, expirationTime ] = await registerZkCert(
+  [startTime, expirationTime] = await registerZkCert(
     newZkCertificate.leafHash,
     recordRegistry,
     issuer,
@@ -155,10 +159,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       `Waiting 10 seconds then check if it is already our turn or not`,
     );
     await sleep(10);
-    [ startTime, expirationTime ] = await recordRegistry.getTimeParameter(
+    [startTime, expirationTime] = await recordRegistry.getTimeParameter(
       newZkCertificate.leafHash,
     );
-    startTime = startTime;
     lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
   }
   console.log('Start time reached');
