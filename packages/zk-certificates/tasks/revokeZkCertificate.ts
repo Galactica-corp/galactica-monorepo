@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import chalk from 'chalk';
 import { task, types } from 'hardhat/config';
@@ -6,7 +7,7 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { printProgress, sleep } from '../lib/helpers';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { revokeZkCert } from '../lib/registryTools';
+import { revokeZkCert, registerZkCert } from '../lib/registryTools';
 
 /**
  * Script for revoking a zkCertificate, issuing it and adding a merkle proof for it.
@@ -16,10 +17,10 @@ import { revokeZkCert } from '../lib/registryTools';
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log('Revoking zkCertificate');
 
-  const [provider] = await hre.ethers.getSigners();
+  const [issuer] = await hre.ethers.getSigners();
   console.log(
-    `Using provider ${chalk.yellow(
-      provider.address.toString(),
+    `Using issuer ${chalk.yellow(
+      issuer.address.toString(),
     )} to revoke the zkCertificate`,
   );
 
@@ -39,20 +40,27 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
 
   console.log('Register zkCertificate to the queue...');
-  const { startTime, expirationTime } = await registerZkCert(
-    zkCertificate.leafHash,
+  let { startTime, expirationTime } = await registerZkCert(
+    args.leafHash,
     recordRegistry,
     issuer,
   );
-
-  const { networkProvider } = recordRegistry;
-  const currentBlock = await networkProvider.getBlockNumber();
-  const lastBlockTime = (await networkProvider.getBlock(currentBlock))
-    .timestamp;
+  const { provider } = recordRegistry;
+  const currentBlock = await hre.ethers.provider.getBlockNumber();
+  let lastBlockTime = (await hre.ethers.provider.getBlock(currentBlock)).timestamp;
 
   // wait until start time
-  if (lastBlockTime < startTime) {
-    await sleep((startTime - lastBlockTime) / 1000 + 1);
+  while (lastBlockTime < startTime) {
+    console.log(
+      `Waiting 10 seconds then check if it is already our turn or not`,
+    );
+    await sleep(10);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _startTime, _ } = await recordRegistry.getTimeParameter(
+      args.leafHash,
+    );
+    startTime = _startTime;
+    lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
   }
   console.log('Start time reached');
 
@@ -82,7 +90,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.leafHash,
     args.index,
     recordRegistry,
-    provider,
+    issuer,
     merkleTree,
   );
 

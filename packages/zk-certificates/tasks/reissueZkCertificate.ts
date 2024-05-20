@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { ZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
@@ -12,7 +13,7 @@ import { printProgress, sleep } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { issueZkCert, revokeZkCert } from '../lib/registryTools';
+import { issueZkCert, revokeZkCert, registerZkCert } from '../lib/registryTools';
 import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
@@ -79,26 +80,35 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.registryAddress,
   );
 
-  console.log('Register zkCertificate to the queue...');
-  const { startTime, expirationTime } = await registerZkCert(
-    zkCertificate.leafHash,
+  console.log('Register zkCertificate to the queue to revoke...');
+  let { startTime, expirationTime } = await registerZkCert(
+    newZkCertificate.leafHash,
     recordRegistry,
     issuer,
   );
 
   const { provider } = recordRegistry;
-  const currentBlock = await provider.getBlockNumber();
-  const lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+  let currentBlock = await provider.getBlockNumber();
+  let lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
 
   // wait until start time
-  if (lastBlockTime < startTime) {
-    await sleep((startTime - lastBlockTime) / 1000 + 1);
+  while (lastBlockTime < startTime) {
+    console.log(
+      `Waiting 10 seconds then check if it is already our turn or not`,
+    );
+    await sleep(10);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _startTime, _ } = await recordRegistry.getTimeParameter(
+      newZkCertificate.leafHash,
+    );
+    startTime = _startTime;
+    lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
   }
   console.log('Start time reached');
 
   if (lastBlockTime > expirationTime) {
     throw new Error(
-      `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
+      `The zkCertificate registration has expired, it should be revoked before ${expirationTime}`,
     );
   }
 
@@ -131,12 +141,54 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     ),
   );
 
+  console.log('Register zkCertificate to the queue to readd...');
+  { startTime, expirationTime } = await registerZkCert(
+    newZkCertificate.leafHash,
+    recordRegistry,
+    issuer,
+  );
+
+  currentBlock = await provider.getBlockNumber();
+  lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+
+  // wait until start time
+  while (lastBlockTime < startTime) {
+    console.log(
+      `Waiting 10 seconds then check if it is already our turn or not`,
+    );
+    await sleep(10);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _startTime, _ } = await recordRegistry.getTimeParameter(
+      newZkCertificate.leafHash,
+    );
+    startTime = _startTime;
+    lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+  }
+  console.log('Start time reached');
+
+  if (lastBlockTime > expirationTime) {
+    throw new Error(
+      `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
+    );
+  }
+
+  console.log(
+    'Generating merkle proof. This might take a while because it needs to query on-chain data...',
+  );
+
+  const merkleTree2 = await buildMerkleTreeFromRegistry(
+    recordRegistry,
+    hre.ethers.provider,
+    merkleTreeDepth,
+    printProgress,
+  );
+
   console.log('Issuing zkCertificate...');
   const { merkleProof, registration } = await issueZkCert(
     newZkCertificate,
     recordRegistry,
     issuer,
-    merkleTree,
+    merkleTree2,
   );
   console.log(
     chalk.green(
