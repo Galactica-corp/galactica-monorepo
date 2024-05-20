@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { ZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
@@ -100,7 +101,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     );
 
     console.log('Register zkCertificate to the queue...');
-    const { startTime, expirationTime } = await registerZkCert(
+    let { startTime, expirationTime } = await registerZkCert(
       zkCertificate.leafHash,
       recordRegistry,
       issuer,
@@ -108,15 +109,20 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
     const { provider } = recordRegistry;
     const currentBlock = await provider.getBlockNumber();
-    const lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+    let lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
 
     // wait until start time
-    if (lastBlockTime < startTime) {
-      const secondsToWait = (startTime - lastBlockTime) / 1000 + 1;
+    while (lastBlockTime < startTime) {
       console.log(
-        `Waiting ${secondsToWait} seconds until start time ${startTime} (current time: ${lastBlockTime})`,
+        `Waiting 10 seconds then check if it is already our turn or not`,
       );
-      await sleep(secondsToWait);
+      await sleep(10);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _startTime, _ } = await recordRegistry.getTimeParameter(
+        zkCertificate.leafHash,
+      );
+      startTime = _startTime;
+      lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
     }
     console.log('Start time reached');
 
