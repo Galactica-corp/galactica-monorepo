@@ -9,11 +9,15 @@ import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
-import { printProgress, sleep } from '../lib/helpers';
+import { printProgress } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { issueZkCert, registerZkCert } from '../lib/registryTools';
+import {
+  issueZkCert,
+  registerZkCertToQueue,
+  waitOnIssuanceQueue,
+} from '../lib/registryTools';
 import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
@@ -101,35 +105,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     );
 
     console.log('Register zkCertificate to the queue...');
-    let [startTime, expirationTime] = await registerZkCert(
-      zkCertificate.leafHash,
-      recordRegistry,
-      issuer,
-    );
+    await registerZkCertToQueue(zkCertificate.leafHash, recordRegistry, issuer);
 
-    const { provider } = recordRegistry;
-    const currentBlock = await provider.getBlockNumber();
-    let lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
-
-    // wait until start time
-    while (lastBlockTime < startTime) {
-      console.log(
-        `Waiting 10 seconds then check if it is already our turn or not`,
-      );
-      await sleep(10);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      [startTime, _] = await recordRegistry.getTimeParameter(
-        zkCertificate.leafHash,
-      );
-      lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
-    }
-    console.log('Start time reached');
-
-    if (lastBlockTime > expirationTime) {
-      throw new Error(
-        `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
-      );
-    }
+    await waitOnIssuanceQueue(recordRegistry, zkCertificate.leafHash);
 
     console.log(
       'Generating merkle proof. This might take a while because it needs to query on-chain data...',

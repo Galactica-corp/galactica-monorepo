@@ -6,7 +6,7 @@ import type {
 } from '@galactica-net/galactica-types';
 import type { Signer, Contract } from 'ethers';
 
-import { fromDecToHex, fromHexToBytes32 } from './helpers';
+import { fromDecToHex, fromHexToBytes32, sleep } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
 import type { ZkCertificate } from './zkCertificate';
 
@@ -101,29 +101,66 @@ export async function revokeZkCert(
 }
 
 /**
- * Registers zkCert record on-chain and updates the merkle tree.
+ * Registers zkCert record in the on-chain queue for issuance.
  * @param zkCertLeafHash - Leaf hash of the zkCert to register.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert (= guardian allowed to register).
- * @returns MerkleProof of the new leaf in the tree and registration data.
+ * @returns Time parameters for zkCert issuance.
  */
-export async function registerZkCert(
+export async function registerZkCertToQueue(
   zkCertLeafHash: string,
   recordRegistry: Contract,
   issuer: Signer,
-): Promise<any> {
+) {
   const leafHashAsBytes = fromHexToBytes32(fromDecToHex(zkCertLeafHash));
-  if (
-    (await recordRegistry.ZkCertificateToGuardian(leafHashAsBytes)) !==
-    (await issuer.getAddress())
-  ) {
-    throw Error('Only the issuer of the zkCert can revoke it.');
-  }
 
   const tx = await recordRegistry
     .connect(issuer)
     .registerToQueue(leafHashAsBytes);
   await tx.wait();
+}
 
-  return await recordRegistry.getTimeParameter(leafHashAsBytes);
+/**
+ * Waits for the queue until a zkCert can be issued.
+ * @param recordRegistry - Record registry contract.
+ * @param leafHash - Leaf hash of the zkCert.
+ */
+export async function waitOnIssuanceQueue(
+  recordRegistry: Contract,
+  leafHash: string,
+) {
+  const leafHashAsBytes = fromHexToBytes32(fromDecToHex(leafHash));
+  const [startTime, expirationTime] =
+    await recordRegistry.getTimeParameters(leafHashAsBytes);
+
+  const { provider } = recordRegistry;
+  const currentBlock = await provider.getBlockNumber();
+  let lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+
+  console.log(
+    `Waiting on zkCert registration queue.\n`,
+    `Latest issuance start time: ${new Date(
+      startTime * 1000,
+    ).toLocaleString()}\n`,
+    `Expiration time: ${new Date(expirationTime * 1000).toLocaleString()}`,
+  );
+  let earliestIssueTime = startTime;
+  while (lastBlockTime < earliestIssueTime) {
+    await sleep(10);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    [earliestIssueTime] =
+      await recordRegistry.getTimeParameters(leafHashAsBytes);
+    lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+    const queueLength =
+      (await recordRegistry.ZkCertificateHashToIndexInQueue(leafHashAsBytes)) -
+      (await recordRegistry.nextLeafIndex());
+    console.log(`waiting for ${queueLength - 1} other zkCerts in the queue...`);
+  }
+  console.log('Start time reached');
+
+  if (lastBlockTime > expirationTime) {
+    throw new Error(
+      `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
+    );
+  }
 }

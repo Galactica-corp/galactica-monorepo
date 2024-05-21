@@ -9,14 +9,15 @@ import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
-import { printProgress, sleep } from '../lib/helpers';
+import { printProgress } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import {
   issueZkCert,
   revokeZkCert,
-  registerZkCert,
+  registerZkCertToQueue,
+  waitOnIssuanceQueue,
 } from '../lib/registryTools';
 import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
@@ -84,42 +85,26 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.registryAddress,
   );
 
-  console.log('Register zkCertificate to the queue to revoke...');
-  let [startTime, expirationTime] = await registerZkCert(
-    newZkCertificate.leafHash,
-    recordRegistry,
-    issuer,
-  );
-
-  const { provider } = recordRegistry;
-  let currentBlock = await provider.getBlockNumber();
-  let lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
-
-  // wait until start time
-  while (lastBlockTime < startTime) {
-    console.log(
-      `Waiting 10 seconds then check if it is already our turn or not`,
-    );
-    await sleep(10);
-    [startTime, expirationTime] = await recordRegistry.getTimeParameter(
-      newZkCertificate.leafHash,
-    );
-    lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
-  }
-  console.log('Start time reached');
-
-  if (lastBlockTime > expirationTime) {
-    throw new Error(
-      `The zkCertificate registration has expired, it should be revoked before ${expirationTime}`,
-    );
-  }
-
   console.log(
     'Generating merkle proof. This might take a while because it needs to query on-chain data...',
   );
   const merkleTreeDepth = await recordRegistry.treeDepth();
   // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
-  const merkleTree = await buildMerkleTreeFromRegistry(
+  let merkleTree = await buildMerkleTreeFromRegistry(
+    recordRegistry,
+    hre.ethers.provider,
+    merkleTreeDepth,
+    printProgress,
+  );
+  const leafHashToRevoke = merkleTree.retrieveLeaf(0, args.index);
+
+  console.log('Register zkCertificate to the queue to revoke...');
+  await registerZkCertToQueue(leafHashToRevoke, recordRegistry, issuer);
+
+  await waitOnIssuanceQueue(recordRegistry, leafHashToRevoke);
+
+  console.log('Rebuild merkle tree after waiting for queue.');
+  merkleTree = await buildMerkleTreeFromRegistry(
     recordRegistry,
     hre.ethers.provider,
     merkleTreeDepth,
@@ -129,7 +114,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // reissue = revoke + issue
   console.log('revoking previous entry...');
   await revokeZkCert(
-    merkleTree.retrieveLeaf(0, args.index),
+    leafHashToRevoke,
     args.index,
     recordRegistry,
     issuer,
@@ -144,33 +129,13 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
 
   console.log('Register zkCertificate to the queue to readd...');
-  [startTime, expirationTime] = await registerZkCert(
+  await registerZkCertToQueue(
     newZkCertificate.leafHash,
     recordRegistry,
     issuer,
   );
 
-  currentBlock = await provider.getBlockNumber();
-  lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
-
-  // wait until start time
-  while (lastBlockTime < startTime) {
-    console.log(
-      `Waiting 10 seconds then check if it is already our turn or not`,
-    );
-    await sleep(10);
-    [startTime, expirationTime] = await recordRegistry.getTimeParameter(
-      newZkCertificate.leafHash,
-    );
-    lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
-  }
-  console.log('Start time reached');
-
-  if (lastBlockTime > expirationTime) {
-    throw new Error(
-      `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
-    );
-  }
+  await waitOnIssuanceQueue(recordRegistry, newZkCertificate.leafHash);
 
   console.log(
     'Generating merkle proof. This might take a while because it needs to query on-chain data...',

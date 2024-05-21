@@ -5,9 +5,13 @@ import { task, types } from 'hardhat/config';
 import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-import { printProgress, sleep } from '../lib/helpers';
+import { printProgress } from '../lib/helpers';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { revokeZkCert, registerZkCert } from '../lib/registryTools';
+import {
+  revokeZkCert,
+  registerZkCertToQueue,
+  waitOnIssuanceQueue,
+} from '../lib/registryTools';
 
 /**
  * Script for revoking a zkCertificate, issuing it and adding a merkle proof for it.
@@ -40,33 +44,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
 
   console.log('Register zkCertificate to the queue...');
-  let [startTime, expirationTime] = await registerZkCert(
-    args.leafHash,
-    recordRegistry,
-    issuer,
-  );
-  const { provider } = recordRegistry;
-  const currentBlock = await hre.ethers.provider.getBlockNumber();
-  let lastBlockTime = (await hre.ethers.provider.getBlock(currentBlock))
-    .timestamp;
+  await registerZkCertToQueue(args.leafHash, recordRegistry, issuer);
 
-  // wait until start time
-  while (lastBlockTime < startTime) {
-    console.log(
-      `Waiting 10 seconds then check if it is already our turn or not`,
-    );
-    await sleep(10);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    [startTime, _] = await recordRegistry.getTimeParameter(args.leafHash);
-    lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
-  }
-  console.log('Start time reached');
-
-  if (lastBlockTime > expirationTime) {
-    throw new Error(
-      `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
-    );
-  }
+  await waitOnIssuanceQueue(recordRegistry, args.leafHash);
 
   console.log(
     'Generating merkle tree. This might take a while because it needs to query on-chain data...',
