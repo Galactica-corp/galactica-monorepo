@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import chalk from 'chalk';
 import { task, types } from 'hardhat/config';
@@ -6,7 +7,11 @@ import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { printProgress } from '../lib/helpers';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { revokeZkCert } from '../lib/registryTools';
+import {
+  revokeZkCert,
+  registerZkCertToQueue,
+  waitOnIssuanceQueue,
+} from '../lib/registryTools';
 
 /**
  * Script for revoking a zkCertificate, issuing it and adding a merkle proof for it.
@@ -16,10 +21,10 @@ import { revokeZkCert } from '../lib/registryTools';
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log('Revoking zkCertificate');
 
-  const [provider] = await hre.ethers.getSigners();
+  const [issuer] = await hre.ethers.getSigners();
   console.log(
-    `Using provider ${chalk.yellow(
-      provider.address.toString(),
+    `Using issuer ${chalk.yellow(
+      issuer.address.toString(),
     )} to revoke the zkCertificate`,
   );
 
@@ -37,6 +42,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     'ZkCertificateRegistry',
     args.registryAddress,
   );
+
+  console.log('Register zkCertificate to the queue...');
+  await registerZkCertToQueue(args.leafHash, recordRegistry, issuer);
+
+  await waitOnIssuanceQueue(recordRegistry, args.leafHash);
 
   console.log(
     'Generating merkle tree. This might take a while because it needs to query on-chain data...',
@@ -58,7 +68,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.leafHash,
     args.index,
     recordRegistry,
-    provider,
+    issuer,
     merkleTree,
   );
 

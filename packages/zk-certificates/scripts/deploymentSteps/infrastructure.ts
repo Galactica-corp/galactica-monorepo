@@ -56,6 +56,13 @@ export async function deployInfrastructure(
     },
     [guardianRegistry.address, merkleTreeDepth],
   );
+
+  const queueExpirationTime = 60 * 5;
+  console.log(
+    `Changing queue expiration time to ${queueExpirationTime} seconds.`,
+  );
+  await recordRegistry.changeQueueExpirationTime(queueExpirationTime);
+
   const zkpVerifier = await deploySC('ExampleMockDAppVerifier', true);
 
   const institutionContracts = [];

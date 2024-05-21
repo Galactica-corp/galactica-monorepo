@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { ZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
@@ -12,7 +13,12 @@ import { printProgress } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { issueZkCert, revokeZkCert } from '../lib/registryTools';
+import {
+  issueZkCert,
+  revokeZkCert,
+  registerZkCertToQueue,
+  waitOnIssuanceQueue,
+} from '../lib/registryTools';
 import { ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
@@ -84,7 +90,21 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   const merkleTreeDepth = await recordRegistry.treeDepth();
   // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
-  const merkleTree = await buildMerkleTreeFromRegistry(
+  let merkleTree = await buildMerkleTreeFromRegistry(
+    recordRegistry,
+    hre.ethers.provider,
+    merkleTreeDepth,
+    printProgress,
+  );
+  const leafHashToRevoke = merkleTree.retrieveLeaf(0, args.index);
+
+  console.log('Register zkCertificate to the queue to revoke...');
+  await registerZkCertToQueue(leafHashToRevoke, recordRegistry, issuer);
+
+  await waitOnIssuanceQueue(recordRegistry, leafHashToRevoke);
+
+  console.log('Rebuild merkle tree after waiting for queue.');
+  merkleTree = await buildMerkleTreeFromRegistry(
     recordRegistry,
     hre.ethers.provider,
     merkleTreeDepth,
@@ -94,7 +114,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // reissue = revoke + issue
   console.log('revoking previous entry...');
   await revokeZkCert(
-    merkleTree.retrieveLeaf(0, args.index),
+    leafHashToRevoke,
     args.index,
     recordRegistry,
     issuer,
@@ -108,12 +128,32 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     ),
   );
 
+  console.log('Register zkCertificate to the queue to readd...');
+  await registerZkCertToQueue(
+    newZkCertificate.leafHash,
+    recordRegistry,
+    issuer,
+  );
+
+  await waitOnIssuanceQueue(recordRegistry, newZkCertificate.leafHash);
+
+  console.log(
+    'Generating merkle proof. This might take a while because it needs to query on-chain data...',
+  );
+
+  const merkleTree2 = await buildMerkleTreeFromRegistry(
+    recordRegistry,
+    hre.ethers.provider,
+    merkleTreeDepth,
+    printProgress,
+  );
+
   console.log('Issuing zkCertificate...');
   const { merkleProof, registration } = await issueZkCert(
     newZkCertificate,
     recordRegistry,
     issuer,
-    merkleTree,
+    merkleTree2,
   );
   console.log(
     chalk.green(

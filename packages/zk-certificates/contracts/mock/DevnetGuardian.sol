@@ -12,7 +12,7 @@ import {ZkCertificateRegistry} from '../ZkCertificateRegistry.sol';
 contract DevnetGuardian {
     ZkCertificateRegistry public recordRegistry;
 
-    mapping(uint256 => address) public creatorOfIndex;
+    mapping(bytes32 => address) public creatorOfLeaf;
 
     constructor(address _recordRegistry) {
         recordRegistry = ZkCertificateRegistry(_recordRegistry);
@@ -29,12 +29,15 @@ contract DevnetGuardian {
         bytes32 zkKYCRecordHash,
         bytes32[] memory merkleProof
     ) public {
+        require(
+            creatorOfLeaf[zkKYCRecordHash] == msg.sender,
+            'KYCRecordRegistry (DevNet Test): not the corresponding KYC Center'
+        );
         recordRegistry.addZkCertificate(
             leafIndex,
             zkKYCRecordHash,
             merkleProof
         );
-        creatorOfIndex[leafIndex] = msg.sender;
     }
 
     /**
@@ -50,14 +53,49 @@ contract DevnetGuardian {
     ) public {
         // we check that address revoking the zkKYC is the creator to make this contract behave the same way as the original registry
         require(
-            creatorOfIndex[leafIndex] == msg.sender,
+            creatorOfLeaf[zkKYCRecordHash] == msg.sender,
             'KYCRecordRegistry (DevNet Test): not the corresponding KYC Center'
         );
-        creatorOfIndex[leafIndex] = address(0);
+        creatorOfLeaf[zkKYCRecordHash] = address(0);
         recordRegistry.revokeZkCertificate(
             leafIndex,
             zkKYCRecordHash,
             merkleProof
         );
+    }
+
+    /**
+     * @notice return the current merkle root which is the last one in the merkleRoots array
+     */
+    function merkleRoot() public view returns (bytes32) {
+        return recordRegistry.merkleRoot();
+    }
+
+    /**
+     * @notice return the whole merkle root array
+     */
+    function getMerkleRoots() public view returns (bytes32[] memory) {
+        return recordRegistry.getMerkleRoots();
+    }
+
+    /** @notice Register a zkCertificate to the queue
+     * @param zkCertificateHash - hash of the zkCertificate record leaf
+     */
+    function registerToQueue(bytes32 zkCertificateHash) public {
+        creatorOfLeaf[zkCertificateHash] = msg.sender;
+        recordRegistry.registerToQueue(zkCertificateHash);
+    }
+
+    function checkZkCertificateHashInQueue(
+        bytes32 zkCertificateHash
+    ) public view returns (bool) {
+        return recordRegistry.checkZkCertificateHashInQueue(zkCertificateHash);
+    }
+
+    // function to return the time parameters of the period where one is allowed to add ZkCertificate
+    function getTimeParameters(
+        bytes32 zkCertificateHash
+    ) public view returns (uint, uint) {
+        return recordRegistry.getTimeParameters(zkCertificateHash);
     }
 }
