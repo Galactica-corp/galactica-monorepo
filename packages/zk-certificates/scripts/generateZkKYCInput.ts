@@ -47,7 +47,7 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
     holderCommitment,
     ZkCertStandard.ZkKYC,
     eddsa,
-    1773,
+    "1773",
     1769736098,
   );
 

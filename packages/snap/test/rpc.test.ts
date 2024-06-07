@@ -112,14 +112,12 @@ describe('Test rpc handler function', function () {
 
     // setting up merkle proof service for testing
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
-        zkCert.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
       }/${zkCert.leafHash}`,
       merkleProofToServiceResponse(zkCert.merkleProof),
     );
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
-        zkCert2.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert2.registration.address
       }/${zkCert2.leafHash}`,
       merkleProofToServiceResponse(zkCert2.merkleProof),
     );
@@ -589,8 +587,7 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       fetchMock.restore();
       fetchMock.get(
-        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
-          zkCert.registration.address
+        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
         }/${zkCert.leafHash}`,
         404,
       );
@@ -1120,6 +1117,33 @@ describe('Test rpc handler function', function () {
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
+    });
+  });
+
+
+  describe('Fixes', function () {
+    it('should find zkCerts with large randomSalt', async function (this: Mocha.Context) {
+      this.timeout(5000);
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert2],
+        });
+
+      const params: ZkCertSelectionParams = {
+        zkCertStandard: ZkCertStandard.ZkKYC,
+      };
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.ExportZkCert, params),
+        snapProvider,
+        ethereumProvider,
+      )) as EncryptedZkCert;
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(result.holderCommitment).to.be.eq(testHolder.holderCommitment);
     });
   });
 });

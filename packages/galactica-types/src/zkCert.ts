@@ -55,7 +55,7 @@ export type ZkCertData = {
   holderCommitment: string;
   // identifier of the zkCert standard (e.g. zkKYC, zkDiploma, zkGymMembership, ...)
   zkCertStandard: ZkCertStandard;
-  randomSalt: number;
+  randomSalt: string;
   expirationDate: number;
   content: ZkKYCContent | Record<string, any>;
   providerData: ProviderData;
