@@ -65,7 +65,10 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   let randomSalt: string;
   // generate random number as salt for new zkCertificate if not provided
   if (args.randomSalt === undefined) {
-    randomSalt = hashStringToFieldNumber(Math.random().toString(), eddsa.poseidon);
+    randomSalt = hashStringToFieldNumber(
+      Math.random().toString(),
+      eddsa.poseidon,
+    );
   } else {
     randomSalt = args.randomSalt;
   }
