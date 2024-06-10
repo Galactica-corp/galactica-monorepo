@@ -185,11 +185,6 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_poseidonSponge.circom',
         input: 'input/poseidonSponge.json',
       },
-      {
-        name: 'smallZkKYC',
-        circuit: 'test/test_smallZkKYC.circom',
-        input: 'input/smallZkKYC.json',
-      },
     ],
   },
 };
