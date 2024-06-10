@@ -22,7 +22,7 @@ async function main() {
   const infrastructure = await deployInfrastructure(
     deployer,
     [institution1, institution2, institution3],
-    20, // Merkle tree depth lowered to circumvent an inefficient implementation in the Go guardian SDK before we have the merkle proof service running.
+    32,
   );
   const exampleDApp = await deployExampleDApp(
     deployer,

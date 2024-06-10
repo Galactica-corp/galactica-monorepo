@@ -9,7 +9,7 @@ import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
-import { printProgress } from '../lib/helpers';
+import { hashStringToFieldNumber, printProgress } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
@@ -64,7 +64,10 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const holderCommitmentData = parseHolderCommitment(holderCommitmentFile);
 
   // generate random number as salt for new zkKYC
-  const randomSalt = Math.floor(Math.random() * 2 ** 32);
+  const randomSalt = hashStringToFieldNumber(
+    Math.random().toString(),
+    eddsa.poseidon,
+  );
 
   const newZkCertificate = new ZkCertificate(
     holderCommitmentData.holderCommitment,

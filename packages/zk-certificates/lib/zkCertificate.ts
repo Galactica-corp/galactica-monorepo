@@ -42,7 +42,7 @@ export class ZkCertificate implements ZkCertData {
 
   protected eddsa: Eddsa;
 
-  public randomSalt: number;
+  public randomSalt: string;
 
   public expirationDate: number;
 
@@ -67,7 +67,7 @@ export class ZkCertificate implements ZkCertData {
     holderCommitment: string,
     zkCertStandard: ZkCertStandard,
     eddsa: Eddsa,
-    randomSalt: number,
+    randomSalt: string,
     expirationDate: number,
     contentFields: string[] = zkKYCContentFields,
     content: Record<string, any> = {}, // standardize field definitions
