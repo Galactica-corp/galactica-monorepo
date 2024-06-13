@@ -91,6 +91,8 @@ export async function deployInfrastructure(
   ]);
   const verificationSBT = await deploySC('VerificationSBT', true, {}, [
     'https://quicknode.quicknode-ipfs.com/ipfs/QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs',
+    'VerificationSBT',
+    'VerificationSBT',
   ]);
 
   return {

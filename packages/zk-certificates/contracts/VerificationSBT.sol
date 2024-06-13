@@ -19,6 +19,9 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
     // token id to dApp
     mapping(uint256 => address) public tokenIdToDApp;
 
+    string public name;
+    string public symbol;
+
     error NotAllowedForSBT();
 
     // base URI for NFTs
@@ -34,9 +37,11 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
         bytes32 indexed humanID
     );
 
-    constructor(string memory uri) {
+    constructor(string memory uri, string memory _name, string memory _symbol) {
         deploymentBlock = uint64(block.number);
         baseURI = uri;
+        name = _name;
+        symbol = _symbol;
     }
 
     function mintVerificationSBT(
