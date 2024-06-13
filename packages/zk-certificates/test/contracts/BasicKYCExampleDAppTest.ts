@@ -74,6 +74,8 @@ describe('BasicKYCExampleDApp', () => {
     );
     verificationSBT = (await verificationSBTFactory.deploy(
       'test URI',
+      'VerificationSBT',
+      'VerificationSBT'
     )) as VerificationSBT;
 
     const repeatableZKPTestFactory = await ethers.getContractFactory(
