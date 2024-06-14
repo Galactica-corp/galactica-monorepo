@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
@@ -62,9 +62,9 @@ describe('zkCertificate SC', () => {
       deployer,
     );
     twitterZkCertificateContract = (await twitterZkCertificateFactory.deploy(
-      deployer.address,
-      twitterZkCertificateVerifier.address,
-      mockZkCertificateRegistry.address,
+      await deployer.getAddress(),
+      await twitterZkCertificateVerifier.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
       [],
     )) as TwitterZkCertificate;
 
@@ -82,25 +82,25 @@ describe('zkCertificate SC', () => {
   it('only owner can change ZkCertificateRegistry and Verifier addresses', async () => {
     // random user cannot change the addresses
     await expect(
-      twitterZkCertificateContract.connect(user).setVerifier(user.address),
+      twitterZkCertificateContract.connect(user).setVerifier(await user.getAddress()),
     ).to.be.revertedWith('Ownable: caller is not the owner');
     await expect(
-      twitterZkCertificateContract.connect(user).setRegistry(user.address),
+      twitterZkCertificateContract.connect(user).setRegistry(await user.getAddress()),
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
     // owner can change addresses
     await twitterZkCertificateContract
       .connect(deployer)
-      .setVerifier(user.address);
+      .setVerifier(await user.getAddress());
     await twitterZkCertificateContract
       .connect(deployer)
-      .setRegistry(user.address);
+      .setRegistry(await user.getAddress());
 
     expect(await twitterZkCertificateContract.verifier()).to.be.equal(
-      user.address,
+      await user.getAddress(),
     );
     expect(await twitterZkCertificateContract.registry()).to.be.equal(
-      user.address,
+      await user.getAddress(),
     );
   });
 

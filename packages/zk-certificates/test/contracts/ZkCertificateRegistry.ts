@@ -1,6 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
 import hre, { ethers } from 'hardhat';
@@ -42,12 +42,12 @@ describe('ZkCertificateRegistry', () => {
       'ZkCertificateRegistryTest',
       {
         libraries: {
-          PoseidonT3: poseidonT3.address,
+          await PoseidonT3: poseidonT3.getAddress(),
         },
       },
     );
     const ZkCertificateRegistry = await ZkCertificateRegistryTest.deploy(
-      GuardianRegistry.address,
+      await GuardianRegistry.getAddress(),
       32,
     );
 
@@ -73,7 +73,7 @@ describe('ZkCertificateRegistry', () => {
       await loadFixture(deploy);
 
     await expect(
-      ZkCertificateRegistry.doubleInit(GuardianRegistry.address),
+      ZkCertificateRegistry.doubleInit(await GuardianRegistry.getAddress()),
     ).to.be.revertedWith('Initializable: contract is not initializing');
   });
 
@@ -100,7 +100,7 @@ describe('ZkCertificateRegistry', () => {
       await loadFixture(deploy);
 
     // add deployer as a Guardian
-    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
+    await GuardianRegistry.grantGuardianRole(await deployer.getAddress(), [0, 0], 'test');
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -165,7 +165,7 @@ describe('ZkCertificateRegistry', () => {
       await loadFixture(deploy);
 
     // add deployer as a Guardian
-    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
+    await GuardianRegistry.grantGuardianRole(await deployer.getAddress(), [0, 0], 'test');
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
@@ -257,7 +257,7 @@ describe('ZkCertificateRegistry', () => {
     ).to.be.revertedWith('ZkCertificateRegistry: not a Guardian');
 
     // add deployer as a Guardian
-    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
+    await GuardianRegistry.grantGuardianRole(await deployer.getAddress(), [0, 0], 'test');
 
     // now the deployer can register to the queue
     await ZkCertificateRegistry.registerToQueue(leafHashes[0]);
@@ -280,7 +280,7 @@ describe('ZkCertificateRegistry', () => {
       await loadFixture(deploy);
 
     // add deployer as a Guardian
-    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
+    await GuardianRegistry.grantGuardianRole(await deployer.getAddress(), [0, 0], 'test');
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;

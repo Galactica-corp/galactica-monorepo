@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
 import hre from 'hardhat';
 
@@ -29,12 +29,12 @@ export async function deployInfrastructure(
   ageProofZkKYC: any;
   verificationSBT: any;
 }> {
-  log(`Using account ${deployer.address} to deploy contracts`);
-  log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  log(`Using account ${await deployer.getAddress()} to deploy contracts`);
+  log(`Account balance: ${(await deployer.provider.getBalance(await deployer.getAddress())).toString()}`);
 
   log(
     `Using institutions ${JSON.stringify(
-      institutions.map((i) => i.address),
+      await institutions.map(async (i) => await i.getAddress()),
     )} for fraud investigation`,
   );
 
@@ -51,10 +51,10 @@ export async function deployInfrastructure(
     true,
     {
       libraries: {
-        PoseidonT3: poseidonT3.address,
+        PoseidonT3: await poseidonT3.getAddress(),
       },
     },
-    [guardianRegistry.address, merkleTreeDepth],
+    [await guardianRegistry.getAddress(), merkleTreeDepth],
   );
 
   const queueExpirationTime = 60 * 5;
@@ -84,10 +84,10 @@ export async function deployInfrastructure(
   }
 
   const ageProofZkKYC = await deploySC('AgeProofZkKYC', true, {}, [
-    deployer.address,
-    zkpVerifier.address,
-    recordRegistry.address,
-    institutionContracts.map((contract) => contract.address),
+    await deployer.getAddress(),
+    await zkpVerifier.getAddress(),
+    await recordRegistry.getAddress(),
+    await institutionContracts.map(async (contract) => await contract.getAddress()),
   ]);
   const verificationSBT = await deploySC('VerificationSBT', true, {}, [
     'https://quicknode.quicknode-ipfs.com/ipfs/QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs',

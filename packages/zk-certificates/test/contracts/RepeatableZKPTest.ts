@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
@@ -62,9 +62,9 @@ describe('RepeatableZKPTest', () => {
 
     const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
     zkKycSC = (await zkKYCFactory.deploy(
-      deployer.address,
-      zkKYCVerifier.address,
-      mockZkCertificateRegistry.address,
+      await deployer.getAddress(),
+      await zkKYCVerifier.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
       [],
     )) as ZkKYC;
     await zkKYCVerifier.deployed();
@@ -82,8 +82,8 @@ describe('RepeatableZKPTest', () => {
       deployer,
     );
     repeatableZKPTest = (await repeatableZKPTestFactory.deploy(
-      verificationSBT.address,
-      zkKycSC.address,
+      await verificationSBT.getAddress(),
+      await zkKycSC.getAddress(),
     )) as RepeatableZKPTest;
 
     // inputs to create proof
@@ -91,9 +91,9 @@ describe('RepeatableZKPTest', () => {
     sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
-      repeatableZKPTest.address,
+      await repeatableZKPTest.getAddress(),
     );
-    sampleInput.dAppAddress = repeatableZKPTest.address;
+    sampleInput.dAppAddress = await repeatableZKPTest.getAddress();
 
     // advance time a bit to set it later in the test
     sampleInput.currentTime += 100;
@@ -135,8 +135,8 @@ describe('RepeatableZKPTest', () => {
 
     expect(
       await verificationSBT.isVerificationSBTValid(
-        user.address,
-        repeatableZKPTest.address,
+        await user.getAddress(),
+        await repeatableZKPTest.getAddress(),
       ),
     ).to.be.true;
 

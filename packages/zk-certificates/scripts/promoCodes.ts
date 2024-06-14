@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { ethers } from 'hardhat';
+import { keccak256, toUtf8Bytes } from 'ethers';
 
 /**
  * Script for creating promo-codes.
@@ -12,7 +12,7 @@ async function main() {
 
   for (let i = 0; i < amount; i++) {
     const base = basePrefix + i.toString();
-    const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(base));
+    const hash = keccak256(toUtf8Bytes(base));
     const promoCode = hash.toUpperCase().slice(2, 2 + length);
 
     // To prevent frontrunning, we need to do a bit more than putting the verification code on chain.

@@ -4,7 +4,7 @@ import type {
   MerkleProof,
   ZkCertRegistration,
 } from '@galactica-net/galactica-types';
-import type { Signer, Contract } from 'ethers';
+import type { Signer, Contract, Provider } from 'ethers';
 
 import { fromDecToHex, fromHexToBytes32, sleep } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
@@ -23,6 +23,7 @@ export async function issueZkCert(
   zkCert: ZkCertificate,
   recordRegistry: Contract,
   issuer: Signer,
+  provider: Provider,
   merkleTree: SparseMerkleTree,
   devnetGuardian?: Contract,
 ): Promise<{ merkleProof: MerkleProof; registration: ZkCertRegistration }> {
@@ -41,7 +42,6 @@ export async function issueZkCert(
     ),
   );
   await tx.wait();
-  const { provider } = contractToCall;
   const txReceipt = await provider.getTransactionReceipt(tx.hash);
   if (txReceipt.status !== 1) {
     throw Error('Transaction failed');
@@ -54,8 +54,8 @@ export async function issueZkCert(
   return {
     merkleProof: leafInsertedMerkleProof,
     registration: {
-      address: recordRegistry.address,
-      chainID: (await recordRegistry.provider.getNetwork()).chainId,
+      address: await recordRegistry.getAddress(),
+      chainID: (await provider.getNetwork()).chainId,
       revocable: true,
       leafIndex: chosenLeafIndex,
     },

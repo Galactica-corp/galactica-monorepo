@@ -13,10 +13,10 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log(
-    `Deploying contracts with account ${deployer.address} on network ${network.name}`,
+    `Deploying contracts with account ${await deployer.getAddress()} on network ${network.name}`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(`Account balance: ${(await deployer.provider.getBalance(await deployer.getAddress())).toString()}`);
 
   const deployGuardianRegistryFlag = false;
   const setGuardianFlag = false;
@@ -49,7 +49,7 @@ async function main() {
   const eddsa = await buildEddsa();
   const privKey = await getEddsaKeyFromEthSigner(deployer);
   const guardianPubKey = eddsa.prv2pub(privKey);
-  const guardianAddress = deployer.address;
+  const guardianAddress = await deployer.getAddress();
   if (setGuardianFlag) {
     console.log(`setting guardian ${guardianAddress}`);
     const setGuardianTx = await guardianRegistry.grantGuardianRole(
@@ -75,11 +75,11 @@ async function main() {
     twitterZkCertificateRegistry = await deploySC(
       'ZkCertificateRegistry',
       true,
-      { libraries: { PoseidonT3: poseidonT3.address } },
-      [guardianRegistry.address, description],
+      { libraries: { PoseidonT3: await poseidonT3.getAddress() } },
+      [await guardianRegistry.getAddress(), description],
     );
     console.log(
-      `deployed a new twitterZkCertificate registry with description ${description} at ${twitterZkCertificateRegistry.address}`,
+      `deployed a new twitterZkCertificate registry with description ${description} at ${await twitterZkCertificateRegistry.getAddress()}`,
     );
   } else {
     const twitterZkCertificateRegistryAddress =
@@ -104,7 +104,7 @@ async function main() {
       [],
     );
     console.log(
-      `deployed a new twitterFollowersCountProofVerifier at ${twitterFollowersCountProofVerifier.address}`,
+      `deployed a new twitterFollowersCountProofVerifier at ${await twitterFollowersCountProofVerifier.getAddress()}`,
     );
   } else {
     const twitterFollowersCountProofVerifierAddress =
@@ -126,13 +126,13 @@ async function main() {
       true,
       {},
       [
-        deployer.address,
-        twitterFollowersCountProofVerifier.address,
-        twitterZkCertificateRegistry.address,
+        await deployer.getAddress(),
+        await twitterFollowersCountProofVerifier.getAddress(),
+        await twitterZkCertificateRegistry.getAddress(),
       ],
     );
     console.log(
-      `deployed a new twitterFollowersCountProof at ${twitterFollowersCountProof.address}`,
+      `deployed a new twitterFollowersCountProof at ${await twitterFollowersCountProof.getAddress()}`,
     );
   } else {
     const twitterFollowersCountProofAddress =

@@ -1,6 +1,6 @@
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
-import '@nomiclabs/hardhat-ethers';
+import '@nomicfoundation/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
 import { Wallet } from 'ethers';
@@ -35,9 +35,9 @@ const config: HardhatUserConfig = {
       url: 'https://evm-rpc-http-reticulum.galactica.com/',
       accounts: [
         process.env.GalaTestnetDeployerPrivateKey ??
-          Wallet.createRandom().privateKey,
+        Wallet.createRandom().privateKey,
         process.env.ReticulumGuardianPrivateKey ??
-          Wallet.createRandom().privateKey,
+        Wallet.createRandom().privateKey,
       ],
     },
   },

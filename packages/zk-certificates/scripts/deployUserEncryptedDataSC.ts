@@ -11,7 +11,7 @@ async function main() {
     `Deploying contracts with account ${deployer.address} on network ${network.name}`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(`Account balance: ${(await deployer.provider.getBalance(deployer.address)).toString()}`);
 
   const UserEncryptedDataFactory =
     await ethers.getContractFactory('UserEncryptedData');

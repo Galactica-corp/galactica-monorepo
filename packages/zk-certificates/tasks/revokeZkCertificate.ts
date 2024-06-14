@@ -74,8 +74,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   console.log(
     chalk.green(
-      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${
-        args.index as number
+      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${args.index as number
       }`,
     ),
   );

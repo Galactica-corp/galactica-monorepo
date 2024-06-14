@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import type { Contract } from 'ethers';
 import hre from 'hardhat';
 
@@ -21,7 +21,7 @@ export async function deployDevnetGuardian(
   zkCertRegistryAddr: string,
 ): Promise<Contract> {
   log(`Using account ${deployer.address} to deploy contracts`);
-  log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  log(`Account balance: ${(await deployer.provider.getBalance(deployer.address)).toString()}`);
 
   // deploying everything
   const devnetGuardian = await deploySC('DevnetGuardian', true, {}, [

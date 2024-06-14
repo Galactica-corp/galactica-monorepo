@@ -27,18 +27,18 @@ export async function deploySC(
   } else {
     contract = await factory.deploy(...constructorArgs);
   }
-  await contract.deployed();
+  await contract.waitForDeployment();
 
-  console.log(chalk.green(`${name} deployed to ${contract.address}`));
+  console.log(chalk.green(`${name} deployed to ${await contract.getAddress()}`));
   console.log('constructorArgs:', JSON.stringify(constructorArgs));
 
   if (verify) {
-    if (constructorArgs && constructorArgs?.length !== 0) {
-      console.warn(
-        `Skipping automatic verification of ${name} because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.`,
-      );
-      return contract;
-    }
+    // if (constructorArgs && constructorArgs?.length !== 0) {
+    //   console.warn(
+    //     `Skipping automatic verification of ${name} because of a bug with constructor arguments when using hardhat-ethersan and blockscout. You can still verify it manually.`,
+    //   );
+    //   return contract;
+    // }
     try {
       // in case there are multiple contracts with the same bytecode (e.g. tokens), we need to pass the fully qualified name to the verifier
       let contractArgs = {};
@@ -47,7 +47,7 @@ export async function deploySC(
       }
 
       await run('verify:verify', {
-        address: contract.address,
+        address: await contract.getAddress(),
         constructorArguments: constructorArgs,
         ...contractArgs,
         ...signerOrOptions,

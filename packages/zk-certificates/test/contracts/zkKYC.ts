@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import { BigNumber } from 'ethers';
 import hre, { ethers } from 'hardhat';
@@ -73,9 +73,9 @@ describe('zkKYC SC', () => {
 
     const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
     zkKYCContract = (await zkKYCFactory.deploy(
-      deployer.address,
-      zkKYCVerifier.address,
-      mockZkCertificateRegistry.address,
+      await deployer.getAddress(),
+      await zkKYCVerifier.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
       [],
     )) as ZkKYC;
 
@@ -83,7 +83,7 @@ describe('zkKYC SC', () => {
     sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
-      zkKYCContract.address,
+      await zkKYCContract.getAddress(),
     );
 
     // get signer object authorized to use the zkKYC record
@@ -96,18 +96,18 @@ describe('zkKYC SC', () => {
   it('only owner can change KYCRegistry and Verifier addresses', async () => {
     // random user cannot change the addresses
     await expect(
-      zkKYCContract.connect(user).setVerifier(user.address),
+      zkKYCContract.connect(user).setVerifier(await user.getAddress()),
     ).to.be.revertedWith('Ownable: caller is not the owner');
     await expect(
-      zkKYCContract.connect(user).setKYCRegistry(user.address),
+      zkKYCContract.connect(user).setKYCRegistry(await user.getAddress()),
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
     // owner can change addresses
-    await zkKYCContract.connect(deployer).setVerifier(user.address);
-    await zkKYCContract.connect(deployer).setKYCRegistry(user.address);
+    await zkKYCContract.connect(deployer).setVerifier(await user.getAddress());
+    await zkKYCContract.connect(deployer).setKYCRegistry(await user.getAddress());
 
-    expect(await zkKYCContract.verifier()).to.be.equal(user.address);
-    expect(await zkKYCContract.KYCRegistry()).to.be.equal(user.address);
+    expect(await zkKYCContract.verifier()).to.be.equal(await user.getAddress());
+    expect(await zkKYCContract.KYCRegistry()).to.be.equal(await user.getAddress());
   });
 
   it('correct proof can be verified onchain', async () => {
@@ -347,7 +347,7 @@ describe('zkKYC SC', () => {
     const inputWithInstitutions = await generateZkKYCProofInput(
       zkKYC,
       amountInstitutions,
-      zkKYCContract.address,
+      await zkKYCContract.getAddress(),
     );
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
@@ -358,10 +358,10 @@ describe('zkKYC SC', () => {
 
     const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
     const investigatableZkKYC = await zkKYCFactory.deploy(
-      deployer.address,
-      verifierSC.address,
-      mockZkCertificateRegistry.address,
-      mockGalacticaInstitutions.map((inst) => inst.address),
+      await deployer.getAddress(),
+      await verifierSC.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
+      mockGalacticaInstitutions.map(async (inst) => await inst.getAddress()),
     );
 
     const { proof, publicSignals } = await groth16.fullProve(

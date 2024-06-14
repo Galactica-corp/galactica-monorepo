@@ -55,7 +55,7 @@ async function main() {
   // wallets
   const [user] = await ethers.getSigners();
   console.log(`Using account ${user.address} as KYC provider`);
-  console.log(`Account balance: ${(await user.getBalance()).toString()}`);
+  console.log(`Account balance: ${(await user.provider.getBalance(deployer.address)).toString()}`);
   console.log();
 
   // get contracts

@@ -21,7 +21,7 @@ async function main() {
   // wallets
   const [deployer] = await ethers.getSigners();
   console.log(`Using account ${deployer.address} as KYC provider`);
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(`Account balance: ${(await deployer.provider.getBalance(deployer.address)).toString()}`);
   console.log();
 
   const guardianName = 'Galactica Test Guardian';

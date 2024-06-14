@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
@@ -19,7 +19,7 @@ export async function whitelistGuardian(
   guardianName: string,
 ) {
   console.log(`Using account ${authorizer.address} for controlling whitelist`);
-  console.log(`Account balance: ${(await authorizer.getBalance()).toString()}`);
+  console.log(`Account balance: ${(await authorizer.provider.getBalance(authorizer.address)).toString()}`);
   console.log();
 
   const guardianAddr = guardian.address;
@@ -31,8 +31,7 @@ export async function whitelistGuardian(
     .map((component: any) => eddsa.poseidon.F.toObject(component).toString());
 
   console.log(
-    `Whitelisting guardian ${
-      guardian.address
+    `Whitelisting guardian ${guardian.address
     } with name ${guardianName} and pubkey ${JSON.stringify(guardianPubKey)}`,
   );
 

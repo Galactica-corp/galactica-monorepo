@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 
 import { deploySC } from '../../lib/hardhatHelpers';
 
@@ -21,20 +21,20 @@ export async function deployRepeatableZKPTest(
   zkKYCSC: any;
   repeatableZKPTest: any;
 }> {
-  log(`Using account ${deployer.address} to deploy contracts`);
-  log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  log(`Using account ${await deployer.getAddress()} to deploy contracts`);
+  log(`Account balance: ${(await deployer.provider.getBalance(await deployer.getAddress())).toString()}`);
 
   // deploying everything
   const zkKYCVerifier = await deploySC('ZkKYCVerifier', true);
   const zkKYCSC = await deploySC('ZkKYC', true, {}, [
-    deployer.address,
-    zkKYCVerifier.address,
+    await deployer.getAddress(),
+    await zkKYCVerifier.getAddress(),
     zkKYCRegistryAddr,
     [],
   ]);
   const repeatableZKPTest = await deploySC('RepeatableZKPTest', true, {}, [
     verificationSBTAddr,
-    zkKYCSC.address,
+    await zkKYCSC.getAddress(),
   ]);
 
   return {

@@ -49,7 +49,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.0.1",
     "eslint-plugin-promise": "^6.1.1",
-    "hardhat": "^2.10.1",
+    "hardhat": "^2.22.5",
     "prettier": "^3.0.3",
     "prettier-plugin-packagejson": "^2.4.6",
     "typescript": "^5.0.4"

@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
@@ -62,9 +62,9 @@ describe('zkCertificate followers count proof', () => {
       await ethers.getContractFactory('TwitterFollowersCountProof', deployer);
     twitterFollowersCountThresholdContract =
       (await twitterFollowersCountThresholdFactory.deploy(
-        deployer.address,
-        twitterFollowersCountThresholdVerifier.address,
-        mockZkCertificateRegistry.address,
+        await deployer.getAddress(),
+        await twitterFollowersCountThresholdVerifier.getAddress(),
+        await mockZkCertificateRegistry.getAddress(),
         [],
       )) as TwitterZkCertificate;
 
@@ -87,27 +87,27 @@ describe('zkCertificate followers count proof', () => {
     await expect(
       twitterFollowersCountThresholdContract
         .connect(user)
-        .setVerifier(user.address),
+        .setVerifier(await user.getAddress()),
     ).to.be.revertedWith('Ownable: caller is not the owner');
     await expect(
       twitterFollowersCountThresholdContract
         .connect(user)
-        .setRegistry(user.address),
+        .setRegistry(await user.getAddress()),
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
     // owner can change addresses
     await twitterFollowersCountThresholdContract
       .connect(deployer)
-      .setVerifier(user.address);
+      .setVerifier(await user.getAddress());
     await twitterFollowersCountThresholdContract
       .connect(deployer)
-      .setRegistry(user.address);
+      .setRegistry(await user.getAddress());
 
     expect(await twitterFollowersCountThresholdContract.verifier()).to.be.equal(
-      user.address,
+      await user.getAddress(),
     );
     expect(await twitterFollowersCountThresholdContract.registry()).to.be.equal(
-      user.address,
+      await user.getAddress(),
     );
   });
 
@@ -122,7 +122,7 @@ describe('zkCertificate followers count proof', () => {
       publicSignals[await twitterFollowersCountThresholdContract.INDEX_ROOT()];
     const publicTime = parseInt(
       publicSignals[
-        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
+      await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
       ],
       10,
     );
@@ -155,7 +155,7 @@ describe('zkCertificate followers count proof', () => {
       publicSignals[await twitterFollowersCountThresholdContract.INDEX_ROOT()];
     const publicTime = parseInt(
       publicSignals[
-        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
+      await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
       ],
       10,
     );
@@ -192,7 +192,7 @@ describe('zkCertificate followers count proof', () => {
       publicSignals[await twitterFollowersCountThresholdContract.INDEX_ROOT()];
     const publicTime = parseInt(
       publicSignals[
-        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
+      await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
       ],
       10,
     );
@@ -261,7 +261,7 @@ describe('zkCertificate followers count proof', () => {
     );
     expect(
       publicSignals[
-        await twitterFollowersCountThresholdContract.INDEX_IS_VALID()
+      await twitterFollowersCountThresholdContract.INDEX_IS_VALID()
       ],
     ).to.be.equal('0');
     const publicRoot =
@@ -313,7 +313,7 @@ describe('zkCertificate followers count proof', () => {
       publicSignals[await twitterFollowersCountThresholdContract.INDEX_ROOT()];
     const publicTime = parseInt(
       publicSignals[
-        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
+      await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
       ],
       10,
     );
@@ -349,7 +349,7 @@ describe('zkCertificate followers count proof', () => {
       publicSignals[await twitterFollowersCountThresholdContract.INDEX_ROOT()];
     const publicTime = parseInt(
       publicSignals[
-        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
+      await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME()
       ],
       10,
     );
@@ -386,7 +386,7 @@ describe('zkCertificate followers count proof', () => {
     );
     expect(
       publicSignals[
-        await twitterFollowersCountThresholdContract.INDEX_IS_VALID()
+      await twitterFollowersCountThresholdContract.INDEX_IS_VALID()
       ],
     ).to.be.equal('0');
     const publicRoot =

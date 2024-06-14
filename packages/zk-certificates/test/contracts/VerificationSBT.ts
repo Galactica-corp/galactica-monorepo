@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai, { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { buildEddsa } from 'circomlibjs';
@@ -92,10 +92,10 @@ describe('Verification SBT Smart contract', () => {
       deployer,
     );
     ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
-      deployer.address,
-      exampleMockDAppVerifier.address,
-      mockZkCertificateRegistry.address,
-      mockGalacticaInstitutions.map((inst) => inst.address),
+      await deployer.getAddress(),
+      await exampleMockDAppVerifier.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
+      mockGalacticaInstitutions.map(async (inst) => await inst.getAddress()),
     )) as AgeProofZkKYC;
 
     const verificationSBTFactory = await ethers.getContractFactory(
@@ -111,8 +111,8 @@ describe('Verification SBT Smart contract', () => {
       deployer,
     );
     mockDApp = (await mockDAppFactory.deploy(
-      verificationSBT.address,
-      ageProofZkKYC.address,
+      await verificationSBT.getAddress(),
+      await ageProofZkKYC.getAddress(),
     )) as MockDApp;
 
     const mockTokenFactory = await ethers.getContractFactory(
@@ -120,18 +120,18 @@ describe('Verification SBT Smart contract', () => {
       deployer,
     );
 
-    token1 = await mockTokenFactory.deploy(mockDApp.address);
-    token2 = await mockTokenFactory.deploy(mockDApp.address);
+    token1 = await mockTokenFactory.deploy(await mockDApp.getAddress());
+    token2 = await mockTokenFactory.deploy(await mockDApp.getAddress());
 
-    await mockDApp.setToken1(token1.address);
-    await mockDApp.setToken2(token2.address);
+    await mockDApp.setToken1(await token1.getAddress());
+    await mockDApp.setToken2(await token2.getAddress());
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
     sampleInput = await generateZkKYCProofInput(
       zkKYC,
       amountInstitutions,
-      mockDApp.address,
+      await mockDApp.getAddress(),
     );
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
@@ -195,7 +195,7 @@ describe('Verification SBT Smart contract', () => {
     const humanID = publicInputs[await ageProofZkKYC.INDEX_HUMAN_ID()];
 
     const currentTokenId = await verificationSBT.tokenCounter();
-    const previousUserBalance = await verificationSBT.balanceOf(user.address);
+    const previousUserBalance = await verificationSBT.balanceOf(await user.getAddress());
 
     // test that the transfer event is emitted
     await expect(
@@ -204,7 +204,7 @@ describe('Verification SBT Smart contract', () => {
       .to.emit(verificationSBT, 'Transfer')
       .withArgs(
         '0x0000000000000000000000000000000000000000',
-        user.address,
+        await user.getAddress(),
         currentTokenId,
       );
 
@@ -212,21 +212,21 @@ describe('Verification SBT Smart contract', () => {
     expect(await verificationSBT.tokenCounter()).to.be.equal(
       currentTokenId.add(1),
     );
-    expect(await verificationSBT.balanceOf(user.address)).to.be.equal(
+    expect(await verificationSBT.balanceOf(await user.getAddress())).to.be.equal(
       previousUserBalance.add(1),
     );
     expect(await verificationSBT.tokenIdToOwner(currentTokenId)).to.be.equal(
-      user.address,
+      await user.getAddress(),
     );
     expect(await verificationSBT.tokenIdToDApp(currentTokenId)).to.be.equal(
-      mockDApp.address,
+      await mockDApp.getAddress(),
     );
 
     // check that the verification SBT is created
     expect(
       await verificationSBT.isVerificationSBTValid(
-        user.address,
-        mockDApp.address,
+        await user.getAddress(),
+        await mockDApp.getAddress(),
       ),
     ).to.be.equal(true);
     // data is stored for the correct humanID
@@ -236,12 +236,12 @@ describe('Verification SBT Smart contract', () => {
 
     // check the content of the verification SBT
     const verificationSBTInfo = await verificationSBT.getVerificationSBTInfo(
-      user.address,
-      mockDApp.address,
+      await user.getAddress(),
+      await mockDApp.getAddress(),
     );
-    expect(verificationSBTInfo.dApp).to.be.equal(mockDApp.address);
+    expect(verificationSBTInfo.dApp).to.be.equal(await mockDApp.getAddress());
     expect(verificationSBTInfo.verifierWrapper).to.be.equal(
-      ageProofZkKYC.address,
+      await ageProofZkKYC.getAddress(),
     );
 
     // check that the verificationSBT can be used to receive the second token without proof
@@ -295,12 +295,12 @@ describe('Verification SBT Smart contract', () => {
 
     // check that the verification SBT can be found by the frontend
     const loggedSBTs = await queryVerificationSBTs(
-      verificationSBT.address,
-      user.address,
+      await verificationSBT.getAddress(),
+      await user.getAddress(),
     );
-    expect(loggedSBTs.has(mockDApp.address)).to.be.true;
+    expect(loggedSBTs.has(await mockDApp.getAddress())).to.be.true;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(loggedSBTs.get(mockDApp.address)!.length).to.be.equal(1);
+    expect(loggedSBTs.get(await mockDApp.getAddress())!.length).to.be.equal(1);
   });
 
   it('should revert on incorrect proof', async () => {

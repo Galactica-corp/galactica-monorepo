@@ -15,7 +15,7 @@ async function main() {
     `Deploying contracts with account ${deployer.address} on network ${network.name}`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(`Account balance: ${(await deployer.provider.getBalance(deployer.address)).toString()}`);
 
   // get poseidon from library
   await overwriteArtifact(hre, 'PoseidonT3', poseidonContract.createCode(2));
@@ -28,7 +28,7 @@ async function main() {
   await deploySC(
     'ZkCertificateRegistry',
     true,
-    { libraries: { PoseidonT3: poseidonT3.address } },
+    { libraries: { PoseidonT3: await poseidonT3.getAddress() } },
     [guardianRegistryAddress, description],
   );
 }

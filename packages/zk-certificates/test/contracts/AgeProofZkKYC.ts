@@ -1,6 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
@@ -62,9 +62,9 @@ describe('ageProofZkKYC SC', () => {
       deployer,
     );
     ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
-      deployer.address,
-      ageProofZkKYCVerifier.address,
-      mockZkCertificateRegistry.address,
+      await deployer.getAddress(),
+      await ageProofZkKYCVerifier.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
       [],
     )) as AgeProofZkKYC;
     await ageProofZkKYCVerifier.deployed();
@@ -74,7 +74,7 @@ describe('ageProofZkKYC SC', () => {
     sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
-      ageProofZkKYC.address,
+      await ageProofZkKYC.getAddress(),
     );
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
@@ -95,18 +95,18 @@ describe('ageProofZkKYC SC', () => {
   it('only owner can change KYCRegistry and Verifier addresses', async () => {
     // random user cannot change the addresses
     await expect(
-      ageProofZkKYC.connect(user).setVerifier(user.address),
+      ageProofZkKYC.connect(user).setVerifier(await user.getAddress()),
     ).to.be.revertedWith('Ownable: caller is not the owner');
     await expect(
-      ageProofZkKYC.connect(user).setKYCRegistry(user.address),
+      ageProofZkKYC.connect(user).setKYCRegistry(await user.getAddress()),
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
     // owner can change addresses
-    await ageProofZkKYC.connect(deployer).setVerifier(user.address);
-    await ageProofZkKYC.connect(deployer).setKYCRegistry(user.address);
+    await ageProofZkKYC.connect(deployer).setVerifier(await user.getAddress());
+    await ageProofZkKYC.connect(deployer).setKYCRegistry(await user.getAddress());
 
-    expect(await ageProofZkKYC.verifier()).to.be.equal(user.address);
-    expect(await ageProofZkKYC.KYCRegistry()).to.be.equal(user.address);
+    expect(await ageProofZkKYC.verifier()).to.be.equal(await user.getAddress());
+    expect(await ageProofZkKYC.KYCRegistry()).to.be.equal(await user.getAddress());
   });
 
   it('correct proof can be verified onchain', async () => {
