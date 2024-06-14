@@ -45,13 +45,15 @@ export async function getMerkleProof(
 
   // Because the registry is revocable, the merkle tree has probably changed since last time the zkCert was issued/used.
   // Therefore, we need to fetch the merkle proof from the node or regenerate the tree to calculate it.
-  let merkleProofFetchURL = merkleServiceURL ?? getDefaultMerkleServiceURL();
-  merkleProofFetchURL += `${zkCert.registration.chainID.toString()}/${
-    MERKLE_PROOF_SERVICE_PATH + zkCert.registration.address
-  }/${zkCert.leafHash}`;
+  // let merkleProofFetchURL = merkleServiceURL ?? getDefaultMerkleServiceURL();
+  // merkleProofFetchURL += `${zkCert.registration.chainID.toString()}/${
+  //   MERKLE_PROOF_SERVICE_PATH + zkCert.registration.address
+  // }/${zkCert.leafHash}`;
 
   try {
-    const response = await fetchWithTimeout(merkleProofFetchURL);
+    const response = await fetchWithTimeout(
+      `https://merkle-proof-service.galactica.com/v1/galactica/merkle/proof/${zkCert.registration.address}/${zkCert.leafHash}`,
+    );
 
     if (!response.ok) {
       throw new GenericError({
