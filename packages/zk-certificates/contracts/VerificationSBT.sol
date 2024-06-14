@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.9;
 
-import "./interfaces/IVerificationSBT.sol";
-import "./interfaces/IVerifierWrapper.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import './interfaces/IVerificationSBT.sol';
+import './interfaces/IVerifierWrapper.sol';
+import '@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol';
 
 /// @author Galactica dev team
 /// @title A global smart contract that store verification SBTs, minted by dApp for users submitting zk proofs
-contract VerificationSBT is IVerificationSBT, IERC721 {
+contract VerificationSBT is IVerificationSBT, IERC721Metadata {
     // mapping to store verification SBT
     mapping(bytes32 => VerificationSBTInfo) public VerificationSBTMapping;
     // number of SBTs minted for each user address
@@ -102,8 +102,14 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
         return VerificationSBTMapping[keccak256(abi.encode(user, dApp))];
     }
 
-    function getVerificationSBTInfoById(uint256 tokenId) public view returns (VerificationSBTInfo memory) {
-        return getVerificationSBTInfo(tokenIdToOwner[tokenId], tokenIdToDApp[tokenId]);
+    function getVerificationSBTInfoById(
+        uint256 tokenId
+    ) public view returns (VerificationSBTInfo memory) {
+        return
+            getVerificationSBTInfo(
+                tokenIdToOwner[tokenId],
+                tokenIdToDApp[tokenId]
+            );
     }
 
     function getHumanID(
@@ -115,7 +121,7 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
     }
 
     function balanceOf(address user) external view returns (uint256 balance) {
-      balance = balances[user];
+        balance = balances[user];
     }
 
     function ownerOf(uint256 tokenId) public view returns (address) {
@@ -123,8 +129,7 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
     }
 
     function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
-        return
-            interfaceId == type(IERC721).interfaceId;
+        return interfaceId == type(IERC721).interfaceId;
     }
 
     function _exists(uint256 tokenId) internal view returns (bool) {
@@ -132,12 +137,10 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
     }
 
     function _requireMinted(uint256 tokenId) internal view {
-        require(_exists(tokenId), "ERC721: invalid token ID");
+        require(_exists(tokenId), 'ERC721: invalid token ID');
     }
 
-    function tokenURI(
-        uint256 tokenId
-    ) public view returns (string memory) {
+    function tokenURI(uint256 tokenId) public view returns (string memory) {
         _requireMinted(tokenId);
         return baseURI;
     }
@@ -162,7 +165,12 @@ contract VerificationSBT is IVerificationSBT, IERC721 {
         revert NotAllowedForSBT();
     }
 
-    function safeTransferFrom(address, address, uint256, bytes calldata) external {
+    function safeTransferFrom(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external {
         revert NotAllowedForSBT();
     }
 
