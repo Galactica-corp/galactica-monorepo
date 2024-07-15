@@ -43,6 +43,7 @@
     "circom2": "^0.2.13",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.7",
+    "csvtojson": "^2.0.10",
     "ethers": "^5.7.2",
     "ffjavascript": "^0.3.0",
     "keccak256": "^1.0.6",

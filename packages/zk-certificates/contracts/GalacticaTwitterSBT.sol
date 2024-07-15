@@ -10,11 +10,14 @@ import "@openzeppelin/contracts/utils/Strings.sol";
  * @dev ERC721 contains logic for NFT storage and metadata.
  */
 contract GalacticaTwitterSBT is ERC721, AccessControl {
-    // roles for access control
+    // Roles for access control
     bytes32 public constant ISSUER_ROLE = keccak256("ISSUER_ROLE");
-
-    // base URI for NFTs
     string private baseURI;
+
+    //mapping from token id to token customized metadat
+    mapping(uint256 => string) public tokenURIs;
+    mapping(uint256 => string) public tokenNames;
+    mapping(uint256 => string) public tokenSymbol;
 
     constructor(
         address issuer,
@@ -42,6 +45,25 @@ contract GalacticaTwitterSBT is ERC721, AccessControl {
         // using _mint instead of _safeMint to prevent the contract from reverting
         //  if a smart contract is staking and has not implemented the onERC721Received function
         _mint(user, newNFTId);
+    }
+
+    /**
+     * @dev Mint a NFT for a user with customized metadata
+     * @param user Address that should receive the NFT
+     * @param uri URI for the NFT
+     * @param name Name for the NFT
+     * @param symbol Symbol for the NFT
+     */
+    function mint(address user, string memory uri, string memory name, string memory symbol) public onlyRole(ISSUER_ROLE) {
+        // the id of each NFT will be uniquely defined by the user holding it
+        // 1 to 1 relation
+        uint256 newNFTId = getIDForAddress(user);
+        // using _mint instead of _safeMint to prevent the contract from reverting
+        //  if a smart contract is staking and has not implemented the onERC721Received function
+        _mint(user, newNFTId);
+        tokenURIs[newNFTId] = uri;
+        tokenNames[newNFTId] = name;
+        tokenSymbol[newNFTId] = symbol;
     }
 
     /**
@@ -115,9 +137,11 @@ contract GalacticaTwitterSBT is ERC721, AccessControl {
         uint256 tokenId
     ) public view virtual override returns (string memory) {
         _requireMinted(tokenId);
-        // concatinate base URI with holder address
-        // address will be lower case and not have checksum encoding
-        return baseURI;
+        if tokenURIs[tokenId] {
+            return tokenURIs[tokenId];
+        } else {
+            return baseURI;
+        }
     }
 
     /**
@@ -126,6 +150,24 @@ contract GalacticaTwitterSBT is ERC721, AccessControl {
      */
     function _baseURI() internal view override returns (string memory) {
         return baseURI;
+    }
+
+    function name(uint256 tokenId) public view override returns(string memory) {
+      _requireMinted(tokenId);
+      if (tokenNames[tokenId]) {
+        return tokenNames[tokenId];
+      } else {
+        return name();
+      }
+    }
+
+    function symbol(uint256 tokenId) public view override returns(string memory) {
+      _requireMinted(tokenId);
+      if (tokenSymbol[tokenId]) {
+        return tokenSymbol[tokenId];
+      } else {
+        return symbol();
+      }
     }
 
     /**

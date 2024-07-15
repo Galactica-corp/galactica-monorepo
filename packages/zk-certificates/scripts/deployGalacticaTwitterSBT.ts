@@ -15,11 +15,11 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const issuer = '0xD8fd391410FDEA9da4e899770860EaE2db09Deab';
+  const issuer = deployer.address;
   const uri =
-    'https://quicknode.quicknode-ipfs.com/ipfs/QmbBJ6huNN6CHKpFoNoPBWJsKq6CwPH7VvKpw6Re5GAsRB';
+    "This soul bound NFT is the proof that you participated in a Galactica Network's quest.";
   const owner = deployer.address;
-  const nftName = 'Genesis SBT';
+  const nftName = 'Galactica Quester';
   const nftSymbol = 'XNET';
 
   await deploySC('GalacticaTwitterSBT', true, {}, [

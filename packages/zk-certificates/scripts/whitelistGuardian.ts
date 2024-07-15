@@ -11,7 +11,10 @@ async function main() {
   const [deployer, guardian] = await ethers.getSigners();
   const centerRegistryAddr = '0x20682CE367cE2cA50bD255b03fEc2bd08Cc1c8Bd';
   const guardianName = 'Galactica Test Guardian';
-  const centerRegistry = await ethers.getContractAt('ZkCertificateRegistry', centerRegistryAddr);
+  const centerRegistry = await ethers.getContractAt(
+    'ZkCertificateRegistry',
+    centerRegistryAddr,
+  );
   const adminAddress = await centerRegistry.owner();
   console.log(`admin address is ${adminAddress}`);
 
