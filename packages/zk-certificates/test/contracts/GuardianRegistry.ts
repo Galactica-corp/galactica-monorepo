@@ -24,13 +24,12 @@ describe('GuardianRegistry', () => {
         20991550033662087418703288468635020238179240540666871457074661834730112436793n,
       ],
       metadata: 'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx',
-    }
+    };
 
     const GuardianRegistryFactory =
       await ethers.getContractFactory('GuardianRegistry');
-    const GuardianRegistry = await GuardianRegistryFactory.deploy(
-      description,
-    );
+    const GuardianRegistry =
+      await GuardianRegistryFactory.connect(deployer).deploy(description);
 
     return {
       GuardianRegistry,
@@ -39,28 +38,36 @@ describe('GuardianRegistry', () => {
     };
   }
 
-  it('Should be able to deploy', async function () {
+  it('should be able to deploy', async function () {
     const { GuardianRegistry, description } = await loadFixture(deploy);
 
     // Check that all the data is set and accessible
     expect(await GuardianRegistry.description()).to.equal(description);
   });
 
-  it('Should whitelist guardians', async function () {
+  it('should whitelist guardians', async function () {
     const { GuardianRegistry, testGuardian } = await loadFixture(deploy);
 
     // before adding a guardian, the guardian should not be in the list
     expect(await GuardianRegistry.isWhitelisted(guardian.address)).to.be.false;
 
-    await GuardianRegistry.grantGuardianRole(guardian.address, testGuardian.pubkey, testGuardian.metadata);
+    await GuardianRegistry.grantGuardianRole(
+      guardian.address,
+      testGuardian.pubkey,
+      testGuardian.metadata,
+    );
 
     expect(await GuardianRegistry.isWhitelisted(guardian.address)).to.be.true;
   });
 
-  it('Should fail when another address tries to add a guardian', async function () {
+  it('should fail when another address tries to add a guardian', async function () {
     const { GuardianRegistry, testGuardian } = await loadFixture(deploy);
     await expect(
-      GuardianRegistry.connect(guardian).grantGuardianRole(guardian.address, testGuardian.pubkey, testGuardian.metadata)
+      GuardianRegistry.connect(guardian).grantGuardianRole(
+        guardian.address,
+        testGuardian.pubkey,
+        testGuardian.metadata,
+      ),
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 });

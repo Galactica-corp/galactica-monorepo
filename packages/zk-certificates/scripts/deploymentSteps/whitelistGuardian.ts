@@ -31,8 +31,9 @@ export async function whitelistGuardian(
     .map((component: any) => eddsa.poseidon.F.toObject(component).toString());
 
   console.log(
-    `Whitelisting guardian ${guardian.address
-    } with pubkey ${JSON.stringify(guardianPubKey)} and metadata ${metadataURL}`,
+    `Whitelisting guardian ${guardian.address} with pubkey ${JSON.stringify(
+      guardianPubKey,
+    )} and metadata ${metadataURL}`,
   );
 
   // get contract
