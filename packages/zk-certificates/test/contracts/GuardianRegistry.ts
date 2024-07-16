@@ -7,9 +7,10 @@ import hre, { ethers } from 'hardhat';
 describe('GuardianRegistry', () => {
   let deployer: SignerWithAddress;
   let guardian: SignerWithAddress;
+  let additionalIssuer: SignerWithAddress;
 
   beforeEach(async () => {
-    [deployer, guardian] = await hre.ethers.getSigners();
+    [deployer, guardian, additionalIssuer] = await hre.ethers.getSigners();
   });
 
   /**
@@ -69,5 +70,129 @@ describe('GuardianRegistry', () => {
         testGuardian.metadata,
       ),
     ).to.be.revertedWith('Ownable: caller is not the owner');
+  });
+
+  it('should allow guardians to renounce their role', async function () {
+    const { GuardianRegistry, testGuardian } = await loadFixture(deploy);
+    await GuardianRegistry.grantGuardianRole(
+      guardian.address,
+      testGuardian.pubkey,
+      testGuardian.metadata,
+    );
+
+    expect(await GuardianRegistry.isWhitelisted(guardian.address)).to.be.true;
+    await GuardianRegistry.connect(guardian).renounceGuardianRole();
+    expect(await GuardianRegistry.isWhitelisted(guardian.address)).to.be.false;
+
+    await expect(
+      GuardianRegistry.connect(additionalIssuer).renounceGuardianRole(),
+    ).to.be.revertedWith(
+      'GuardianRegistry: Only guardians may renounce their role',
+    );
+  });
+
+  it('should manage issuer accounts of a guardian', async function () {
+    const { GuardianRegistry, testGuardian } = await loadFixture(deploy);
+
+    await GuardianRegistry.grantGuardianRole(
+      guardian.address,
+      testGuardian.pubkey,
+      testGuardian.metadata,
+    );
+
+    // before adding an issuer, the issuer should not be in the list
+    expect(await GuardianRegistry.isWhitelisted(additionalIssuer.address)).to.be
+      .false;
+
+    await GuardianRegistry.connect(guardian).addIssuerAccount(
+      additionalIssuer.address,
+    );
+
+    expect(await GuardianRegistry.isWhitelisted(additionalIssuer.address)).to.be
+      .true;
+
+    await GuardianRegistry.connect(guardian).removeIssuerAccount(
+      additionalIssuer.address,
+    );
+
+    expect(await GuardianRegistry.isWhitelisted(additionalIssuer.address)).to.be
+      .false;
+  });
+
+  it('should fail to manage other guardians issuers', async function () {
+    const { GuardianRegistry, testGuardian } = await loadFixture(deploy);
+
+    for (const account of [guardian, deployer]) {
+      await GuardianRegistry.grantGuardianRole(
+        account.address,
+        testGuardian.pubkey,
+        testGuardian.metadata,
+      );
+    }
+
+    await expect(
+      GuardianRegistry.connect(additionalIssuer).addIssuerAccount(
+        additionalIssuer.address,
+      ),
+    ).to.be.revertedWith(
+      'GuardianRegistry: Only guardian admins may add issuer accounts',
+    );
+
+    await GuardianRegistry.connect(guardian).addIssuerAccount(
+      additionalIssuer.address,
+    );
+
+    await expect(
+      GuardianRegistry.connect(deployer).removeIssuerAccount(
+        additionalIssuer.address,
+      ),
+    ).to.be.revertedWith(
+      'GuardianRegistry: Only guardian admin may remove this issuer accounts',
+    );
+  });
+
+  it('should not whitelist issuers whose guardian was revoked', async function () {
+    const { GuardianRegistry, testGuardian } = await loadFixture(deploy);
+
+    await GuardianRegistry.grantGuardianRole(
+      guardian.address,
+      testGuardian.pubkey,
+      testGuardian.metadata,
+    );
+
+    await GuardianRegistry.connect(guardian).addIssuerAccount(
+      additionalIssuer.address,
+    );
+
+    await GuardianRegistry.connect(deployer).revokeGuardianRole(
+      guardian.address,
+    );
+
+    expect(await GuardianRegistry.isWhitelisted(additionalIssuer.address)).to.be
+      .false;
+  });
+
+  it('should fail to hijack other issuers', async function () {
+    const { GuardianRegistry, testGuardian } = await loadFixture(deploy);
+
+    for (const account of [guardian, deployer]) {
+      await GuardianRegistry.grantGuardianRole(
+        account.address,
+        testGuardian.pubkey,
+        testGuardian.metadata,
+      );
+    }
+
+    await GuardianRegistry.connect(guardian).addIssuerAccount(
+      additionalIssuer.address,
+    );
+
+    await expect(
+      GuardianRegistry.connect(deployer).addIssuerAccount(
+        additionalIssuer.address,
+      ),
+    ).to.be.revertedWith(
+      'GuardianRegistry: Issuer may not belong to multiple guardians',
+    );
   });
 });
