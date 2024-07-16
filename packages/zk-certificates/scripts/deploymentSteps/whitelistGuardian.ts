@@ -10,13 +10,13 @@ import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
  * @param authorizer - The signer to submit the whitelist tx.
  * @param guardianRegistryAddr - The address of the guardian registry.
  * @param guardian - The signer of the guardian to whitelist (needed to generate EdDSA keys).
- * @param guardianName - The name of the guardian.
+ * @param metadataURL - The URL of the guardian metadata, see https://github.com/Galactica-corp/Documentation/blob/master/kyc-guardian-guide/create-and-issue-zkkyc.md for schema.
  */
 export async function whitelistGuardian(
   authorizer: SignerWithAddress,
   guardianRegistryAddr: string,
   guardian: SignerWithAddress,
-  guardianName: string,
+  metadataURL: string,
 ) {
   console.log(`Using account ${authorizer.address} for controlling whitelist`);
   console.log(`Account balance: ${(await authorizer.getBalance()).toString()}`);
@@ -31,9 +31,8 @@ export async function whitelistGuardian(
     .map((component: any) => eddsa.poseidon.F.toObject(component).toString());
 
   console.log(
-    `Whitelisting guardian ${
-      guardian.address
-    } with name ${guardianName} and pubkey ${JSON.stringify(guardianPubKey)}`,
+    `Whitelisting guardian ${guardian.address
+    } with pubkey ${JSON.stringify(guardianPubKey)} and metadata ${metadataURL}`,
   );
 
   // get contract
@@ -46,7 +45,7 @@ export async function whitelistGuardian(
   const tx = await guardianRegistry.grantGuardianRole(
     guardian.address,
     guardianPubKey,
-    guardianName,
+    metadataURL,
   );
   await tx.wait();
 

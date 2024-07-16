@@ -1,0 +1,9 @@
+{
+  "name": "Galactica Example Guardian",
+  "certificate_name": "zkKYC",
+  "icon": "https://raw.githubusercontent.com/Galactica-corp/galactica-monorepo/main/packages/snap/images/logo_galactica.svg",
+  "cert_background": "https://galactica.com/assets/images/home/bg-bottom-sm.webp",
+  "description": "Example Metadata of the Galactica guardian for Zero-Knowledge KYC",
+  "certificate_type": "gip1",
+  "url": "https://galactica.com/"
+}

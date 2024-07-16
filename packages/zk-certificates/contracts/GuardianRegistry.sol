@@ -2,26 +2,23 @@
 
 pragma solidity ^0.8.0;
 
-import "./Ownable.sol";
+import './Ownable.sol';
 
 /**
-* @title GuardianInfo struct containing data about a guardian's registration
-*/
+ * @title GuardianInfo struct containing data about a guardian's registration
+ */
 struct GuardianInfo {
     // Whether or not the guardian is whitelisted and active
     bool whitelisted;
     // The EdDSA public key of the guardian
     uint256[2] pubKey;
-    // Name identifying the guardian, useful for frontends
-    string name;
+    // Link to guardian metadata json, see metadata schema in https://github.com/Galactica-corp/Documentation/blob/master/kyc-guardian-guide
+    string metadataURL;
 }
-
 
 /// @author Galactica dev team
 /// @title Smart contract storing whitelist of GNET guardians, for example KYC provider guardians
 contract GuardianRegistry is Ownable {
-
-
     // a short description to describe which type of zkCertificate is managed by Guardians in this Registry
 
     string public description;
@@ -40,14 +37,14 @@ contract GuardianRegistry is Ownable {
 
     event GuardianAddition(
         address indexed guardian,
-        string indexed name,
+        string indexed metadataURL,
         uint256 pubkey0,
         uint256 pubkey1
     );
 
     event GuardianRevocation(
         address indexed guardian,
-        string indexed name,
+        string indexed metadataURL,
         uint256 pubkey0,
         uint256 pubkey1
     );
@@ -61,28 +58,38 @@ contract GuardianRegistry is Ownable {
     function grantGuardianRole(
         address guardian,
         uint256[2] calldata pubKey,
-        string calldata name
+        string calldata metadataURL
     ) public onlyOwner {
         guardians[guardian].whitelisted = true;
         // dev: do we need to check that the pubkey here indeed relates to the guardian?
         guardians[guardian].pubKey = pubKey;
-        guardians[guardian].name = name;
+        guardians[guardian].metadataURL = metadataURL;
 
         pubKeyToAddress[pubKey[0]][pubKey[1]] = guardian;
-        emit GuardianAddition(guardian, name, pubKey[0], pubKey[1]);
+        emit GuardianAddition(guardian, metadataURL, pubKey[0], pubKey[1]);
     }
 
     function revokeGuardianRole(address guardian) public onlyOwner {
         guardians[guardian].whitelisted = false;
-        emit GuardianRevocation(guardian, guardians[guardian].name, guardians[guardian].pubKey[0], guardians[guardian].pubKey[1]);
+        emit GuardianRevocation(
+            guardian,
+            guardians[guardian].metadataURL,
+            guardians[guardian].pubKey[0],
+            guardians[guardian].pubKey[1]
+        );
     }
 
     function renounceGuardianRole() public onlyOwner {
         guardians[msg.sender].whitelisted = false;
-        emit GuardianRevocation(msg.sender, guardians[msg.sender].name, guardians[msg.sender].pubKey[0], guardians[msg.sender].pubKey[1]);
+        emit GuardianRevocation(
+            msg.sender,
+            guardians[msg.sender].metadataURL,
+            guardians[msg.sender].pubKey[0],
+            guardians[msg.sender].pubKey[1]
+        );
     }
 
     function isWhitelisted(address guardian) public view returns (bool) {
-      return guardians[guardian].whitelisted;
+        return guardians[guardian].whitelisted;
     }
 }

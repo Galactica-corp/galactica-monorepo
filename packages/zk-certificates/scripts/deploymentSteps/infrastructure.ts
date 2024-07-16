@@ -44,7 +44,7 @@ export async function deployInfrastructure(
   // deploying everything
   const poseidonT3 = await deploySC('PoseidonT3', false);
   const guardianRegistry = await deploySC('GuardianRegistry', true, {}, [
-    'ZkKYC GuardianRegistry',
+    'ipfs://QmZJaA2HDKC4UzrCgYjDWj3XDcJfPeCCheGD9EVReyx3qz',
   ]);
   const recordRegistry = await deploySC(
     'ZkCertificateRegistryTest',
