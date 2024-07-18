@@ -8,7 +8,7 @@ import { ethers } from 'hardhat';
 async function main() {
   // parameters for test interaction
   const [owner] = await ethers.getSigners();
-  const SBTAddress = '0xe2300D7e670521b3FCC7E71e04262cB25a329171';
+  const SBTAddress = '0xA10F4f2e6e881B876dF5cAfEF754F42d81606656';
 
   const dataPath = './data/mockSBT.csv';
   let data;
@@ -28,9 +28,17 @@ async function main() {
 
   for (const user of data) {
     const userAddress = user['wallet addresses'];
+    const name = user["SBT name"];
+    const symbol = user["SBT name"];
+    const uri = user["SBT description"]
 
     console.log(`Giving ${userAddress} an NFT`);
-    const tx = await SBTInstance.mint(userAddress);
+    const tx = await SBTInstance['mint(address,string,string,string)'](
+      userAddress,
+      name,
+      symbol,
+      uri,
+    );
 
     const receipt = await tx.wait();
     console.log(

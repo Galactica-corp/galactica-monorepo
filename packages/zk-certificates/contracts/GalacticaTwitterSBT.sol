@@ -137,7 +137,7 @@ contract GalacticaTwitterSBT is ERC721, AccessControl {
         uint256 tokenId
     ) public view virtual override returns (string memory) {
         _requireMinted(tokenId);
-        if tokenURIs[tokenId] {
+        if (bytes(tokenURIs[tokenId]).length > 0) {
             return tokenURIs[tokenId];
         } else {
             return baseURI;
@@ -152,18 +152,18 @@ contract GalacticaTwitterSBT is ERC721, AccessControl {
         return baseURI;
     }
 
-    function name(uint256 tokenId) public view override returns(string memory) {
+    function name(uint256 tokenId) public view returns(string memory) {
       _requireMinted(tokenId);
-      if (tokenNames[tokenId]) {
+      if (bytes(tokenNames[tokenId]).length > 0) {
         return tokenNames[tokenId];
       } else {
         return name();
       }
     }
 
-    function symbol(uint256 tokenId) public view override returns(string memory) {
+    function symbol(uint256 tokenId) public view returns(string memory) {
       _requireMinted(tokenId);
-      if (tokenSymbol[tokenId]) {
+      if (bytes(tokenSymbol[tokenId]).length > 0) {
         return tokenSymbol[tokenId];
       } else {
         return symbol();
