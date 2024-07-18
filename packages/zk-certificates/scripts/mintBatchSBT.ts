@@ -3,7 +3,7 @@ import csv from 'csvtojson';
 import { ethers } from 'hardhat';
 
 /**
- * Performs some test interactions with the NFT contract
+ * Performs some batch mint of SBTs
  */
 async function main() {
   // parameters for test interaction
@@ -28,9 +28,9 @@ async function main() {
 
   for (const user of data) {
     const userAddress = user['wallet addresses'];
-    const name = user["SBT name"];
-    const symbol = user["SBT name"];
-    const uri = user["SBT description"]
+    const name = user['SBT name'];
+    const symbol = user['SBT name'];
+    const uri = user['SBT description'];
 
     console.log(`Giving ${userAddress} an NFT`);
     const tx = await SBTInstance['mint(address,string,string,string)'](

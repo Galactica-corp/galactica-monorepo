@@ -23,7 +23,7 @@ async function main() {
 
   console.log(`guardian address is ${guardian.address}`);
 
-  // await whitelistGuardian(deployer, centerRegistryAddr, guardian, guardianName);
+  await whitelistGuardian(deployer, centerRegistryAddr, guardian, guardianName);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
