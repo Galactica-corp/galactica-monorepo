@@ -17,7 +17,10 @@ contract AirdropGateway is AccessControl {
     mapping(uint => mapping(address => bool)) public registeredUsers;
     // distributionIndex -> userAddress -> claimed status
     mapping(uint => mapping(address => bool)) public claimedUsers;
+
     event DistributionCreated(uint indexed distributionId, address client);
+    event UserRegistered(uint indexed distributionId, address user);
+    event UserClaimed(uint indexed distributionId, address user, uint amount);
 
     // struct to store airdrop distribution information
     struct AirdropDistribution {
@@ -73,27 +76,29 @@ contract AirdropGateway is AccessControl {
         IERC20(distributions[distributionId].tokenAddress).transfer(msg.sender, amountLeft);
     }
 
-    function register(uint distributionId) external {
+    function register(uint distributionId, ) external {
         require(distributions[distributionId].registrationStartTime < block.timestamp, "registration has not started yet");
         require(distributions[distributionId].registrationEndTime > block.timestamp, "registration has ended");
-        registeredUsers[distributionId][msg.sender] = true;
         address[] memory requiredSBTs = distributions[distributionId].requiredSBTs;
         for (uint i = 0; i < requiredSBTs.length; i++) {
             require(IERC721(requiredSBTs[i]).balanceOf(msg.sender) > 0, "user does not have required SBT");
         }
-
+        registeredUsers[distributionId][msg.sender] = true;
         distributions[distributionId].registeredUserCount++;
+        emit UserRegistered(distributionId, msg.sender);
     }
 
     function claim(uint distributionId) external {
         require(distributions[distributionId].claimStartTime < block.timestamp, "claim has not started yet");
         require(distributions[distributionId].claimEndTime > block.timestamp, "claim has ended");
         require(registeredUsers[distributionId][msg.sender], "user has not registered");
+        // calculate token amount per user if it hasn't been done yet
         if (distributions[distributionId].tokenAmountPerUser == 0) {
             distributions[distributionId].tokenAmountPerUser = distributions[distributionId].distributionAmount / distributions[distributionId].registeredUserCount;
         }
         IERC20(distributions[distributionId].tokenAddress).transfer(msg.sender, distributions[distributionId].tokenAmountPerUser);
         claimedUsers[distributionId][msg.sender] = true;
+        emit UserClaimed(distributionId, msg.sender, distributions[distributionId].tokenAmountPerUser);
     }
 
 
