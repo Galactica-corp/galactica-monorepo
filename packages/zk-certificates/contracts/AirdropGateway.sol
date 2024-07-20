@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "./interfaces/IZkKYCVerifier.sol";
 
 /**
  * @title AirdropGateway: manages airdrops for the Galactica
@@ -15,8 +16,11 @@ contract AirdropGateway is AccessControl {
     mapping(uint => AirdropDistribution) public distributions;
     // distributionIndex -> userAddress -> registration status
     mapping(uint => mapping(address => bool)) public registeredUsers;
+    // distribution Index -> humanId => registration status
+    mapping(uint => mapping(bytes32 => bool)) public registeredHumanID;
     // distributionIndex -> userAddress -> claimed status
     mapping(uint => mapping(address => bool)) public claimedUsers;
+    IZkKYCVerifier public verifierWrapper;
 
     event DistributionCreated(uint indexed distributionId, address client);
     event UserRegistered(uint indexed distributionId, address user);
@@ -37,7 +41,8 @@ contract AirdropGateway is AccessControl {
         uint256 amountClaimed;
     }
 
-    constructor(address owner) {
+    constructor(address owner, address verifierWrapperAddress) {
+        verifierWrapper = IZkKYCVerifier(verifierWrapperAddress);
         // set admin, the role that can assign and revoke other roles
         _setupRole(DEFAULT_ADMIN_ROLE, owner);
     }
@@ -75,8 +80,26 @@ contract AirdropGateway is AccessControl {
         uint256 amountLeft = distributions[distributionId].distributionAmount - distributions[distributionId].amountClaimed;
         IERC20(distributions[distributionId].tokenAddress).transfer(msg.sender, amountLeft);
     }
+    //
+    function register(
+        uint distributionId,
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input) external {
 
-    function register(uint distributionId, ) external {
+        bytes32 humanID = bytes32(input[verifierWrapper.INDEX_HUMAN_ID()]);
+        uint dAppAddress = input[verifierWrapper.INDEX_DAPP_ID()];
+
+        // check that the public dAppAddress is correct
+        require(
+            dAppAddress == uint(uint160(address(this))),
+            "incorrect dAppAddress"
+        );
+
+        // check the zk proof
+        require(verifierWrapper.verifyProof(a, b, c, input), "invalid proof");
+        require(registeredHumanID[distributionId][humanID] == false, "user has already registered");
         require(distributions[distributionId].registrationStartTime < block.timestamp, "registration has not started yet");
         require(distributions[distributionId].registrationEndTime > block.timestamp, "registration has ended");
         address[] memory requiredSBTs = distributions[distributionId].requiredSBTs;
@@ -84,6 +107,7 @@ contract AirdropGateway is AccessControl {
             require(IERC721(requiredSBTs[i]).balanceOf(msg.sender) > 0, "user does not have required SBT");
         }
         registeredUsers[distributionId][msg.sender] = true;
+        registeredHumanID[distributionId][humanID] = true;
         distributions[distributionId].registeredUserCount++;
         emit UserRegistered(distributionId, msg.sender);
     }
