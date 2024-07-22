@@ -13,6 +13,7 @@ import {
   ZkCertStandard,
   updateMerkleProof,
   updateMerkleProofURL,
+  benchmarkZKPGen,
 } from '@galactica-net/snap-api';
 
 import { ethers } from 'ethers';
@@ -26,7 +27,6 @@ import {
   getGuardianNameMap,
   handleSnapConnectClick,
   handleWalletConnectClick,
-  changeSnapSelection,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -58,6 +58,7 @@ import {
   getProver,
   prepareProofInput,
 } from '../../../galactica-dapp/src/utils/zkp';
+import benchmarkInput from '../benchmark/exampleMockDApp.json';
 
 
 const Container = styled.div`
@@ -415,6 +416,32 @@ const Index = () => {
     }
   };
 
+  const benchmarkClick = async () => {
+    try {
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Benchmark running...` });
+
+      const startTime = new Date();
+      const prover = await getProver("provers/exampleMockDApp.json");
+
+      const res: any = await benchmarkZKPGen({
+        input: benchmarkInput,
+        prover: prover,
+      }, defaultSnapOrigin);
+
+      const endTime = new Date();
+      const duration = endTime.getTime() - startTime.getTime();
+      console.log('Response from snap', JSON.stringify(res));
+
+      console.log(`Total ZKP generation time: ${duration}ms`);
+      console.log(`Prover size: ${JSON.stringify(prover).length / 1024 / 1024} MB`);
+
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
   const showVerificationSBTs = async () => {
     try {
       //@ts-ignore https://github.com/metamask/providers/issues/200
@@ -695,6 +722,22 @@ const Index = () => {
                 onClick={updateMerkleProofURLClick}
                 disabled={false}
                 text="Change URL"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'ZKP Generation Benchmark',
+            description:
+              'Benchmark the duration of generating a ZK proof inside the snap.',
+            button: (
+              <GeneralButton
+                onClick={benchmarkClick}
+                disabled={false}
+                text="Run"
               />
             ),
           }}
