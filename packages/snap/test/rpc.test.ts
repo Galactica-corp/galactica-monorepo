@@ -25,6 +25,7 @@ import sinonChai from 'sinon-chai';
 import { groth16 } from 'snarkjs';
 
 import {
+  benchmarkZKPGenParams,
   defaultRPCRequest,
   merkleProofServiceURL,
   testEdDSAKey,
@@ -112,14 +113,12 @@ describe('Test rpc handler function', function () {
 
     // setting up merkle proof service for testing
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
-        zkCert.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
       }/${zkCert.leafHash}`,
       merkleProofToServiceResponse(zkCert.merkleProof),
     );
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
-        zkCert2.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert2.registration.address
       }/${zkCert2.leafHash}`,
       merkleProofToServiceResponse(zkCert2.merkleProof),
     );
@@ -589,8 +588,7 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       fetchMock.restore();
       fetchMock.get(
-        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
-          zkCert.registration.address
+        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
         }/${zkCert.leafHash}`,
         404,
       );
@@ -1120,6 +1118,52 @@ describe('Test rpc handler function', function () {
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
+    });
+  });
+
+  describe.only('Benchmark ZKP Generation', function () {
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(25000);
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.BenchmarkZKPGen, benchmarkZKPGenParams),
+        snapProvider,
+        ethereumProvider,
+      );
+      await expect(callPromise).to.be.rejectedWith(
+        RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    it('should generate Benchmark', async function (this: Mocha.Context) {
+      this.timeout(25000);
+
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.BenchmarkZKPGen, benchmarkZKPGenParams),
+        snapProvider,
+        ethereumProvider,
+      )) as ZkCertProof;
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      // Merkle proof should be up to date and therefore not be fetched
+      expect(fetchMock.calls()).to.be.empty;
+
+      await verifyProof(result);
     });
   });
 

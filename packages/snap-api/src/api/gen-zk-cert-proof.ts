@@ -38,7 +38,7 @@ export type GenZkProofParams<ProofInputType> = {
 
 type GenZKPErrorName = 'MissingInputParams';
 
-export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> {}
+export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> { }
 
 /**
  * GenerateZKProof prepares and executes the call to generate a ZKP in the Galactica snap.

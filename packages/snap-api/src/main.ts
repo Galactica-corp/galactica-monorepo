@@ -1,3 +1,4 @@
+export * from './api/benchmark-zkp-gen';
 export * from './api/clear-storage';
 export * from './api/delete-zk-cert';
 export * from './api/export-zk-cert';
