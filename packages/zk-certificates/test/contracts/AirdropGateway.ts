@@ -21,6 +21,7 @@ import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
 import type { AirdropGateway } from '../../typechain-types/contracts/AirdropGateway';
+import type { GalacticaTwitterSBT } from '../../typechain-types/contracts/GalacticaTwitterSBT';
 
 chai.config.includeStack = true;
 
@@ -34,6 +35,8 @@ describe.only('AirdropGateway', () => {
   let zkKYCVerifier: ZkKYCVerifier;
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let mockGalacticaInstitutions: MockGalacticaInstitution[];
+  let GalaSBT: GalacticaTwitterSBT;
+  let GalaSBT2: GalacticaTwitterSBT;
   const amountInstitutions = 3;
 
   let deployer: SignerWithAddress;
@@ -102,6 +105,11 @@ describe.only('AirdropGateway', () => {
     airdropGateway = (await airdropGatewayFactory.deploy(deployer.address, zkKYCVerifier.address)) as AirdropGateway;
     clientRole = await airdropGateway.CLIENT_ROLE();
     defaultAdminRole = await airdropGateway.DEFAULT_ADMIN_ROLE();
+
+    // set up requirement SBT contracts
+    const galacticaTwitterSBTFactory = await ethers.getContractFactory('GalacticaTwitterSBT', deployer);
+    GalaSBT = (await galacticaTwitterSBTFactory.deploy(deployer.address, "", deployer.address, "", "")) as GalacticaTwitterSBT;
+    GalaSBT2 = (await galacticaTwitterSBTFactory.deploy(deployer.address, "", deployer.address, "", "")) as GalacticaTwitterSBT;
   });
 
   it('only owner can whitelist or dewhitelist clients', async () => {
