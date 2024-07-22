@@ -1121,7 +1121,7 @@ describe('Test rpc handler function', function () {
     });
   });
 
-  describe.only('Benchmark ZKP Generation', function () {
+  describe('Benchmark ZKP Generation', function () {
     it('should throw error if not confirmed', async function (this: Mocha.Context) {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(false);

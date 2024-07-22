@@ -2,6 +2,7 @@
 import type { MerkleProof } from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
+  ProverData,
   ZkCertInputType,
   ZkCertProof,
 } from '@galactica-net/snap-api';
@@ -31,15 +32,13 @@ export const generateZkCertProof = async (
   holder: HolderData,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> => {
-  const processedParams = await preprocessInput(params);
-
   const authorizationProof = zkCert.getAuthorizationProofInput(
     holder.eddsaKey,
     params.userAddress,
   );
 
   const inputs: any = {
-    ...processedParams.input,
+    ...params.input,
 
     ...zkCert.content,
     randomSalt: zkCert.randomSalt,
@@ -79,12 +78,27 @@ export const generateZkCertProof = async (
     inputs.userPrivKey = encryptionPrivKey;
   }
 
+  return generateProof(inputs, params.prover);
+};
+
+/**
+ * GenerateProof runs the low level groth16 proof generation.
+ * @param inputs - Input data containing signals for the proof generation.
+ * @param prover - Prover data containing the wasm and zkey header and sections.
+ * @returns Generated ZkCert proof.
+ */
+export const generateProof = async (
+  inputs: Record<string, any>,
+  prover: ProverData,
+): Promise<ZkCertProof> => {
+  const processedProver = await preprocessProver(prover);
+
   try {
     const { proof, publicSignals } = await groth16.fullProveMemory(
       inputs,
-      processedParams.prover.wasm,
-      processedParams.prover.zkeyHeader,
-      processedParams.prover.zkeySections,
+      processedProver.wasm,
+      processedProver.zkeyHeader,
+      processedProver.zkeySections,
     );
 
     // console.log('Calculated proof: ');
@@ -155,51 +169,51 @@ export function createProofConfirmationPrompt(
 }
 
 /**
- * Prepare data from RPC request for snarkjs by converting it to the correct data types.
+ * Prepare prover data from RPC request for snarkjs by converting it to the correct data types.
  * In the JSON message, arrays are base64 encoded.
- * @param params - GenZkKycRequestParams.
- * @returns Prepared GenZkKycRequestParams.
+ * @param params - Prover data containing wasm and zkey header and sections.
+ * @returns Prepared ProverData.
  */
-async function preprocessInput(
-  params: GenZkProofParams<ZkCertInputType>,
-): Promise<GenZkProofParams<ZkCertInputType>> {
+async function preprocessProver(
+  prover: ProverData,
+): Promise<ProverData> {
   // Somehow we need to convert them to Uint8Array to avoid an error inside snarkjs.
-  params.prover.wasm = Uint8Array.from(
-    Buffer.from(params.prover.wasm, 'base64'),
+  prover.wasm = Uint8Array.from(
+    Buffer.from(prover.wasm, 'base64'),
   );
 
-  params.prover.zkeyHeader.q = BigInt(params.prover.zkeyHeader.q);
-  params.prover.zkeyHeader.r = BigInt(params.prover.zkeyHeader.r);
-  for (let i = 0; i < params.prover.zkeySections.length; i++) {
-    params.prover.zkeySections[i] = Uint8Array.from(
-      Buffer.from(params.prover.zkeySections[i], 'base64'),
+  prover.zkeyHeader.q = BigInt(prover.zkeyHeader.q);
+  prover.zkeyHeader.r = BigInt(prover.zkeyHeader.r);
+  for (let i = 0; i < prover.zkeySections.length; i++) {
+    prover.zkeySections[i] = Uint8Array.from(
+      Buffer.from(prover.zkeySections[i], 'base64'),
     );
   }
-  params.prover.zkeyHeader.vk_alpha_1 = Uint8Array.from(
-    Buffer.from(params.prover.zkeyHeader.vk_alpha_1, 'base64'),
+  prover.zkeyHeader.vk_alpha_1 = Uint8Array.from(
+    Buffer.from(prover.zkeyHeader.vk_alpha_1, 'base64'),
   );
-  params.prover.zkeyHeader.vk_beta_1 = Uint8Array.from(
-    Buffer.from(params.prover.zkeyHeader.vk_beta_1, 'base64'),
+  prover.zkeyHeader.vk_beta_1 = Uint8Array.from(
+    Buffer.from(prover.zkeyHeader.vk_beta_1, 'base64'),
   );
-  params.prover.zkeyHeader.vk_beta_2 = Uint8Array.from(
-    Buffer.from(params.prover.zkeyHeader.vk_beta_2, 'base64'),
+  prover.zkeyHeader.vk_beta_2 = Uint8Array.from(
+    Buffer.from(prover.zkeyHeader.vk_beta_2, 'base64'),
   );
-  params.prover.zkeyHeader.vk_gamma_2 = Uint8Array.from(
-    Buffer.from(params.prover.zkeyHeader.vk_gamma_2, 'base64'),
+  prover.zkeyHeader.vk_gamma_2 = Uint8Array.from(
+    Buffer.from(prover.zkeyHeader.vk_gamma_2, 'base64'),
   );
-  params.prover.zkeyHeader.vk_delta_1 = Uint8Array.from(
-    Buffer.from(params.prover.zkeyHeader.vk_delta_1, 'base64'),
+  prover.zkeyHeader.vk_delta_1 = Uint8Array.from(
+    Buffer.from(prover.zkeyHeader.vk_delta_1, 'base64'),
   );
-  params.prover.zkeyHeader.vk_delta_2 = Uint8Array.from(
-    Buffer.from(params.prover.zkeyHeader.vk_delta_2, 'base64'),
+  prover.zkeyHeader.vk_delta_2 = Uint8Array.from(
+    Buffer.from(prover.zkeyHeader.vk_delta_2, 'base64'),
   );
 
   /* eslint-disable-next-line require-atomic-updates */
-  params.prover.zkeyHeader.curve = await getCurveForSnarkJS(
-    params.prover.zkeyHeader.curveName,
+  prover.zkeyHeader.curve = await getCurveForSnarkJS(
+    prover.zkeyHeader.curveName,
   );
 
-  return params;
+  return prover;
 }
 
 /**
