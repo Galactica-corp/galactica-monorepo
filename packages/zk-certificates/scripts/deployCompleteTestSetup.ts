@@ -49,7 +49,7 @@ async function main() {
     deployer,
     infrastructure.guardianRegistry.address,
     deployer,
-    'Galactica Test Guardian',
+    'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx',
   );
 
   const deploymentSummary = `Deployment summary:
