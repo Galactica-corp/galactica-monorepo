@@ -553,10 +553,21 @@ export const processRpcRequest: SnapRpcProcessor = async (
         throw new Error(RpcResponseErr.RejectedConfirm);
       }
 
+      const startTime = Date.now();
       const proof = await generateProof(
         genParams.input,
         genParams.prover,
       );
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      await snap.request({
+        method: 'snap_notify',
+        params: {
+          type: 'native',
+          message: `ZKP generation benchmark took ${duration}ms`,
+        },
+      });
 
       return proof;
     }

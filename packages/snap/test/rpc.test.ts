@@ -1160,6 +1160,7 @@ describe('Test rpc handler function', function () {
       )) as ZkCertProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
       // Merkle proof should be up to date and therefore not be fetched
       expect(fetchMock.calls()).to.be.empty;
 
