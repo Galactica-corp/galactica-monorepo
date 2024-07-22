@@ -3,7 +3,7 @@ import csv from 'csvtojson';
 import { ethers } from 'hardhat';
 
 /**
- * Performs some batch mint of SBTs
+ * Performs some batch mint of SBTs.
  */
 async function main() {
   // parameters for test interaction
