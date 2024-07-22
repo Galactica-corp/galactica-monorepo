@@ -42,6 +42,7 @@ async function main() {
 
     const receipt = await tx.wait();
     console.log(
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,
     );
   }
