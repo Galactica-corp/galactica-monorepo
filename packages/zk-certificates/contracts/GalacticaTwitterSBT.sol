@@ -152,6 +152,14 @@ contract GalacticaTwitterSBT is ERC721, AccessControl {
         return baseURI;
     }
 
+    /**
+     * @dev Change the base URI.
+     * @param newBaseURI The new base URI.
+     */
+    function changeBaseURI(string memory newBaseURI) public onlyRole(DEFAULT_ADMIN_ROLE) {
+      baseURI = newBaseURI;
+    }
+
     function name(uint256 tokenId) public view returns(string memory) {
       _requireMinted(tokenId);
       if (bytes(tokenNames[tokenId]).length > 0) {
