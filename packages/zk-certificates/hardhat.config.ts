@@ -35,9 +35,9 @@ const config: HardhatUserConfig = {
       url: 'https://evm-rpc-http-reticulum.galactica.com/',
       accounts: [
         process.env.GalaTestnetDeployerPrivateKey ??
-          Wallet.createRandom().privateKey,
+        Wallet.createRandom().privateKey,
         process.env.ReticulumGuardianPrivateKey ??
-          Wallet.createRandom().privateKey,
+        Wallet.createRandom().privateKey,
       ],
     },
   },
@@ -184,6 +184,11 @@ const config: HardhatUserConfig = {
         name: 'poseidonSponge',
         circuit: 'test/test_poseidonSponge.circom',
         input: 'input/poseidonSponge.json',
+      },
+      {
+        name: 'reputationExperiment',
+        circuit: 'experiments/crossAccountReputation.circom',
+        input: 'input/experiments/crossAccountReputation.json',
       },
     ],
   },
