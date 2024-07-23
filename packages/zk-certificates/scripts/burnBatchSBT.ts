@@ -10,7 +10,7 @@ async function main() {
   const [owner] = await ethers.getSigners();
   const SBTAddress = '0x0ff7190902556b4038506aA8810360889d0A4902';
 
-  const dataPath = './data/burning test.csv';
+  const dataPath = './data/Gulding SBTs MERGED - GG Participant.csv';
   let data;
 
   await csv({ delimiter: ',' })
@@ -28,24 +28,21 @@ async function main() {
 
   for (const user of data) {
     const userAddress = user['wallet'];
-    const name = user['name'];
-    const symbol = user['symbol'];
-    const uri = user['metadata uri'];
 
-    console.log(`Giving ${userAddress} an NFT with symbol ${symbol} and name ${name}`);
-    console.log(`metadata uri is ${uri}`);
-    const tx = await SBTInstance['mint(address,string,string,string)'](
-      userAddress,
-      name,
-      symbol,
-      uri,
-    );
+    console.log(`burning NFT from ${userAddress}`);
+    try {
+      const tx = await SBTInstance.burn(userAddress);
 
-    const receipt = await tx.wait();
-    console.log(
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,
-    );
+      const receipt = await tx.wait();
+      console.log(
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+        `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,
+      );
+
+    } catch (error) {
+      console.log(error);
+    }
+
   }
 
   console.log(`Done`);

@@ -17,10 +17,10 @@ async function main() {
 
   const issuer = deployer.address;
   const uri =
-    "This soul bound NFT is the proof that you participated in a Galactica Network's quest.";
+    "will be added later";
   const owner = deployer.address;
-  const nftName = 'Galactica Quester';
-  const nftSymbol = 'XNET';
+  const nftName = 'Galactica Official SBTs';
+  const nftSymbol = 'GALASBTS';
 
   await deploySC('GalacticaTwitterSBT', true, {}, [
     issuer,
