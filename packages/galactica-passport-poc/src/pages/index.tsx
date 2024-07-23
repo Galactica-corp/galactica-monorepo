@@ -58,7 +58,8 @@ import {
   getProver,
   prepareProofInput,
 } from '../../../galactica-dapp/src/utils/zkp';
-import benchmarkInput from '../benchmark/exampleMockDApp.json';
+// import benchmarkInput from '../benchmark/exampleMockDApp.json';
+import benchmarkInput from '../benchmark/input.json';
 
 
 const Container = styled.div`
@@ -421,7 +422,8 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Benchmark running...` });
 
       const startTime = new Date();
-      const prover = await getProver("provers/exampleMockDApp.json");
+      // const prover = await getProver("provers/exampleMockDApp.json");
+      const prover = await getProver("provers/reputationExperiment.json");
 
       const res: any = await benchmarkZKPGen({
         input: benchmarkInput,
