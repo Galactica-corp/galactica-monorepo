@@ -24,6 +24,9 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.17',
       },
+      {
+        version: '0.8.12',
+      },
     ],
   },
   networks: {
@@ -35,11 +38,17 @@ const config: HardhatUserConfig = {
       url: 'https://evm-rpc-http-reticulum.galactica.com/',
       accounts: getAccounts(),
     },
+    binanceTestnet: {
+      url: process.env.BSCTestnetRPCURL,
+      accounts: [process.env.BSCTestnetDeployerPrivateKey],
+    },
+
   },
   etherscan: {
     apiKey: {
       galaAndromeda: 'something', // not needed for now
       reticulum: 'something', // not needed for now
+      bscTestnet: process.env.BSCScanApiKey ?? '',
     },
     customChains: [
       {

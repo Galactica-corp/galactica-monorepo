@@ -3,10 +3,13 @@ import hre from 'hardhat';
  * Verifies a smart contract after deployment.
  */
 async function main() {
-  const SCAddress = '0xCAFbc2D4a4E83ABD5A77391c8984B956c78001Af';
+  const SCAddress = '0x9eAC522f4C6DfF72dAdF09620A7A924C794E3FF2';
   const constructorInputs = [
-    '0xb5e4A15F468AC505Bf0D53ceA2144b52135cCEF9',
-    'twitter ZkCertificate',
+    '0xD8fd391410FDEA9da4e899770860EaE2db09Deab',
+    'https://quicknode.quicknode-ipfs.com/ipfs/QmbBJ6huNN6CHKpFoNoPBWJsKq6CwPH7VvKpw6Re5GAsRB',
+    '0xd55935BD456E317EAFbA5B6c84B4aA77F1A0532e',
+    'Genesis SBT',
+    'XNET'
   ];
 
   console.log(`verifying contract at address ${SCAddress}`);
