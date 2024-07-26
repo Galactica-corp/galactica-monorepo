@@ -8,9 +8,9 @@ import { ethers } from 'hardhat';
 async function main() {
   // parameters for test interaction
   const [owner] = await ethers.getSigners();
-  const SBTAddress = '0x0ff7190902556b4038506aA8810360889d0A4902';
+  const SBTAddress = '0x75C47b5210658C6beFdDb23ab34B0B025979978e';
 
-  const dataPath = './data/burning test.csv';
+  const dataPath = './data/GG10-SBT-MINT - Sheet1.csv';
   let data;
 
   await csv({ delimiter: ',' })
@@ -22,31 +22,31 @@ async function main() {
   console.log('operating owner:', owner.address);
 
   const SBTInstance = await ethers.getContractAt(
-    'GalacticaTwitterSBT',
+    'GalacticaOfficialSBT',
     SBTAddress,
   );
 
+  let dataArray = [];
+
   for (const user of data) {
     const userAddress = user['wallet'];
-    const name = user['name'];
     const symbol = user['symbol'];
+    const name = user['name'];
     const uri = user['metadata uri'];
 
     console.log(`Giving ${userAddress} an NFT with symbol ${symbol} and name ${name}`);
     console.log(`metadata uri is ${uri}`);
-    const tx = await SBTInstance['mint(address,string,string,string)'](
-      userAddress,
-      name,
-      symbol,
-      uri,
-    );
 
-    const receipt = await tx.wait();
-    console.log(
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,
-    );
+    dataArray.push(userAddress);
   }
+
+
+  const tx = await SBTInstance.batchMint(dataArray);
+
+  const receipt = await tx.wait();
+  console.log(
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,)
 
   console.log(`Done`);
 }

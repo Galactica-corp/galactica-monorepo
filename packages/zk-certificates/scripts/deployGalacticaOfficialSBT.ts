@@ -15,12 +15,43 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const issuer = deployer.address;
-  const uri =
-    "will be added later";
-  const owner = deployer.address;
-  const nftName = 'Galactica Official SBTs';
-  const nftSymbol = 'GALASBTS';
+  let issuer = deployer.address;
+  let owner = deployer.address;
+  // type 1
+  /* const uri =
+    "https://quicknode.quicknode-ipfs.com/ipfs/QmTtA8dxzzcFqB9kaXwNMVVof83UiBJLyyTuMbuHNU2JHB";
+  const nftName = 'Guilding Galactica - Participant';
+  const nftSymbol = 'GGAL'; */
+
+  // type 2
+  /* const uri =
+    "https://quicknode.quicknode-ipfs.com/ipfs/QmS8fB9NA6fJdwqEnhhVrESVhD5MEomWySofkdBBCjVQRH";
+  const nftName = 'Guilding Galactica - Top 90';
+  const nftSymbol = 'GG90';
+ */
+
+  // type 3
+  /* const uri =
+    "https://quicknode.quicknode-ipfs.com/ipfs/Qmdv8rvvPGh7uEHhUCSwREM152GoxjwrNNxLUmMiQwUnZP";
+  const nftName = 'Guilding Galactica - Winning team';
+  const nftSymbol = 'GGWIN'; */
+
+  //type 4
+  /* const uri =
+    "https://quicknode.quicknode-ipfs.com/ipfs/QmeJS1PdjBtbE77xgez7uBuPWg8ByJm3eFQsEpE8ffSE5g";
+  const nftName = 'Guilding Galactica - Top 10 (GG10)';
+  const nftSymbol = 'GG10'; */
+
+  //test type
+  /* const uri =
+    "https://mike-tis.github.io/XNET-SBT/content.json";
+  const nftName = 'Test - Test';
+  const nftSymbol = 'TTT'; */
+
+  // test GalacticaTwitterSBT
+  const uri = "https://mike-tis.github.io/XNET-SBT/content.json";
+  const nftName = "Genesis SBT";
+  const nftSymbol = "XNET";
 
   await deploySC('GalacticaTwitterSBT', true, {}, [
     issuer,
