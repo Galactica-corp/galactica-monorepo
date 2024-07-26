@@ -13,6 +13,7 @@ contract AirdropGateway is AccessControl {
     // roles for access control
     bytes32 public constant CLIENT_ROLE = keccak256("CLIENT_ROLE");
     uint public distributionIndexCounter;
+    // due to some Solidity peculiarity, the associated getter doesn't return the dynamic array of requiredSBTs
     mapping(uint => AirdropDistribution) public distributions;
     // distributionIndex -> userAddress -> registration status
     mapping(uint => mapping(address => bool)) public registeredUsers;
@@ -59,9 +60,13 @@ contract AirdropGateway is AccessControl {
         require(registrationStartTime < registrationEndTime, "invalid registration time");
         require(registrationEndTime < claimStartTime, "claim can only start after registration ends");
         require(claimStartTime < claimEndTime, "invalid claim time");
-        distributions[distributionIndexCounter] = AirdropDistribution(requiredSBTs, registrationStartTime, registrationEndTime, claimStartTime, claimEndTime, tokenAddress, msg.sender, 0, 0, 0, 0);
+        distributions[distributionIndexCounter] = AirdropDistribution(requiredSBTs, registrationStartTime, registrationEndTime, claimStartTime, claimEndTime, msg.sender, tokenAddress, 0, 0, 0, 0);
         emit DistributionCreated(distributionIndexCounter, msg.sender);
         distributionIndexCounter++;
+    }
+
+    function getRequiredSBTs(uint distributionId) external view returns (address[] memory) {
+        return distributions[distributionId].requiredSBTs;
     }
 
     /* deposit tokens to the distribution
