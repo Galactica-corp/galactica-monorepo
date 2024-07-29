@@ -43,6 +43,7 @@ describe.only('AirdropGateway', () => {
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
+  let user2: SignerWithAddress;
   let randomUser: SignerWithAddress;
   let zkKYC: ZkCertificate;
   let client: SignerWithAddress;
@@ -55,7 +56,7 @@ describe.only('AirdropGateway', () => {
     // reset the testing chain so we can perform time related tests
     await hre.network.provider.send('hardhat_reset');
 
-    [deployer, user, randomUser, client] = await hre.ethers.getSigners();
+    [deployer, user, user2, randomUser, client] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
     const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
@@ -301,7 +302,7 @@ describe.only('AirdropGateway', () => {
   });
 
 
-  it.only('eligible users can register and claim airdrop', async () => {
+  it('eligible users can register and claim airdrop', async () => {
     // distribution parameters
     const requiredSBTs = [GalaSBT.address, GalaSBT2.address];
 
@@ -396,26 +397,31 @@ describe.only('AirdropGateway', () => {
     expect(await airdropGateway.registeredUsers(0, user.address)).to.be.equal(true);
     expect(await airdropGateway.registeredHumanID(0, humanID)).to.be.equal(true);
     expect((await airdropGateway.distributions(0)).registeredUserCount).to.be.equal(1);
-
-    // client needs to deposit airdrop token
-    const airdropAmount = ethers.utils.parseEther('100');
-    await rewardToken.connect(deployer).transfer(client.address, airdropAmount);
-    //check that only client can deposit
-    await expect(
-      airdropGateway.connect(deployer).deposit(airdropAmount),
-    ).to.be.revertedWith(`only client can deposit`);
-    await airdropGateway.connect(client).deposit(airdropAmount);
-    expect((await airdropGateway.distributions(0)).distributionAmount).to.be.equal(airdropAmount);
-
-    // user cannot claim too early
-    await expect(
-      airdropGateway.connect(user).claim(0),
-    ).to.be.revertedWith(`claim has not started yet`);
   });
 
-  it('check that the distribution calculation is correct', async () => {
+  it.only('check that the distribution calculation is correct', async () => {
+    // set up a zkKYC contract that always return true
+    let MockZkKYCFactory = await hre.ethers.getContractFactory('MockZkKYC');
+    let mockZkKYC = await MockZkKYCFactory.deploy();
+    await mockZkKYC.deployed();
+
+    const airdropGatewayFactory = await ethers.getContractFactory(
+      'AirdropGateway',
+      deployer,
+    );
+    airdropGateway = (await airdropGatewayFactory.deploy(
+      deployer.address,
+      mockZkKYC.address,
+    )) as AirdropGateway;
+
     // distribution parameters
     const requiredSBTs = [GalaSBT.address, GalaSBT2.address];
+
+    sampleInput = await generateZkKYCProofInput(
+      zkKYC,
+      0,
+      airdropGateway.address
+    );
 
     // retrieve the block time
     let { proof, publicSignals } = await groth16.fullProve(
@@ -429,12 +435,27 @@ describe.only('AirdropGateway', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
 
-    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+    const userHumanID = publicInputs[await zkKYCContract.INDEX_HUMAN_ID()];
+    // make a different humanID
+    let user2HumanID = userHumanID;
+    let user3HumanID = userHumanID;
+    
+    // we want to make sure that the humanIDs are pairwise different
+    if (userHumanID.endsWith("0")) {
+      user2HumanID = userHumanID.replace(/.$/,"1");
+      user3HumanID = userHumanID.replace(/.$/,"2");
+    } else if (userHumanID.endsWith("1")) {
+      user2HumanID = userHumanID.replace(/.$/,"0");
+      user3HumanID = userHumanID.replace(/.$/,"2");
+    } else {
+      user2HumanID = userHumanID.replace(/.$/,"0");
+      user3HumanID = userHumanID.replace(/.$/,"1");
+    }
 
-    // set the merkle root to the correct one
-    await mockZkCertificateRegistry.setMerkleRoot(
-      fromHexToBytes32(fromDecToHex(publicRoot)),
-    );
+    const publicInputs2 = publicInputs.slice();
+    publicInputs2[await zkKYCContract.INDEX_HUMAN_ID()] = user2HumanID;
+    const publicInputs3 = publicInputs.slice();
+    publicInputs3[await zkKYCContract.INDEX_HUMAN_ID()] = user3HumanID;
 
     const publicTime = parseInt(
       publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
@@ -457,71 +478,90 @@ describe.only('AirdropGateway', () => {
       claimStartTime,
       claimEndTime,
     );
+ 
+     // we mint SBTs for both users
+     await GalaSBT.connect(deployer).mint(user.address);
+     await GalaSBT2.connect(deployer).mint(user.address);
+     await GalaSBT.connect(deployer).mint(user2.address);
+     await GalaSBT2.connect(deployer).mint(user2.address);
+     await GalaSBT.connect(deployer).mint(randomUser.address);
+     await GalaSBT2.connect(deployer).mint(randomUser.address);
 
-    // user cannot register before registration starts
-    let lastBlock = await hre.ethers.provider.getBlock("latest");
-    let lastBlockTime = lastBlock.timestamp;
+     await hre.network.provider.send('evm_setNextBlockTimestamp', [registrationStartTime]);
+     await hre.network.provider.send('evm_mine');
 
-    // set time to the public time
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
-    await hre.network.provider.send('evm_mine');
-    await expect(
-      airdropGateway.connect(user).register(0, piA, piB, piC, publicInputs),
-    ).to.be.revertedWith(`registration has not started yet`);
+     await expect(airdropGateway.connect(user).register(0, piA, piB, piC, publicInputs)).to.emit(airdropGateway, 'UserRegistered').withArgs(0, user.address);
+     await expect(airdropGateway.connect(user2).register(0, piA, piB, piC, publicInputs2)).to.emit(airdropGateway, 'UserRegistered').withArgs(0, user2.address);
+     await expect(airdropGateway.connect(randomUser).register(0, piA, piB, piC, publicInputs3)).to.emit(airdropGateway, 'UserRegistered').withArgs(0, randomUser.address);
 
-    // set time to the registration start time
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [registrationStartTime]);
-    await hre.network.provider.send('evm_mine');
-
-    // user still doesn't have required SBTs
-    await expect(
-      airdropGateway.connect(user).register(0, piA, piB, piC, publicInputs),
-    ).to.be.revertedWith(`user does not have required SBT`);
-
-    // we mint the first SBT for the user, but it is not enough
-    await GalaSBT.connect(deployer).mint(user.address);
-    await expect(
-      airdropGateway.connect(user).register(0, piA, piB, piC, publicInputs),
-    ).to.be.revertedWith(`user does not have required SBT`);
-
-    // we mint the second SBT for the user, and it is enough
-    await GalaSBT2.connect(deployer).mint(user.address);
-    await expect(airdropGateway.connect(user).register(0, piA, piB, piC, publicInputs)).to.emit(airdropGateway, 'UserRegistered').withArgs(0, user.address);
-
-    // user cannot register again with the same zkKYC
-    // there are some weird issues deconstructing the output
-    let outputs = await groth16.fullProve(
-      sampleInput2,
-      circuitWasmPath,
-      circuitZkeyPath,
-    );
-
-    const [piA2, piB2, piC2] = processProof(outputs.proof);
-
-    const publicInputs2 = processPublicSignals(outputs.publicSignals);
-    await expect(
-      airdropGateway.connect(randomUser).register(0, piA2, piB2, piC2, publicInputs2),
-    ).to.be.revertedWith(`user has already registered`);
-
-    // we check that parameters are set correctly
-    const humanID = publicInputs2[await zkKYCContract.INDEX_HUMAN_ID()];
-    expect(await airdropGateway.registeredUsers(0, user.address)).to.be.equal(true);
-    expect(await airdropGateway.registeredHumanID(0, humanID)).to.be.equal(true);
-    expect((await airdropGateway.distributions(0)).registeredUserCount).to.be.equal(1);
-
-    // client needs to deposit airdrop token
-    const airdropAmount = ethers.utils.parseEther('1000000');
-    await rewardToken.connect(deployer).transfer(client.address, airdropAmount);
+     // check that the number of registred users is updated correctly
+     expect((await airdropGateway.distributions(0)).registeredUserCount).to.be.equal(3);
+    
+     // client needs to deposit airdrop token
+     const airdropAmount = ethers.utils.parseEther('10');
+    await rewardToken.connect(deployer).transfer(client.address, airdropAmount.mul(3));
+    await rewardToken.connect(deployer).approve(airdropGateway.address, airdropAmount);
+    await rewardToken.connect(client).approve(airdropGateway.address, airdropAmount);
     //check that only client can deposit
     await expect(
-      airdropGateway.connect(deployer).deposit(airdropAmount),
-    ).to.be.revertedWith(`only client can deposit`);
-    await airdropGateway.connect(client).deposit(airdropAmount);
+      airdropGateway.connect(deployer).deposit(0, airdropAmount),
+    ).to.be.revertedWith(`AccessControl: account ${deployer.address.toLowerCase()} is missing role ${clientRole}`);
+    await airdropGateway.connect(client).deposit(0, airdropAmount);
     expect((await airdropGateway.distributions(0)).distributionAmount).to.be.equal(airdropAmount);
+    expect(await rewardToken.balanceOf(airdropGateway.address)).to.be.equal(airdropAmount);
 
-    // user cannot claim too early
+    // we check that users cannot claim ahead of time
     await expect(
       airdropGateway.connect(user).claim(0),
     ).to.be.revertedWith(`claim has not started yet`);
+
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [claimStartTime]);
+    await hre.network.provider.send('evm_mine');
+
+    // check that client cannot deposit anymore
+    await rewardToken.connect(client).approve(airdropGateway.address, airdropAmount);
+    await expect(
+      airdropGateway.connect(client).deposit(0, airdropAmount),
+    ).to.be.revertedWith(`claim has already started`);
+
+    // we check that tokenAmountPerUser is initiallly still 0
+    expect ((await airdropGateway.distributions(0)).tokenAmountPerUser).to.be.equal(0);
+
+    // we let users claim
+    const expectedTokenAmountPerUser = airdropAmount.div(3);
+    await expect(airdropGateway.connect(user).claim(0)).to.emit(airdropGateway, 'UserClaimed').withArgs(0, user.address, expectedTokenAmountPerUser);
+    // we check that the tokenAmountPerUser has been updated after first claim
+    expect ((await airdropGateway.distributions(0)).tokenAmountPerUser).to.be.equal(expectedTokenAmountPerUser);
+    // we check other infos as well
+    expect ((await airdropGateway.distributions(0)).amountClaimed).to.be.equal(expectedTokenAmountPerUser);
+    // we check that user 1 indeed has his tokens
+    expect(await rewardToken.balanceOf(user.address)).to.be.equal(expectedTokenAmountPerUser);
+    expect(await airdropGateway.claimedUsers(0, user.address)).to.be.equal(true);
+
+     await expect(airdropGateway.connect(user2).claim(0)).to.emit(airdropGateway, 'UserClaimed').withArgs(0, user2.address, expectedTokenAmountPerUser);
+     expect ((await airdropGateway.distributions(0)).amountClaimed).to.be.equal(expectedTokenAmountPerUser.mul(2));
+     expect(await rewardToken.balanceOf(user2.address)).to.be.equal(expectedTokenAmountPerUser);
+
+     // we check that user cannot claim twice
+     expect(airdropGateway.connect(user).claim(0)).to.be.revertedWith(`user has already claimed`);
+
+    // we check that client cannot withdraw after the claim
+    await expect(
+      airdropGateway.connect(client).withdrawRemainingToken(0),
+    ).to.be.revertedWith(`claim has not ended yet`);
+
+    // set the claim time to end
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [claimEndTime]);
+    await hre.network.provider.send('evm_mine');
+
+    // user cannot claim anymore
+    await expect(
+      airdropGateway.connect(randomUser).claim(0),
+    ).to.be.revertedWith(`claim has ended`);
+    const balanceBefore = await rewardToken.balanceOf(client.address);
+    await airdropGateway.connect(client).withdrawRemainingToken(0);
+    const balanceAfter = await rewardToken.balanceOf(client.address);
+    const expectedAmountToWithdraw = (await airdropGateway.distributions(0)).distributionAmount.sub((await airdropGateway.distributions(0)).amountClaimed);
+    expect(balanceAfter.sub(balanceBefore)).to.be.equal(expectedAmountToWithdraw);
   });
 });

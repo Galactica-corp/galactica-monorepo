@@ -75,12 +75,13 @@ contract AirdropGateway is AccessControl {
     */
     function deposit(uint distributionId, uint amount) external onlyRole(CLIENT_ROLE) {
         IERC20(distributions[distributionId].tokenAddress).transferFrom(msg.sender, address(this), amount);
+        require(distributions[distributionId].claimStartTime > block.timestamp, "claim has already started");
         require(distributions[distributionId].clientAddress == msg.sender, "only client can deposit");
         distributions[distributionId].distributionAmount += amount;
     }
 
     function withdrawRemainingToken(uint distributionId) external onlyRole(CLIENT_ROLE) {
-        require(distributions[distributionId].clientAddress == msg.sender, "only client can deposit");
+        require(distributions[distributionId].clientAddress == msg.sender, "only client can withdraw");
         require(distributions[distributionId].claimEndTime < block.timestamp, "claim has not ended yet");
         uint256 amountLeft = distributions[distributionId].distributionAmount - distributions[distributionId].amountClaimed;
         IERC20(distributions[distributionId].tokenAddress).transfer(msg.sender, amountLeft);
@@ -127,6 +128,7 @@ contract AirdropGateway is AccessControl {
             distributions[distributionId].tokenAmountPerUser = distributions[distributionId].distributionAmount / distributions[distributionId].registeredUserCount;
         }
         IERC20(distributions[distributionId].tokenAddress).transfer(msg.sender, distributions[distributionId].tokenAmountPerUser);
+        distributions[distributionId].amountClaimed += distributions[distributionId].tokenAmountPerUser;
         claimedUsers[distributionId][msg.sender] = true;
         emit UserClaimed(distributionId, msg.sender, distributions[distributionId].tokenAmountPerUser);
     }
