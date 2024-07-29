@@ -104,6 +104,7 @@ contract AirdropGateway is AccessControl {
         );
 
         // check the zk proof
+        require(distributions[distributionId].tokenAddress != address(0), "distribution is not set");
         require(verifierWrapper.verifyProof(a, b, c, input), "invalid proof");
         require(registeredHumanID[distributionId][humanID] == false, "user has already registered");
         require(distributions[distributionId].registrationStartTime < block.timestamp, "registration has not started yet");
