@@ -299,8 +299,6 @@ describe('AirdropGateway', () => {
   });
 
   it('eligible users can register and claim airdrop', async () => {
-    // distribution parameters
-    const requiredSBTs = [GalaSBT.address, GalaSBT2.address];
 
     // retrieve the block time
     const { proof, publicSignals } = await groth16.fullProve(
@@ -325,6 +323,8 @@ describe('AirdropGateway', () => {
       10,
     );
 
+    // distribution parameters
+    const requiredSBTs = [GalaSBT.address, GalaSBT2.address];
     const registrationStartTime = publicTime + 10;
     const registrationEndTime = registrationStartTime + 10000;
     const claimStartTime = registrationEndTime + 10000;
