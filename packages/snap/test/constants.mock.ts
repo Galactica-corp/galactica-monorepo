@@ -97,3 +97,15 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeProofInput> = {
 
 export const merkleProofServiceURL =
   'https://merkle-proof-service.galactica.com/v1/galactica/';
+
+export const testProverURL = 'https://prover.galactica.com/v1/galactica/exampleMockDApp.json';
+
+import { createHash } from 'crypto';
+// Tell JSON how to serialize BigInts
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
+const sha256 = createHash('sha256');
+sha256.update(JSON.stringify(testZkpParams.prover));
+export const proverHash = sha256.digest('hex');

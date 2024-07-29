@@ -1,6 +1,6 @@
 import { GalacticaErrorBase } from './error';
 import { RpcMethods } from './rpcEnums';
-import type { ZkCertStandard, ProverData, ZkCertProof } from './types';
+import type { ZkCertStandard, ProverData, ZkCertProof, ProverLink } from './types';
 import type { ZkCertInputType } from './zkpInputTypes';
 import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
@@ -20,7 +20,7 @@ export type GenZkProofParams<ProofInputType> = {
   };
 
   // Prover to generate the ZKP.
-  prover: ProverData;
+  prover: ProverData | ProverLink;
 
   // String with the account address the user is going to use to submit the proof.
   userAddress: string;
@@ -38,7 +38,7 @@ export type GenZkProofParams<ProofInputType> = {
 
 type GenZKPErrorName = 'MissingInputParams';
 
-export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> {}
+export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> { }
 
 /**
  * GenerateZKProof prepares and executes the call to generate a ZKP in the Galactica snap.
