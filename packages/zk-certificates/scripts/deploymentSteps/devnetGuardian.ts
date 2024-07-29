@@ -37,7 +37,7 @@ export async function deployDevnetGuardian(
   await guardianRegistry.grantGuardianRole(
     devnetGuardian.address,
     pubkey,
-    'DevnetGuardianProxy',
+    'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx',
   );
   log(`DevnetGuardian whitelisted as KYC Guardian in GuardianRegistry`);
 
