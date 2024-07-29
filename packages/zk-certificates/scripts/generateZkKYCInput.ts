@@ -75,13 +75,25 @@ export async function generateZkKYCProofInput(
   amountInstitutions: number,
   dAppAddress: string,
   merkleTreeDepth = 32,
+  holder: SignerWithAddress = null,
+  user: SignerWithAddress = null,
+  encryptionAccount: SignerWithAddress = null,
 ): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
-  const [holder, user, encryptionAccount] = await ethers.getSigners();
+  const [_holder, _user, _encryptionAccount] = await ethers.getSigners();
+  if (holder === null) {
+    holder = _holder;
+  }
+  if (user === null) {
+    user = _user;
+  }
+  if (encryptionAccount === null) {
+    encryptionAccount = _encryptionAccount;
+  }
   const institutions = [];
   for (let i = 0; i < amountInstitutions; i++) {
     institutions.push((await ethers.getSigners())[4 + i]);

@@ -121,6 +121,7 @@ contract AirdropGateway is AccessControl {
         require(distributions[distributionId].claimStartTime < block.timestamp, "claim has not started yet");
         require(distributions[distributionId].claimEndTime > block.timestamp, "claim has ended");
         require(registeredUsers[distributionId][msg.sender], "user has not registered");
+        require(claimedUsers[distributionId][msg.sender] == false, "user has already claimed");
         // calculate token amount per user if it hasn't been done yet
         if (distributions[distributionId].tokenAmountPerUser == 0) {
             distributions[distributionId].tokenAmountPerUser = distributions[distributionId].distributionAmount / distributions[distributionId].registeredUserCount;
