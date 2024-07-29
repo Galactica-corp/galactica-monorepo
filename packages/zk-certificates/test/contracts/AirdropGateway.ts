@@ -299,7 +299,6 @@ describe('AirdropGateway', () => {
   });
 
   it('eligible users can register and claim airdrop', async () => {
-
     // retrieve the block time
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
