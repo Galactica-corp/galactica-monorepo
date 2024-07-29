@@ -74,9 +74,9 @@ contract AirdropGateway is AccessControl {
      to just in case distinguish between two distributions with the same token address
     */
     function deposit(uint distributionId, uint amount) external onlyRole(CLIENT_ROLE) {
-        IERC20(distributions[distributionId].tokenAddress).transferFrom(msg.sender, address(this), amount);
         require(distributions[distributionId].claimStartTime > block.timestamp, "claim has already started");
         require(distributions[distributionId].clientAddress == msg.sender, "only client can deposit");
+        IERC20(distributions[distributionId].tokenAddress).transferFrom(msg.sender, address(this), amount);
         distributions[distributionId].distributionAmount += amount;
     }
 
