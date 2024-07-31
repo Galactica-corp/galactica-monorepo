@@ -388,9 +388,7 @@ describe('AirdropGateway', () => {
     expect(await airdropGateway.registeredUsers(user.address)).to.be.equal(
       true,
     );
-    expect(await airdropGateway.registeredHumanID(humanID)).to.be.equal(
-      true,
-    );
+    expect(await airdropGateway.registeredHumanID(humanID)).to.be.equal(true);
     expect(
       (await airdropGateway.currentDistribution()).registeredUserCount,
     ).to.be.equal(1);
@@ -501,9 +499,7 @@ describe('AirdropGateway', () => {
       .to.emit(airdropGateway, 'UserRegistered')
       .withArgs(user2.address);
     await expect(
-      airdropGateway
-        .connect(randomUser)
-        .register(piA, piB, piC, publicInputs3),
+      airdropGateway.connect(randomUser).register(piA, piB, piC, publicInputs3),
     )
       .to.emit(airdropGateway, 'UserRegistered')
       .withArgs(randomUser.address);
@@ -578,9 +574,7 @@ describe('AirdropGateway', () => {
     expect(await rewardToken.balanceOf(user.address)).to.be.equal(
       expectedTokenAmountPerUser,
     );
-    expect(await airdropGateway.claimedUsers(user.address)).to.be.equal(
-      true,
-    );
+    expect(await airdropGateway.claimedUsers(user.address)).to.be.equal(true);
 
     await expect(airdropGateway.connect(user2).claim())
       .to.emit(airdropGateway, 'UserClaimed')
