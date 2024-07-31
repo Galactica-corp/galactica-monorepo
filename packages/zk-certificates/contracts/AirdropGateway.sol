@@ -24,7 +24,7 @@ contract AirdropGateway is AccessControl {
 
     event DistributionCreated(address client);
     event UserRegistered(address user);
-    event UserClaimed(address user);
+    event UserClaimed(address user, uint amount);
 
     // struct to store airdrop distribution information
     struct AirdropDistribution {
@@ -129,7 +129,7 @@ contract AirdropGateway is AccessControl {
         IERC20(currentDistribution.tokenAddress).transfer(msg.sender, currentDistribution.tokenAmountPerUser);
         currentDistribution.amountClaimed += currentDistribution.tokenAmountPerUser;
         claimedUsers[msg.sender] = true;
-        emit UserClaimed(msg.sender);
+        emit UserClaimed(msg.sender, currentDistribution.tokenAmountPerUser);
     }
 
 

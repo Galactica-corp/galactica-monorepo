@@ -269,7 +269,6 @@ describe('AirdropGateway', () => {
 
     // check that the distribution parameters are set correctly
     const onchainDistribution = await airdropGateway.currentDistribution();
-    );
     const onchainRequiredSBTs = await airdropGateway.getRequiredSBTs();
 
     expect(onchainRequiredSBTs[0]).to.be.equal(requiredSBTs[0]);
@@ -339,7 +338,7 @@ describe('AirdropGateway', () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
     await expect(
-      airdropGateway.connect(user).register(0, piA, piB, piC, publicInputs),
+      airdropGateway.connect(user).register(piA, piB, piC, publicInputs),
     ).to.be.revertedWith(`registration has not started yet`);
 
     // set time to the registration start time
