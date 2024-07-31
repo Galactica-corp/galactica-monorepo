@@ -64,8 +64,8 @@ contract AirdropGateway is AccessControl {
         emit DistributionCreated(msg.sender);
     }
 
-    function getRequiredSBTs(uint distributionId) external view returns (address[] memory) {
-        return distributions[distributionId].requiredSBTs;
+    function getRequiredSBTs() external view returns (address[] memory) {
+        return currentDistribution.requiredSBTs;
     }
 
     /* deposit tokens to the distribution
@@ -124,7 +124,7 @@ contract AirdropGateway is AccessControl {
         require(claimedUsers[msg.sender] == false, "user has already claimed");
         // calculate token amount per user if it hasn't been done yet
         if (currentDistribution.tokenAmountPerUser == 0) {
-            distributions[distributionId].tokenAmountPerUser = distributions[distributionId].distributionAmount / distributions[distributionId].registeredUserCount;
+            currentDistribution.tokenAmountPerUser = currentDistribution.distributionAmount / currentDistribution.registeredUserCount;
         }
         IERC20(currentDistribution.tokenAddress).transfer(msg.sender, currentDistribution.tokenAmountPerUser);
         currentDistribution.amountClaimed += currentDistribution.tokenAmountPerUser;
