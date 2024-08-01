@@ -3741,6 +3741,7 @@ __metadata:
     "@types/chai-as-promised": ^7.1.5
     "@types/circomlibjs": ^0.1.5
     "@types/mocha": ^10.0.1
+    "@types/object-hash": ^3.0.6
     "@types/sinon": ^10.0.13
     "@types/sinon-chai": ^3.2.9
     "@types/whatwg-url": ^11.0.3
@@ -3763,6 +3764,7 @@ __metadata:
     ffjavascript: ^0.3.0
     js-sha3: ^0.8.0
     mocha: ^10.2.0
+    object-hash: ^3.0.0
     patch-package: ^8.0.0
     postinstall-postinstall: ^2.1.0
     prettier: ^3.0.3
@@ -7485,6 +7487,13 @@ __metadata:
   version: 8.10.66
   resolution: "@types/node@npm:8.10.66"
   checksum: c52039de862654a139abdc6a51de532a69dd80516ac35a959c3b3a2831ecbaaf065b0df5f9db943f5e28b544ebb9a891730d52b52f7a169b86a82bc060210000
+  languageName: node
+  linkType: hard
+
+"@types/object-hash@npm:^3.0.6":
+  version: 3.0.6
+  resolution: "@types/object-hash@npm:3.0.6"
+  checksum: 2c7979d4e540af817b99c09fb4c2fed1c0b0e14342df474d8dcde4165a82c440b038341fd66fe998d9f86acdd5cccc65ba8092315e39e7c2114f945fa70aaa56
   languageName: node
   linkType: hard
 
@@ -20106,6 +20115,13 @@ __metadata:
   version: 4.1.1
   resolution: "object-assign@npm:4.1.1"
   checksum: fcc6e4ea8c7fe48abfbb552578b1c53e0d194086e2e6bbbf59e0a536381a292f39943c6e9628af05b5528aa5e3318bb30d6b2e53cadaf5b8fe9e12c4b69af23f
+  languageName: node
+  linkType: hard
+
+"object-hash@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "object-hash@npm:3.0.0"
+  checksum: 80b4904bb3857c52cc1bfd0b52c0352532ca12ed3b8a6ff06a90cd209dfda1b95cee059a7625eb9da29537027f68ac4619363491eedb2f5d3dddbba97494fd6c
   languageName: node
   linkType: hard
 

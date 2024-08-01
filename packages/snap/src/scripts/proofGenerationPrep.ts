@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-import type { GenZkProofParams } from '@galactica-net/snap-api';
+import type { GenZkProofParams, ProverData } from '@galactica-net/snap-api';
 import { ZkCertStandard } from '@galactica-net/snap-api';
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
@@ -7,6 +7,12 @@ import * as fs from 'fs';
 import path from 'path';
 import { groth16, zKey } from 'snarkjs';
 import { parse } from 'ts-command-line-args';
+
+import {
+  subPathWasm,
+  subPathZkeyHeader,
+  subPathZkeySections,
+} from '../proofGenerator';
 
 // Tell JSON how to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -24,11 +30,12 @@ async function testModified(
   circuitDir: string,
   params: GenZkProofParams<any>,
 ) {
+  const prover = params.prover as ProverData;
   const { proof, publicSignals } = await groth16.fullProveMemory(
     params.input,
-    params.prover.wasm,
-    params.prover.zkeyHeader,
-    params.prover.zkeySections,
+    prover.wasm,
+    prover.zkeyHeader,
+    prover.zkeySections,
   );
 
   console.log('Proof: ');
@@ -100,52 +107,47 @@ async function createCircuitData(
  * To simplify reading the data in the frontend, we write it to a json file here.
  * Then it can be imported on demand to be uploaded to the snap.
  * @param filePath - Path to write to.
- * @param data - Data to write.
+ * @param prover - Prover data to write.
  */
-async function writeCircuitDataToJSON(
-  filePath: string,
-  data: GenZkProofParams<any>,
-) {
+async function writeCircuitDataToJSON(filePath: string, prover: ProverData) {
   // format data for writing to file (othewise arrays look like objects)
   // using base64 encoding for Uint8Arrays to minimize file size while still being able to send it though the RPC in JSON format
-  data.prover.zkeyHeader.q = data.prover.zkeyHeader.q.toString();
-  data.prover.zkeyHeader.r = data.prover.zkeyHeader.r.toString();
+  prover.zkeyHeader.q = prover.zkeyHeader.q.toString();
+  prover.zkeyHeader.r = prover.zkeyHeader.r.toString();
 
-  for (let i = 0; i < data.prover.zkeySections.length; i++) {
-    data.prover.zkeySections[i] = Buffer.from(
-      data.prover.zkeySections[i],
-    ).toString('base64');
+  for (let i = 0; i < prover.zkeySections.length; i++) {
+    prover.zkeySections[i] = Buffer.from(prover.zkeySections[i]).toString(
+      'base64',
+    );
   }
-  data.prover.zkeyHeader.vk_alpha_1 = Buffer.from(
-    data.prover.zkeyHeader.vk_alpha_1,
+  prover.zkeyHeader.vk_alpha_1 = Buffer.from(
+    prover.zkeyHeader.vk_alpha_1,
   ).toString('base64');
-  data.prover.zkeyHeader.vk_beta_1 = Buffer.from(
-    data.prover.zkeyHeader.vk_beta_1,
+  prover.zkeyHeader.vk_beta_1 = Buffer.from(
+    prover.zkeyHeader.vk_beta_1,
   ).toString('base64');
-  data.prover.zkeyHeader.vk_beta_2 = Buffer.from(
-    data.prover.zkeyHeader.vk_beta_2,
+  prover.zkeyHeader.vk_beta_2 = Buffer.from(
+    prover.zkeyHeader.vk_beta_2,
   ).toString('base64');
-  data.prover.zkeyHeader.vk_gamma_2 = Buffer.from(
-    data.prover.zkeyHeader.vk_gamma_2,
+  prover.zkeyHeader.vk_gamma_2 = Buffer.from(
+    prover.zkeyHeader.vk_gamma_2,
   ).toString('base64');
-  data.prover.zkeyHeader.vk_delta_1 = Buffer.from(
-    data.prover.zkeyHeader.vk_delta_1,
+  prover.zkeyHeader.vk_delta_1 = Buffer.from(
+    prover.zkeyHeader.vk_delta_1,
   ).toString('base64');
-  data.prover.zkeyHeader.vk_delta_2 = Buffer.from(
-    data.prover.zkeyHeader.vk_delta_2,
+  prover.zkeyHeader.vk_delta_2 = Buffer.from(
+    prover.zkeyHeader.vk_delta_2,
   ).toString('base64');
 
-  console.log(
-    `curve name: ${JSON.stringify(data.prover.zkeyHeader.curve.name)}`,
-  );
+  console.log(`curve name: ${JSON.stringify(prover.zkeyHeader.curve.name)}`);
   // removing curve data because it would increase the transmission size dramatically and it can be reconstructed from the curve name
-  data.prover.zkeyHeader.curveName = data.prover.zkeyHeader.curve.name;
-  delete data.prover.zkeyHeader.curve;
+  prover.zkeyHeader.curveName = prover.zkeyHeader.curve.name;
+  delete prover.zkeyHeader.curve;
 
   const jsContent = {
-    wasm: Buffer.from(data.prover.wasm).toString('base64'),
-    zkeyHeader: data.prover.zkeyHeader,
-    zkeySections: data.prover.zkeySections,
+    wasm: Buffer.from(prover.wasm).toString('base64'),
+    zkeyHeader: prover.zkeyHeader,
+    zkeySections: prover.zkeySections,
   };
   console.log(
     `resulting JSON has size: ${
@@ -154,7 +156,39 @@ async function writeCircuitDataToJSON(
   );
 
   fs.writeFileSync(filePath, JSON.stringify(jsContent));
-  console.log(`Written to ${filePath}`);
+  console.log(`Written whole prover to ${filePath}`);
+
+  // also write prover parts so large provers can be split up and downloaded in parts
+  const proverDir = path.join(
+    path.dirname(filePath),
+    path.basename(filePath, '.json'),
+  );
+  if (!fs.existsSync(proverDir)) {
+    fs.mkdirSync(proverDir);
+  }
+  fs.writeFileSync(
+    path.join(proverDir, subPathWasm),
+    JSON.stringify(jsContent.wasm),
+  );
+  // add length of sections to header so the snap knows how many parts to expect
+  jsContent.zkeyHeader.sectionsLength = prover.zkeySections.length;
+  fs.writeFileSync(
+    path.join(proverDir, subPathZkeyHeader),
+    JSON.stringify(jsContent.zkeyHeader),
+  );
+  const sectionsDir = path.dirname(
+    path.join(proverDir, subPathZkeySections(0)),
+  );
+  if (!fs.existsSync(sectionsDir)) {
+    fs.mkdirSync(sectionsDir);
+  }
+  for (let i = 0; i < prover.zkeySections.length; i++) {
+    fs.writeFileSync(
+      path.join(proverDir, subPathZkeySections(i)),
+      JSON.stringify(prover.zkeySections[i]),
+    );
+  }
+  console.log(`Written prover parts to ${proverDir}`);
 }
 
 /**
@@ -270,7 +304,7 @@ async function main() {
   // await testStandard(input);
   await testModified(args.circuitName, args.circuitsDir, params);
 
-  await writeCircuitDataToJSON(args.output, params);
+  await writeCircuitDataToJSON(args.output, params.prover as ProverData);
 
   // copy vkey file to make it available for off-chain verification
   const vkeyPath = path.join(args.circuitsDir, `${args.circuitName}.vkey.json`);
