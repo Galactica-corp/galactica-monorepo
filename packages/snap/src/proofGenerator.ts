@@ -14,17 +14,11 @@ import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { buildBls12381, buildBn128 } from 'ffjavascript';
+import hash from 'object-hash';
 import { groth16 } from 'snarkjs';
 
 import type { HolderData, PanelContent } from './types';
 import { stripURLProtocol } from './utils';
-
-import { createHash } from 'crypto';
-
-// Tell JSON how to serialize BigInts
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
 
 /**
  * GenerateZkCertProof constructs and checks the zkCert proof.
@@ -43,7 +37,7 @@ export const generateZkCertProof = async (
   // get prover data from params or fetch it from a URL
   let rawProver: ProverData;
   if ('wasm' in params.prover) {
-    rawProver = params.prover as ProverData;
+    rawProver = params.prover;
   } else {
     if (!('url' in params.prover)) {
       throw new GenZKPError({
@@ -51,20 +45,7 @@ export const generateZkCertProof = async (
         message: `ProverLink does not contain a URL.`,
       });
     }
-    const response = await fetch(params.prover.url);
-    const proverData = await response.json();
-
-    // check integrity of the downloaded prover data
-    const sha256 = createHash('sha256');
-    sha256.update(JSON.stringify(proverData));
-    if (sha256.digest('hex') != params.prover.hash) {
-      throw new GenZKPError({
-        name: 'MissingInputParams',
-        message: `Prover data hash does not match hash in ProverLink.`,
-      });
-    }
-
-    rawProver = proverData as ProverData;
+    rawProver = await fetchProverData(params.prover);
   }
   const processedProver = await preprocessProver(rawProver);
 
@@ -192,16 +173,12 @@ export function createProofConfirmationPrompt(
 /**
  * Prepares prover data from RPC request for snarkjs by converting it to the correct data types.
  * In the JSON message, arrays are base64 encoded.
- * @param params - ProverData.
+ * @param prover - ProverData.
  * @returns Prepared ProverData.
  */
-async function preprocessProver(
-  prover: ProverData,
-): Promise<ProverData> {
+async function preprocessProver(prover: ProverData): Promise<ProverData> {
   // Somehow we need to convert them to Uint8Array to avoid an error inside snarkjs.
-  prover.wasm = Uint8Array.from(
-    Buffer.from(prover.wasm, 'base64'),
-  );
+  prover.wasm = Uint8Array.from(Buffer.from(prover.wasm, 'base64'));
 
   prover.zkeyHeader.q = BigInt(prover.zkeyHeader.q);
   prover.zkeyHeader.r = BigInt(prover.zkeyHeader.r);
@@ -287,7 +264,9 @@ export function checkZkCertProofRequest(
     });
   }
   if (
-    params.prover === undefined || ((params.prover as ProverData).wasm === undefined && (params.prover as ProverLink).url === undefined)
+    params.prover === undefined ||
+    ((params.prover as ProverData).wasm === undefined &&
+      (params.prover as ProverLink).url === undefined)
   ) {
     throw new GenZKPError({
       name: 'MissingInputParams',
@@ -300,4 +279,77 @@ export function checkZkCertProofRequest(
       message: `Missing field 'zkInputRequiresPrivKey' in GenZkProofParams.`,
     });
   }
+}
+
+export const subPathWasm = 'wasm.json';
+export const subPathZkeyHeader = 'zkeyHeader.json';
+/**
+ * Returns the sub path to the i-th zkey section.
+ * @param i - Index of the zkey section.
+ * @returns Sub path to the i-th zkey section.
+ */
+export function subPathZkeySections(i: number) {
+  return `zkeySections/${i}.json`;
+}
+
+/**
+ * Fetches prover data from a URL. It collects all parts of the prover and verifies the hash for security.
+ * @param link - ProverLink containing the URL and hash of the prover data.
+ * @returns ProverData.
+ */
+async function fetchProverData(link: ProverLink): Promise<ProverData> {
+  /**
+   * Helper for fetch with error handling.
+   * @param url - URL to fetch from.
+   * @returns JSON object response.
+   */
+  async function fetchWithErrorHandling(url: string) {
+    const potentialError = new GenZKPError({
+      name: 'ProverFetchFailed',
+      message: `Failed to fetch prover data from ${url} .`,
+    });
+    let response: any;
+    try {
+      response = await fetch(url);
+    } catch (error) {
+      throw potentialError;
+    }
+    if (!response.ok) {
+      throw potentialError;
+    }
+    try {
+      return await response.json();
+    } catch (error) {
+      throw potentialError;
+    }
+  }
+
+  const wasm = await fetchWithErrorHandling(link.url + subPathWasm);
+  const zkeyHeader = await fetchWithErrorHandling(link.url + subPathZkeyHeader);
+
+  const zkSections = [];
+  for (let i = 0; i < zkeyHeader.sectionsLength; i++) {
+    const section = await fetchWithErrorHandling(
+      link.url + subPathZkeySections(i),
+    );
+    zkSections.push(section);
+  }
+
+  // delete sectionsLength parameter, because it is not included in the circom prover or hashing
+  delete zkeyHeader.sectionsLength;
+
+  const prover: ProverData = {
+    wasm,
+    zkeyHeader,
+    zkeySections: zkSections,
+  };
+
+  if (hash.MD5(prover) !== link.hash) {
+    throw new GenZKPError({
+      name: 'MissingInputParams',
+      message: `Prover data hash does not match hash in ProverLink.`,
+    });
+  }
+
+  return prover;
 }
