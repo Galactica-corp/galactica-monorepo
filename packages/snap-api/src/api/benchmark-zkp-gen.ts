@@ -1,6 +1,5 @@
-import { GalacticaErrorBase } from './error';
 import { RpcMethods } from './rpcEnums';
-import type { ProverData, ZkCertProof } from './types';
+import type { ProverData, ProverLink, ZkCertProof } from './types';
 import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
 
@@ -12,7 +11,7 @@ export type BenchmarkZKPGenParams = {
   input: Record<string, any>;
 
   // Prover to generate the ZKP.
-  prover: ProverData;
+  prover: ProverData | ProverLink;
 };
 
 /**

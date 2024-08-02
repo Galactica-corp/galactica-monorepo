@@ -2,6 +2,7 @@ import type {
   ZkCertProof,
   MerkleProofUpdateRequestParams,
   MerkleProofURLUpdateParams,
+  ProverLink,
 } from '@galactica-net/snap-api';
 import {
   clearStorage,
@@ -423,7 +424,11 @@ const Index = () => {
 
       const startTime = new Date();
       // const prover = await getProver("provers/exampleMockDApp.json");
-      const prover = await getProver("provers/reputationExperiment.json");
+      // const prover = await getProver("provers/reputationExperiment.json");
+      const prover: ProverLink = {
+        url: 'http://localhost:8001/provers/reputationExperiment/',
+        hash: 'df771e1905fe5b9936d3362cfae7b772',
+      }
 
       const res: any = await benchmarkZKPGen({
         input: benchmarkInput,
