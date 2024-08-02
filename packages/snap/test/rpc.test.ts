@@ -4,6 +4,7 @@ import type {
   EncryptedZkCert,
   MerkleProof,
   MerkleProofUpdateRequestParams,
+  ProverData,
   ZkCertProof,
   ZkCertRegistered,
   ZkCertSelectionParams,
@@ -25,12 +26,15 @@ import sinonChai from 'sinon-chai';
 import { groth16 } from 'snarkjs';
 
 import {
+  benchmarkZKPGenParams,
   defaultRPCRequest,
   merkleProofServiceURL,
+  proverHash,
   testEdDSAKey,
   testEntropyEncrypt,
   testEntropyHolder,
   testHolder,
+  testProverURL,
   testZkpParams,
 } from './constants.mock';
 import { mockEthereumProvider, mockSnapProvider } from './wallet.mock';
@@ -40,6 +44,11 @@ import zkCert2 from '../../../test/zkCert2.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import { processRpcRequest } from '../src';
 import { encryptZkCert } from '../src/encryption';
+import {
+  subPathWasm,
+  subPathZkeyHeader,
+  subPathZkeySections,
+} from '../src/proofGenerator';
 import type { RpcArgs } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
 
@@ -99,6 +108,25 @@ describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
   const ethereumProvider = mockEthereumProvider();
 
+  before(function () {
+    // prepare URL to fetch provers from
+    const prover = testZkpParams.prover as ProverData; // we know it is a prover
+    fetchMock.get(testProverURL + subPathWasm, JSON.stringify(prover.wasm));
+    fetchMock.get(
+      testProverURL + subPathZkeyHeader,
+      JSON.stringify({
+        ...prover.zkeyHeader,
+        sectionsLength: prover.zkeySections.length,
+      }),
+    );
+    for (let i = 0; i < prover.zkeySections.length; i++) {
+      fetchMock.get(
+        testProverURL + subPathZkeySections(i),
+        JSON.stringify(prover.zkeySections[i]),
+      );
+    }
+  });
+
   beforeEach(function () {
     snapProvider.rpcStubs.snap_getEntropy
       .onFirstCall()
@@ -116,12 +144,14 @@ describe('Test rpc handler function', function () {
         zkCert.registration.address
       }/${zkCert.leafHash}`,
       merkleProofToServiceResponse(zkCert.merkleProof),
+      { overwriteRoutes: true },
     );
     fetchMock.get(
       `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
         zkCert2.registration.address
       }/${zkCert2.leafHash}`,
       merkleProofToServiceResponse(zkCert2.merkleProof),
+      { overwriteRoutes: true },
     );
   });
 
@@ -131,7 +161,7 @@ describe('Test rpc handler function', function () {
     });
     snapProvider.reset();
     ethereumProvider.reset();
-    fetchMock.restore();
+    fetchMock.resetHistory();
   });
 
   describe('Clear Storage method', function () {
@@ -587,12 +617,12 @@ describe('Test rpc handler function', function () {
 
     it('should handle failures fetching merkle proof update', async function (this: Mocha.Context) {
       this.timeout(25000);
-      fetchMock.restore();
       fetchMock.get(
         `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
           zkCert.registration.address
         }/${zkCert.leafHash}`,
         404,
+        { overwriteRoutes: true },
       );
 
       const outdatedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
@@ -652,6 +682,100 @@ describe('Test rpc handler function', function () {
           merkleServiceURL: '',
         },
       });
+    });
+
+    it('should fetch large provers from a URL', async function (this: Mocha.Context) {
+      this.timeout(25000);
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const testParamsWithUrl = { ...testZkpParams };
+      testParamsWithUrl.prover = {
+        url: testProverURL,
+        hash: proverHash,
+      };
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.GenZkCertProof, testParamsWithUrl),
+        snapProvider,
+        ethereumProvider,
+      )) as ZkCertProof;
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
+
+      await verifyProof(result);
+
+      // Merkle proof should have been updated and stored
+      expect(fetchMock.calls().length).to.equal(
+        2 + (testZkpParams.prover as ProverData).zkeySections.length,
+      );
+    });
+
+    it('should reject fetched provers with wrong hash', async function (this: Mocha.Context) {
+      this.timeout(25000);
+
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const testParamsWithUrl = { ...testZkpParams };
+      testParamsWithUrl.prover = {
+        url: testProverURL,
+        hash: 'wrongHash',
+      };
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.GenZkCertProof, testParamsWithUrl),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      await expect(callPromise).to.be.rejectedWith(
+        'Prover data hash does not match hash in ProverLink.',
+      );
+      expect(fetchMock.calls().length).to.equal(
+        2 + (testZkpParams.prover as ProverData).zkeySections.length,
+      );
+    });
+
+    it('should handle failed prover fetch', async function (this: Mocha.Context) {
+      this.timeout(25000);
+
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const wrongURL = 'https://doesnotexistsdfjklaf.com/';
+      fetchMock.get(wrongURL + subPathWasm, 404);
+
+      const testParamsWithUrl = { ...testZkpParams };
+      testParamsWithUrl.prover = {
+        url: wrongURL,
+        hash: 'wrongHash',
+      };
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.GenZkCertProof, testParamsWithUrl),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      await expect(callPromise).to.be.rejectedWith(
+        `Failed to fetch prover data from ${wrongURL + subPathWasm} .`,
+      );
     });
   });
 
@@ -1120,6 +1244,53 @@ describe('Test rpc handler function', function () {
         },
       });
       expect(result.message).to.be.eq(RpcResponseMsg.MerkleProofsUpdated);
+    });
+  });
+
+  describe('Benchmark ZKP Generation', function () {
+    it('should throw error if not confirmed', async function (this: Mocha.Context) {
+      this.timeout(25000);
+      snapProvider.rpcStubs.snap_dialog.resolves(false);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const callPromise = processRpcRequest(
+        buildRPCRequest(RpcMethods.BenchmarkZKPGen, benchmarkZKPGenParams),
+        snapProvider,
+        ethereumProvider,
+      );
+      await expect(callPromise).to.be.rejectedWith(
+        RpcResponseErr.RejectedConfirm,
+      );
+    });
+
+    it('should generate Benchmark', async function (this: Mocha.Context) {
+      this.timeout(25000);
+
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.BenchmarkZKPGen, benchmarkZKPGenParams),
+        snapProvider,
+        ethereumProvider,
+      )) as ZkCertProof;
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
+      // Merkle proof should be up to date and therefore not be fetched
+      expect(fetchMock.calls()).to.be.empty;
+
+      await verifyProof(result);
     });
   });
 

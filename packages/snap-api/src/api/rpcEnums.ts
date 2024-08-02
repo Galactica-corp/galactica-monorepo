@@ -14,6 +14,7 @@ export enum RpcMethods {
   UpdateMerkleProof = 'updateMerkleProof',
   UpdateMerkleProofURL = 'updateMerkleProofURL',
   DeleteZkCert = 'deleteZkCert',
+  BenchmarkZKPGen = 'benchmarkZKPGen',
 }
 
 /**
