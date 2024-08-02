@@ -533,7 +533,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
       return response;
     }
 
-
     case RpcMethods.BenchmarkZKPGen: {
       // parse ZKP inputs
       const genParams = request.params as unknown as BenchmarkZKPGenParams;
@@ -544,7 +543,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
           type: 'confirmation',
           content: panel([
             heading('Allow Benchmark?'),
-            text('Do you allow the snap to run a benchmark of ZK proof generation?'),
+            text(
+              'Do you allow the snap to run a benchmark of ZK proof generation?',
+            ),
           ]),
         },
       });
@@ -554,10 +555,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       const startTime = Date.now();
-      const proof = await generateProof(
-        genParams.input,
-        genParams.prover,
-      );
+      const proof = await generateProof(genParams.input, genParams.prover);
       const endTime = Date.now();
       const duration = endTime - startTime;
 

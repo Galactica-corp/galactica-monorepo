@@ -4,10 +4,10 @@ import { ZkCertStandard } from '@galactica-net/snap-api';
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
 import * as fs from 'fs';
+import hash from 'object-hash';
 import path from 'path';
 import { groth16, zKey } from 'snarkjs';
 import { parse } from 'ts-command-line-args';
-import hash from 'object-hash';
 
 import {
   subPathWasm,
@@ -151,7 +151,8 @@ async function writeCircuitDataToJSON(filePath: string, prover: ProverData) {
     zkeySections: prover.zkeySections,
   };
   console.log(
-    `resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)
+    `resulting JSON has size: ${
+      JSON.stringify(jsContent).length / (1024 * 1024)
     } MB`,
   );
 
@@ -195,7 +196,7 @@ async function writeCircuitDataToJSON(filePath: string, prover: ProverData) {
   const proverHash = hash.MD5(jsContent);
   console.log(`Prover hash: ${proverHash}`);
   fs.writeFileSync(
-    path.join(proverDir, "hash.json"),
+    path.join(proverDir, 'hash.json'),
     JSON.stringify(proverHash),
   );
 }
@@ -280,9 +281,9 @@ async function main() {
   const testInput = args.testInput
     ? args.testInput
     : path.join(
-      __dirname,
-      `../../../zk-certificates/circuits/input/${args.circuitName}.json`,
-    );
+        __dirname,
+        `../../../zk-certificates/circuits/input/${args.circuitName}.json`,
+      );
 
   if (!args.output) {
     args.output = `${__dirname}/../../../galactica-dapp/public/provers/${args.circuitName}.json`;

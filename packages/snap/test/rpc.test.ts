@@ -140,13 +140,15 @@ describe('Test rpc handler function', function () {
 
     // setting up merkle proof service for testing
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
+        zkCert.registration.address
       }/${zkCert.leafHash}`,
       merkleProofToServiceResponse(zkCert.merkleProof),
       { overwriteRoutes: true },
     );
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert2.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
+        zkCert2.registration.address
       }/${zkCert2.leafHash}`,
       merkleProofToServiceResponse(zkCert2.merkleProof),
       { overwriteRoutes: true },
@@ -616,7 +618,8 @@ describe('Test rpc handler function', function () {
     it('should handle failures fetching merkle proof update', async function (this: Mocha.Context) {
       this.timeout(25000);
       fetchMock.get(
-        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
+        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
+          zkCert.registration.address
         }/${zkCert.leafHash}`,
         404,
         { overwriteRoutes: true },
