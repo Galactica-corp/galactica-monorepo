@@ -7,9 +7,15 @@ import type {
 } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
+import hash from 'object-hash';
 
 import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
 import type { RpcArgs } from '../src/types';
+
+// Tell JSON how to serialize BigInts
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 const prover = proverData as ProverData;
 
@@ -173,3 +179,7 @@ export const benchmarkZKPGenParams: BenchmarkZKPGenParams = {
 
 export const merkleProofServiceURL =
   'https://merkle-proof-service.galactica.com/v1/galactica/';
+
+export const testProverURL =
+  'https://prover.galactica.com/v1/galactica/exampleMockDApp/';
+export const proverHash = hash.MD5(testZkpParams.prover);
