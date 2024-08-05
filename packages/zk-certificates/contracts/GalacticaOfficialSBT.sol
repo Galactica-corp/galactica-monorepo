@@ -6,10 +6,10 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 /**
- * @title GalacticaTwitterSBT: ERC721 NFT with URI storage for metadata used for governance in Discord
+ * @title GalacticaOfficialSBT: ERC721 NFT with URI storage for metadata used for governance in Discord
  * @dev ERC721 contains logic for NFT storage and metadata.
  */
-contract GalacticaTwitterSBT is ERC721, AccessControl {
+contract GalacticaOfficialSBT is ERC721, AccessControl {
     // roles for access control
     bytes32 public constant ISSUER_ROLE = keccak256("ISSUER_ROLE");
 
