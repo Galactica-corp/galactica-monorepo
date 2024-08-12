@@ -180,11 +180,12 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_poseidonSponge.circom',
         input: 'input/poseidonSponge.json',
       },
-      {
-        name: 'reputationExperiment',
-        circuit: 'experiments/crossAccountReputation.circom',
-        input: 'input/experiments/crossAccountReputation.json',
-      },
+      // disabled because they take a long time to compile and are just for testing
+      // {
+      //   name: 'reputationExperiment',
+      //   circuit: 'experiments/crossAccountReputation.circom',
+      //   input: 'input/experiments/crossAccountReputation.json',
+      // },
     ],
   },
 };
