@@ -1,4 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
@@ -68,6 +69,9 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
  * @param amountInstitutions - The amount of institutions to use for fraud investigation.
  * @param dAppAddress - The address of the DApp smart contract.
  * @param merkleTreeDepth - The depth of the registration Merkle tree.
+ * @param holder - The holder of the zkKYC.
+ * @param user - The user of the zkKYC.
+ * @param encryptionAccount - The encryption account of the zkKYC.
  * @returns Zero Knowledge KYC proof input for the zkKYC smart contract.
  */
 export async function generateZkKYCProofInput(
@@ -75,13 +79,28 @@ export async function generateZkKYCProofInput(
   amountInstitutions: number,
   dAppAddress: string,
   merkleTreeDepth = 32,
+  holder: SignerWithAddress | null = null,
+  user: SignerWithAddress | null = null,
+  encryptionAccount: SignerWithAddress | null = null,
 ): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
-  const [holder, user, encryptionAccount] = await ethers.getSigners();
+  const [_holder, _user, _encryptionAccount] = await ethers.getSigners();
+  if (holder === null) {
+    // eslint-disable-next-line no-param-reassign
+    holder = _holder;
+  }
+  if (user === null) {
+    // eslint-disable-next-line no-param-reassign
+    user = _user;
+  }
+  if (encryptionAccount === null) {
+    // eslint-disable-next-line no-param-reassign
+    encryptionAccount = _encryptionAccount;
+  }
   const institutions = [];
   for (let i = 0; i < amountInstitutions; i++) {
     institutions.push((await ethers.getSigners())[4 + i]);
