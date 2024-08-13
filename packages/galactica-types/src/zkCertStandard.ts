@@ -88,6 +88,9 @@ export const humanIDFieldOrder = [
   'dayOfBirth',
   'citizenship',
   'dAppAddress',
+  'saltSignatureS',
+  'saltSignatureRx',
+  'saltSignatureRy',
 ];
 
 /**
