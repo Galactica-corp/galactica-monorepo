@@ -9,8 +9,9 @@ async function main() {
   // parameters for test interaction
   const [owner] = await ethers.getSigners();
   // const SBTAddress = '0xC1d40362A2e6c295DC53BAc79F65F81D030Da3Bd';
-  const SBTAddress = '0x75C47b5210658C6beFdDb23ab34B0B025979978e';
+  // const SBTAddress = '0x75C47b5210658C6beFdDb23ab34B0B025979978e';
   //const SBTAddress = '0x589A65F4434c63A220DEDb050C3Cc03ee43fBF13';
+  const SBTAddress = '0x78E0Bc3EE31D3c71e8B6A34813E362f4154ddE08';
 
   const SBTInstance = await ethers.getContractAt(
     'GalacticaOfficialSBT',
