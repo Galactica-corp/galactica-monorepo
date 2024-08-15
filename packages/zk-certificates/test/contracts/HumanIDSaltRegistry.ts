@@ -27,6 +27,7 @@ describe.only('HumanIDSaltRegistry', () => {
     const guardianRegistry = await guardianRegistryFactory.deploy(
       'Test Guardian Registry',
     );
+    await guardianRegistry.grantGuardianRole(guardian.address, [0, 0], "https://test.com");
 
     const humanIDSaltRegistryFactory =
       await ethers.getContractFactory('HumanIDSaltRegistry');
@@ -36,6 +37,7 @@ describe.only('HumanIDSaltRegistry', () => {
     ) as HumanIDSaltRegistry;
 
     const zkKYC = await generateSampleZkKYC();
+    zkKYC.expirationDate = (await hre.ethers.provider.getBlock('latest')).timestamp + 1000;
     const exampleSaltLockingZkCert: SaltLockingZkCertStruct = {
       zkCertId: zkKYC.leafHash,
       guardian: guardian.address,
@@ -53,6 +55,7 @@ describe.only('HumanIDSaltRegistry', () => {
         saltLockingZkCert: exampleSaltLockingZkCert,
         idHash: getIdHash(zkKYC),
         saltHash: zkKYC.holderCommitment,
+        zkKYC,
       },
     };
   }
@@ -76,7 +79,8 @@ describe.only('HumanIDSaltRegistry', () => {
       await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, example.saltHash);
 
       const otherZkKYC = await generateSampleZkKYC();
-      otherZkKYC.expirationDate = 1000;
+      // set another expiration date to get another zkCert hash
+      otherZkKYC.expirationDate = example.zkKYC.expirationDate + 2;
       const otherSaltLockingZkCert: SaltLockingZkCertStruct = {
         zkCertId: otherZkKYC.leafHash,
         guardian: guardian.address,
@@ -94,7 +98,7 @@ describe.only('HumanIDSaltRegistry', () => {
     });
 
     it('should revert when another salt is registered', async () => {
-      const { zkKYCRegistryMock, humanIDSaltRegistry, example, guardian } = await loadFixture(deploy);
+      const { zkKYCRegistryMock, humanIDSaltRegistry, example } = await loadFixture(deploy);
       await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, example.saltHash);
 
       const wrongSaltHash = 666;
@@ -104,8 +108,104 @@ describe.only('HumanIDSaltRegistry', () => {
   });
 
   describe('zkCertRevocation', () => {
+    it('should revoke zkCert', async () => {
+      const { zkKYCRegistryMock, humanIDSaltRegistry, example } = await loadFixture(deploy);
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, example.saltHash);
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertRevocation(example.zkKYC.leafHash);
+      // this test should pass without reverting
+    });
+
+    it('should revert when not called by registry', async () => {
+      const { zkKYCRegistryMock, humanIDSaltRegistry, example, deployer } = await loadFixture(deploy);
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, example.saltHash);
+
+      const call = humanIDSaltRegistry.connect(deployer).onZkCertRevocation(example.zkKYC.leafHash);
+      await expect(call).to.be.revertedWith('HumanIDSaltRegistry: only zkCertRegistry can call this function');
+    });
   });
 
   describe('Reset salt', () => {
+    it('should reset salt with one expired and one revoked zkKYC', async () => {
+      const { zkKYCRegistryMock, humanIDSaltRegistry, example, guardian } = await loadFixture(deploy);
+
+      // register two zkKYCs
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, example.saltHash);
+
+      const otherZkKYC = await generateSampleZkKYC();
+      otherZkKYC.expirationDate = example.zkKYC.expirationDate - 100;
+      const otherSaltLockingZkCert: SaltLockingZkCertStruct = {
+        zkCertId: otherZkKYC.leafHash,
+        guardian: guardian.address,
+        expirationTime: otherZkKYC.expirationDate,
+        revoked: false,
+      };
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(otherSaltLockingZkCert, getIdHash(otherZkKYC), otherZkKYC.holderCommitment);
+
+      // revoke the first one
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertRevocation(example.zkKYC.leafHash);
+      // let the second one expire
+      await hre.network.provider.send('evm_setNextBlockTimestamp', [otherZkKYC.expirationDate + 2]);
+      await hre.network.provider.send('evm_mine');
+
+      // before resetting the salt, the zkKYC should not accept another salt
+      const newSalt = 666;
+      const call = humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, newSalt);
+      await expect(call).to.be.revertedWith('HumanIDSaltRegistry: salt hash does not match the registered one');
+
+      // reset the salt
+      await humanIDSaltRegistry.connect(guardian).resetSalt(example.idHash);
+
+      // after the salt has been reset, the zkKYC should accept another salt
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, newSalt);
+    });
+
+    it('should revert if called by a not whitelisted guardian', async () => {
+      const { humanIDSaltRegistry, example, deployer } = await loadFixture(deploy);
+      const call = humanIDSaltRegistry.connect(deployer).resetSalt(example.idHash);
+      await expect(call).to.be.revertedWith('HumanIDSaltRegistry: only whitelisted guardians can call this function');
+    });
+
+    it('should return list of active zkKYCs blocking a reset', async () => {
+      const { zkKYCRegistryMock, humanIDSaltRegistry, example, guardian } = await loadFixture(deploy);
+
+      // register three zkKYCs: an expired one, an active one and a revoked one
+      const expiredZkKYC = await generateSampleZkKYC();
+      expiredZkKYC.expirationDate = example.zkKYC.expirationDate - 100;
+      const expiredSaltLockingZkCert: SaltLockingZkCertStruct = {
+        zkCertId: expiredZkKYC.leafHash,
+        guardian: guardian.address,
+        expirationTime: expiredZkKYC.expirationDate,
+        revoked: false,
+      };
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(expiredSaltLockingZkCert, getIdHash(expiredZkKYC), expiredZkKYC.holderCommitment);
+      // let it expire
+      await hre.network.provider.send('evm_setNextBlockTimestamp', [expiredZkKYC.expirationDate + 2]);
+      await hre.network.provider.send('evm_mine');
+
+      // register the active one
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, example.saltHash);
+
+      // register the revoked one
+      const revokedZkKYC = await generateSampleZkKYC();
+      revokedZkKYC.expirationDate = example.zkKYC.expirationDate + 1000;
+      const revokedSaltLockingZkCert: SaltLockingZkCertStruct = {
+        zkCertId: revokedZkKYC.leafHash,
+        guardian: guardian.address,
+        expirationTime: revokedZkKYC.expirationDate,
+        revoked: false,
+      };
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(revokedSaltLockingZkCert, getIdHash(revokedZkKYC), revokedZkKYC.holderCommitment);
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertRevocation(revokedZkKYC.leafHash);
+
+      // the reset should return the only active zkKYC
+      const activeZkKYCs = await humanIDSaltRegistry.connect(guardian).callStatic.resetSalt(example.idHash);
+      expect(activeZkKYCs.length).to.equal(1);
+      expect(activeZkKYCs[0].zkCertId).to.equal(example.zkKYC.leafHash);
+      expect(activeZkKYCs[0].guardian).to.equal(guardian.address);
+      expect(activeZkKYCs[0].expirationTime).to.equal(example.zkKYC.expirationDate);
+      expect(activeZkKYCs[0].revoked).to.be.false;
+    });
   });
+
+  // TODO: handle guardians who have been removed from the registry
 });

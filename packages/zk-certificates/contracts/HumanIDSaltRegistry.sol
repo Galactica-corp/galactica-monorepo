@@ -11,6 +11,13 @@ struct SaltLockingZkCert {
     bool revoked;
 }
 
+struct UserData {
+    // this is the registered salt hash for the user
+    uint256 saltHash;
+    // this is the list of zkCerts that might block resetting the salt
+    uint256[] zkCerts;
+}
+
 /**
  * @title HumanIDSaltRegistry
  * @author Galactica dev team
@@ -21,7 +28,8 @@ contract HumanIDSaltRegistry {
     address public zkCertRegistry;
 
     // mapping from  id hash to the salt hash
-    mapping(uint256 => uint256) internal _registeredSaltHash;
+    mapping(uint256 => UserData) internal _userData;
+    mapping(uint256 => SaltLockingZkCert) internal _saltLockingZkCerts;
 
     constructor(address guardianRegistry_, address zkCertRegistry_) {
         guardianRegistry = GuardianRegistry(guardianRegistry_);
@@ -45,6 +53,9 @@ contract HumanIDSaltRegistry {
         );
 
         _registerSaltHash(idHash, saltHash);
+
+        _userData[idHash].zkCerts.push(zkCert.zkCertId);
+        _saltLockingZkCerts[zkCert.zkCertId] = zkCert;
     }
 
     /**
@@ -56,6 +67,8 @@ contract HumanIDSaltRegistry {
             msg.sender == zkCertRegistry,
             'HumanIDSaltRegistry: only zkCertRegistry can call this function'
         );
+
+        _saltLockingZkCerts[zkCertId].revoked = true;
     }
 
     /**
@@ -66,7 +79,51 @@ contract HumanIDSaltRegistry {
     function resetSalt(
         uint256 idHash
     ) external returns (SaltLockingZkCert[] memory) {
-        // TODO: only guardians can call this
+        require(
+            guardianRegistry.isWhitelisted(msg.sender),
+            'HumanIDSaltRegistry: only whitelisted guardians can call this function'
+        );
+
+        // count zkCerts that are still locking the salt
+        uint256 blockingZkCertsCount = 0;
+        for (uint256 i = 0; i < _userData[idHash].zkCerts.length; i++) {
+            uint256 zkCertId = _userData[idHash].zkCerts[i];
+            if (
+                _saltLockingZkCerts[zkCertId].expirationTime >
+                block.timestamp && // check if not expired
+                !_saltLockingZkCerts[zkCertId].revoked // check if not revoked
+            ) {
+                blockingZkCertsCount++;
+            }
+        }
+
+        // if there are no zkCerts, we can reset the salt
+        if (blockingZkCertsCount == 0) {
+            _userData[idHash].saltHash = 0;
+            _userData[idHash].zkCerts = new uint256[](0);
+            return new SaltLockingZkCert[](0);
+        }
+
+        // if there areblocking zkCerts, we need to return them to let the guardian know what is blocking the reset
+
+        SaltLockingZkCert[] memory blockingZkCerts = new SaltLockingZkCert[](
+            blockingZkCertsCount
+        );
+        uint256 fillIndex = 0;
+        // go through all zkCerts and check if any of them is blocking
+        for (uint256 i = 0; i < _userData[idHash].zkCerts.length; i++) {
+            uint256 zkCertId = _userData[idHash].zkCerts[i];
+            if (
+                _saltLockingZkCerts[zkCertId].expirationTime >
+                block.timestamp && // check if not expired
+                !_saltLockingZkCerts[zkCertId].revoked // check if not revoked
+            ) {
+                blockingZkCerts[fillIndex] = _saltLockingZkCerts[zkCertId];
+                fillIndex++;
+            }
+        }
+
+        return blockingZkCerts;
     }
 
     /**
@@ -75,12 +132,12 @@ contract HumanIDSaltRegistry {
      * @param saltHash - Hash of the salt.
      */
     function _registerSaltHash(uint256 idHash, uint256 saltHash) internal {
-        if (_registeredSaltHash[idHash] == 0) {
+        if (_userData[idHash].saltHash == 0) {
             // this is a new salt hash for a new or resetted user, so just register it
-            _registeredSaltHash[idHash] = saltHash;
+            _userData[idHash].saltHash = saltHash;
         } else {
             require(
-                _registeredSaltHash[idHash] == saltHash,
+                _userData[idHash].saltHash == saltHash,
                 'HumanIDSaltRegistry: salt hash does not match the registered one'
             );
         }
