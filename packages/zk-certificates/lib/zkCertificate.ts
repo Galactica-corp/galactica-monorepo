@@ -3,7 +3,6 @@ import type {
   AuthorizationProofInput,
   EncryptedZkCert,
   FraudInvestigationDataEncryptionProofInput,
-  HumanIDProofInput,
   MerkleProof,
   OwnershipProofInput,
   ProviderData,
@@ -15,7 +14,6 @@ import type {
 import {
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
-  humanIDFieldOrder,
   zkKYCContentFields,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';

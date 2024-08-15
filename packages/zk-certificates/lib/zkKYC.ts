@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import type { HumanIDProofInput } from '@galactica-net/galactica-types';
 import {
   humanIDFieldOrder,
-  HumanIDProofInput,
   personIDFieldOrder,
   ZkCertStandard,
   zkKYCContentFields,
@@ -10,7 +10,7 @@ import {
 import type { Eddsa } from 'circomlibjs';
 
 import { hashStringToFieldNumber } from './helpers';
-import { ZkCertificate } from './zkCertificate';
+import type { ZkCertificate } from './zkCertificate';
 
 /**
  * Function preparing the inputs for a zkKYC certificate.
@@ -65,6 +65,7 @@ export function prepareKYCFields(
 
 /**
  * Calculate dApp specific human ID from zkKYC and dApp address.
+ * @param zkKYC - The zkCertificate containing the KYC data.
  * @param dAppAddress - Address of the dApp.
  * @returns Human ID as string.
  */
@@ -85,6 +86,11 @@ export function getHumanID(zkKYC: ZkCertificate, dAppAddress: string): string {
   ).toString();
 }
 
+/**
+ * Get the ZKP input for the human ID proof.
+ * @param dAppAddress - Address of the dApp.
+ * @returns Human ID proof input.
+ */
 export function getHumanIDProofInput(dAppAddress: string): HumanIDProofInput {
   return {
     dAppAddress,
@@ -93,8 +99,8 @@ export function getHumanIDProofInput(dAppAddress: string): HumanIDProofInput {
 
 /**
  * Calculate the user identifying hash as it is needed to register a salt in the salt registry.
- * @param zkKYC - zkKYC object.
- * @returns zkKYC ID hash.
+ * @param zkKYC - The zkCertificate containing the KYC data.
+ * @returns ZkKYC ID hash.
  */
 export function getIdHash(zkKYC: ZkCertificate): string {
   if (zkKYC.zkCertStandard !== ZkCertStandard.ZkKYC) {
