@@ -16,6 +16,7 @@ contract Faucet is AccessControl {
     uint256 public immutable amountPerEpoch;
 
     mapping(bytes32 => uint256) public lastEpochClaimed;
+    mapping(bytes32 => address) public humanIdToAddress;
     VerificationSBT public SBT;
     IZkKYCVerifier public verifierWrapper;
 
@@ -37,8 +38,16 @@ contract Faucet is AccessControl {
       return
     }
 
-    function receiveWithSBT() {
-
+    function receiveWithSBT() public {
+      require(
+            !SBT.isVerificationSBTValid(msg.sender, address(this)),
+            "no SBT found."
+        );
+      bytes32 humanId = SBT.getHumanID(msg.sender, address(this));
+      uint256 currentEpoch = getCurrentEpoch();
+      uint256 amount = amountPerEpoch * (currentEpoch - lastEpochClaimed[humanId]);
+      lastEpochClaimed[humanId] = currentEpoch;
+      msg.sender.transfer(amount);
     }
 
 
