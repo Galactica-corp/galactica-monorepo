@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./interfaces/IZkKYCVerifier.sol";
+import "./VerificationSBT.sol";
 
 /**
  * @title Faucet: distributes Gala to users on testnet
@@ -101,17 +102,21 @@ contract Faucet is AccessControl {
           // then we transfer the fund
           _transferForHumanId(humanID);
         }
-    }
+    } 
 
     function claimWithSBT() public {
       require(
             SBT.isVerificationSBTValid(msg.sender, address(this)),
             "no SBT found."
         );
+      
       bytes32 humanId = SBT.getHumanID(msg.sender, address(this));
+      // in theory this check should be redundant, but I put it here to make sure
+      require(humanIdToAddress[humanId] == msg.sender, "address not matched");
       _transferForHumanId(humanId);
     }
 
+    // internal function to transfer and update state variables accordingly
     function _transferForHumanId(bytes32 humanId) internal {
       address userAddress = humanIdToAddress[humanId];
       uint256 currentEpoch = getCurrentEpoch();
