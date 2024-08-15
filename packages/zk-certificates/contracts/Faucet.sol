@@ -31,7 +31,7 @@ contract Faucet is AccessControl {
     }
 
     function getCurrentEpoch() view public returns (uint256) {
-        return (block.timestamp - epochStartTime) / epochDuration;
+        return ((block.timestamp - epochStartTime) / epochDuration) + 1;
     }
 
     /* function to claim without SBT
@@ -46,7 +46,7 @@ contract Faucet is AccessControl {
         //
         bytes32 humanID = bytes32(input[verifierWrapper.INDEX_HUMAN_ID()]);
         uint dAppAddress = input[verifierWrapper.INDEX_DAPP_ID()];
-        address userAddress = input[verifierWrapper.INDEX_USER_ADDRESS()];
+        address userAddress = address(uint160(input[verifierWrapper.INDEX_USER_ADDRESS()]));
 
         // check that the public dAppAddress is correct
         require(
@@ -54,9 +54,9 @@ contract Faucet is AccessControl {
             "incorrect dAppAddress"
         );
         // check if there is an SBT for that humanID then proceed accordingly
-        if (SBT.isVerificationSBTValid(humanIDToAddress[humanID], address(this))) {
+        if (SBT.isVerificationSBTValid(humanIdToAddress[humanID], address(this))) {
           // SBT still valid for a different address
-          if (humanIDToAddress[humanID] != userAddress) {
+          if (humanIdToAddress[humanID] != userAddress) {
             revert("SBT is still valid for different address.");
           // if there is an SBT for that address then we transfer fund without minting a new SBT
           // but we recommend the user to use claimWithSBT() to avoid any confusion
