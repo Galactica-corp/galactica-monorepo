@@ -90,6 +90,32 @@ contract ZkKYC is Ownable {
         uint[2] memory c,
         uint[] memory input
     ) public view returns (bool) {
+            // dev note: if we ever use proof hash, make sure to pay attention to this truncation to uint160 as it can violate uniqueness
+        require(
+            tx.origin == address(uint160(input[INDEX_USER_ADDRESS])),
+            'transaction submitter is not authorized to use this proof'
+        );
+        return _verifyProof(a, b, c, input);
+    }
+
+    function verifyProof2(
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
+    ) public view returns (bool) {
+        return _verifyProof(a, b, c, input);
+    }
+
+    //a, b, c are the proof
+    // input array contains the public parameters: isValid, root, currentTime
+    // this function doesn't check the address, it's the responsibility of the caller to check the address
+    function _verifyProof(
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
+    ) public view returns (bool) {
         require(
             input.length == 11 + 4 * fraudInvestigationInstitutions.length,
             'the public proof input has an incorrect length (also considering the amount of investigation institutions)'
@@ -113,13 +139,6 @@ contract ZkKYC is Ownable {
             timeDiff <= timeDifferenceTolerance,
             'the current time is incorrect'
         );
-
-        // dev note: if we ever use proof hash, make sure to pay attention to this truncation to uint160 as it can violate uniqueness
-        require(
-            tx.origin == address(uint160(input[INDEX_USER_ADDRESS])),
-            'transaction submitter is not authorized to use this proof'
-        );
-
         // check that the institution public keys corresponds to the onchain ones;
         for (uint i = 0; i < fraudInvestigationInstitutions.length; i++) {
             require(
@@ -137,6 +156,10 @@ contract ZkKYC is Ownable {
         require(verifier.verifyProof(a, b, c, input), 'the proof is incorrect');
         return true;
     }
+
+
+
+
 
     function getAmountFraudInvestigationInstitutions()
         public
