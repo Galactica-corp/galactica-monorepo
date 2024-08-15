@@ -6,7 +6,8 @@ import {GuardianRegistry} from './GuardianRegistry.sol';
 
 struct SaltLockingZkCert {
     uint256 zkCertId;
-    uint256 expiryBlock;
+    address guardian;
+    uint256 expirationTime;
     bool revoked;
 }
 
@@ -38,7 +39,12 @@ contract HumanIDSaltRegistry {
         uint256 idHash,
         uint256 saltHash
     ) external {
-        // TODO: only zkCertRegistry can call this
+        require(
+            msg.sender == zkCertRegistry,
+            'HumanIDSaltRegistry: only zkCertRegistry can call this function'
+        );
+
+        _registerSaltHash(idHash, saltHash);
     }
 
     /**
@@ -46,7 +52,10 @@ contract HumanIDSaltRegistry {
      * @param zkCertId - Id of the zkCert to be revoked.
      */
     function onZkCertRevocation(uint256 zkCertId) external {
-        // TODO: only zkCertRegistry can call this
+        require(
+            msg.sender == zkCertRegistry,
+            'HumanIDSaltRegistry: only zkCertRegistry can call this function'
+        );
     }
 
     /**
@@ -65,5 +74,15 @@ contract HumanIDSaltRegistry {
      * @param idHash - Hash identifying the user. It is supposed to be the poseidon Hash of the name, birthday and citizenship.
      * @param saltHash - Hash of the salt.
      */
-    function _registerSaltHash(uint256 idHash, uint256 saltHash) internal {}
+    function _registerSaltHash(uint256 idHash, uint256 saltHash) internal {
+        if (_registeredSaltHash[idHash] == 0) {
+            // this is a new salt hash for a new or resetted user, so just register it
+            _registeredSaltHash[idHash] = saltHash;
+        } else {
+            require(
+                _registeredSaltHash[idHash] == saltHash,
+                'HumanIDSaltRegistry: salt hash does not match the registered one'
+            );
+        }
+    }
 }

@@ -2,6 +2,7 @@
 import {
   humanIDFieldOrder,
   HumanIDProofInput,
+  personIDFieldOrder,
   ZkCertStandard,
   zkKYCContentFields,
   zkKYCOptionalContent,
@@ -88,4 +89,24 @@ export function getHumanIDProofInput(dAppAddress: string): HumanIDProofInput {
   return {
     dAppAddress,
   };
+}
+
+/**
+ * Calculate the user identifying hash as it is needed to register a salt in the salt registry.
+ * @param zkKYC - zkKYC object.
+ * @returns zkKYC ID hash.
+ */
+export function getIdHash(zkKYC: ZkCertificate): string {
+  if (zkKYC.zkCertStandard !== ZkCertStandard.ZkKYC) {
+    throw new Error('zkKYC: can not get IdHash from non-ZkKYC certificate');
+  }
+
+  return zkKYC.poseidon.F.toObject(
+    zkKYC.poseidon(
+      // fill needed fields from zkKYC with dAppAddress added at the correct place
+      personIDFieldOrder.map((field) => zkKYC.content[field]),
+      undefined,
+      1,
+    ),
+  ).toString();
 }
