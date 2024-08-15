@@ -124,4 +124,11 @@ contract Faucet is AccessControl {
       lastEpochClaimed[humanId] = currentEpoch;
       userAddress.transfer(amount);
     }
+
+    // view function to get the amount that the user can claim
+    function getAmountClaimable(bytes32 humanId) public view returns (uint256) {
+      uint256 currentEpoch = getCurrentEpoch();
+      uint256 amount = amountPerEpoch * (currentEpoch - lastEpochClaimed[humanId]);
+      return amount;
+    }
 }
