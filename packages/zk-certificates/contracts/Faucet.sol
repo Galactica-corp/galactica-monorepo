@@ -18,14 +18,16 @@ contract Faucet is AccessControl {
 
     mapping(bytes32 => uint256) public lastEpochClaimed;
     mapping(bytes32 => address) public humanIdToAddress;
-    VerificationSBT public SBT;
-    IZkKYCVerifier public verifierWrapper;
+    VerificationSBT public immutable SBT;
+    IZkKYCVerifier public immutable verifierWrapper;
 
-    constructor(address owner, uint256 _epochDuration, uint256 _epochStartTime, uint256 _amountPerEpoch) {
+    constructor(address owner, uint256 _epochDuration, uint256 _epochStartTime, uint256 _amountPerEpoch, VerificationSBT _SBT, IZkKYCVerifier _verifierWrapper) {
       _grantRole(DEFAULT_ADMIN_ROLE, owner);
       epochDuration = _epochDuration;
       epochStartTime = _epochStartTime;
       amountPerEpoch = _amountPerEpoch;
+      SBT = _SBT;
+      verifierWrapper = _verifierWrapper;
     }
 
     function getCurrentEpoch() view public returns (uint256) {

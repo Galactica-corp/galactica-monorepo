@@ -30,15 +30,18 @@ const { expect } = chai;
 describe('AirdropGateway', () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
-  let airdropGateway: AirdropGateway;
+  let faucet: Faucet;
   let rewardToken: MockToken;
   let zkKYCContract: ZkKYC;
-  let zkKYCVerifier: ZkKYCVerifier;
+  let mockZkKYC: ZkKYCVerifier;
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let mockGalacticaInstitutions: MockGalacticaInstitution[];
   let GalaSBT: GalacticaOfficialSBT;
   let GalaSBT2: GalacticaOfficialSBT;
   const amountInstitutions = 3;
+  let epochDuration: number;
+  let epochStartTime: number;
+  let amountPerEpoch: number;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
@@ -75,80 +78,40 @@ describe('AirdropGateway', () => {
         (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution,
       );
     }
+    
+    // interaction with zkKYC has been tested in AirdropGateway and BasicKYCExampleDAppTest
+    const MockZkKYCFactory = await hre.ethers.getContractFactory('MockZkKYC');
+    const mockZkKYC = await MockZkKYCFactory.deploy();
+    await mockZkKYC.deployed();
 
-    const zkKYCVerifierFactory = await ethers.getContractFactory(
-      'ZkKYCVerifier',
+    // set up VerificationSBT
+    const verificationSBTFactory = await ethers.getContractFactory(
+      'VerificationSBT',
       deployer,
     );
-    zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
+    verificationSBT = (await verificationSBTFactory.deploy(
+      'test URI',
+      'VerificationSBT',
+      'VerificationSBT',
+    )) as VerificationSBT;
 
-    const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
-    zkKYCContract = (await zkKYCFactory.deploy(
-      deployer.address,
-      zkKYCVerifier.address,
-      mockZkCertificateRegistry.address,
-      [],
-    )) as ZkKYC;
+    // set up the faucet
+    epochDuration = 100;
+    epochStartTime = 1000;
+    amountPerEpoch = 100;
 
-    // set up airdropGateway and set up the client
-    const airdropGatewayFactory = await ethers.getContractFactory(
-      'AirdropGateway',
+    const faucetFactory = await ethers.getContractFactory(
+      'Faucet',
       deployer,
     );
-    airdropGateway = (await airdropGatewayFactory.deploy(
+    faucet = (await faucetFactory.deploy(
       deployer.address,
-      zkKYCContract.address,
-    )) as AirdropGateway;
-    clientRole = await airdropGateway.CLIENT_ROLE();
-    defaultAdminRole = await airdropGateway.DEFAULT_ADMIN_ROLE();
-
-    // make zkKYC record for airdropGateway
-    zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(
-      zkKYC,
-      0,
-      airdropGateway.address,
-    );
-
-    // the same zkKYC but through a different address
-    sampleInput2 = await generateZkKYCProofInput(
-      zkKYC,
-      0,
-      airdropGateway.address,
-      32,
-      null,
-      randomUser,
-      null,
-    );
-
-    // get signer object authorized to use the zkKYC record
-    user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
-
-    circuitWasmPath = './circuits/build/zkKYC.wasm';
-    circuitZkeyPath = './circuits/build/zkKYC.zkey';
-
-    // set up requirement SBT contracts
-    const galacticaOfficialSBTFactory = await ethers.getContractFactory(
-      'GalacticaOfficialSBT',
-      deployer,
-    );
-    GalaSBT = (await galacticaOfficialSBTFactory.deploy(
-      deployer.address,
-      '',
-      deployer.address,
-      '',
-      '',
-    )) as GalacticaOfficialSBT;
-    GalaSBT2 = (await galacticaOfficialSBTFactory.deploy(
-      deployer.address,
-      '',
-      deployer.address,
-      '',
-      '',
-    )) as GalacticaOfficialSBT;
-
-    const tokenFactory = await ethers.getContractFactory('MockToken', deployer);
-    rewardToken = (await tokenFactory.deploy(deployer.address)) as MockToken;
+      epochDuration,
+      epochStartTime,
+      amountPerEpoch,
+      mockZkKYC.address,
+      verificationSBT.address,  
+    )) as Faucet;
   });
 
   it('only owner can whitelist or dewhitelist clients', async () => {
