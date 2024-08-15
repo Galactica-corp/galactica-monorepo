@@ -47,14 +47,14 @@ export async function deployInfrastructure(
     'ZkKYC GuardianRegistry',
   ]);
   const recordRegistry = await deploySC(
-    'ZkCertificateRegistryTest',
+    'ZkKYCRegistry',
     true,
     {
       libraries: {
         PoseidonT3: poseidonT3.address,
       },
     },
-    [guardianRegistry.address, merkleTreeDepth],
+    [guardianRegistry.address, merkleTreeDepth, 'ZkKYC RecordRegistry'],
   );
 
   const queueExpirationTime = 60 * 5;
