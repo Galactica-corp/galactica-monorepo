@@ -32,7 +32,7 @@ import { encryptFraudInvestigationData } from './SBTData';
  */
 export class ZkCertificate implements ZkCertData {
   // Field of the curve used by Poseidon
-  protected poseidon: Poseidon;
+  public poseidon: Poseidon;
 
   protected fieldPoseidon: any;
 
@@ -40,7 +40,7 @@ export class ZkCertificate implements ZkCertData {
 
   public zkCertStandard: ZkCertStandard;
 
-  protected eddsa: Eddsa;
+  public eddsa: Eddsa;
 
   public randomSalt: string;
 
@@ -325,30 +325,6 @@ export class ZkCertificate implements ZkCertData {
         this.providerData.ax,
         this.leafHash,
       ),
-    };
-  }
-
-  /**
-   * Calculate dApp specific human ID from zkKYC and dApp address.
-   * @param dAppAddress - Address of the dApp.
-   * @returns Human ID as string.
-   */
-  public getHumanID(dAppAddress: string): string {
-    return this.poseidon.F.toObject(
-      this.poseidon(
-        // fill needed fields from zkKYC with dAppAddress added at the correct place
-        humanIDFieldOrder.map((field) =>
-          field === 'dAppAddress' ? dAppAddress : this.content[field],
-        ),
-        undefined,
-        1,
-      ),
-    ).toString();
-  }
-
-  public getHumanIDProofInput(dAppAddress: string): HumanIDProofInput {
-    return {
-      dAppAddress,
     };
   }
 }
