@@ -16,6 +16,7 @@ contract Faucet is AccessControl {
     uint256 public immutable amountPerEpoch;
 
     mapping(bytes32 => uint256) public lastEpochClaimed;
+    VerificationSBT public SBT;
     IZkKYCVerifier public verifierWrapper;
 
     constructor(address owner, uint256 _epochDuration, uint256 _epochStartTime, uint256 _amountPerEpoch) {
@@ -32,11 +33,13 @@ contract Faucet is AccessControl {
     function receiveWithoutSBT(uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[] memory input) view public returns (uint256) {
-      
+        uint[] memory input) public {
+      return
     }
 
-    function receiveWithSBT()
+    function receiveWithSBT() {
+
+    }
 
 
 }
