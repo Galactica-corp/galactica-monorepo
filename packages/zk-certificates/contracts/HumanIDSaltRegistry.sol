@@ -72,17 +72,18 @@ contract HumanIDSaltRegistry {
     }
 
     /**
-     * @notice Tries to reset a person's salt so they can register a new one. This is a recovery mechanism for unlucky users loosing their account. It only works if the user does not have any active zkCerts.
+     * @notice Lists zkCerts locking the user to a salt hash.
      * @param idHash - Hash identifying the user. It is supposed to be the poseidon Hash of the name, birthday and citizenship.
-     * @return List of zkCerts blocking the reset. If it is [], the salt has been reset.
+     * @return List of zkCerts blocking the reset. If it is [], the salt can be reset.
      */
-    function resetSalt(
+    function getSaltLockingZkCerts(
         uint256 idHash
-    ) external returns (SaltLockingZkCert[] memory) {
+    ) public view returns (SaltLockingZkCert[] memory) {
         require(
             guardianRegistry.isWhitelisted(msg.sender),
             'HumanIDSaltRegistry: only whitelisted guardians can call this function'
         );
+        // a technically advanced user could still extract the data from the blockchain. This is just to make it harder so that the average user can not get it from the block explorer.
 
         // count zkCerts that are still locking the salt
         uint256 blockingZkCertsCount = 0;
@@ -91,20 +92,14 @@ contract HumanIDSaltRegistry {
             if (
                 _saltLockingZkCerts[zkCertId].expirationTime >
                 block.timestamp && // check if not expired
-                !_saltLockingZkCerts[zkCertId].revoked // check if not revoked
+                !_saltLockingZkCerts[zkCertId].revoked && // check if not revoked
+                guardianRegistry.isWhitelisted(
+                    _saltLockingZkCerts[zkCertId].guardian
+                ) // check if guardian is still whitelisted
             ) {
                 blockingZkCertsCount++;
             }
         }
-
-        // if there are no zkCerts, we can reset the salt
-        if (blockingZkCertsCount == 0) {
-            _userData[idHash].saltHash = 0;
-            _userData[idHash].zkCerts = new uint256[](0);
-            return new SaltLockingZkCert[](0);
-        }
-
-        // if there areblocking zkCerts, we need to return them to let the guardian know what is blocking the reset
 
         SaltLockingZkCert[] memory blockingZkCerts = new SaltLockingZkCert[](
             blockingZkCertsCount
@@ -116,7 +111,10 @@ contract HumanIDSaltRegistry {
             if (
                 _saltLockingZkCerts[zkCertId].expirationTime >
                 block.timestamp && // check if not expired
-                !_saltLockingZkCerts[zkCertId].revoked // check if not revoked
+                !_saltLockingZkCerts[zkCertId].revoked && // check if not revoked
+                guardianRegistry.isWhitelisted(
+                    _saltLockingZkCerts[zkCertId].guardian
+                ) // check if guardian is still whitelisted
             ) {
                 blockingZkCerts[fillIndex] = _saltLockingZkCerts[zkCertId];
                 fillIndex++;
@@ -124,6 +122,29 @@ contract HumanIDSaltRegistry {
         }
 
         return blockingZkCerts;
+    }
+
+    /**
+     * @notice Tries to reset a person's salt so they can register a new one. This is a recovery mechanism for unlucky users loosing their account. It only works if the user does not have any active zkCerts.
+     * @param idHash - Hash identifying the user. It is supposed to be the poseidon Hash of the name, birthday and citizenship.
+     */
+    function resetSalt(uint256 idHash) external {
+        require(
+            guardianRegistry.isWhitelisted(msg.sender),
+            'HumanIDSaltRegistry: only whitelisted guardians can call this function'
+        );
+
+        SaltLockingZkCert[] memory blockingZkCerts = getSaltLockingZkCerts(
+            idHash
+        );
+
+        require(
+            blockingZkCerts.length == 0,
+            'HumanIDSaltRegistry: salt cannot be reset if there are active zkCerts locking it'
+        );
+
+        _userData[idHash].saltHash = 0;
+        _userData[idHash].zkCerts = new uint256[](0);
     }
 
     /**

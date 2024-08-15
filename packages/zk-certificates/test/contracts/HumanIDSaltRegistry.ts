@@ -198,14 +198,32 @@ describe.only('HumanIDSaltRegistry', () => {
       await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertRevocation(revokedZkKYC.leafHash);
 
       // the reset should return the only active zkKYC
-      const activeZkKYCs = await humanIDSaltRegistry.connect(guardian).callStatic.resetSalt(example.idHash);
+      const activeZkKYCs = await humanIDSaltRegistry.connect(guardian).getSaltLockingZkCerts(example.idHash);
       expect(activeZkKYCs.length).to.equal(1);
       expect(activeZkKYCs[0].zkCertId).to.equal(example.zkKYC.leafHash);
       expect(activeZkKYCs[0].guardian).to.equal(guardian.address);
       expect(activeZkKYCs[0].expirationTime).to.equal(example.zkKYC.expirationDate);
       expect(activeZkKYCs[0].revoked).to.be.false;
     });
-  });
 
-  // TODO: handle guardians who have been removed from the registry
+    it('should reset on de-listing guardians', async () => {
+      const { zkKYCRegistryMock, guardianRegistry, humanIDSaltRegistry, example, guardian, deployer } = await loadFixture(deploy);
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, example.saltHash);
+
+      const secondGuardian = deployer;
+      await guardianRegistry.grantGuardianRole(secondGuardian.address, [0, 0], "https://test.com");
+
+      // resetting the salt should not be possible before de-listing the guardian
+      const call = humanIDSaltRegistry.connect(secondGuardian).resetSalt(example.idHash);
+      await expect(call).to.be.revertedWith('HumanIDSaltRegistry: salt cannot be reset if there are active zkCerts locking it');
+
+      await guardianRegistry.revokeGuardianRole(guardian.address);
+
+      // now it should be possible to reset the salt
+      await humanIDSaltRegistry.connect(secondGuardian).resetSalt(example.idHash);
+      // and it should be possible to register a new salt hash
+      const newSalt = 666;
+      await humanIDSaltRegistry.connect(zkKYCRegistryMock).onZkCertIssuance(example.saltLockingZkCert, example.idHash, newSalt);
+    });
+  });
 });
