@@ -148,6 +148,19 @@ contract HumanIDSaltRegistry {
     }
 
     /**
+     * @notice Get the salt hash for a user. This function is for guardians to check in advance if they can issue a zkCert for a user.
+     * @param idHash - Hash identifying the user. It is supposed to be the poseidon Hash of the name, birthday and citizenship.
+     * @return Salt hash of the user.
+     */
+    function getSaltHash(uint256 idHash) external view returns (uint256) {
+        require(
+            guardianRegistry.isWhitelisted(msg.sender),
+            'HumanIDSaltRegistry: only whitelisted guardians can call this function'
+        );
+        return _userData[idHash].saltHash;
+    }
+
+    /**
      * @notice Register a salt hash for a user. Reverts if another salt is registered already.
      * @param idHash - Hash identifying the user. It is supposed to be the poseidon Hash of the name, birthday and citizenship.
      * @param saltHash - Hash of the salt.

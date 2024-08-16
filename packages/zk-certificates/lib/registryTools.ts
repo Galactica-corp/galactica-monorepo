@@ -5,12 +5,17 @@ import {
   type MerkleProof,
   type ZkCertRegistration,
 } from '@galactica-net/galactica-types';
-import type { Signer, Contract } from 'ethers';
+import { Signer, Contract } from 'ethers';
 
 import { fromDecToHex, fromHexToBytes32, sleep } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
 import type { ZkCertificate } from './zkCertificate';
 import { getIdHash } from './zkKYC';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import type {
+  HumanIDSaltRegistry,
+  SaltLockingZkCertStruct,
+} from '../typechain-types/contracts/HumanIDSaltRegistry';
 
 /**
  * Issues zkCert record on-chain and updates the merkle tree.
@@ -183,4 +188,61 @@ export async function waitOnIssuanceQueue(
       `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
     );
   }
+}
+
+/**
+ * Checks if the zkCert holder commitment is compatible with the registered salt hash.
+ * @param zkCert - ZkCertificate to check.
+ * @param recordRegistry - Record registry contract.
+ * @param issuer - Issuer of the zkCert.
+ * @param hre - Hardhat runtime environment.
+ * @returns If the check was successful.
+ */
+export async function checkZkKYCSaltHashCompatibility(
+  zkCert: ZkCertificate,
+  recordRegistry: Contract,
+  issuer: Signer,
+  hre: HardhatRuntimeEnvironment,
+): Promise<boolean> {
+  if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
+    throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
+  }
+  const idHash = getIdHash(zkCert);
+  const saltHash = zkCert.holderCommitment;
+
+  const humanIDSaltRegistry = await hre.ethers.getContractAt(
+    'HumanIDSaltRegistry',
+    await recordRegistry.humanIDSaltRegistry(),
+  ) as HumanIDSaltRegistry;
+
+  const registeredSaltHash = await humanIDSaltRegistry.connect(issuer).getSaltHash(idHash);
+
+  return registeredSaltHash.toString() === saltHash || registeredSaltHash.toString() === "0";
+}
+
+/**
+ * Lists zkKYCs that lock the salt hash of the zkCert. If the user can not use the same commitment hash as before, the guardian can tell the user what zkKYCs need to expire or be revoked.
+ * @param zkCert - ZkCertificate to check.
+ * @param recordRegistry - Record registry contract.
+ * @param issuer - Issuer of the zkCert.
+ * @param hre - Hardhat runtime environment.
+ * @returns List of SaltLockingZkCerts.
+ */
+export async function listZkKYCsLockingTheSaltHash(
+  zkCert: ZkCertificate,
+  recordRegistry: Contract,
+  issuer: Signer,
+  hre: HardhatRuntimeEnvironment,
+): Promise<SaltLockingZkCertStruct[]> {
+  if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
+    throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
+  }
+  const idHash = getIdHash(zkCert);
+
+  const humanIDSaltRegistry = await hre.ethers.getContractAt(
+    'HumanIDSaltRegistry',
+    await recordRegistry.humanIDSaltRegistry(),
+  ) as HumanIDSaltRegistry;
+
+  return await humanIDSaltRegistry.connect(issuer).getSaltLockingZkCerts(idHash);
 }
