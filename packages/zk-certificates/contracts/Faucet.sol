@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./interfaces/IZkKYCVerifier.sol";
 import "./interfaces/IVerificationSBT.sol";
-import "hardhat/console.sol";
 
 
 /**
@@ -45,26 +44,21 @@ contract Faucet is AccessControl {
         uint[2][2] memory b,
         uint[2] memory c,
         uint[] memory input) public {
-        console.log("starting");
-                console.log("starting4");
+
 
 
         //
         bytes32 humanID = bytes32(input[verifierWrapper.INDEX_HUMAN_ID()]);
-                console.log("starting5");
 
         uint dAppAddress = input[verifierWrapper.INDEX_DAPP_ID()];
-        console.log("starting6");
 
         address userAddress = address(uint160(input[verifierWrapper.INDEX_USER_ADDRESS()]));
-        console.log("starting3");
 
         // check that the public dAppAddress is correct
         require(
             dAppAddress == uint(uint160(address(this))),
             "incorrect dAppAddress"
         );
-        console.log("starting1");
         // check if there is an SBT for that humanID then proceed accordingly
         if (SBT.isVerificationSBTValid(humanIdToAddress[humanID], address(this))) {
           // SBT still valid for a different address
@@ -76,7 +70,6 @@ contract Faucet is AccessControl {
             _transferForHumanId(humanID);
           }
         } else {
-          console.log("starting2");
 
           // we check the validity of the proof
           // here we use the second variation because the user address is already checked earlier
