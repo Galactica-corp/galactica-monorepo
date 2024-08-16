@@ -5,7 +5,9 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./interfaces/IZkKYCVerifier.sol";
-import "./VerificationSBT.sol";
+import "./interfaces/IVerificationSBT.sol";
+import "hardhat/console.sol";
+
 
 /**
  * @title Faucet: distributes Gala to users on testnet
@@ -18,10 +20,10 @@ contract Faucet is AccessControl {
 
     mapping(bytes32 => uint256) public lastEpochClaimed;
     mapping(bytes32 => address) public humanIdToAddress;
-    VerificationSBT public immutable SBT;
+    IVerificationSBT public immutable SBT;
     IZkKYCVerifier public immutable verifierWrapper;
 
-    constructor(address owner, uint256 _epochDuration, uint256 _epochStartTime, uint256 _amountPerEpoch, VerificationSBT _SBT, IZkKYCVerifier _verifierWrapper) {
+    constructor(address owner, uint256 _epochDuration, uint256 _epochStartTime, uint256 _amountPerEpoch, IVerificationSBT _SBT, IZkKYCVerifier _verifierWrapper) {
       _grantRole(DEFAULT_ADMIN_ROLE, owner);
       epochDuration = _epochDuration;
       epochStartTime = _epochStartTime;
@@ -43,16 +45,26 @@ contract Faucet is AccessControl {
         uint[2][2] memory b,
         uint[2] memory c,
         uint[] memory input) public {
+        console.log("starting");
+                console.log("starting4");
+
+
         //
         bytes32 humanID = bytes32(input[verifierWrapper.INDEX_HUMAN_ID()]);
+                console.log("starting5");
+
         uint dAppAddress = input[verifierWrapper.INDEX_DAPP_ID()];
+        console.log("starting6");
+
         address userAddress = address(uint160(input[verifierWrapper.INDEX_USER_ADDRESS()]));
+        console.log("starting3");
 
         // check that the public dAppAddress is correct
         require(
             dAppAddress == uint(uint160(address(this))),
             "incorrect dAppAddress"
         );
+        console.log("starting1");
         // check if there is an SBT for that humanID then proceed accordingly
         if (SBT.isVerificationSBTValid(humanIdToAddress[humanID], address(this))) {
           // SBT still valid for a different address
@@ -64,6 +76,8 @@ contract Faucet is AccessControl {
             _transferForHumanId(humanID);
           }
         } else {
+          console.log("starting2");
+
           // we check the validity of the proof
           // here we use the second variation because the user address is already checked earlier
           require(verifierWrapper.verifyProof2(a, b, c, input), "invalid proof");
@@ -101,6 +115,7 @@ contract Faucet is AccessControl {
               humanID,
               providerPubKey
           );
+          humanIdToAddress[humanID] = userAddress;
           // then we transfer the fund
           _transferForHumanId(humanID);
         }
@@ -124,7 +139,7 @@ contract Faucet is AccessControl {
       uint256 currentEpoch = getCurrentEpoch();
       uint256 amount = amountPerEpoch * (currentEpoch - lastEpochClaimed[humanId]);
       lastEpochClaimed[humanId] = currentEpoch;
-      userAddress.transfer(amount);
+      payable(userAddress).transfer(amount);
     }
 
     // view function to get the amount that the user can claim
@@ -133,4 +148,6 @@ contract Faucet is AccessControl {
       uint256 amount = amountPerEpoch * (currentEpoch - lastEpochClaimed[humanId]);
       return amount;
     }
+
+    receive() external payable {}
 }

@@ -16,7 +16,7 @@ import {
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
 import type { Faucet } from '../../typechain-types/contracts/Faucet';
-import type { GalacticaOfficialSBT } from '../../typechain-types/contracts/GalacticaOfficialSBT';
+import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { MockToken } from '../../typechain-types/contracts/mock/MockToken';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
@@ -32,7 +32,7 @@ describe.only('AirdropGateway', () => {
   /* await hre.network.provider.send('hardhat_reset'); */
   let faucet: Faucet;
   let mockGalacticaInstitutions: MockGalacticaInstitution[];
-  const amountInstitutions = 3;
+  const amountInstitutions = 0;
   let epochDuration: number;
   let epochStartTime: number;
   let amountPerEpoch: number;
@@ -59,7 +59,7 @@ describe.only('AirdropGateway', () => {
       'MockZkCertificateRegistry',
       deployer,
     );
-    mockZkCertificateRegistry =
+    let mockZkCertificateRegistry =
       (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
@@ -83,7 +83,7 @@ describe.only('AirdropGateway', () => {
       'VerificationSBT',
       deployer,
     );
-    verificationSBT = (await verificationSBTFactory.deploy(
+    let verificationSBT = (await verificationSBTFactory.deploy(
       'test URI',
       'VerificationSBT',
       'VerificationSBT',
@@ -103,8 +103,8 @@ describe.only('AirdropGateway', () => {
       epochDuration,
       epochStartTime,
       amountPerEpoch,
-      mockZkKYC.address,
       verificationSBT.address,  
+      mockZkKYC.address,
     )) as Faucet;
   
         // make zkKYC record for airdropGateway
@@ -120,6 +120,7 @@ describe.only('AirdropGateway', () => {
   });
 
   it('users can claim', async () => {
+    console.log("haha");
     // first we send some fund to the contract
     await deployer.sendTransaction({
       to: faucet.address,
@@ -136,19 +137,22 @@ describe.only('AirdropGateway', () => {
 
     const [piA, piB, piC] = processProof(proof);
 
-    const publicInputs = processPublicSignals(publicSignals);
-
-
-    const humanID1 = ethers.utils.randomBytes(32);
-    const humanID2 = ethers.utils.randomBytes(32);
+    const humanID1 = fromHexToBytes32(Buffer.from(ethers.utils.randomBytes(32)).toString('hex'));
+    const humanID2 = fromHexToBytes32(Buffer.from(ethers.utils.randomBytes(32)).toString('hex'));
 
     const HUMAN_ID_INDEX = 0;
     const INDEX_VERIFICATION_EXPIRATION = 4;
     const USER_ADDRESS_INDEX = 7 + amountInstitutions * 2;
     // we set up relevant public info
-    publicInputs[HUMAN_ID_INDEX] = humanID1;
-    publicInputs[USER_ADDRESS_INDEX] = user.address;
-    publicInputs[INDEX_VERIFICATION_EXPIRATION] = epochStartTime + epochDuration * 4;
+    publicSignals[HUMAN_ID_INDEX] = humanID1;
+    publicSignals[USER_ADDRESS_INDEX] = (user.address).toLowerCase();
+    publicSignals[INDEX_VERIFICATION_EXPIRATION] = epochStartTime + epochDuration * 4;
+
+    const publicInputs = processPublicSignals(publicSignals);
+
+
+    /* console.log(sampleInput); */
+
 
     // now at epoch 2 when we call from any account the claimWithoutSBT for user
     // he should receive 2 epochs worth of funds and an SBT
@@ -159,6 +163,8 @@ describe.only('AirdropGateway', () => {
 
     let userBalanceBefore = await ethers.provider.getBalance(user.address);
 
+    console.log("haha2");
+
     await faucet.claimWithoutSBT(
       piA,
       piB,
@@ -167,8 +173,13 @@ describe.only('AirdropGateway', () => {
     );
 
     let userBalanceAfter = await ethers.provider.getBalance(user.address);
+    console.log("userBalanceBefore", userBalanceBefore);
+    console.log("userBalanceAfter", userBalanceAfter);
 
-    expect(userBalanceAfter).to.be.equal(userBalanceBefore + amountPerEpoch * 2);
+    // check that user has received the fund
+    expect(userBalanceAfter).to.be.equal(userBalanceBefore.add(amountPerEpoch.mul(2)));
+    // check that user has a valid SBT
+    
 
     
 
