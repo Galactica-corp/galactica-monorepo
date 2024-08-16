@@ -41,6 +41,37 @@ contract DevnetGuardian {
     }
 
     /**
+     * @notice addZkCertificate issues a zkCertificate record by adding it to the Merkle tree
+     * @param leafIndex - leaf position of the zkCertificate in the Merkle tree
+     * @param zkCertificateHash - hash of the zkCertificate record leaf
+     * @param merkleProof - Merkle proof of the zkCertificate record leaf being free
+     * @param idHash - Hash identifying the user. It is supposed to be the poseidon Hash of the name, birthday and citizenship.
+     * @param saltHash - Hash of the salt, usually the commitment hash.
+     * @param saltHash - Hash of the salt, usually the commitment hash.
+     */
+    function addZkCertificate(
+        uint256 leafIndex,
+        bytes32 zkCertificateHash,
+        bytes32[] memory merkleProof,
+        uint256 idHash,
+        uint256 saltHash,
+        uint256 expirationTime
+    ) public {
+        require(
+            creatorOfLeaf[zkKYCRecordHash] == msg.sender,
+            'KYCRecordRegistry (DevNet Test): not the corresponding KYC Center'
+        );
+        recordRegistry.addZkCertificate(
+            leafIndex,
+            zkKYCRecordHash,
+            merkleProof,
+            idHash,
+            saltHash,
+            expirationTime
+        );
+    }
+
+    /**
      * @notice revokeZkCertificate removes a previously issued zkKYC from the registry by setting the content of the merkle leaf to zero.
      * @param leafIndex - leaf position of the zkKYC in the Merkle tree
      * @param zkKYCRecordHash - hash of the zkKYC record leaf
