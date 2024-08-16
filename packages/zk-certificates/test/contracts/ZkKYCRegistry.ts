@@ -123,9 +123,7 @@ describe('ZkKYCRegistry', () => {
         await ZkKYCRegistry.checkZkCertificateHashInQueue(leafHashes[i]),
       ).to.be.equal(true);
 
-      await ZkKYCRegistry[
-        'addZkCertificate(uint256,bytes32,bytes32[],uint256,uint256,uint256)'
-      ](
+      await ZkKYCRegistry.addZkKYC(
         leafIndices[i],
         leafHashes[i],
         merkleProofPath,
@@ -181,9 +179,7 @@ describe('ZkKYCRegistry', () => {
       );
       // firstly we need to register the hash to the queue
       await ZkKYCRegistry.registerToQueue(leafHashes[i]);
-      await ZkKYCRegistry[
-        'addZkCertificate(uint256,bytes32,bytes32[],uint256,uint256,uint256)'
-      ](
+      await ZkKYCRegistry.addZkKYC(
         leafIndices[i],
         leafHashes[i],
         merkleProofPath,
@@ -256,9 +252,7 @@ describe('ZkKYCRegistry', () => {
 
     // but a random user cannot add ZkCertificate, even if it's already in the queue
     await expect(
-      ZkKYCRegistry.connect(user)[
-        'addZkCertificate(uint256,bytes32,bytes32[],uint256,uint256,uint256)'
-      ](
+      ZkKYCRegistry.connect(user).addZkKYC(
         leafIndices[0],
         leafHashes[0],
         merkleProofPath,
@@ -314,9 +308,7 @@ describe('ZkKYCRegistry', () => {
     );
 
     await expect(
-      ZkKYCRegistry[
-        'addZkCertificate(uint256,bytes32,bytes32[],uint256,uint256,uint256)'
-      ](
+      ZkKYCRegistry.addZkKYC(
         leafIndices[loops - 1],
         leafHashes[loops - 1],
         merkleProofPath,
@@ -332,9 +324,7 @@ describe('ZkKYCRegistry', () => {
     ).toNumber();
     await hre.network.provider.send('evm_setNextBlockTimestamp', [timestamp]);
     await hre.network.provider.send('evm_mine');
-    await ZkKYCRegistry[
-      'addZkCertificate(uint256,bytes32,bytes32[],uint256,uint256,uint256)'
-    ](
+    await ZkKYCRegistry.addZkKYC(
       leafIndices[loops - 1],
       leafHashes[loops - 1],
       merkleProofPath,
@@ -378,9 +368,7 @@ describe('ZkKYCRegistry', () => {
       fromHexToBytes32(fromDecToHex(value)),
     );
     await ZkKYCRegistry.registerToQueue(leafHashes[0]);
-    await ZkKYCRegistry[
-      'addZkCertificate(uint256,bytes32,bytes32[],uint256,uint256,uint256)'
-    ](
+    await ZkKYCRegistry.addZkKYC(
       leafIndices[0],
       leafHashes[0],
       merkleProofPath,

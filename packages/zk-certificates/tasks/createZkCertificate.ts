@@ -103,7 +103,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     );
   } else {
     const recordRegistry = await hre.ethers.getContractAt(
-      'ZkCertificateRegistry',
+      zkCertificateType = ZkCertStandard.ZkKYC ? 'ZkKYCRegistry' : 'ZkCertificateRegistry',
       args.registryAddress,
     );
 

@@ -41,7 +41,7 @@ contract ZkKYCRegistry is ZkCertificateRegistry {
     }
 
     /**
-     * @notice addZkCertificate issues a zkCertificate record by adding it to the Merkle tree
+     * @notice addZkKYC issues a zkCertificate record by adding it to the Merkle tree
      * @param leafIndex - leaf position of the zkCertificate in the Merkle tree
      * @param zkCertificateHash - hash of the zkCertificate record leaf
      * @param merkleProof - Merkle proof of the zkCertificate record leaf being free
@@ -49,7 +49,7 @@ contract ZkKYCRegistry is ZkCertificateRegistry {
      * @param saltHash - Hash of the salt, usually the commitment hash.
      * @param saltHash - Hash of the salt, usually the commitment hash.
      */
-    function addZkCertificate(
+    function addZkKYC(
         uint256 leafIndex,
         bytes32 zkCertificateHash,
         bytes32[] memory merkleProof,

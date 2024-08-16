@@ -1,14 +1,16 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
-import type {
-  MerkleProof,
-  ZkCertRegistration,
+import {
+  ZkCertStandard,
+  type MerkleProof,
+  type ZkCertRegistration,
 } from '@galactica-net/galactica-types';
 import type { Signer, Contract } from 'ethers';
 
 import { fromDecToHex, fromHexToBytes32, sleep } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
 import type { ZkCertificate } from './zkCertificate';
+import { getIdHash } from './zkKYC';
 
 /**
  * Issues zkCert record on-chain and updates the merkle tree.
@@ -33,13 +35,31 @@ export async function issueZkCert(
 
   const contractToCall = devnetGuardian ?? recordRegistry;
   // now we have the merkle proof to add a new leaf
-  const tx = await contractToCall.connect(issuer).addZkCertificate(
-    chosenLeafIndex,
-    leafBytes,
-    leafEmptyMerkleProof.pathElements.map((value) =>
-      fromHexToBytes32(fromDecToHex(value)),
-    ),
-  );
+
+  let tx;
+  // if the zkCert is a zkKYC, we need to pass a few more parameters for the salt registry
+  if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
+    tx = await contractToCall.connect(issuer).addZkKYC(
+      chosenLeafIndex,
+      leafBytes,
+      leafEmptyMerkleProof.pathElements.map((value) =>
+        fromHexToBytes32(fromDecToHex(value)),
+      ),
+      getIdHash(zkCert),
+      zkCert.holderCommitment,
+      zkCert.expirationDate,
+    );
+  } else {
+    tx = await contractToCall.connect(issuer).addZkCertificate(
+      chosenLeafIndex,
+      leafBytes,
+      leafEmptyMerkleProof.pathElements.map((value) =>
+        fromHexToBytes32(fromDecToHex(value)),
+      ),
+    );
+  }
+
+
   await tx.wait();
   const { provider } = contractToCall;
   const txReceipt = await provider.getTransactionReceipt(tx.hash);

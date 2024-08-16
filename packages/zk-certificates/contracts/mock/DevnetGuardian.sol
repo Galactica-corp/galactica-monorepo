@@ -3,6 +3,7 @@ pragma solidity ^0.8.7;
 pragma abicoder v2;
 
 import {ZkCertificateRegistry} from '../ZkCertificateRegistry.sol';
+import {ZkKYCRegistry} from '../ZkKYCRegistry.sol';
 
 /**
  * @title DevnetGuardian is a simple KYC guardian that everyone can use to issue zkKYCs on Devnet
@@ -41,17 +42,17 @@ contract DevnetGuardian {
     }
 
     /**
-     * @notice addZkCertificate issues a zkCertificate record by adding it to the Merkle tree
+     * @notice addZkKYC issues a zkCertificate record by adding it to the Merkle tree
      * @param leafIndex - leaf position of the zkCertificate in the Merkle tree
-     * @param zkCertificateHash - hash of the zkCertificate record leaf
+     * @param zkKYCRecordHash - hash of the zkCertificate record leaf
      * @param merkleProof - Merkle proof of the zkCertificate record leaf being free
      * @param idHash - Hash identifying the user. It is supposed to be the poseidon Hash of the name, birthday and citizenship.
      * @param saltHash - Hash of the salt, usually the commitment hash.
      * @param saltHash - Hash of the salt, usually the commitment hash.
      */
-    function addZkCertificate(
+    function addZkKYC(
         uint256 leafIndex,
-        bytes32 zkCertificateHash,
+        bytes32 zkKYCRecordHash,
         bytes32[] memory merkleProof,
         uint256 idHash,
         uint256 saltHash,
@@ -61,7 +62,8 @@ contract DevnetGuardian {
             creatorOfLeaf[zkKYCRecordHash] == msg.sender,
             'KYCRecordRegistry (DevNet Test): not the corresponding KYC Center'
         );
-        recordRegistry.addZkCertificate(
+        ZkKYCRegistry zkKYCRegistry = ZkKYCRegistry(address(recordRegistry));
+        zkKYCRegistry.addZkKYC(
             leafIndex,
             zkKYCRecordHash,
             merkleProof,
