@@ -5,8 +5,8 @@ import {
   type MerkleProof,
   type ZkCertRegistration,
 } from '@galactica-net/galactica-types';
+import type { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
 import type { Signer, Contract } from 'ethers';
-import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { fromDecToHex, fromHexToBytes32, sleep } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
@@ -191,14 +191,14 @@ export async function waitOnIssuanceQueue(
  * @param zkCert - ZkCertificate to check.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert.
- * @param hre - Hardhat runtime environment.
+ * @param ethers - Ethers library from hre.
  * @returns If the check was successful.
  */
 export async function checkZkKYCSaltHashCompatibility(
   zkCert: ZkCertificate,
   recordRegistry: Contract,
   issuer: Signer,
-  hre: HardhatRuntimeEnvironment,
+  ethers: HardhatEthersHelpers,
 ): Promise<boolean> {
   if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
     throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
@@ -206,7 +206,7 @@ export async function checkZkKYCSaltHashCompatibility(
   const idHash = getIdHash(zkCert);
   const saltHash = zkCert.holderCommitment;
 
-  const humanIDSaltRegistry = await hre.ethers.getContractAt(
+  const humanIDSaltRegistry = await ethers.getContractAt(
     'HumanIDSaltRegistry',
     await recordRegistry.humanIDSaltRegistry(),
   );
@@ -226,21 +226,21 @@ export async function checkZkKYCSaltHashCompatibility(
  * @param zkCert - ZkCertificate to check.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert.
- * @param hre - Hardhat runtime environment.
+ * @param ethers - Ethers library from hre.
  * @returns List of SaltLockingZkCerts.
  */
 export async function listZkKYCsLockingTheSaltHash(
   zkCert: ZkCertificate,
   recordRegistry: Contract,
   issuer: Signer,
-  hre: HardhatRuntimeEnvironment,
+  ethers: HardhatEthersHelpers,
 ): Promise<SaltLockingZkCertStruct[]> {
   if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
     throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
   }
   const idHash = getIdHash(zkCert);
 
-  const humanIDSaltRegistry = await hre.ethers.getContractAt(
+  const humanIDSaltRegistry = await ethers.getContractAt(
     'HumanIDSaltRegistry',
     await recordRegistry.humanIDSaltRegistry(),
   );

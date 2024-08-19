@@ -119,7 +119,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
         zkCertificate,
         recordRegistry,
         issuer,
-        hre,
+        hre.ethers,
       );
       if (!saltCheckOk) {
         console.error(
@@ -129,7 +129,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
               zkCertificate,
               recordRegistry,
               issuer,
-              hre,
+              hre.ethers,
             ),
             null,
             2,
