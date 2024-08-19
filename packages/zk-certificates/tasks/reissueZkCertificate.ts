@@ -84,7 +84,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   newZkCertificate.signWithProvider(providerEdDSAKey);
 
   const recordRegistry = await hre.ethers.getContractAt(
-    zkCertificateType = ZkCertStandard.ZkKYC ? 'ZkKYCRegistry' : 'ZkCertificateRegistry',
+    (zkCertificateType = ZkCertStandard.ZkKYC
+      ? 'ZkKYCRegistry'
+      : 'ZkCertificateRegistry'),
     args.registryAddress,
   );
 
@@ -125,7 +127,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${args.index as number
+      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${
+        args.index as number
       }`,
     ),
   );
@@ -159,7 +162,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${args.index as number
+      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${
+        args.index as number
       } with new expiration date ${args.expirationDate as number}`,
     ),
   );

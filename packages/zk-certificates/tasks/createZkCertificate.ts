@@ -105,19 +105,39 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     );
   } else {
     const recordRegistry = await hre.ethers.getContractAt(
-      zkCertificateType = ZkCertStandard.ZkKYC ? 'ZkKYCRegistry' : 'ZkCertificateRegistry',
+      (zkCertificateType = ZkCertStandard.ZkKYC
+        ? 'ZkKYCRegistry'
+        : 'ZkCertificateRegistry'),
       args.registryAddress,
     );
 
     if (zkCertificate.zkCertStandard === ZkCertStandard.ZkKYC) {
-      console.log('Checking HumanID Salt registry if the zkKYC can be issued...');
-      const saltCheckOk = await checkZkKYCSaltHashCompatibility(zkCertificate, recordRegistry, issuer, hre);
+      console.log(
+        'Checking HumanID Salt registry if the zkKYC can be issued...',
+      );
+      const saltCheckOk = await checkZkKYCSaltHashCompatibility(
+        zkCertificate,
+        recordRegistry,
+        issuer,
+        hre,
+      );
       if (!saltCheckOk) {
         console.error(
-          "The following zkKYCs are locking the salt hash of the zkCert:",
-          JSON.stringify(await listZkKYCsLockingTheSaltHash(zkCertificate, recordRegistry, issuer, hre), null, 2),
+          'The following zkKYCs are locking the salt hash of the zkCert:',
+          JSON.stringify(
+            await listZkKYCsLockingTheSaltHash(
+              zkCertificate,
+              recordRegistry,
+              issuer,
+              hre,
+            ),
+            null,
+            2,
+          ),
         );
-        throw new Error('The zkCertificate cannot be issued because the salt hash is not compatible with the registered one');
+        throw new Error(
+          'The zkCertificate cannot be issued because the salt hash is not compatible with the registered one',
+        );
       }
     }
 

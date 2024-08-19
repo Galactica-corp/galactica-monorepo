@@ -86,7 +86,9 @@ describe('HumanIDSaltRegistry', () => {
           example.idHash,
           example.saltHash,
         );
-      expect(await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash)).to.equal(example.saltHash);
+      expect(
+        await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash),
+      ).to.equal(example.saltHash);
     });
 
     it('should accept new zkKYC with existing salt', async () => {
@@ -116,7 +118,9 @@ describe('HumanIDSaltRegistry', () => {
           getIdHash(otherZkKYC),
           otherZkKYC.holderCommitment,
         );
-      expect(await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash)).to.equal(example.saltHash);
+      expect(
+        await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash),
+      ).to.equal(example.saltHash);
     });
 
     it('should revert when not called by registry', async () => {
@@ -132,7 +136,9 @@ describe('HumanIDSaltRegistry', () => {
       await expect(call).to.be.revertedWith(
         'HumanIDSaltRegistry: only zkCertRegistry can call this function',
       );
-      expect(await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash)).to.equal(0);
+      expect(
+        await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash),
+      ).to.equal(0);
     });
 
     it('should revert when another salt is registered', async () => {
@@ -226,7 +232,9 @@ describe('HumanIDSaltRegistry', () => {
           getIdHash(otherZkKYC),
           otherZkKYC.holderCommitment,
         );
-      expect(await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash)).to.equal(example.saltHash);
+      expect(
+        await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash),
+      ).to.equal(example.saltHash);
 
       // revoke the first one
       await humanIDSaltRegistry
@@ -249,7 +257,9 @@ describe('HumanIDSaltRegistry', () => {
 
       // reset the salt
       await humanIDSaltRegistry.connect(guardian).resetSalt(example.idHash);
-      expect(await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash)).to.equal(0);
+      expect(
+        await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash),
+      ).to.equal(0);
 
       // after the salt has been reset, the zkKYC should accept another salt
       await humanIDSaltRegistry
@@ -352,7 +362,9 @@ describe('HumanIDSaltRegistry', () => {
           example.idHash,
           example.saltHash,
         );
-      expect(await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash)).to.equal(example.saltHash);
+      expect(
+        await humanIDSaltRegistry.connect(guardian).getSaltHash(example.idHash),
+      ).to.equal(example.saltHash);
 
       const secondGuardian = deployer;
       await guardianRegistry.grantGuardianRole(
@@ -376,7 +388,11 @@ describe('HumanIDSaltRegistry', () => {
         .connect(secondGuardian)
         .resetSalt(example.idHash);
 
-      expect(await humanIDSaltRegistry.connect(secondGuardian).getSaltHash(example.idHash)).to.equal(0);
+      expect(
+        await humanIDSaltRegistry
+          .connect(secondGuardian)
+          .getSaltHash(example.idHash),
+      ).to.equal(0);
 
       // and it should be possible to register a new salt hash
       const newSalt = 666;

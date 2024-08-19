@@ -5,17 +5,14 @@ import {
   type MerkleProof,
   type ZkCertRegistration,
 } from '@galactica-net/galactica-types';
-import { Signer, Contract } from 'ethers';
+import type { Signer, Contract } from 'ethers';
+import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { fromDecToHex, fromHexToBytes32, sleep } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
 import type { ZkCertificate } from './zkCertificate';
 import { getIdHash } from './zkKYC';
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import type {
-  HumanIDSaltRegistry,
-  SaltLockingZkCertStruct,
-} from '../typechain-types/contracts/HumanIDSaltRegistry';
+import type { SaltLockingZkCertStruct } from '../typechain-types/contracts/HumanIDSaltRegistry';
 
 /**
  * Issues zkCert record on-chain and updates the merkle tree.
@@ -63,7 +60,6 @@ export async function issueZkCert(
       ),
     );
   }
-
 
   await tx.wait();
   const { provider } = contractToCall;
@@ -213,11 +209,16 @@ export async function checkZkKYCSaltHashCompatibility(
   const humanIDSaltRegistry = await hre.ethers.getContractAt(
     'HumanIDSaltRegistry',
     await recordRegistry.humanIDSaltRegistry(),
-  ) as HumanIDSaltRegistry;
+  );
 
-  const registeredSaltHash = await humanIDSaltRegistry.connect(issuer).getSaltHash(idHash);
+  const registeredSaltHash = await humanIDSaltRegistry
+    .connect(issuer)
+    .getSaltHash(idHash);
 
-  return registeredSaltHash.toString() === saltHash || registeredSaltHash.toString() === "0";
+  return (
+    registeredSaltHash.toString() === saltHash ||
+    registeredSaltHash.toString() === '0'
+  );
 }
 
 /**
@@ -242,7 +243,9 @@ export async function listZkKYCsLockingTheSaltHash(
   const humanIDSaltRegistry = await hre.ethers.getContractAt(
     'HumanIDSaltRegistry',
     await recordRegistry.humanIDSaltRegistry(),
-  ) as HumanIDSaltRegistry;
+  );
 
-  return await humanIDSaltRegistry.connect(issuer).getSaltLockingZkCerts(idHash);
+  return await humanIDSaltRegistry
+    .connect(issuer)
+    .getSaltLockingZkCerts(idHash);
 }
