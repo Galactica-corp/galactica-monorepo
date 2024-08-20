@@ -87,7 +87,8 @@ contract HumanIDSaltRegistry {
 
         // count zkCerts that are still locking the salt
         uint256 blockingZkCertsCount = 0;
-        for (uint256 i = 0; i < _userData[idHash].zkCerts.length; i++) {
+        uint amountZkCerts = _userData[idHash].zkCerts.length;
+        for (uint256 i = 0; i < amountZkCerts; i++) {
             uint256 zkCertId = _userData[idHash].zkCerts[i];
             if (
                 _saltLockingZkCerts[zkCertId].expirationTime >
@@ -106,7 +107,7 @@ contract HumanIDSaltRegistry {
         );
         uint256 fillIndex = 0;
         // go through all zkCerts and check if any of them is blocking
-        for (uint256 i = 0; i < _userData[idHash].zkCerts.length; i++) {
+        for (uint256 i = 0; i < amountZkCerts; i++) {
             uint256 zkCertId = _userData[idHash].zkCerts[i];
             if (
                 _saltLockingZkCerts[zkCertId].expirationTime >
