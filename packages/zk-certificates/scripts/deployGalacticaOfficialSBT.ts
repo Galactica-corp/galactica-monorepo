@@ -50,23 +50,23 @@ async function main() {
 
   // test GalacticaTwitterSBT
   // const uri = "https://mike-tis.github.io/XNET-SBT/content.json";
-  const uri = "https://quicknode.quicknode-ipfs.com/ipfs/QmTWZSCpQwzEcjCa7sriwPXoJHjC9dTyy7P94cT4KkBvTm";
+  const uri = "https://quicknode.quicknode-ipfs.com/ipfs/QmeJS1PdjBtbE77xgez7uBuPWg8ByJm3eFQsEpE8ffSE5g";
   const nftName = "Genesis SBT";
   const nftSymbol = "XNET";
 
-  const GalacticaOfficialSBTFactory = await ethers.getContractFactory('GalacticaTwitterSBT');
+  /* const GalacticaOfficialSBTFactory = await ethers.getContractFactory('GalacticaTwitterSBT');
   const GalacticaOfficialSBT = await GalacticaOfficialSBTFactory.deploy(issuer, uri, owner, nftName, nftSymbol);
   await GalacticaOfficialSBT.deployed();
 
-  console.log(`newly deployed SBT has address ${GalacticaOfficialSBT.address}`);
+  console.log(`newly deployed SBT has address ${GalacticaOfficialSBT.address}`); */
 
-  /* await deploySC('GalacticaOfficialSBT', true, {}, [
+  await deploySC('GalacticaTwitterSBT', true, {}, [
     issuer,
     uri,
     owner,
     nftName,
     nftSymbol,
-  ]); */
+  ]);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

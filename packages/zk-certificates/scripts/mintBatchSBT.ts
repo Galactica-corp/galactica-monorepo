@@ -8,7 +8,7 @@ import { ethers } from 'hardhat';
 async function main() {
   // parameters for test interaction
   const [owner] = await ethers.getSigners();
-  const SBTAddress = '0x499939a6C85a59E07939bfe2bF7DdcA031d0C9A1';
+  const SBTAddress = '0x9fd1bEb61B614100a78E7D073c2BB226c3E8C8aE';
 
   const dataPath = './data/andromedaTest.csv';
   let data;

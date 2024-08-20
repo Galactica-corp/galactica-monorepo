@@ -114,7 +114,6 @@ contract GalacticaOfficialSBT is ERC721, AccessControl {
     function tokenURI(
         uint256 tokenId
     ) public view virtual override returns (string memory) {
-        _requireMinted(tokenId);
         // concatinate base URI with holder address
         // address will be lower case and not have checksum encoding
         return baseURI;
