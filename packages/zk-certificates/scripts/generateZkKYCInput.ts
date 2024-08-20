@@ -11,6 +11,7 @@ import {
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ZkCertificate } from '../lib/zkCertificate';
+import { getHumanIDProofInput } from '../lib/zkKYC';
 
 // sample field inputs
 export const fields = {
@@ -131,7 +132,7 @@ export async function generateZkKYCProofInput(
 
   const encryptionPrivKey = await getEddsaKeyFromEthSigner(encryptionAccount);
 
-  const humanIDProofInput = zkKYC.getHumanIDProofInput(dAppAddress);
+  const humanIDProofInput = getHumanIDProofInput(dAppAddress);
 
   // initiate an empty merkle tree
   const merkleTree = new MerkleTree(merkleTreeDepth, eddsa.poseidon);
