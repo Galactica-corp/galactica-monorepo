@@ -44,10 +44,6 @@ contract Faucet is AccessControl {
         uint[2][2] memory b,
         uint[2] memory c,
         uint[] memory input) public {
-
-
-
-        //
         bytes32 humanID = bytes32(input[verifierWrapper.INDEX_HUMAN_ID()]);
 
         uint dAppAddress = input[verifierWrapper.INDEX_DAPP_ID()];
@@ -130,7 +126,11 @@ contract Faucet is AccessControl {
     function _transferForHumanId(bytes32 humanId) internal {
       address userAddress = humanIdToAddress[humanId];
       uint256 currentEpoch = getCurrentEpoch();
-      uint256 amount = amountPerEpoch * (currentEpoch - lastEpochClaimed[humanId]);
+      // check if the user has claimed in the current epoch
+      if (currentEpoch == lastEpochClaimed[humanId]) {
+        revert("User has already claimed in the current epoch.");
+      }
+      uint256 amount = amountPerEpoch;
       lastEpochClaimed[humanId] = currentEpoch;
       payable(userAddress).transfer(amount);
     }
@@ -138,8 +138,11 @@ contract Faucet is AccessControl {
     // view function to get the amount that the user can claim
     function getAmountClaimable(bytes32 humanId) public view returns (uint256) {
       uint256 currentEpoch = getCurrentEpoch();
-      uint256 amount = amountPerEpoch * (currentEpoch - lastEpochClaimed[humanId]);
-      return amount;
+      if (currentEpoch == lastEpochClaimed[humanId]) {
+        return 0;
+      } else {
+        return amountPerEpoch;
+      }
     }
 
     receive() external payable {}

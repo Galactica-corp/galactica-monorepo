@@ -98,6 +98,8 @@ contract ZkKYC is Ownable {
         return _verifyProof(a, b, c, input);
     }
 
+
+    // wrapper for internal function _verifyProof which doesn't check proof submitter address
     function verifyProof2(
         uint[2] memory a,
         uint[2][2] memory b,
