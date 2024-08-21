@@ -143,9 +143,7 @@ describe('AirdropGateway', () => {
 
     // check that user has received the fund
     // which is one time amount per Epoch, even though two epochs have past
-    expect(userBalanceAfter).to.be.equal(
-      userBalanceBefore.add(amountPerEpoch),
-    );
+    expect(userBalanceAfter).to.be.equal(userBalanceBefore.add(amountPerEpoch));
     // check that user has minted a valid SBT
     expect(
       await verificationSBT.isVerificationSBTValid(
