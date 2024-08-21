@@ -127,15 +127,16 @@ contract Faucet is AccessControl {
       address userAddress = humanIdToAddress[humanId];
       uint256 currentEpoch = getCurrentEpoch();
       // check if the user has claimed in the current epoch
-      if (currentEpoch == lastEpochClaimed[humanId]) {
-        revert("User has already claimed in the current epoch.");
+      if (currentEpoch > lastEpochClaimed[humanId]) {
+        uint256 amount = amountPerEpoch;
+        lastEpochClaimed[humanId] = currentEpoch;
+        payable(userAddress).transfer(amount);
       }
-      uint256 amount = amountPerEpoch;
-      lastEpochClaimed[humanId] = currentEpoch;
-      payable(userAddress).transfer(amount);
+
     }
 
     // view function to get the amount that the user can claim
+    // user needs to claim every epoch, the funds are not accumulated
     function getAmountClaimable(bytes32 humanId) public view returns (uint256) {
       uint256 currentEpoch = getCurrentEpoch();
       if (currentEpoch == lastEpochClaimed[humanId]) {

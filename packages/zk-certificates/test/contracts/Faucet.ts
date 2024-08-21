@@ -142,8 +142,9 @@ describe('AirdropGateway', () => {
     const userBalanceAfter = await ethers.provider.getBalance(user.address);
 
     // check that user has received the fund
+    // which is one time amount per Epoch, even though two epochs have past
     expect(userBalanceAfter).to.be.equal(
-      userBalanceBefore.add(amountPerEpoch.mul(2)),
+      userBalanceBefore.add(amountPerEpoch),
     );
     // check that user has minted a valid SBT
     expect(
@@ -212,13 +213,13 @@ describe('AirdropGateway', () => {
       publicSignals[INDEX_VERIFICATION_EXPIRATION] + 10,
     ]);
     await hre.network.provider.send('evm_mine');
-    // check that user cannot assign a different address to the same humanID when current SBt is staill valid
+    // check that user cannot assign a different address to the same humanID when current SBT is staill valid
     publicInputs[USER_ADDRESS_INDEX] = user2.address.toLowerCase();
     const user2BalanceBefore = await ethers.provider.getBalance(user2.address);
     await faucet.claimWithoutSBT(piA, piB, piC, publicInputs);
     const user2BalanceAfter = await ethers.provider.getBalance(user2.address);
     expect(user2BalanceAfter).to.be.equal(
-      user2BalanceBefore.add(amountPerEpoch.mul(7)),
+      user2BalanceBefore.add(amountPerEpoch),
     );
 
     // check that humanID has been assigned user address
