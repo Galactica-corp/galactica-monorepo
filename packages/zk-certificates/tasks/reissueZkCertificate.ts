@@ -84,7 +84,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   newZkCertificate.signWithProvider(providerEdDSAKey);
 
   const recordRegistry = await hre.ethers.getContractAt(
-    'ZkCertificateRegistry',
+    (zkCertificateType = ZkCertStandard.ZkKYC
+      ? 'ZkKYCRegistry'
+      : 'ZkCertificateRegistry'),
     args.registryAddress,
   );
 

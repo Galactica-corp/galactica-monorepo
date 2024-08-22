@@ -203,6 +203,9 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
     calculateHumanId.dayOfBirth <== dayOfBirth;
     calculateHumanId.citizenship <== citizenship;
     calculateHumanId.dAppAddress <== dAppAddress;
+    calculateHumanId.saltSignatureS <== s;
+    calculateHumanId.saltSignatureRx <== r8x;
+    calculateHumanId.saltSignatureRy <== r8y;
     
     humanID <== calculateHumanId.humanID;
 

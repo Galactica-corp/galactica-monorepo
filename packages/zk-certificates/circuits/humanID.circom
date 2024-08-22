@@ -20,11 +20,16 @@ template HumanID(){
     signal input dayOfBirth;
     signal input citizenship;
     signal input dAppAddress;
+    // The salt prevents guessing the humanID
+    // It is supposed to be fixed through the commitment hash and the salt registry so that each user only has one salt and one dApp specific humanID.
+    signal input saltSignatureS;
+    signal input saltSignatureRx;
+    signal input saltSignatureRy;
 
     // zkCertHash as output
     signal output humanID;
 
-    component hash = Poseidon(8);
+    component hash = Poseidon(11);
     hash.inputs[0] <== surname;
     hash.inputs[1] <== forename;
     hash.inputs[2] <== middlename;
@@ -33,6 +38,9 @@ template HumanID(){
     hash.inputs[5] <== dayOfBirth;
     hash.inputs[6] <== citizenship;
     hash.inputs[7] <== dAppAddress;
+    hash.inputs[8] <== saltSignatureS;
+    hash.inputs[9] <== saltSignatureRx;
+    hash.inputs[10] <== saltSignatureRy;
 
     humanID <== hash.out;
 }
