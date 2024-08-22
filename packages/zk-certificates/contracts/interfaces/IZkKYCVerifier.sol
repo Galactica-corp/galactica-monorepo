@@ -12,6 +12,13 @@ interface IZkKYCVerifier is IVerifierWrapper {
         uint[] memory input
     ) external view returns (bool);
 
+        function verifyProof2(
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
+    ) external view returns (bool);
+
     function fraudInvestigationInstitutions()
         external
         view
