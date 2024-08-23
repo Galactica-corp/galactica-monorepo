@@ -88,6 +88,22 @@ export const humanIDFieldOrder = [
   'dayOfBirth',
   'citizenship',
   'dAppAddress',
+  'saltSignatureS',
+  'saltSignatureRx',
+  'saltSignatureRy',
+];
+
+/**
+ * Ordered list of fields determining the person ID to register a unique salt in the salt registry.
+ */
+export const personIDFieldOrder = [
+  'surname',
+  'forename',
+  'middlename',
+  'yearOfBirth',
+  'monthOfBirth',
+  'dayOfBirth',
+  'citizenship',
 ];
 
 /**

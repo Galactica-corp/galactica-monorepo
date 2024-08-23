@@ -7,7 +7,7 @@
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
   "source": {
-    "shasum": "ZC8XyBWEPsPovMkTK8ZChScUl3WFcUmUHO+6twZK5CU=",
+    "shasum": "mGUvkmUgkznx+/WsgEaqnx3IrluWVesrB47lEFOc3yo=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",

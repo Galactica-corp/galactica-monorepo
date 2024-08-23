@@ -1,14 +1,18 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
-import type {
-  MerkleProof,
-  ZkCertRegistration,
+import {
+  ZkCertStandard,
+  type MerkleProof,
+  type ZkCertRegistration,
 } from '@galactica-net/galactica-types';
+import type { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
 import type { Signer, Contract } from 'ethers';
 
 import { fromDecToHex, fromHexToBytes32, sleep } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
 import type { ZkCertificate } from './zkCertificate';
+import { getIdHash } from './zkKYC';
+import type { SaltLockingZkCertStruct } from '../typechain-types/contracts/HumanIDSaltRegistry';
 
 /**
  * Issues zkCert record on-chain and updates the merkle tree.
@@ -33,13 +37,30 @@ export async function issueZkCert(
 
   const contractToCall = devnetGuardian ?? recordRegistry;
   // now we have the merkle proof to add a new leaf
-  const tx = await contractToCall.connect(issuer).addZkCertificate(
-    chosenLeafIndex,
-    leafBytes,
-    leafEmptyMerkleProof.pathElements.map((value) =>
-      fromHexToBytes32(fromDecToHex(value)),
-    ),
-  );
+
+  let tx;
+  // if the zkCert is a zkKYC, we need to pass a few more parameters for the salt registry
+  if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
+    tx = await contractToCall.connect(issuer).addZkKYC(
+      chosenLeafIndex,
+      leafBytes,
+      leafEmptyMerkleProof.pathElements.map((value) =>
+        fromHexToBytes32(fromDecToHex(value)),
+      ),
+      getIdHash(zkCert),
+      zkCert.holderCommitment,
+      zkCert.expirationDate,
+    );
+  } else {
+    tx = await contractToCall.connect(issuer).addZkCertificate(
+      chosenLeafIndex,
+      leafBytes,
+      leafEmptyMerkleProof.pathElements.map((value) =>
+        fromHexToBytes32(fromDecToHex(value)),
+      ),
+    );
+  }
+
   await tx.wait();
   const { provider } = contractToCall;
   const txReceipt = await provider.getTransactionReceipt(tx.hash);
@@ -163,4 +184,68 @@ export async function waitOnIssuanceQueue(
       `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
     );
   }
+}
+
+/**
+ * Checks if the zkCert holder commitment is compatible with the registered salt hash.
+ * @param zkCert - ZkCertificate to check.
+ * @param recordRegistry - Record registry contract.
+ * @param issuer - Issuer of the zkCert.
+ * @param ethers - Ethers library from hre.
+ * @returns If the check was successful.
+ */
+export async function checkZkKYCSaltHashCompatibility(
+  zkCert: ZkCertificate,
+  recordRegistry: Contract,
+  issuer: Signer,
+  ethers: HardhatEthersHelpers,
+): Promise<boolean> {
+  if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
+    throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
+  }
+  const idHash = getIdHash(zkCert);
+  const saltHash = zkCert.holderCommitment;
+
+  const humanIDSaltRegistry = await ethers.getContractAt(
+    'HumanIDSaltRegistry',
+    await recordRegistry.humanIDSaltRegistry(),
+  );
+
+  const registeredSaltHash = await humanIDSaltRegistry
+    .connect(issuer)
+    .getSaltHash(idHash);
+
+  return (
+    registeredSaltHash.toString() === saltHash ||
+    registeredSaltHash.toString() === '0'
+  );
+}
+
+/**
+ * Lists zkKYCs that lock the salt hash of the zkCert. If the user can not use the same commitment hash as before, the guardian can tell the user what zkKYCs need to expire or be revoked.
+ * @param zkCert - ZkCertificate to check.
+ * @param recordRegistry - Record registry contract.
+ * @param issuer - Issuer of the zkCert.
+ * @param ethers - Ethers library from hre.
+ * @returns List of SaltLockingZkCerts.
+ */
+export async function listZkKYCsLockingTheSaltHash(
+  zkCert: ZkCertificate,
+  recordRegistry: Contract,
+  issuer: Signer,
+  ethers: HardhatEthersHelpers,
+): Promise<SaltLockingZkCertStruct[]> {
+  if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
+    throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
+  }
+  const idHash = getIdHash(zkCert);
+
+  const humanIDSaltRegistry = await ethers.getContractAt(
+    'HumanIDSaltRegistry',
+    await recordRegistry.humanIDSaltRegistry(),
+  );
+
+  return await humanIDSaltRegistry
+    .connect(issuer)
+    .getSaltLockingZkCerts(idHash);
 }
