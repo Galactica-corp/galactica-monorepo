@@ -39,6 +39,10 @@ describe('sponge variation of Poseidon hash', () => {
    */
   const testVectors = [
     {
+      bytes: '',
+      expectedHash: '01',
+    },
+    {
       bytes: 'dead',
       expectedHash:
         '0244ec1a137a24c92404de9f9c39907be151026a4eb7f9cfea60a5740e8a73b7',
@@ -107,4 +111,15 @@ describe('sponge variation of Poseidon hash', () => {
   for (const [i, vector] of testVectors.entries()) {
     runTest(i, vector);
   }
+
+  it('hash of a message should stay the same', () => {
+    for (const vector of testVectors) {
+      const message = Buffer.from(vector.bytes, 'hex');
+      const firstResult = poseidon.F.toObject(hashMessage(poseidon, message));
+      hashMessage(poseidon, 'something else');
+      const secondResult = poseidon.F.toObject(hashMessage(poseidon, message));
+
+      expect(firstResult).to.equal(secondResult);
+    }
+  });
 });

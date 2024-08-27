@@ -8,6 +8,7 @@ export type Poseidon = {
   // eslint-disable-next-line @typescript-eslint/naming-convention -- Library type
   F: {
     toObject(obj: unknown): bigint;
+    fromObject(obj: unknown): Uint8Array;
     toString(obj: unknown): string;
   };
 };
@@ -82,6 +83,13 @@ export const hashMessage = (
   if (dirty) {
     // we haven't hashed something in the main sponge loop and need to do hash here
     hash = poseidon(inputs);
+  }
+
+  if (hash.length === 0) {
+    // If the hash is empty, we need to return the default value, so that poseidon.F.toObject(hash) === 1n
+    // Sometimes this works also with hash === [], but there is a bug in poseidon.F.toObject([]) that returns the last field element on subsequent calls.
+    // This is a workaround for that bug.
+    hash = poseidon.F.fromObject(1n);
   }
 
   return hash;
