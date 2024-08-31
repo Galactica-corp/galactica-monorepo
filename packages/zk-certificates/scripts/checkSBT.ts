@@ -11,14 +11,14 @@ async function main() {
   // const SBTAddress = '0xC1d40362A2e6c295DC53BAc79F65F81D030Da3Bd';
   // const SBTAddress = '0x75C47b5210658C6beFdDb23ab34B0B025979978e';
   //const SBTAddress = '0x589A65F4434c63A220DEDb050C3Cc03ee43fBF13';
-  const SBTAddress = '0x78E0Bc3EE31D3c71e8B6A34813E362f4154ddE08';
+  const SBTAddress = '0x66Af9234673804B9c230f9AE0c6EB49cDfE93AFe';
 
   const SBTInstance = await ethers.getContractAt(
     'GalacticaOfficialSBT',
     SBTAddress,
   );
 
-  const DEFAULT_ADMIN_ROLE = await SBTInstance.DEFAULT_ADMIN_ROLE();
+/*   const DEFAULT_ADMIN_ROLE = await SBTInstance.DEFAULT_ADMIN_ROLE();
   const ISSUER_ROLE = await SBTInstance.ISSUER_ROLE();
 
   const supposedAdmin = "0xd55935BD456E317EAFbA5B6c84B4aA77F1A0532e";
@@ -27,18 +27,19 @@ async function main() {
   console.log(`SBT name is ${await SBTInstance.name()}`);
   console.log(`SBT symbol is ${await SBTInstance.symbol()}`);
   console.log(`check supposedAdmin ${await SBTInstance.hasRole(supposedAdmin, DEFAULT_ADMIN_ROLE)}`);
-  console.log(`check supposedIssuer ${await SBTInstance.hasRole(supposedIssuer, ISSUER_ROLE)}`);
+  console.log(`check supposedIssuer ${await SBTInstance.hasRole(supposedIssuer, ISSUER_ROLE)}`); */
 
   // const NFTID = '1127362652762616585699720001539547271958081669496';
   // const NFTID = '1410843013269580062388756009450372014991210708375'; // working XNET
   // const NFTID = '1127362652762616585699720001539547271958081669496';
 
-  //const NFTURI = await SBTInstance.tokenURI(NFTID);
-  // console.log(`NFT URI is ${NFTURI}`);
+  /* const NFTURI = await SBTInstance.tokenURI(NFTID);
+  console.log(`NFT URI is ${NFTURI}`); */
 
   // change URI to test
-  // const newURI = "https://mike-tis.github.io/XNET-SBT/content.json";
-  /* await SBTInstance.setTokenURI(NFTID, 'test'); */
+  const newURI = "https://quicknode.quicknode-ipfs.com/ipfs/QmepMeKLjEYzfHiXKaUQ6YwmYaRXb9UXLyJuVHNc8nqcWd";
+  const URIChangeTx = await SBTInstance.changeBaseURI(newURI);
+  await URIChangeTx.wait();
 }
 
 // We recommend this pattern to be able to use async/await everywhere

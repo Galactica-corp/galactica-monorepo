@@ -50,9 +50,9 @@ async function main() {
 
   // test GalacticaTwitterSBT
   // const uri = "https://mike-tis.github.io/XNET-SBT/content.json";
-  const uri = "https://quicknode.quicknode-ipfs.com/ipfs/QmeJS1PdjBtbE77xgez7uBuPWg8ByJm3eFQsEpE8ffSE5g";
-  const nftName = "Genesis SBT";
-  const nftSymbol = "XNET";
+  const uri = "https://quicknode.quicknode-ipfs.com/ipfs/QmQc418do2SjdgigJa7zM5DjNhHcVooVHe6R8q22YUM9Da";
+  const nftName = "Cypher State Campaign - Equilibrium";
+  const nftSymbol = "CSEQU";
 
   /* const GalacticaOfficialSBTFactory = await ethers.getContractFactory('GalacticaTwitterSBT');
   const GalacticaOfficialSBT = await GalacticaOfficialSBTFactory.deploy(issuer, uri, owner, nftName, nftSymbol);
@@ -60,7 +60,7 @@ async function main() {
 
   console.log(`newly deployed SBT has address ${GalacticaOfficialSBT.address}`); */
 
-  await deploySC('GalacticaTwitterSBT', true, {}, [
+  await deploySC('GalacticaOfficialSBT', true, {}, [
     issuer,
     uri,
     owner,

@@ -44,6 +44,12 @@ const config: HardhatUserConfig = {
       url: process.env.BSCTestnetRPCURL,
       accounts: [process.env.BSCTestnetDeployerPrivateKey],
     },
+    mainnet: {
+        url: process.env.MainnetInfuraAPI,
+        accounts: [ process.env.MainnetSBTDeployerPrivateKey
+      ],
+        /* gasPrice: 30000000000 */
+    },
 
   },
   etherscan: {
@@ -51,6 +57,7 @@ const config: HardhatUserConfig = {
       galaAndromeda: 'something', // not needed for now
       reticulum: 'something', // not needed for now
       bscTestnet: process.env.BSCScanApiKey ?? '',
+      mainnet: process.env.EtherscanApiKey ?? '',
     },
     customChains: [
       {

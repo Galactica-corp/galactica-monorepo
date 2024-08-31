@@ -8,9 +8,9 @@ import { ethers } from 'hardhat';
 async function main() {
   // parameters for test interaction
   const [owner] = await ethers.getSigners();
-  const SBTAddress = '0x9fd1bEb61B614100a78E7D073c2BB226c3E8C8aE';
+  const SBTAddress = '0x3AC213B6F1A5a286Fc850f56DB020D2F9DC6acc3';
 
-  const dataPath = './data/andromedaTest.csv';
+  const dataPath = './data/Equilibrium.csv';
   let data;
 
   await csv({ delimiter: ',' })
@@ -40,13 +40,22 @@ async function main() {
     dataArray.push(userAddress);
   }
 
-
-  const tx = await SBTInstance.batchMint(dataArray);
-
-  const receipt = await tx.wait();
-  console.log(
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,)
+  const batchSize = 300;
+  //split dataArray into subarray of batchSize
+  const batches = [];
+  for (let i = 0; i < dataArray.length; i += batchSize) {
+    batches.push(dataArray.slice(i, i + batchSize));
+  }
+  let batchNumber = 0;
+  for (const batch of batches) {
+    console.log(`minting batch number ${batchNumber}`);
+    batchNumber++;
+    console.log(`Minting batch of ${batch.length} addresses`);
+    const tx = await SBTInstance.batchMint(batch);
+    const receipt = await tx.wait();
+    console.log(
+      `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,)
+  }
 
   console.log(`Done`);
 }
