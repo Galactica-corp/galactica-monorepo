@@ -316,11 +316,11 @@ contract ZkCertificateRegistryVT is Initializable, IZkCertificateRegistry, Ownab
         Pairing.G1Point[] memory verkleProof,
         Pairing.G1Point[] memory verkleCommitments,
         uint256 index,
-        bytes32 leafValue,
-        bytes32 _verkleRoot
+        uint leafValue,
+        uint _verkleRoot
     ) public view returns (bool) {
         require(verkleProof.length == verkleCommitments.length, "Invalid verkle proof length");
-        require(bytes32(verkleCommitments[verkleCommitments.length - 1].X) == _verkleRoot, "Invalid verkle root");
+        require(verkleCommitments[verkleCommitments.length - 1].X == _verkleRoot, "Invalid verkle root");
         // we check the polynomial for each level of the tree
         // here 0 is the lowest level and d is the root level
         /* at iteration d with current index, current leafValue we have:
@@ -336,8 +336,8 @@ contract ZkCertificateRegistryVT is Initializable, IZkCertificateRegistry, Ownab
 
         for (uint d = 0; d < treeDepth; d++) {
             uint polynomialIndex = index % leafWidth;
-            require(verifyKZG(verkleCommitments[d].X, verkleCommitments[d].Y, verkleProof[d].X, verkleProof[d].Y, polynomialIndex, uint256(leafValue)), "KZG verification failed");
-            leafValue = bytes32(verkleCommitments[d].X);
+            require(verifyKZG(verkleCommitments[d].X, verkleCommitments[d].Y, verkleProof[d].X, verkleProof[d].Y, polynomialIndex, leafValue), "KZG verification failed");
+            leafValue = verkleCommitments[d].X;
             index = index / leafWidth;
         }
         return true;

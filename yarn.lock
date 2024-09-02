@@ -58,6 +58,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@assemblyscript/loader@npm:0.8.x":
+  version: 0.8.1
+  resolution: "@assemblyscript/loader@npm:0.8.1"
+  checksum: 7986a0f8158d0f0f44369e9fa66a589d3e8dbb3b48ec57ed2d1fbf5ccc8a1bef15f3be5ea02bb3a14ff520c328a3ff9046bc708a2ff5224fee1bfba93fe4ef04
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:7.12.11":
   version: 7.12.11
   resolution: "@babel/code-frame@npm:7.12.11"
@@ -3760,7 +3767,7 @@ __metadata:
     eslint-plugin-prettier: ^5.0.1
     ethers: ^5.7.2
     fetch-mock: ^9.11.0
-    ffjavascript: ^0.3.0
+    ffjavascript: 0.1.3
     js-sha3: ^0.8.0
     mocha: ^10.2.0
     patch-package: ^8.0.0
@@ -3783,6 +3790,7 @@ __metadata:
   resolution: "@galactica-net/zk-certificates@workspace:packages/zk-certificates"
   dependencies:
     "@galactica-net/galactica-types": "workspace:^"
+    "@guildofweavers/galois": 0.4.22
     "@metamask/eth-sig-util": ^7.0.1
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.4
     "@nomicfoundation/hardhat-network-helpers": ^1.0.3
@@ -3809,9 +3817,11 @@ __metadata:
     circomlib: ^2.0.5
     circomlibjs: ^0.1.7
     download: ^8.0.0
+    elliptic: ^6.5.7
     eslint: ^8.53.0
     ethers: ^5.7.2
-    ffjavascript: ^0.3.0
+    ffjavascript: 0.1.3
+    ffjavascriptEC: "npm:ffjavascript@0.1.3"
     hardhat: ^2.10.1
     hardhat-circom: ^3.3.2
     hardhat-gas-reporter: ^1.0.8
@@ -4107,6 +4117,15 @@ __metadata:
   peerDependencies:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
   checksum: fa44443accd28c8cf4cb96aaaf39d144a22e8b091b13366843f4e97d19c7bfeaf609ce3c7603a4aeffe385081eaf8ea245d078633a7324c11c5ec4b2011bb76d
+  languageName: node
+  linkType: hard
+
+"@guildofweavers/galois@npm:0.4.22":
+  version: 0.4.22
+  resolution: "@guildofweavers/galois@npm:0.4.22"
+  dependencies:
+    "@assemblyscript/loader": 0.8.x
+  checksum: 0c16e1c2126bec83e7f44e748a96848a86883756fc356b2f55877f4d6dba9445387216ece12ab8bed6034713d9a3b7357c31520a581404fb835fb4e1c1a7b8d4
   languageName: node
   linkType: hard
 
@@ -12533,6 +12552,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"elliptic@npm:^6.5.7":
+  version: 6.5.7
+  resolution: "elliptic@npm:6.5.7"
+  dependencies:
+    bn.js: ^4.11.9
+    brorand: ^1.1.0
+    hash.js: ^1.0.0
+    hmac-drbg: ^1.0.1
+    inherits: ^2.0.4
+    minimalistic-assert: ^1.0.1
+    minimalistic-crypto-utils: ^1.0.1
+  checksum: af0ffddffdbc2fea4eeec74388cd73e62ed5a0eac6711568fb28071566319785df529c968b0bf1250ba4bc628e074b2d64c54a633e034aa6f0c6b152ceb49ab8
+  languageName: node
+  linkType: hard
+
 "emoji-regex@npm:^7.0.1":
   version: 7.0.3
   resolution: "emoji-regex@npm:7.0.3"
@@ -14350,6 +14384,15 @@ __metadata:
     wasmcurves: 0.2.2
     web-worker: 1.2.0
   checksum: eb1c3ee979299d3b670f371336e1a65ec5319a085da3a896465218283a079453b164e340483a5d66588227d8f1e8cf2ddb890d556bb21931a6f5b70d06f3d894
+  languageName: node
+  linkType: hard
+
+"ffjavascriptEC@npm:ffjavascript@0.1.3":
+  version: 0.1.3
+  resolution: "ffjavascript@npm:0.1.3"
+  dependencies:
+    big-integer: ^1.6.48
+  checksum: fff4e50c277696b4fb9065a9b05c8ac5fb24560216a13908335df27805df437bbbca5cad1d18f9d2a78078ac5e4ea484674afc6b7679126ec4abc5e59272c0bc
   languageName: node
   linkType: hard
 
