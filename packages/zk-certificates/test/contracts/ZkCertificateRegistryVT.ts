@@ -78,23 +78,16 @@ describe.only('ZkCertificateRegistryVT', () => {
     const { ZkCertificateRegistryVT, GuardianRegistry } =
       await loadFixture(deploy);
 
-    console.log(await ZkCertificateRegistryVT.leafWidth());
-
     const verkleTree = new VerkleTree(treeDepth, treeWidth);
     verkleTree.insertLeaves([1n, 3n, 4n], [2, 4, 9]);
-    console.log(verkleTree.root);
     const verkleProof = verkleTree.createProof(2);
-    const verkleProof2 = verkleTree.createProof2(2);
-    console.log(verkleProof.verkleCommitments);
-    console.log(verkleProof2.verkleCommitments);
 
-    const result = await ZkCertificateRegistryVT.validateVT(
+    expect (await ZkCertificateRegistryVT.validateVT(
       verkleProof.verkleProof,
       verkleProof.verkleCommitments,
       verkleProof.index,
       verkleProof.leafValue,
       verkleProof.root,
-    );
-    console.log(result);
+    )).to.be.equal(true);
   });
 });

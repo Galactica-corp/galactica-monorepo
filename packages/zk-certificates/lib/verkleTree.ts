@@ -184,16 +184,6 @@ export class VerkleTree {
       for (const index in this.tree[level]) {
         if (this.tree[level][index] !== undefined) {
           const indexNum = Number(index);
-          if (level === 0 && index === 2) {
-            console.log(`inside insertLeaves, we display the coordinates`);
-            console.log(
-              this.retrieveSliceOfXCoordinates(
-                level,
-                indexNum - (indexNum % this.width),
-                indexNum - (indexNum % this.width) + this.width,
-              ),
-            );
-          }
           const LagrangePolynomial = genCoefficients(
             this.retrieveSliceOfXCoordinates(
               level,
@@ -231,52 +221,10 @@ export class VerkleTree {
     let curIndex = leafIndex;
     // Walk up the tree to the root
     for (let level = 0; level < this.depth; level += 1) {
-      const LagrangePolynomial = genCoefficients(
-        this.retrieveSliceOfXCoordinates(
-          level,
-          curIndex - (curIndex % this.width),
-          curIndex - (curIndex % this.width) + this.width,
-        ),
-      );
-      // we recalculate the commitment because in the intermediate nodes we only store the X value
-      const commitment = commit(LagrangePolynomial);
-      verkleCommitments.push({
-        X: commitment[0],
-        Y: commitment[1],
-      });
-      const proof = genProof(LagrangePolynomial, curIndex % this.width);
-      verkleProof.push({
-        X: proof[0],
-        Y: proof[1],
-      });
-
-      // Get index for next level
-      curIndex = Math.floor(curIndex / this.width);
-    }
-
-    return {
-      verkleProof,
-      verkleCommitments,
-      index: leafIndex,
-      root: this.root,
-      leafValue,
-    };
-  }
-
-  createProof2(leafIndex: number): VerkleProof {
-    const verkleProof: G1Point[] = [];
-    const verkleCommitments: G1Point[] = [];
-    const leafValue = this.retrieveLeaf(0, leafIndex).value.X;
-
-    let curIndex = leafIndex;
-    // Walk up the tree to the root
-    for (let level = 0; level < this.depth; level += 1) {
       verkleCommitments.push(
-        this.retrieveLeaf(level + 1, curIndex / this.width).value,
+        this.retrieveLeaf(level + 1, Math.floor(curIndex / this.width)).value,
       );
       verkleProof.push(this.retrieveLeaf(level, curIndex).proof);
-
-
       // Get index for next level
       curIndex = Math.floor(curIndex / this.width);
     }

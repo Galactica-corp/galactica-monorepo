@@ -336,7 +336,9 @@ contract ZkCertificateRegistryVT is Initializable, IZkCertificateRegistry, Ownab
 
         for (uint d = 0; d < treeDepth; d++) {
             uint polynomialIndex = index % leafWidth;
-            require(verifyKZG(verkleCommitments[d].X, verkleCommitments[d].Y, verkleProof[d].X, verkleProof[d].Y, polynomialIndex, leafValue), "KZG verification failed");
+            if (!verifyKZG(verkleCommitments[d].X, verkleCommitments[d].Y, verkleProof[d].X, verkleProof[d].Y, polynomialIndex, leafValue)) {
+                return false;
+            }
             leafValue = verkleCommitments[d].X;
             index = index / leafWidth;
         }
