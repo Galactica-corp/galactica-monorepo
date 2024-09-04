@@ -84,7 +84,9 @@ describe.only('ZkCertificateRegistryVT', () => {
     verkleTree.insertLeaves([1n, 3n, 4n], [2, 4, 9]);
     console.log(verkleTree.root);
     const verkleProof = verkleTree.createProof(2);
-    console.log(verkleProof);
+    const verkleProof2 = verkleTree.createProof2(2);
+    console.log(verkleProof.verkleCommitments);
+    console.log(verkleProof2.verkleCommitments);
 
     const result = await ZkCertificateRegistryVT.validateVT(
       verkleProof.verkleProof,

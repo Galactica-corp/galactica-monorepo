@@ -33,10 +33,10 @@ type VerkleNode = {
  * Class to manage and construct verkle trees.
  */
 export class VerkleTree {
-  // Field of the curve used by Poseidon
+  // base field of the curve used in KZG commitment scheme and pairing
   field: any;
 
-  // hash value placeholder for empty merkle tree leaves
+  // hash value placeholder for empty merkle tree leaves (more precisely the X coordinate)
   emptyLeaf: bigint;
 
   // Depth of the tree
@@ -45,7 +45,7 @@ export class VerkleTree {
   // Width of the tree
   width: number;
 
-  // hashes of empty branches
+  // Verkle node values of empty branches
   emptyBranchLevels: Record<number, VerkleNode>;
 
   // nodes of the tree as two layers dictionary
@@ -63,7 +63,7 @@ export class VerkleTree {
       BigInt(`0x${keccak256('Galactica').toString('hex')}`) %
       SNARK_SCALAR_FIELD;
 
-    // create empty tree
+    // calculate the Verkle nodes for empty branches
     this.emptyBranchLevels = this.calculateEmptyBranchVerkleNodes(depth);
 
     // initialize tree dictionary.
@@ -82,6 +82,7 @@ export class VerkleTree {
    * @returns Content of the leaf.
    */
   retrieveLeaf(level: number, index: number): VerkleNode {
+    // check that the level and indices are in the correct range
     if (level < 0 || level > this.depth) {
       throw new Error(
         `invalid level ${level} inside a tree of depth ${this.depth}`,
@@ -94,6 +95,7 @@ export class VerkleTree {
       );
     }
 
+    // if the node is undefined, return the Verkle node for empty branches
     if (this.tree[level][index] === undefined) {
       return this.emptyBranchLevels[level];
     }
@@ -182,6 +184,16 @@ export class VerkleTree {
       for (const index in this.tree[level]) {
         if (this.tree[level][index] !== undefined) {
           const indexNum = Number(index);
+          if (level === 0 && index === 2) {
+            console.log(`inside insertLeaves, we display the coordinates`);
+            console.log(
+              this.retrieveSliceOfXCoordinates(
+                level,
+                indexNum - (indexNum % this.width),
+                indexNum - (indexNum % this.width) + this.width,
+              ),
+            );
+          }
           const LagrangePolynomial = genCoefficients(
             this.retrieveSliceOfXCoordinates(
               level,
@@ -237,6 +249,33 @@ export class VerkleTree {
         X: proof[0],
         Y: proof[1],
       });
+
+      // Get index for next level
+      curIndex = Math.floor(curIndex / this.width);
+    }
+
+    return {
+      verkleProof,
+      verkleCommitments,
+      index: leafIndex,
+      root: this.root,
+      leafValue,
+    };
+  }
+
+  createProof2(leafIndex: number): VerkleProof {
+    const verkleProof: G1Point[] = [];
+    const verkleCommitments: G1Point[] = [];
+    const leafValue = this.retrieveLeaf(0, leafIndex).value.X;
+
+    let curIndex = leafIndex;
+    // Walk up the tree to the root
+    for (let level = 0; level < this.depth; level += 1) {
+      verkleCommitments.push(
+        this.retrieveLeaf(level + 1, curIndex / this.width).value,
+      );
+      verkleProof.push(this.retrieveLeaf(level, curIndex).proof);
+
 
       // Get index for next level
       curIndex = Math.floor(curIndex / this.width);
