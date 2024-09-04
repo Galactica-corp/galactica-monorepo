@@ -2,7 +2,7 @@ import * as galois from '@guildofweavers/galois';
 import type { ec } from 'elliptic';
 import * as ffjavascript from 'ffjavascriptEC';
 
-const srsg1DataRaw = require('../data/taug1_65536.json');
+import srsg1DataRaw from '../data/taug1_65536.json';
 
 // taken from https://github.com/weijiekoh/libkzg/blob/master/ts/index.ts
 type G1Point = ec;
@@ -26,29 +26,30 @@ const FIELD_SIZE = BigInt(
  * Retrieves the G1 values of the structured reference string.
  * @param depth - The depth of the structured reference string to retrieve.
  * @returns An array of G1 points representing the structured reference string.
- *
- * These values were taken from challenge file #46 of the Perpetual Powers of
- * Tau ceremony. The Blake2b hash of the challenge file is:
- *
- * 939038cd 2dc5a1c0 20f368d2 bfad8686
- * 950fdf7e c2d2e192 a7d59509 3068816b
- * becd914b a293dd8a cb6d18c7 b5116b66
- * ea54d915 d47a89cc fbe2d5a3 444dfbed
- *
- * The challenge file can be retrieved at:
- * https://ppot.blob.core.windows.net/public/challenge_0046
- *
- * The ceremony transcript can be retrieved at:
- * https://github.com/weijiekoh/perpetualpowersoftau
- *
- * Anyone can verify the transcript to ensure that the values in the challenge
- * file have not been tampered with. Moreover, as long as one participant in
- * the ceremony has discarded their toxic waste, the whole ceremony is secure.
- * Please read the following for more information:
- * https://medium.com/coinmonks/announcing-the-perpetual-powers-of-tau-ceremony-to-benefit-all-zk-snark-projects-c3da86af8377
  */
 const srsG1 = (depth: number): G1Point[] => {
   const g1: G1Point[] = [];
+  /**
+   * These values were taken from challenge file #46 of the Perpetual Powers of
+   * Tau ceremony. The Blake2b hash of the challenge file is:
+   *
+   * 939038cd 2dc5a1c0 20f368d2 bfad8686
+   * 950fdf7e c2d2e192 a7d59509 3068816b
+   * becd914b a293dd8a cb6d18c7 b5116b66
+   * ea54d915 d47a89cc fbe2d5a3 444dfbed
+   *
+   * The challenge file can be retrieved at:
+   * https://ppot.blob.core.windows.net/public/challenge_0046
+   *
+   * The ceremony transcript can be retrieved at:
+   * https://github.com/weijiekoh/perpetualpowersoftau
+   *
+   * Anyone can verify the transcript to ensure that the values in the challenge
+   * file have not been tampered with. Moreover, as long as one participant in
+   * the ceremony has discarded their toxic waste, the whole ceremony is secure.
+   * Please read the following for more information:
+   * https://medium.com/coinmonks/announcing-the-perpetual-powers-of-tau-ceremony-to-benefit-all-zk-snark-projects-c3da86af8377
+   */
   for (let i = 0; i < depth; i++) {
     g1.push([
       BigInt(srsg1DataRaw[i][0]),
@@ -138,10 +139,13 @@ const genQuotientPolynomial = (
   const poly = field.newVectorFrom(coefficients);
 
   const yVal = field.evalPolyAt(poly, xVal);
+  // eslint-disable-next-line id-length
   const y = field.newVectorFrom([yVal]);
 
+  // eslint-disable-next-line id-length
   const x = field.newVectorFrom([0, 1].map(BigInt));
 
+  // eslint-disable-next-line id-length
   const z = field.newVectorFrom([xVal].map(BigInt));
 
   return field
