@@ -180,6 +180,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_poseidonSponge.circom',
         input: 'input/poseidonSponge.json',
       },
+      {
+        name: 'twitterCreationTimeProof',
+        circuit: 'test/test_twitterCreationTimeProof.circom',
+        input: 'input/twitterCreationTimeProof.json',
+      },
     ],
   },
 };
