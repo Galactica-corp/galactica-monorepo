@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.9;
 
-import './interfaces/IVerificationSBT.sol';
-import './interfaces/IVerifierWrapper.sol';
+import '../interfaces/IVerificationSBT.sol';
+import '../interfaces/IVerifierWrapper.sol';
 import '@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol';
 
 /// @author Galactica dev team
@@ -55,6 +55,7 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
     ) external {
         uint tokenId = tokenCounter;
         // The function is public so anyone can call it, but the msg.sender is included in the key, so that each dApp can only mint SBTs corresponding to it. When we search for relevant SBTs we only care about the corresponding mapping keys.
+        
         VerificationSBTMapping[
             keccak256(abi.encode(user, msg.sender))
         ] = VerificationSBTInfo({

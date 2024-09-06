@@ -18,10 +18,10 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const deployGuardianRegistryFlag = false;
-  const setGuardianFlag = false;
-  const deployTwitterZkCertificateRegistryFlag = false;
-  const deployTwitterFollowersCountProofVerifierFlag = false;
+  const deployGuardianRegistryFlag = true;
+  const setGuardianFlag = true;
+  const deployTwitterZkCertificateRegistryFlag = true;
+  const deployTwitterFollowersCountProofVerifierFlag = true;
   const deployTwitterFollowersCountProofFlag = true;
 
   // Deploy the guardian registry if necessary
@@ -76,7 +76,7 @@ async function main() {
       'ZkCertificateRegistry',
       true,
       { libraries: { PoseidonT3: poseidonT3.address } },
-      [guardianRegistry.address, description],
+      [guardianRegistry.address, 32, description],
     );
     console.log(
       `deployed a new twitterZkCertificate registry with description ${description} at ${twitterZkCertificateRegistry.address}`,

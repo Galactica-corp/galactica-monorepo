@@ -10,5 +10,5 @@ interface IVerifierWrapper {
         uint[2][2] memory b,
         uint[2] memory c,
         uint[] memory input
-    ) public view returns (bool)
+    ) external view returns (bool);
 }

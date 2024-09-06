@@ -1,31 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "../Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "./interfaces/IZkKYCVerifier.sol";
+import "../interfaces/IVerifierWrapper.sol";
+import "./VerificationSBT.sol";
+
 
 /**
  * @title AirdropGateway: manages airdrops for the Galactica
  */
-contract SBTManager is AccessControl {
+contract SBTManager is Ownable {
 
     mapping(uint => address) public SBTIndexToSBTAddress;
     mapping(uint => address) public SBTIndexToSBTVerifierWrapper;
 
 
 
-    constructor(address owner) {
-        // set admin, the role that can assign and revoke other roles
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
+    constructor(address _owner) Ownable(_owner) {
     }
 
-    function setSBT(uint index, address SBTAddress, address SBTAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setSBT(uint index, address SBTAddress) external onlyOwner {
         SBTIndexToSBTAddress[index] = SBTAddress;
     }
 
-    function setSBTVerifierWrapper(uint index, address SBTVerifierWrapperAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setVerifierWrapper(uint index, address SBTVerifierWrapperAddress) external onlyOwner {
         SBTIndexToSBTVerifierWrapper[index] = SBTVerifierWrapperAddress;
     }
 
@@ -35,7 +35,7 @@ contract SBTManager is AccessControl {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[] memory input) {
+        uint[] memory input) public {
           IVerifierWrapper verifierWrapper = IVerifierWrapper(SBTIndexToSBTVerifierWrapper[index]);
           /* In the first 3 cases we deal with TwitterFollowerCount circuit with
           - INDEX_VERIFICATION_EXPIRATION = 1
@@ -44,7 +44,7 @@ contract SBTManager is AccessControl {
           - INDEX_VERIFICATION_EXPIRATION = 1
           - INDEX_CREATION_TIME = 8
           */
-          uint expirationTime = input[1]
+          uint expirationTime = input[1];
           if (index == 0) {
             require(input[7] == 100, "Followers count threshold is not met");
           } else if (index == 1) {
@@ -60,13 +60,19 @@ contract SBTManager is AccessControl {
           }
           require(verifierWrapper.verifyProof(a, b, c, input), "Proof is not valid");
           // for twitterZkCertificate related SBTs we set the encryptedData, userPubKey, humanID, providerPubkey to be 0
-          IERC721(SBTIndexToSBTAddress[index]).mint(
+          bytes32[] memory encryptedData = new bytes32[](0);
+          uint256[2] memory userPubKey = [uint(0),uint(0)];
+          bytes32 humanID = bytes32(0);
+          uint256[2] memory providerPubKey = [uint(0),uint(0)];
+
+          VerificationSBT(SBTIndexToSBTAddress[index]).mintVerificationSBT(
             msg.sender,
             verifierWrapper,
             expirationTime,
-            bytes32(0),
-            uint[2](0,0),
-            bytes32(0),
-            uint[2](0,0));
+            encryptedData,
+            userPubKey,
+            humanID,
+            providerPubKey
+          );
         }
 }
