@@ -41,8 +41,8 @@ contract SBTManager is Ownable {
           - INDEX_VERIFICATION_EXPIRATION = 1
           - INDEX_FOLLOWERS_COUNT_THRESHOLD = 7
           In the other two cases we deal with TwitterCreationTime circuit with
-          - INDEX_VERIFICATION_EXPIRATION = 1
-          - INDEX_CREATION_TIME = 8
+          - INDEX_CREATION_TIME_LOWER_BOUND = 7
+          - INDEX_CREATION_TIME_UPPER_BOUND = 8
           */
           uint expirationTime = input[1];
           if (index == 0) {
@@ -52,9 +52,11 @@ contract SBTManager is Ownable {
           } else if (index == 2) {
             require(input[7] == 10000, "Followers count threshold is not met");
           } else if (index == 3) {
-            require(input[8] < 100, "Creation time is not valid");
+            require(input[7] == 0, "Creation time lower bound is not valid");
+            require(input[8] == 1,  "Creation time upper bound is not valid");
           } else if (index == 4) {
-            require(input[8] > 100, "Creation time is not valid");
+            require(input[7] == 0, "Creation time lower bound is not valid");
+            require(input[8] == 1,  "Creation time upper bound is not valid");
           } else if (index == 5) {
             revert("Invalid index");
           }
