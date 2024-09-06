@@ -1,10 +1,10 @@
 {
-  "accountId": 122312,
-  "creationTime": 1779726098,
-  "location": "Vaduz",
-  "verified": 1,
-  "followersCount": 1228,
-  "friendsCount": 233,
-  "likesCount": 302,
-  "postsCount": 49
+  "createdAt": "2024-06-19T17:24:53Z",
+  "id": "10765432100123456789",
+  "followersCount": 12,
+  "followingCount": 13,
+  "listedCount": 14,
+  "tweetCount": 15,
+  "username": "astar_gala",
+  "verified": false
 }
