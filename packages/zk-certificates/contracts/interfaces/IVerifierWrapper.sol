@@ -4,4 +4,11 @@ pragma solidity ^0.8.0;
 /// @author Galactica dev team
 interface IVerifierWrapper {
     function verifier() external view returns (address);
+
+    function verifyProof(
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
+    ) public view returns (bool)
 }
