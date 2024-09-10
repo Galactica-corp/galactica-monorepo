@@ -44,7 +44,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const zkCertificateType = flagStandardMapping[args.zkCertificateType];
   if (zkCertificateType === undefined) {
     throw new Error(
-      `ZkCertStandard type ${args.zkCertificateType} is unsupported, available options: ${Object.keys(flagStandardMapping)}`,
+      `ZkCertStandard type ${
+        args.zkCertificateType
+      } is unsupported, available options: ${JSON.stringify(
+        Object.keys(flagStandardMapping),
+      )}`,
     );
   }
   const zkCertificateFields = prepareZkCertificateFields(
@@ -80,9 +84,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   newZkCertificate.signWithProvider(providerEdDSAKey);
 
   const recordRegistry = await hre.ethers.getContractAt(
-    (zkCertificateType === ZkCertStandard.ZkKYC
+    zkCertificateType === ZkCertStandard.ZkKYC
       ? 'ZkKYCRegistry'
-      : 'ZkCertificateRegistry'),
+      : 'ZkCertificateRegistry',
     args.registryAddress,
   );
 
@@ -123,7 +127,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${args.index as number
+      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${
+        args.index as number
       }`,
     ),
   );
@@ -157,7 +162,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${args.index as number
+      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${
+        args.index as number
       } with new expiration date ${args.expirationDate as number}`,
     ),
   );
@@ -224,7 +230,9 @@ task(
   )
   .addParam(
     'zkCertificateType',
-    'type of zkCertificate, default to be kyc. Available options: ${Object.keys(flagStandardMapping)}',
+    `type of zkCertificate, default to be kyc. Available options: ${JSON.stringify(
+      Object.keys(flagStandardMapping),
+    )}`,
     undefined,
     types.string,
     false,

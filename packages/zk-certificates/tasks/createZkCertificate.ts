@@ -45,7 +45,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const zkCertificateType = flagStandardMapping[args.zkCertificateType];
   if (zkCertificateType === undefined) {
     throw new Error(
-      `ZkCertStandard type ${args.zkCertificateType} is unsupported, available options: ${Object.keys(flagStandardMapping)}`,
+      `ZkCertStandard type ${
+        args.zkCertificateType
+      } is unsupported, available options: ${JSON.stringify(
+        Object.keys(flagStandardMapping),
+      )}`,
     );
   }
   const zkCertificateFields = prepareZkCertificateFields(
@@ -60,7 +64,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   const holderCommitmentData = parseHolderCommitment(holderCommitmentFile);
 
-  let randomSalt = args.randomSalt;
+  let { randomSalt } = args;
   // generate random number as salt for new zkCertificate if not provided
   if (randomSalt === undefined) {
     randomSalt = hashStringToFieldNumber(
@@ -99,9 +103,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     );
   } else {
     const recordRegistry = await hre.ethers.getContractAt(
-      (zkCertificateType === ZkCertStandard.ZkKYC
+      zkCertificateType === ZkCertStandard.ZkKYC
         ? 'ZkKYCRegistry'
-        : 'ZkCertificateRegistry'),
+        : 'ZkCertificateRegistry',
       args.registryAddress,
     );
 
@@ -214,7 +218,9 @@ task(
   )
   .addParam(
     'zkCertificateType',
-    `type of zkCertificate, default to be kyc. Available options: ${Object.keys(flagStandardMapping)}`,
+    `type of zkCertificate, default to be kyc. Available options: ${JSON.stringify(
+      Object.keys(flagStandardMapping),
+    )}`,
     undefined,
     types.string,
     false,

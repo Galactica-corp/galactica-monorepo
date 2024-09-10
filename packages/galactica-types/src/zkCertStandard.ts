@@ -137,6 +137,8 @@ export const twitterZkCertificateContentFields = [
   'verified',
 ];
 
+// disabled eslint rule for naming convention because the field names are defined by the standard
+/* eslint-disable @typescript-eslint/naming-convention */
 /**
  * Data specifically contained in reyZkCertificate
  */
@@ -147,6 +149,7 @@ export type ReyZkCertificateContent = {
   rey_score_galactica: number;
   rey_faction: number;
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 /**
  * Ordered list of fields contained specifically in the reyZkCertificate.

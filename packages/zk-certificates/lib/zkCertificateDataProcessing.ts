@@ -51,7 +51,9 @@ export function prepareZkCertificateFields(
     zkCertificateContentFields = reyZkCertificateContentFields;
   } else if (zkCertificateType === ZkCertStandard.ArbitraryData) {
     zkCertificateContentFields = Object.keys(zkCertificateData);
-    stringFieldsForHashing = zkCertificateContentFields.filter(value => typeof zkCertificateData[value] === 'string');
+    stringFieldsForHashing = zkCertificateContentFields.filter(
+      (value) => typeof zkCertificateData[value] === 'string',
+    );
   }
 
   const zkCertificateFields: Record<string, any> = {};
@@ -80,14 +82,21 @@ export function prepareZkCertificateFields(
   return zkCertificateFields;
 }
 
+/**
+ * Converts a date string to a unix timestamp to be used in zk circuits.
+ * @param date - Date string in RFC3339 format or unix timestamp.
+ * @returns Unix timestamp.
+ */
 export function dateStringToUnixTimestamp(date: string): number {
   // check if the date is given as RFC3339 string
   if (date.includes('T')) {
     return Math.floor(new Date(date).getTime() / 1000);
   }
   // check if the date is given as unix timestamp
-  if (date.length === 10 && !isNaN(parseInt(date))) {
-    return parseInt(date);
+  if (date.length === 10 && !isNaN(parseInt(date, 10))) {
+    return parseInt(date, 10);
   }
-  throw new Error(`Invalid date format (neither RFC3339 nor unix timestamp): ${date}`);
+  throw new Error(
+    `Invalid date format (neither RFC3339 nor unix timestamp): ${date}`,
+  );
 }
