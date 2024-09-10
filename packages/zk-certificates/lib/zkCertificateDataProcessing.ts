@@ -51,6 +51,7 @@ export function prepareZkCertificateFields(
     zkCertificateContentFields = reyZkCertificateContentFields;
   } else if (zkCertificateType === ZkCertStandard.ArbitraryData) {
     zkCertificateContentFields = Object.keys(zkCertificateData);
+    stringFieldsForHashing = zkCertificateContentFields.filter(value => typeof zkCertificateData[value] === 'string');
   }
 
   const zkCertificateFields: Record<string, any> = {};

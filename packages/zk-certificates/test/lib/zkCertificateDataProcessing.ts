@@ -5,6 +5,7 @@ import { buildEddsa } from 'circomlibjs';
 import kycExample from '../../example/kycFields.json';
 import reyExample from '../../example/reyFields.json';
 import twitterExample from '../../example/twitterFields.json';
+import dataExample from '../../example/arbitraryDataFields.json';
 import { prepareZkCertificateFields, dateStringToUnixTimestamp } from '../../lib/zkCertificateDataProcessing';
 import { ZkCertStandard } from '@galactica-net/galactica-types';
 
@@ -39,6 +40,13 @@ describe('ZK Certificate Data Processing', () => {
       const processed = prepareZkCertificateFields(eddsa, reyExample, ZkCertStandard.Rey);
 
       expect(processed["x_username"]).to.match(/^[0-9]+$/);
+    });
+
+    it('should process arbitrary data example', async () => {
+      const processed = prepareZkCertificateFields(eddsa, dataExample, ZkCertStandard.ArbitraryData);
+
+      expect(processed["type"]).to.match(/^[0-9]+$/);
+      expect(processed["example"]).to.match(/^[0-9]+$/);
     });
   });
 
