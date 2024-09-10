@@ -19,7 +19,7 @@ import {
   registerZkCertToQueue,
   waitOnIssuanceQueue,
 } from '../lib/registryTools';
-import { ZkCertificate } from '../lib/zkCertificate';
+import { flagStandardMapping, ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
 /**
@@ -41,14 +41,10 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   // read certificate data file
   const data = JSON.parse(fs.readFileSync(args.dataFile, 'utf-8'));
-  let zkCertificateType;
-  if (args.zkCertificateType === 'zkKYC') {
-    zkCertificateType = ZkCertStandard.ZkKYC;
-  } else if (args.zkCertificateType === `twitterZkCertificate`) {
-    zkCertificateType = ZkCertStandard.TwitterZkCertificate;
-  } else {
+  const zkCertificateType = flagStandardMapping[args.zkCertificateType];
+  if (zkCertificateType === undefined) {
     throw new Error(
-      `ZkCertStandard type ${args.zkCertificateType} is unsupported`,
+      `ZkCertStandard type ${args.zkCertificateType} is unsupported, available options: ${Object.keys(flagStandardMapping)}`,
     );
   }
   const zkCertificateFields = prepareZkCertificateFields(
@@ -84,7 +80,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   newZkCertificate.signWithProvider(providerEdDSAKey);
 
   const recordRegistry = await hre.ethers.getContractAt(
-    (zkCertificateType = ZkCertStandard.ZkKYC
+    (zkCertificateType === ZkCertStandard.ZkKYC
       ? 'ZkKYCRegistry'
       : 'ZkCertificateRegistry'),
     args.registryAddress,
@@ -127,8 +123,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${
-        args.index as number
+      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${args.index as number
       }`,
     ),
   );
@@ -162,8 +157,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${
-        args.index as number
+      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${args.index as number
       } with new expiration date ${args.expirationDate as number}`,
     ),
   );
@@ -230,7 +224,7 @@ task(
   )
   .addParam(
     'zkCertificateType',
-    'type of zkCertificate, default to be zkKYC',
+    'type of zkCertificate, default to be kyc. Available options: ${Object.keys(flagStandardMapping)}',
     undefined,
     types.string,
     false,

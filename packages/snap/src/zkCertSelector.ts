@@ -137,7 +137,7 @@ export async function selectZkCert(
   }
 
   const contentFields =
-    selected.zkCertStandard === ZkCertStandard.TwitterZkCertificate
+    selected.zkCertStandard === ZkCertStandard.Twitter
       ? twitterZkCertificateContentFields
       : zkKYCContentFields;
 
