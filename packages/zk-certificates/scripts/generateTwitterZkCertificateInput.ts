@@ -3,6 +3,7 @@ import { twitterZkCertificateContentFields } from '@galactica-net/galactica-type
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
+import twitterExample from '../example/twitterFields.json';
 import { prepareZkCertificateFields, ZkCertStandard } from '../lib';
 import {
   createHolderCommitment,
@@ -10,7 +11,6 @@ import {
 } from '../lib/keyManagement';
 import { MerkleTree } from '../lib/merkleTree';
 import { ZkCertificate } from '../lib/zkCertificate';
-import twitterExample from '../example/twitterFields.json';
 
 /**
  * Generates a sample twitter ZkCertificate object with the given fields.
@@ -33,13 +33,17 @@ export async function generateSampleTwitterZkCertificate(
     holderCommitment,
     ZkCertStandard.Twitter,
     eddsa,
-    "1773",
+    '1773',
     1769736098,
     twitterZkCertificateContentFields,
   );
 
   // set the fields in zkKYC object
-  const processedFields = prepareZkCertificateFields(eddsa, twitterExample, ZkCertStandard.Twitter);
+  const processedFields = prepareZkCertificateFields(
+    eddsa,
+    fields,
+    ZkCertStandard.Twitter,
+  );
   zkTwitterCertificate.setContent(processedFields);
 
   // some default provider private key
@@ -53,7 +57,6 @@ export async function generateSampleTwitterZkCertificate(
 /**
  * Generates the twitter ZkCertificate proof input for the twitter ZkCertificate smart contract.
  * @param twitterZkCertificate - The twitter ZkCertificate object.
- * @param fields - The fields to set in the twitter ZkCertificate object.
  * @returns Zero Knowledge twitter proof input for the twitter ZkCertificate smart contract.
  */
 export async function generateTwitterZkCertificateProofInput(
