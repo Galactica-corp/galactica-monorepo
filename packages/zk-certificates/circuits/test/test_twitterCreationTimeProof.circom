@@ -1,6 +1,6 @@
 pragma circom 2.1.4;
 
-include "../twitterFollowersCountProof.circom";
+include "../twitterCreationTimeProof.circom";
 
 component main {public [
   root,
@@ -10,4 +10,4 @@ component main {public [
   providerAy,
   creationTimeLowerBound,
   creationTimeUpperBound
-]} = TwitterFollowersCountProof(32, 60);
+]} = TwitterCreationTimeProof(32, 60);

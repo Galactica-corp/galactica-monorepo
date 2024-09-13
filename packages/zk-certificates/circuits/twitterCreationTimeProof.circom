@@ -5,12 +5,12 @@ include "../../../node_modules/circomlib/circuits/gates.circom";
 include "./twitterZkCertificate.circom";
 
 /**
- * Circuit to check that a given twitter zkCertificate has at least a certain number of followers
+ * Circuit to check that a given twitter zkCertificate has been created in a certain timeframe
  *
  * @param levels - number of levels of the merkle tree.
  * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
  */
-template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
+template TwitterCreationTimeProof(levels, maxExpirationLengthDays){
     signal input holderCommitment;
     signal input randomSalt;
 
@@ -121,20 +121,20 @@ template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
 
     // 2 circuit to check the creationTime comparing to the bounds
     component compare1 = GreaterEqThan(128);
-    compare.in[0] <== createdAt;
-    compare.in[1] <== creationTimeLowerBound;
+    compare1.in[0] <== createdAt;
+    compare1.in[1] <== creationTimeLowerBound;
 
     component compare2 = GreaterEqThan(128);
-    compare.in[0] <== creationTimeUpperBound;
-    compare.in[1] <== createdAt;
+    compare2.in[0] <== creationTimeUpperBound;
+    compare2.in[1] <== createdAt;
 
     component and1 = AND();
-    and.a <== compare1.out;
-    and.b <== compare2.out;
+    and1.a <== compare1.out;
+    and1.b <== compare2.out;
 
     component and2 = AND();
-    and.a <== and1.out;
-    and.b <== twitterZkCertificate.out;
+    and2.a <== and1.out;
+    and2.b <== twitterZkCertificate.valid;
 
     valid <== and2.out;
 }
