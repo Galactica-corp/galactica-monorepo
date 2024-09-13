@@ -15,14 +15,14 @@ template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
     signal input randomSalt;
 
     // twitter zkCertificate data fields
-    signal input accountId;
-    signal input creationTime;
-    signal input location;
-    signal input verified;
+    signal input id;
+    signal input createdAt;
     signal input followersCount;
-    signal input friendsCount;
-    signal input likesCount;
-    signal input postsCount;
+    signal input followingCount;
+    signal input listedCount;
+    signal input tweetCount;
+    signal input username;
+    signal input verified;
 
     signal input expirationDate;
 
@@ -71,14 +71,14 @@ template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
     twitterZkCertificate.randomSalt <== randomSalt;
 
     // twitter zkCertificate data fields
-    twitterZkCertificate.accountId <== accountId;
-    twitterZkCertificate.creationTime <== creationTime;
-    twitterZkCertificate.location <== location;
-    twitterZkCertificate.verified <== verified;
+    twitterZkCertificate.id <== id;
+    twitterZkCertificate.createdAt <== createdAt;
     twitterZkCertificate.followersCount <== followersCount;
-    twitterZkCertificate.friendsCount <== friendsCount;
-    twitterZkCertificate.likesCount <== likesCount;
-    twitterZkCertificate.postsCount <== postsCount;
+    twitterZkCertificate.followingCount <== followingCount;
+    twitterZkCertificate.listedCount <== listedCount;
+    twitterZkCertificate.tweetCount <== tweetCount;
+    twitterZkCertificate.username <== username;
+    twitterZkCertificate.verified <== verified;
 
     twitterZkCertificate.expirationDate <== expirationDate;
 
@@ -121,12 +121,12 @@ template TwitterFollowersCountProof(levels, maxExpirationLengthDays){
 
     // 2 circuit to check the creationTime comparing to the bounds
     component compare1 = GreaterEqThan(128);
-    compare.in[0] <== creationTime;
+    compare.in[0] <== createdAt;
     compare.in[1] <== creationTimeLowerBound;
 
     component compare2 = GreaterEqThan(128);
     compare.in[0] <== creationTimeUpperBound;
-    compare.in[1] <== creationTime;
+    compare.in[1] <== createdAt;
 
     component and1 = AND();
     and.a <== compare1.out;

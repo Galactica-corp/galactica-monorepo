@@ -31,6 +31,19 @@ async function main() {
     JSON.stringify(twitterFollowersCountProofInput, null, 2),
     'utf8',
   );
+
+  // also create example for twitterZkCertificate creationTime
+  const twitterCreationTimeProofInput = {
+    ...twitterZkCertificateInput,
+    creationTimeLowerBound: 0,
+    creationTimeUpperBound: 1000,
+  };
+
+  fs.writeFileSync(
+    './circuits/input/twitterCreationTimeProof.json',
+    JSON.stringify(twitterCreationTimeProofInput, null, 2),
+    'utf8',
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
