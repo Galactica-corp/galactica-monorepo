@@ -3,6 +3,7 @@ import {
   ZkCertStandard,
   zkKYCContentFields,
   twitterZkCertificateContentFields,
+  reyZkCertificateContentFields,
 } from '@galactica-net/galactica-types';
 import type { Eddsa } from 'circomlibjs';
 
@@ -24,7 +25,8 @@ export function prepareZkCertificateFields(
 ): Record<string, any> {
   // verify that all the fields are present
   const exceptions = ['holderCommitment'];
-  let stringFieldsForHashing;
+  let stringFieldsForHashing: string[] = [];
+  let dateFields: string[] = [];
   let zkCertificateContentFields: string[] = [];
   if (zkCertificateType === ZkCertStandard.ZkKYC) {
     stringFieldsForHashing = [
@@ -38,12 +40,20 @@ export function prepareZkCertificateFields(
       'region',
       'country',
       'citizenship',
-      'passportID',
     ];
     zkCertificateContentFields = zkKYCContentFields;
-  } else if (zkCertificateType === ZkCertStandard.TwitterZkCertificate) {
-    stringFieldsForHashing = ['location'];
+  } else if (zkCertificateType === ZkCertStandard.Twitter) {
+    stringFieldsForHashing = ['username'];
     zkCertificateContentFields = twitterZkCertificateContentFields;
+    dateFields = ['createdAt'];
+  } else if (zkCertificateType === ZkCertStandard.Rey) {
+    stringFieldsForHashing = ['x_username'];
+    zkCertificateContentFields = reyZkCertificateContentFields;
+  } else if (zkCertificateType === ZkCertStandard.ArbitraryData) {
+    zkCertificateContentFields = Object.keys(zkCertificateData);
+    stringFieldsForHashing = zkCertificateContentFields.filter(
+      (value) => typeof zkCertificateData[value] === 'string',
+    );
   }
 
   const zkCertificateFields: Record<string, any> = {};
@@ -55,15 +65,38 @@ export function prepareZkCertificateFields(
         `Field ${field} missing in zkCertificate data of type ${zkCertificateType}`,
       );
     }
-    if (stringFieldsForHashing?.includes(field)) {
+    if (stringFieldsForHashing.includes(field)) {
       // hashing string data so that it fits into the field used by the circuit
       zkCertificateFields[field] = hashStringToFieldNumber(
         zkCertificateData[field],
         eddsa.poseidon,
+      );
+    } else if (dateFields.includes(field)) {
+      zkCertificateFields[field] = dateStringToUnixTimestamp(
+        zkCertificateData[field],
       );
     } else {
       zkCertificateFields[field] = zkCertificateData[field];
     }
   }
   return zkCertificateFields;
+}
+
+/**
+ * Converts a date string to a unix timestamp to be used in zk circuits.
+ * @param date - Date string in RFC3339 format or unix timestamp.
+ * @returns Unix timestamp.
+ */
+export function dateStringToUnixTimestamp(date: string): number {
+  // check if the date is given as RFC3339 string
+  if (date.includes('T')) {
+    return Math.floor(new Date(date).getTime() / 1000);
+  }
+  // check if the date is given as unix timestamp
+  if (date.length === 10 && !isNaN(parseInt(date, 10))) {
+    return parseInt(date, 10);
+  }
+  throw new Error(
+    `Invalid date format (neither RFC3339 nor unix timestamp): ${date}`,
+  );
 }
