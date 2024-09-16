@@ -180,6 +180,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_poseidonSponge.circom',
         input: 'input/poseidonSponge.json',
       },
+      {
+        name: 'exclusion3',
+        circuit: 'test/test_exclusion3.circom',
+        input: 'input/exclusion3.json',
+      },
     ],
   },
 };
