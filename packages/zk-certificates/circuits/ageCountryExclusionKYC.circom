@@ -93,6 +93,7 @@ template AgeCountryExclusionKYC(levels, maxExpirationLengthDays, shamirK, shamir
     // final result
     signal output userPubKey[2]; // required in case of fraud investigation to generate symmetric EDDSA key for decryption
     signal output valid;
+    signal output error; // bit encoded for the various causes of valid=false
     signal output verificationExpiration; 
 
     // variable length part of public input at the end to simplify indexing in the smart contract
@@ -172,4 +173,9 @@ template AgeCountryExclusionKYC(levels, maxExpirationLengthDays, shamirK, shamir
     and.in[2] <== countrySanctionCheck.valid;
 
     valid <== and.out;
+
+    error <== 0 
+        + 1 * (1 - zkKYC.valid) 
+        + 2 * (1 - ageProof.valid) 
+        + 4 * (1 - countrySanctionCheck.valid);
 }

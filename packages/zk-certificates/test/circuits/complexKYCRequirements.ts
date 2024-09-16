@@ -9,7 +9,7 @@ import {
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
 
-describe('Age Proof combined with zkKYC Circuit Component', () => {
+describe('Age + Country Sanction List + KYC Circuit', () => {
   let circuit: CircuitTestUtils;
 
   let zkKYC: ZkCertificate;
@@ -18,7 +18,7 @@ describe('Age Proof combined with zkKYC Circuit Component', () => {
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('ageProofZkKYC');
+    circuit = await hre.circuitTest.setup('ageCountryExclusionKYC');
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
     sampleInput = await generateZkKYCProofInput(zkKYC, 0, '0x0');
@@ -27,6 +27,11 @@ describe('Age Proof combined with zkKYC Circuit Component', () => {
     sampleInput.currentMonth = today.getUTCMonth() + 1;
     sampleInput.currentDay = today.getUTCDate();
     sampleInput.ageThreshold = 18;
+    sampleInput.countryExclusionList = [
+      '0',
+      '1',
+      '4020996060095781638329708372473002493481697479140228740642027622801922135907',
+    ];
 
     // advance time a bit to set it later in the test
     sampleInput.currentTime += 100;
@@ -50,5 +55,14 @@ describe('Age Proof combined with zkKYC Circuit Component', () => {
     );
     // check resulting root as output
     assert.propertyVal(witness, 'main.valid', '1');
+  });
+
+  it('shows error on wrong citizenship', async () => {
+    const input = { ...sampleInput };
+    sampleInput.countryExclusionList[0] = input.citizenship;
+    const witness = await circuit.calculateLabeledWitness(input, sanityCheck);
+
+    assert.propertyVal(witness, 'main.valid', '0');
+    assert.propertyVal(witness, 'main.error', '4');
   });
 });

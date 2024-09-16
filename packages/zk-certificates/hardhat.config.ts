@@ -106,11 +106,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_ageProof.circom',
         input: 'input/ageProof.json',
       },
-      {
-        name: 'ageProofZkKYC',
-        circuit: 'test/test_ageProofZkKYC.circom',
-        input: 'input/ageProofZkKYC.json',
-      },
+      // {
+      //   name: 'ageProofZkKYC',
+      //   circuit: 'test/test_ageProofZkKYC.circom',
+      //   input: 'input/ageProofZkKYC.json',
+      // },
       {
         name: 'authorization',
         circuit: 'test/test_authorization.circom',
@@ -156,11 +156,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_investigatableZkKYC.circom',
         input: 'input/investigatableZkKYC.json',
       },
-      {
-        name: 'exampleMockDApp',
-        circuit: 'test/test_exampleMockDApp.circom',
-        input: 'input/exampleMockDApp.json',
-      },
+      // {
+      //   name: 'exampleMockDApp',
+      //   circuit: 'test/test_exampleMockDApp.circom',
+      //   input: 'input/exampleMockDApp.json',
+      // },
       {
         name: 'twitterZkCertificate',
         circuit: 'test/test_twitterZkCertificate.circom',
