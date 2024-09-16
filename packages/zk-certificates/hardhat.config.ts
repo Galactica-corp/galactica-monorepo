@@ -11,6 +11,7 @@ import './tasks/smartCircuitBuild';
 import './tasks/revokeZkCertificate';
 import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
+import './tasks/hashStringToField';
 
 const config: HardhatUserConfig = {
   mocha: {
