@@ -13,14 +13,19 @@ template Inclusion(listSize){
     signal input value;
     signal input list[listSize];
 
-    // final result
     signal output valid;
 
-    component equal = IsEqual();
-    equal.in[0] <== value;
-    equal.in[1] <== list[0];
-    valid <== equal.out;
-    // TODO: Implement iteration check
+    component equal[listSize];
+    signal reduce[listSize + 1];
+    reduce[0] <== 0;
+    for (var i = 0; i < listSize; i++){
+        equal[i] = IsEqual();
+        equal[i].in[0] <== value;
+        equal[i].in[1] <== list[i];
+        reduce[i+1] <== reduce[i] + equal[i].out;
+    }
+    valid <== reduce[listSize];
+
     // This could be made more efficient by searching in a sorted list. Might be worth it if the list is large.
 }
 
@@ -29,11 +34,9 @@ template Inclusion(listSize){
  * @param listSize - The size of the exclusion list.
  */
 template Exclusion(listSize){
-    // age info from 
     signal input value;
     signal input list[listSize];
 
-    // final result
     signal output valid;
 
     component inclusion = Inclusion(listSize);
