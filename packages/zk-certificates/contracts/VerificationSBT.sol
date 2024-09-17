@@ -61,7 +61,7 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
             dApp: msg.sender,
             verifierWrapper: _verifierWrapper,
             expirationTime: _expirationTime,
-            verifierCodehash: _verifierWrapper.verifier().codehash,
+            verifierCodehash: address(_verifierWrapper.verifier()).codehash,
             encryptedData: _encryptedData,
             userPubKey: _userPubKey,
             humanID: _humanID,
@@ -90,7 +90,7 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
         // 2. the expiration time hasn't happened yet
         return
             (address(verificationSBTInfo.verifierWrapper) != address(0)) &&
-            (verificationSBTInfo.verifierWrapper.verifier().codehash ==
+            (address(verificationSBTInfo.verifierWrapper.verifier()).codehash ==
                 verificationSBTInfo.verifierCodehash) &&
             (verificationSBTInfo.expirationTime > block.timestamp);
     }
