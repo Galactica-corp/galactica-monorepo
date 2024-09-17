@@ -85,5 +85,6 @@
   "currentYear": 2023,
   "currentMonth": 5,
   "currentDay": 9,
-  "ageThreshold": 18
+  "ageThreshold": 18,
+  "countryExclusionList": []
 }

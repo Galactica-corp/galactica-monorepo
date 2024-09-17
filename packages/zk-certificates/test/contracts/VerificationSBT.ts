@@ -33,7 +33,7 @@ use(chaiAsPromised);
 
 chai.config.includeStack = true;
 
-describe('Verification SBT Smart contract', () => {
+describe.only('Verification SBT Smart contract', () => {
   let ageProofZkKYC: AgeCitizenshipKYC;
   let exampleMockDAppVerifier: ExampleMockDAppVerifier;
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
@@ -95,6 +95,7 @@ describe('Verification SBT Smart contract', () => {
       deployer.address,
       exampleMockDAppVerifier.address,
       mockZkCertificateRegistry.address,
+      [],
       mockGalacticaInstitutions.map((inst) => inst.address),
     )) as AgeCitizenshipKYC;
 
