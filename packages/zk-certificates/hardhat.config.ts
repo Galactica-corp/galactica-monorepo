@@ -187,9 +187,9 @@ const config: HardhatUserConfig = {
         input: 'input/exclusion3.json',
       },
       {
-        name: 'ageCountryExclusionKYC',
-        circuit: 'test/test_ageCountryExclusionKYC.circom',
-        input: 'input/ageCountryExclusionKYC.json',
+        name: 'ageCitizenshipKYC',
+        circuit: 'test/test_ageCitizenshipKYC.circom',
+        input: 'input/ageCitizenshipKYC.json',
       },
     ],
   },

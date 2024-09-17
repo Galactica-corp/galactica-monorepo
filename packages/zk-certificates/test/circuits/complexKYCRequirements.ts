@@ -9,7 +9,7 @@ import {
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
 
-describe('Age + Country Sanction List + KYC Circuit', () => {
+describe('Age + Citizenship Sanction List + KYC Circuit', () => {
   let circuit: CircuitTestUtils;
 
   let zkKYC: ZkCertificate;
@@ -18,7 +18,7 @@ describe('Age + Country Sanction List + KYC Circuit', () => {
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('ageCountryExclusionKYC');
+    circuit = await hre.circuitTest.setup('ageCitizenshipKYC');
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
     sampleInput = await generateZkKYCProofInput(zkKYC, 0, '0x0');
