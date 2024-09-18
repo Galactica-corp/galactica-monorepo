@@ -2,9 +2,11 @@
 
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import chai from 'chai';
+import { buildPoseidon } from 'circomlibjs';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import type { Poseidon } from '../../lib';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -16,13 +18,11 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
-import type { AgeCitizenshipKYCVerifier } from '../../typechain-types/contracts/AgeCitizenshipKYCVerifier';
 import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/AgeCitizenshipKYC';
+import type { AgeCitizenshipKYCVerifier } from '../../typechain-types/contracts/AgeCitizenshipKYCVerifier';
+import type { KYCRequirementsDemoDApp } from '../../typechain-types/contracts/KYCRequirementsDemoDApp';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
-import type { KYCRequirementsDemoDApp } from '../../typechain-types/contracts/KYCRequirementsDemoDApp';
-import { Poseidon } from '../../lib';
-import { buildPoseidon } from 'circomlibjs';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -37,15 +37,15 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
    * @returns Fixtures.
    */
   async function deploy() {
-    let [deployer, user, randomUser] = await hre.ethers.getSigners();
+    const [deployer, randomUser] = await hre.ethers.getSigners();
 
-    const poseidon = await buildPoseidon() as Poseidon;
+    const poseidon = (await buildPoseidon()) as Poseidon;
 
     const countryExclusionList = [
-      "0",
-      "1",
+      '0',
+      '1',
       hashStringToFieldNumber('USA', poseidon),
-    ]
+    ];
 
     // setup contracts
     const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
@@ -97,7 +97,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     const zkKYC = await generateSampleZkKYC();
 
     // default inputs to create proof
-    let sampleInput = await generateZkKYCProofInput(
+    const sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
       kycRequirementsDemoDApp.address,
@@ -114,7 +114,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
     // get signer object authorized to use the zkKYC record
-    user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
+    const user = await hre.ethers.getImpersonatedSigner(
+      sampleInput.userAddress,
+    );
 
     // compute default proof
     const { proof, publicSignals } = await groth16.fullProve(
@@ -161,7 +163,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
         piB,
         piC,
         publicInputs,
-      }
+      },
     };
   }
 
@@ -177,17 +179,25 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
     // owner can change addresses
-    await sc.ageCitizenshipKYC.connect(acc.deployer).setVerifier(acc.user.address);
-    await sc.ageCitizenshipKYC.connect(acc.deployer).setKYCRegistry(acc.user.address);
+    await sc.ageCitizenshipKYC
+      .connect(acc.deployer)
+      .setVerifier(acc.user.address);
+    await sc.ageCitizenshipKYC
+      .connect(acc.deployer)
+      .setKYCRegistry(acc.user.address);
 
     expect(await sc.ageCitizenshipKYC.verifier()).to.be.equal(acc.user.address);
-    expect(await sc.ageCitizenshipKYC.KYCRegistry()).to.be.equal(acc.user.address);
+    expect(await sc.ageCitizenshipKYC.KYCRegistry()).to.be.equal(
+      acc.user.address,
+    );
   });
 
   it('correct proof can be verified onchain', async () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
-    await sc.ageCitizenshipKYC.connect(acc.user).verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs);
+    await sc.ageCitizenshipKYC
+      .connect(acc.user)
+      .verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs);
   });
 
   it('proof with older but still valid merkle root can still be verified', async () => {
@@ -198,7 +208,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       fromHexToBytes32(fromDecToHex('0x11')),
     );
 
-    await sc.ageCitizenshipKYC.connect(acc.user).verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs);
+    await sc.ageCitizenshipKYC
+      .connect(acc.user)
+      .verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs);
   });
 
   it('revert for proof with old merkle root', async () => {
@@ -213,7 +225,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     await sc.mockZkCertificateRegistry.setMerkleRootValidIndex(2);
 
     await expect(
-      sc.ageCitizenshipKYC.connect(acc.user).verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs),
+      sc.ageCitizenshipKYC
+        .connect(acc.user)
+        .verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs),
     ).to.be.revertedWith('invalid merkle root');
   });
 
@@ -223,7 +237,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     // switch c, a to get an incorrect proof
     // it doesn't fail on time because the time change remains from the previous test
     await expect(
-      sc.ageCitizenshipKYC.connect(acc.user).verifyProof(proof.piC, proof.piB, proof.piA, proof.publicInputs),
+      sc.ageCitizenshipKYC
+        .connect(acc.user)
+        .verifyProof(proof.piC, proof.piB, proof.piA, proof.publicInputs),
     ).to.be.reverted;
   });
 
@@ -239,9 +255,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       circuitWasmPath,
       circuitZkeyPath,
     );
-    expect(publicSignals[await sc.ageCitizenshipKYC.INDEX_IS_VALID()]).to.be.equal(
-      '0',
-    );
+    expect(
+      publicSignals[await sc.ageCitizenshipKYC.INDEX_IS_VALID()],
+    ).to.be.equal('0');
     const publicRoot = publicSignals[await sc.ageCitizenshipKYC.INDEX_ROOT()];
     // set the merkle root to the correct one
 
@@ -253,18 +269,27 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
     await expect(
-      sc.ageCitizenshipKYC.connect(acc.user).verifyProof(piA, piB, piC, publicInputs),
+      sc.ageCitizenshipKYC
+        .connect(acc.user)
+        .verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith('the proof output is not valid');
   });
 
   it('revert if public output merkle root does not match with the one onchain', async () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
-    let fakeProof = JSON.parse(JSON.stringify(proof)); // deep copy
+    const fakeProof = JSON.parse(JSON.stringify(proof)); // deep copy
     fakeProof.publicInputs[await sc.ageCitizenshipKYC.INDEX_ROOT()] = '0x11';
 
     await expect(
-      sc.ageCitizenshipKYC.connect(acc.user).verifyProof(fakeProof.piA, fakeProof.piB, fakeProof.piC, fakeProof.publicInputs),
+      sc.ageCitizenshipKYC
+        .connect(acc.user)
+        .verifyProof(
+          fakeProof.piA,
+          fakeProof.piB,
+          fakeProof.piC,
+          fakeProof.publicInputs,
+        ),
     ).to.be.revertedWith('invalid merkle root');
   });
 
@@ -282,7 +307,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     await hre.network.provider.send('evm_mine');
     await expect(
-      sc.ageCitizenshipKYC.connect(acc.user).verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs),
+      sc.ageCitizenshipKYC
+        .connect(acc.user)
+        .verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs),
     ).to.be.revertedWith('the current time is incorrect');
   });
 
@@ -301,11 +328,14 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
   it('revert if public input for year is incorrect', async () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
-    let fakeProof = JSON.parse(JSON.stringify(proof)); // deep copy
-    fakeProof.publicInputs[await sc.ageCitizenshipKYC.INDEX_CURRENT_YEAR()] = '0x123';
+    const fakeProof = JSON.parse(JSON.stringify(proof)); // deep copy
+    fakeProof.publicInputs[await sc.ageCitizenshipKYC.INDEX_CURRENT_YEAR()] =
+      '0x123';
 
     await expect(
-      sc.ageCitizenshipKYC.connect(acc.user).verifyProof(proof.piA, proof.piB, proof.piC, fakeProof.publicInputs),
+      sc.ageCitizenshipKYC
+        .connect(acc.user)
+        .verifyProof(proof.piA, proof.piB, proof.piC, fakeProof.publicInputs),
     ).to.be.revertedWith('the current year is incorrect');
   });
 
@@ -313,21 +343,25 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     const { acc, sc, poseidon } = await loadFixture(deploy);
     const newCountryList = [
       hashStringToFieldNumber('GER', poseidon),
-      "1",
+      '1',
       hashStringToFieldNumber('USA', poseidon),
     ];
 
-    await sc.ageCitizenshipKYC.connect(acc.deployer).setSanctionedCountries(newCountryList);
+    await sc.ageCitizenshipKYC
+      .connect(acc.deployer)
+      .setSanctionedCountries(newCountryList);
 
     for (let i = 0; i < newCountryList.length; i++) {
-      expect(await sc.ageCitizenshipKYC.sanctionedCountries(i)).to.equal(newCountryList[i]);
+      expect(await sc.ageCitizenshipKYC.sanctionedCountries(i)).to.equal(
+        newCountryList[i],
+      );
     }
   });
 
   it('revert if citizenship is in list of sanctioned countries', async () => {
     const { acc, sc, sampleInput } = await loadFixture(deploy);
 
-    let forgedInput = JSON.parse(JSON.stringify(sampleInput)); // deep copy
+    const forgedInput = JSON.parse(JSON.stringify(sampleInput)); // deep copy
     forgedInput.countryExclusionList[0] = forgedInput.citizenship;
 
     const { proof, publicSignals } = await groth16.fullProve(
@@ -348,36 +382,54 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     // set time to the public time
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime + 50]);
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [
+      publicTime + 50,
+    ]);
 
     await hre.network.provider.send('evm_mine');
 
     await expect(
-      sc.ageCitizenshipKYC.connect(acc.user).verifyProof(piC, piB, piA, publicInputs),
+      sc.ageCitizenshipKYC
+        .connect(acc.user)
+        .verifyProof(piC, piB, piA, publicInputs),
     ).to.be.revertedWith('the proof output is not valid');
   });
 
   it('revert if sanction list differs', async () => {
     const { acc, sc, proof, sampleInput } = await loadFixture(deploy);
 
-    let newCountryList = JSON.parse(JSON.stringify(sampleInput.countryExclusionList));
+    const newCountryList = JSON.parse(
+      JSON.stringify(sampleInput.countryExclusionList),
+    );
     newCountryList[0] = sampleInput.citizenship;
 
-    await sc.ageCitizenshipKYC.connect(acc.deployer).setSanctionedCountries(newCountryList);
+    await sc.ageCitizenshipKYC
+      .connect(acc.deployer)
+      .setSanctionedCountries(newCountryList);
 
     await expect(
-      sc.ageCitizenshipKYC.connect(acc.user).verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs),
+      sc.ageCitizenshipKYC
+        .connect(acc.user)
+        .verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs),
     ).to.be.revertedWith('the country sanction list differs');
   });
 
   it('should integrate in DApp and verificationSBT', async () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
-    await sc.kycRequirementsDemoDApp.connect(acc.user).checkRequirements(proof.piA, proof.piB, proof.piC, proof.publicInputs);
-    expect(await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address)).to.be.true;
+    await sc.kycRequirementsDemoDApp
+      .connect(acc.user)
+      .checkRequirements(proof.piA, proof.piB, proof.piC, proof.publicInputs);
+    expect(
+      await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address),
+    ).to.be.true;
 
     // check repeatability
-    await sc.kycRequirementsDemoDApp.connect(acc.user).checkRequirements(proof.piA, proof.piB, proof.piC, proof.publicInputs);
-    expect(await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address)).to.be.true;
+    await sc.kycRequirementsDemoDApp
+      .connect(acc.user)
+      .checkRequirements(proof.piA, proof.piB, proof.piC, proof.publicInputs);
+    expect(
+      await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address),
+    ).to.be.true;
   });
 });
