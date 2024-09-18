@@ -52,11 +52,13 @@ contract SBTManager is Ownable {
           } else if (index == 2) {
             require(input[7] == 10000, "Followers count threshold is not met");
           } else if (index == 3) {
+          // in this case we require that the account is created before 2020-01-01
             require(input[7] == 0, "Creation time lower bound is not valid");
-            require(input[8] == 1,  "Creation time upper bound is not valid");
+            require(input[8] == 1577836800,  "Creation time upper bound is not valid");
           } else if (index == 4) {
-            require(input[7] == 0, "Creation time lower bound is not valid");
-            require(input[8] == 1,  "Creation time upper bound is not valid");
+            // in this case we require that the account is created after 2024-01-01 and before 2025-01-01
+            require(input[7] == 1704067200, "Creation time lower bound is not valid");
+            require(input[8] == 1735689600,  "Creation time upper bound is not valid");
           } else if (index == 5) {
             revert("Invalid index");
           }
