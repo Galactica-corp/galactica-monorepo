@@ -1,5 +1,6 @@
 export const zkKYCRegistry = '0x49FEc8ddf15a9731EfeD88b35685a45e5Fa95eFE';
 export const mockDApp = '0x1Bc3fD934fBaC1C256EC707ee6B45f4aBfF8D86A';
+export const kycRequirementsDemoDApp = '0x19e42B5aC8f8C4C1E2f1A440EbF31c3858dfA90A';
 export const verificationSBT = '0x71061C72e3D81D74E0f0578Db7DfAb9f77D461f6';
 export const galacticaInstitutions = [
   '0x92fB78102Af6647305277539Ebbd57d0363f8E5b',
@@ -20,6 +21,7 @@ const addresses = {
   zkKYCRegistry,
   twitterFollowersCountProof,
   twitterZkCertificateRegistry,
+  kycRequirementsDemoDApp,
 };
 
 export default addresses;

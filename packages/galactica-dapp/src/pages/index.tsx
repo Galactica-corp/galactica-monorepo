@@ -22,8 +22,10 @@ import { ethers } from 'ethers';
 import { processProof, processPublicSignals } from '../utils/proofProcessing';
 
 import addresses from '../config/addresses';
-import { defaultSnapOrigin, zkKYCAgeProofPublicInputDescriptions, zkKYCPublicInputDescriptions } from '../config/snap';
+import { defaultSnapOrigin, kycRequirementsDemoDAppPublicInputDescriptions, zkKYCAgeProofPublicInputDescriptions, zkKYCPublicInputDescriptions } from '../config/snap';
 import mockDAppABI from '../config/abi/MockDApp.json';
+import kycRequirementsDemoDAppABI from '../config/abi/KYCRequirementsDemoDApp.json';
+import IAgeCitizenshipKYCVerifierABI from '../config/abi/IAgeCitizenshipKYCVerifier.json';
 import repeatableZKPTestABI from '../config/abi/RepeatableZKPTest.json';
 import { getProver, prepareProofInput } from '../utils/zkp';
 
@@ -213,50 +215,71 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
 
       const dateNow = new Date();
-      const ageProofInputs = {
+      const usCountryHash = '4020996060095781638329708372473002493481697479140228740642027622801922135907';
+      const specificProofInputs = {
         // specific inputs to prove that the holder is at least 18 years old
         currentYear: dateNow.getUTCFullYear().toString(),
         currentMonth: (dateNow.getUTCMonth() + 1).toString(),
         currentDay: dateNow.getUTCDate().toString(),
         ageThreshold: '18',
-        countryExclusionList: [],
+        // specific inputs to prove that the holder is not a citizen of a sanctioned country
+        countryExclusionList: ['1', '0', usCountryHash],
       };
-      const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
+      const proofInput = await prepareProofInput(addresses.kycRequirementsDemoDApp, [], specificProofInputs);
 
       const res: any = await generateZKProof({
         input: proofInput,
-        prover: await getProver("provers/exampleMockDApp.json"),
+        prover: await getProver("provers/ageCitizenshipKYC.json"),
         requirements: {
           zkCertStandard: ZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
         },
         userAddress: getUserAddress(),
-        description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
-        publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
+        description: "This proof discloses that you hold a valid zkKYC, age >= 18, and non-US citizen.",
+        publicInputDescriptions: kycRequirementsDemoDAppPublicInputDescriptions,
         zkInputRequiresPrivKey: true,
       }, defaultSnapOrigin);
       console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
 
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
-      dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
-
       let [a, b, c] = processProof(zkp.proof);
       let publicInputs = processPublicSignals(zkp.publicSignals);
+
+      // get contracts
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const exampleDAppSC = new ethers.Contract(addresses.kycRequirementsDemoDApp, kycRequirementsDemoDAppABI.abi, signer);
+      const verifierAddr = await exampleDAppSC.verifierWrapper();
+      const ageCitizenshipKYCVerifierSC = new ethers.Contract(verifierAddr, IAgeCitizenshipKYCVerifierABI.abi, signer);
+
+      // Check if the proof has an error code
+      const errorFieldIndex = await ageCitizenshipKYCVerifierSC.INDEX_ERROR();
+      const error = parseInt(publicInputs[errorFieldIndex]);
+      if (error !== 0) {
+        let errorMessage = '';
+        if ((error & 1) !== 0) {
+          throw new Error("zkKYC is not valid");
+        } else if ((error & 2) !== 0) {
+          throw new Error("Age requirement not met");
+        } else if ((error & 4) !== 0) {
+          throw new Error("Sanction country exclusion not met");
+        } else {
+          throw new Error("`Proof generation failed with error code: ${error}`");
+        }
+      } else {
+        dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+        dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
+      }
 
       console.log(`Sending proof for on-chain verification...`);
       // this is the on-chain function that requires a ZKP
       //@ts-ignore https://github.com/metamask/providers/issues/200
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      // get contracts
-      const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
-      let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
+      let tx = await exampleDAppSC.checkRequirements(a, b, c, publicInputs);
       console.log("tx", tx);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
       const receipt = await tx.wait();
       console.log("receipt", receipt);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Passed all requirements, got Verification SBT` });
 
       console.log(`Updating verification SBTs...`);
       await showVerificationSBTs();
