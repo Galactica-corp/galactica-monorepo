@@ -15,10 +15,14 @@ async function main() {
 
   const VerificationSBTFactory =
     await ethers.getContractFactory('VerificationSBT');
-  const uri = "https://galactica.network/";
-  const name = "Galactica Twitter Follower Count 10000 Verification SBT";
-  const symbol = "GTFV";
-  const VerificationSBTInstance = await VerificationSBTFactory.deploy(uri, name, symbol);
+  const uri = 'https://galactica.network/';
+  const name = 'Galactica Twitter Follower Count 10000 Verification SBT';
+  const symbol = 'GTFV';
+  const VerificationSBTInstance = await VerificationSBTFactory.deploy(
+    uri,
+    name,
+    symbol,
+  );
 
   console.log(
     `The address of the contract is ${VerificationSBTInstance.address}`,

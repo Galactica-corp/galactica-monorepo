@@ -6,8 +6,8 @@ import "./interfaces/ITwitterZkCertificateVerifier.sol";
 import "./interfaces/IZkCertificateRegistry.sol";
 
 /// @author Galactica dev team
-/// @title a wrapper for verifier of twitter followers count proof
-contract TwitterFollowersCountProof is Ownable {
+/// @title a wrapper for verifier of twitter creation time proof
+contract TwitterCreationTimeProof is Ownable {
     ITwitterZkCertificateVerifier public verifier;
     IZkCertificateRegistry public registry;
     uint256 public constant timeDifferenceTolerance = 30*60; // the maximal difference between the onchain time and public input current time

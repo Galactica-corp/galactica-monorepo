@@ -18,7 +18,6 @@ import {
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { TwitterZkCertificate } from '../../typechain-types/contracts/TwitterZkCertificate';
 import type { TwitterZkCertificateVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterZkCertificateVerifier';
-
 chai.config.includeStack = true;
 
 const { expect } = chai;

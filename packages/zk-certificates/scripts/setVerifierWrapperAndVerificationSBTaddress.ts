@@ -14,7 +14,10 @@ async function main() {
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   const SBTManagerAddress = '0x361d57F0F239dCC538E5a0c81a394C15127DF2A8';
-  const SBTManagerInstance = await ethers.getContractAt('SBTManager', SBTManagerAddress);
+  const SBTManagerInstance = await ethers.getContractAt(
+    'SBTManager',
+    SBTManagerAddress,
+  );
   const SBTManagerOwner = await SBTManagerInstance.owner();
   console.log(`SBTManager owner: ${SBTManagerOwner}`);
 

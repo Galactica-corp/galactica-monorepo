@@ -13,13 +13,10 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const SBTManagerRegistry =
-    await ethers.getContractFactory('SBTManager');
+  const SBTManagerRegistry = await ethers.getContractFactory('SBTManager');
   const SBTManagerInstance = await SBTManagerRegistry.deploy(deployer.address);
 
-  console.log(
-    `The address of the contract is ${SBTManagerInstance.address}`,
-  );
+  console.log(`The address of the contract is ${SBTManagerInstance.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

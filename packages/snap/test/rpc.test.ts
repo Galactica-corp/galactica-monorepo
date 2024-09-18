@@ -109,7 +109,7 @@ describe('Test rpc handler function', function () {
 
   before(function () {
     // prepare URL to fetch provers from
-    const prover = testZkpParams.prover as ProverData; // we know it is a prover
+    const { prover } = testZkpParams; // we know it is a prover
     fetchMock.get(testProverURL + subPathWasm, JSON.stringify(prover.wasm));
     fetchMock.get(
       testProverURL + subPathZkeyHeader,
@@ -713,7 +713,7 @@ describe('Test rpc handler function', function () {
 
       // Merkle proof should have been updated and stored
       expect(fetchMock.calls().length).to.equal(
-        2 + (testZkpParams.prover as ProverData).zkeySections.length,
+        2 + testZkpParams.prover.zkeySections.length,
       );
     });
 
@@ -743,7 +743,7 @@ describe('Test rpc handler function', function () {
         'Prover data hash does not match hash in ProverLink.',
       );
       expect(fetchMock.calls().length).to.equal(
-        2 + (testZkpParams.prover as ProverData).zkeySections.length,
+        2 + testZkpParams.prover.zkeySections.length,
       );
     });
 

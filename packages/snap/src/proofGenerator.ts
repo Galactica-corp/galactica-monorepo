@@ -265,7 +265,7 @@ export function checkZkCertProofRequest(
   }
   if (
     params.prover === undefined ||
-    ((params.prover as ProverData).wasm === undefined &&
+    (params.prover.wasm === undefined &&
       (params.prover as ProverLink).url === undefined)
   ) {
     throw new GenZKPError({
