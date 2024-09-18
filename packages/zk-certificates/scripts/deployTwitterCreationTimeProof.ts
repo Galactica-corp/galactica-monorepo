@@ -18,8 +18,8 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const deployGuardianRegistryFlag = true;
-  const setGuardianFlag = true;
+  const deployGuardianRegistryFlag = false;
+  const setGuardianFlag = false;
   const deployTwitterZkCertificateRegistryFlag = true;
   const deployTwitterCreationTimeProofVerifierFlag = true;
   const deployTwitterCreationTimeProofFlag = true;
@@ -33,7 +33,7 @@ async function main() {
     ]);
   } else {
     const guardianRegistryAddress =
-      '0x2B943d59498BC1759505bFa4CA78E12D7704f75D';
+      '0xAE656f6BC00FfAdA61F7a58403A5BC9e37542c15';
     guardianRegistry = await ethers.getContractAt(
       'GuardianRegistry',
       guardianRegistryAddress,
