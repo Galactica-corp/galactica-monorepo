@@ -7,9 +7,9 @@ import { deployBasicKYCExampleDApp } from './deploymentSteps/basicKYCExampleDApp
 import { deployDevnetGuardian } from './deploymentSteps/devnetGuardian';
 import { deployExampleDApp } from './deploymentSteps/exampleDApp';
 import { deployInfrastructure } from './deploymentSteps/infrastructure';
+import { deployKYCRequirementsDemoDApp } from './deploymentSteps/kycRequirementDemo';
 import { deployRepeatableZKPTest } from './deploymentSteps/repeatableZKPTest';
 import { whitelistGuardian } from './deploymentSteps/whitelistGuardian';
-import { deployKYCRequirementsDemoDApp } from './deploymentSteps/kycRequirementDemo';
 
 /**
  * Script to deploy the whole infrastructure and test contracts.
@@ -89,13 +89,13 @@ RepeatableZKPTest: ${JSON.stringify(repeatableZkKYC.repeatableZKPTest.address)}
 DevnetGuardian: ${JSON.stringify(devnetGuardian.address)}
 
 KYCRequirementsDemo-DApp: ${JSON.stringify(
-    kycRequirementsDemoContracts.kycRequirementsDemoDApp.address
+    kycRequirementsDemoContracts.kycRequirementsDemoDApp.address,
   )}
 KYCRequirementsDemo-CircomVerifier: ${JSON.stringify(
-    kycRequirementsDemoContracts.zkpVerifier.address
+    kycRequirementsDemoContracts.zkpVerifier.address,
   )}
 KYCRequirementsDemo-AgeCitizenshipKYC: ${JSON.stringify(
-    kycRequirementsDemoContracts.ageCitizenshipKYC.address
+    kycRequirementsDemoContracts.ageCitizenshipKYC.address,
   )}
   `;
   console.log(deploymentSummary);

@@ -14,7 +14,11 @@ async function main() {
   // wallets
   const [deployer] = await hre.ethers.getSigners();
 
-  await deployKYCRequirementsDemoDApp(deployer, zkKYCRecordRegistry, verificationSBT);
+  await deployKYCRequirementsDemoDApp(
+    deployer,
+    zkKYCRecordRegistry,
+    verificationSBT,
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

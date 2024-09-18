@@ -1,10 +1,10 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { buildPoseidon } from 'circomlibjs';
 
 import { deploySC } from '../../lib/hardhatHelpers';
-import { buildPoseidon } from 'circomlibjs';
-import { Poseidon } from '../../lib/poseidon';
 import { hashStringToFieldNumber } from '../../lib/helpers';
+import type { Poseidon } from '../../lib/poseidon';
 
 const { log } = console;
 
@@ -37,15 +37,17 @@ export async function deployKYCRequirementsDemoDApp(
     zkpVerifier.address,
     recordRegistryAddr,
     // sanctioned countries: undefined ("1") + 1 placeholders ("0") to set later if needed + hash of "USA"
-    ["1", "0", hashStringToFieldNumber('USA', poseidon)],
+    ['1', '0', hashStringToFieldNumber('USA', poseidon)],
     // no investigation institutions
     [],
   ]);
 
-  const kycRequirementsDemoDApp = await deploySC('KYCRequirementsDemoDApp', true, {}, [
-    verificationSBTAddr,
-    ageCitizenshipKYC.address,
-  ]);
+  const kycRequirementsDemoDApp = await deploySC(
+    'KYCRequirementsDemoDApp',
+    true,
+    {},
+    [verificationSBTAddr, ageCitizenshipKYC.address],
+  );
 
   return {
     zkpVerifier,
