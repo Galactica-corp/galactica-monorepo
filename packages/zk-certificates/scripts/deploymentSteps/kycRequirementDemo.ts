@@ -2,52 +2,54 @@
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { deploySC } from '../../lib/hardhatHelpers';
+import { buildPoseidon } from 'circomlibjs';
+import { Poseidon } from '../../lib/poseidon';
+import { hashStringToFieldNumber } from '../../lib/helpers';
 
 const { log } = console;
 
 /**
- * Deploys the example DApp, a smart contract requiring zkKYC + age proof to airdrop tokens once to each user.
+ * Deploys the KYC requirement demo, a smart contract requiring zkKYC + age proof + citizenship sanctioned to mint an SBT for the user.
  * @param deployer - The deployer wallet.
+ * @param recordRegistryAddr - The address of the ZkKYC record registry.
  * @param verificationSBTAddr - The address of the verification SBT.
- * @param ageCitizenshipKYCAddr - The address of the age proof zkKYC.
  * @returns The deployed contracts.
  */
-export async function deployExampleDApp(
+export async function deployKYCRequirementsDemoDApp(
   deployer: SignerWithAddress,
+  recordRegistryAddr: string,
   verificationSBTAddr: string,
-  ageCitizenshipKYCAddr: string,
 ): Promise<{
-  mockDApp: any;
-  token1: any;
-  token2: any;
+  zkpVerifier: any;
+  ageCitizenshipKYC: any;
+  kycRequirementsDemoDApp: any;
 }> {
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  // deploying everything
-  const mockDApp = await deploySC('MockDApp', true, {}, [
-    verificationSBTAddr,
-    ageCitizenshipKYCAddr,
-  ]);
-  const token1 = await deploySC(
-    'contracts/mock/MockToken.sol:MockToken',
-    true,
-    {},
-    [mockDApp.address],
-  );
-  const token2 = await deploySC(
-    'contracts/mock/MockToken.sol:MockToken',
-    true,
-    {},
-    [mockDApp.address],
-  );
+  const poseidon = (await buildPoseidon()) as Poseidon;
 
-  await mockDApp.setToken1(token1.address);
-  await mockDApp.setToken2(token2.address);
+  // deploying everything
+  const zkpVerifier = await deploySC('AgeCitizenshipKYCVerifier', true);
+
+  const ageCitizenshipKYC = await deploySC('AgeCitizenshipKYC', true, {}, [
+    deployer.address,
+    zkpVerifier.address,
+    recordRegistryAddr,
+    // sanctioned countries: undefined ("1") + 1 placeholders ("0") to set later if needed + hash of "USA"
+    ["1", "0", hashStringToFieldNumber('USA', poseidon)],
+    // no investigation institutions
+    [],
+  ]);
+
+  const kycRequirementsDemoDApp = await deploySC('KYCRequirementsDemoDApp', true, {}, [
+    verificationSBTAddr,
+    ageCitizenshipKYC.address,
+  ]);
 
   return {
-    mockDApp,
-    token1,
-    token2,
+    zkpVerifier,
+    ageCitizenshipKYC,
+    kycRequirementsDemoDApp,
   };
 }

@@ -9,6 +9,7 @@ import { deployExampleDApp } from './deploymentSteps/exampleDApp';
 import { deployInfrastructure } from './deploymentSteps/infrastructure';
 import { deployRepeatableZKPTest } from './deploymentSteps/repeatableZKPTest';
 import { whitelistGuardian } from './deploymentSteps/whitelistGuardian';
+import { deployKYCRequirementsDemoDApp } from './deploymentSteps/kycRequirementDemo';
 
 /**
  * Script to deploy the whole infrastructure and test contracts.
@@ -27,7 +28,7 @@ async function main() {
   const exampleDApp = await deployExampleDApp(
     deployer,
     infrastructure.verificationSBT.address,
-    infrastructure.ageProofZkKYC.address,
+    infrastructure.ageCitizenshipKYC.address,
   );
   const repeatableZkKYC = await deployRepeatableZKPTest(
     deployer,
@@ -52,6 +53,12 @@ async function main() {
     'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx',
   );
 
+  const kycRequirementsDemoContracts = await deployKYCRequirementsDemoDApp(
+    deployer,
+    infrastructure.recordRegistry.address,
+    infrastructure.verificationSBT.address,
+  );
+
   const deploymentSummary = `Deployment summary:
 PoseidonT3: ${JSON.stringify(infrastructure.poseidonT3.address)}
 
@@ -73,13 +80,23 @@ ZkKYCVerifier: ${JSON.stringify(repeatableZkKYC.zkKYCVerifier.address)}
 ZkKYC: ${JSON.stringify(repeatableZkKYC.zkKYCSC.address)}
 
 ExampleMockDAppVerifier: ${JSON.stringify(infrastructure.zkpVerifier.address)}
-AgeProofZkKYC: ${JSON.stringify(infrastructure.ageProofZkKYC.address)}
+AgeCitizenshipKYC: ${JSON.stringify(infrastructure.ageCitizenshipKYC.address)}
 MockDApp: ${JSON.stringify(exampleDApp.mockDApp.address)}
 
 BasicKYCExampleDApp: ${JSON.stringify(basicKYCExample.address)}
 RepeatableZKPTest: ${JSON.stringify(repeatableZkKYC.repeatableZKPTest.address)}
 
 DevnetGuardian: ${JSON.stringify(devnetGuardian.address)}
+
+KYCRequirementsDemo-DApp: ${JSON.stringify(
+    kycRequirementsDemoContracts.kycRequirementsDemoDApp.address
+  )}
+KYCRequirementsDemo-CircomVerifier: ${JSON.stringify(
+    kycRequirementsDemoContracts.zkpVerifier.address
+  )}
+KYCRequirementsDemo-AgeCitizenshipKYC: ${JSON.stringify(
+    kycRequirementsDemoContracts.ageCitizenshipKYC.address
+  )}
   `;
   console.log(deploymentSummary);
   // write summary to file in deployments folder, create it if not existing already
