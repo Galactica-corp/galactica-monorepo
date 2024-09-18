@@ -19,6 +19,8 @@ import {
 import type { AgeCitizenshipKYCVerifier } from '../../typechain-types/contracts/AgeCitizenshipKYCVerifier';
 import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/AgeCitizenshipKYC';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
+import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { KYCRequirementsDemoDApp } from '../../typechain-types/contracts/KYCRequirementsDemoDApp';
 import { Poseidon } from '../../lib';
 import { buildPoseidon } from 'circomlibjs';
 
@@ -72,6 +74,24 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       [],
     )) as AgeCitizenshipKYC;
     await ageCitizenshipKYCVerifier.deployed();
+    const verificationSBTFactory = await ethers.getContractFactory(
+      'VerificationSBT',
+      deployer,
+    );
+    const verificationSBT = (await verificationSBTFactory.deploy(
+      'test URI',
+      'VerificationSBT',
+      'VerificationSBT',
+    )) as VerificationSBT;
+
+    const mockDAppFactory = await ethers.getContractFactory(
+      'KYCRequirementsDemoDApp',
+      deployer,
+    );
+    const kycRequirementsDemoDApp = (await mockDAppFactory.deploy(
+      verificationSBT.address,
+      ageCitizenshipKYC.address,
+    )) as KYCRequirementsDemoDApp;
 
     // default zkKYC
     const zkKYC = await generateSampleZkKYC();
@@ -80,7 +100,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     let sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
-      ageCitizenshipKYC.address,
+      kycRequirementsDemoDApp.address,
     );
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
@@ -130,6 +150,8 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
         ageCitizenshipKYC,
         ageCitizenshipKYCVerifier,
         mockZkCertificateRegistry,
+        verificationSBT,
+        kycRequirementsDemoDApp,
       },
       poseidon,
       zkKYC,
@@ -346,5 +368,16 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     await expect(
       sc.ageCitizenshipKYC.connect(acc.user).verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs),
     ).to.be.revertedWith('the country sanction list differs');
+  });
+
+  it('should integrate in DApp and verificationSBT', async () => {
+    const { acc, sc, proof } = await loadFixture(deploy);
+
+    await sc.kycRequirementsDemoDApp.connect(acc.user).checkRequirements(proof.piA, proof.piB, proof.piC, proof.publicInputs);
+    expect(await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address)).to.be.true;
+
+    // check repeatability
+    await sc.kycRequirementsDemoDApp.connect(acc.user).checkRequirements(proof.piA, proof.piB, proof.piC, proof.publicInputs);
+    expect(await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address)).to.be.true;
   });
 });

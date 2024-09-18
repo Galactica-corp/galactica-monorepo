@@ -33,7 +33,7 @@ use(chaiAsPromised);
 
 chai.config.includeStack = true;
 
-describe.only('Verification SBT Smart contract', () => {
+describe('Verification SBT Smart contract', () => {
   let ageProofZkKYC: AgeCitizenshipKYC;
   let exampleMockDAppVerifier: ExampleMockDAppVerifier;
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
