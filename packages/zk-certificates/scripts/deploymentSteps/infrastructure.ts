@@ -83,11 +83,11 @@ export async function deployInfrastructure(
     institutionContracts.push(galacticaInstitution);
   }
 
-  const ageCitizenshipKYC = await deploySC('ageCitizenshipKYC', true, {}, [
+  const ageCitizenshipKYC = await deploySC('AgeCitizenshipKYC', true, {}, [
     deployer.address,
     zkpVerifier.address,
     recordRegistry.address,
-    ['1', '0', '0'], // sanctioned countries: undefined ("1") + 2 placeholders ("0") to set later if needed
+    [], // no sanctioned countries
     institutionContracts.map((contract) => contract.address),
   ]);
   const verificationSBT = await deploySC('VerificationSBT', true, {}, [

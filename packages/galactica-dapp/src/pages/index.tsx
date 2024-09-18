@@ -161,6 +161,65 @@ const Index = () => {
         currentMonth: (dateNow.getUTCMonth() + 1).toString(),
         currentDay: dateNow.getUTCDate().toString(),
         ageThreshold: '18',
+        countryExclusionList: [],
+      };
+      const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
+
+      const res: any = await generateZKProof({
+        input: proofInput,
+        prover: await getProver("provers/exampleMockDApp.json"),
+        requirements: {
+          zkCertStandard: ZkCertStandard.ZkKYC,
+          registryAddress: addresses.zkKYCRegistry,
+        },
+        userAddress: getUserAddress(),
+        description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
+        publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
+        zkInputRequiresPrivKey: true,
+      }, defaultSnapOrigin);
+      console.log('Response from snap', JSON.stringify(res));
+      const zkp = res as ZkCertProof;
+
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+      dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
+
+      let [a, b, c] = processProof(zkp.proof);
+      let publicInputs = processPublicSignals(zkp.publicSignals);
+
+      console.log(`Sending proof for on-chain verification...`);
+      // this is the on-chain function that requires a ZKP
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      // get contracts
+      const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
+      let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
+      console.log("tx", tx);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
+      const receipt = await tx.wait();
+      console.log("receipt", receipt);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
+
+      console.log(`Updating verification SBTs...`);
+      await showVerificationSBTs();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const kycRequirementDemoClick = async () => {
+    try {
+      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
+
+      const dateNow = new Date();
+      const ageProofInputs = {
+        // specific inputs to prove that the holder is at least 18 years old
+        currentYear: dateNow.getUTCFullYear().toString(),
+        currentMonth: (dateNow.getUTCMonth() + 1).toString(),
+        currentDay: dateNow.getUTCDate().toString(),
+        ageThreshold: '18',
+        countryExclusionList: [],
       };
       const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
 
@@ -350,9 +409,9 @@ const Index = () => {
         )}
         <Card
           content={{
-            title: 'zkKYC + age proof',
+            title: 'zkKYC Token Airdrop',
             description:
-              '1. Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old. 2. Send proof tx for on-chain verification.',
+              '1. Call Metamask Snap to generate a proof that you hold a zkKYC and are above 18 years old. 2. Send proof tx for on-chain verification. 3. Every unique humanID gets the airdrop',
             button: (
               <GeneralButton
                 onClick={ageProofZKPClick}
@@ -372,6 +431,22 @@ const Index = () => {
             button: (
               <GeneralButton
                 onClick={repeatableZKPClick}
+                disabled={false}
+                text="Generate & Submit"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'KYC requirement Demo',
+            description:
+              'Checks zkKYC, age >= 18 and citizenship not in sanctioned country. Mints Verification SBT on success.',
+            button: (
+              <GeneralButton
+                onClick={kycRequirementDemoClick}
                 disabled={false}
                 text="Generate & Submit"
               />

@@ -1,12 +1,12 @@
-export const zkKYCRegistry = '0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD';
-export const mockDApp = '0x4A0f7Da9C101Ab65fAd3C3b17f1D027E7b6B7609';
-export const verificationSBT = '0x9EA4559bf6d41237dc89A8e78691C4Ea0c2E8eB6';
+export const zkKYCRegistry = '0x49FEc8ddf15a9731EfeD88b35685a45e5Fa95eFE';
+export const mockDApp = '0x1Bc3fD934fBaC1C256EC707ee6B45f4aBfF8D86A';
+export const verificationSBT = '0x71061C72e3D81D74E0f0578Db7DfAb9f77D461f6';
 export const galacticaInstitutions = [
-  '0xBD2FAA4835E1A462Ea4FDA39352F24C58e237e2a',
-  '0x4E49d2383158568F5d4A30075e63614Dd7459060',
-  '0x02f8A5E96633f8f90eF112b2b9F2d479B4e4cd0b',
+  '0x92fB78102Af6647305277539Ebbd57d0363f8E5b',
+  '0x261E73E5fB59477a1b1bAF58578dC4B648341D8B',
+  '0xc838BE7fABac0f819877478edFc6C281D3521E3f',
 ];
-export const repeatableZkKYCTest = '0xC1B9000A2f963f7dA9BE2A6Deabe073ec6A8B5C1';
+export const repeatableZkKYCTest = '0xA88041c9F1c76e2e52A99f1e9a26Ea662B1806Cf';
 
 export const twitterFollowersCountProof =
   '0x172cb6C095A3708c4F5f424f3f5d170cf8556A1D';

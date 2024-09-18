@@ -12,6 +12,7 @@ export const zkKYCAgeProofPublicInputDescriptions = [
   'user pubkey Ax',
   'user pubkey Ay',
   'proof valid',
+  'error code',
   'verification SBT expiration',
   'encrypted fraud investigation shard for institution 1 part 1',
   'encrypted fraud investigation shard for institution 1 part 2',
