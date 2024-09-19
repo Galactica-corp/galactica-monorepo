@@ -5,6 +5,7 @@ import { buildPoseidon } from 'circomlibjs';
 import { deploySC } from '../../lib/hardhatHelpers';
 import { hashStringToFieldNumber } from '../../lib/helpers';
 import type { Poseidon } from '../../lib/poseidon';
+import { parseEther } from 'ethers/lib/utils';
 
 const { log } = console;
 
@@ -23,6 +24,7 @@ export async function deployKYCRequirementsDemoDApp(
   zkpVerifier: any;
   ageCitizenshipKYC: any;
   kycRequirementsDemoDApp: any;
+  compliantERC20: any;
 }> {
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
@@ -49,9 +51,19 @@ export async function deployKYCRequirementsDemoDApp(
     [verificationSBTAddr, ageCitizenshipKYC.address],
   );
 
+  const compliantERC20 = await deploySC('CompliantERC20', true, {}, [
+    'Compliant ERC20',
+    'CERC20',
+    deployer.address,
+    parseEther("1000000"),
+    verificationSBTAddr,
+    [kycRequirementsDemoDApp.address],
+  ]);
+
   return {
     zkpVerifier,
     ageCitizenshipKYC,
     kycRequirementsDemoDApp,
+    compliantERC20,
   };
 }

@@ -97,6 +97,9 @@ KYCRequirementsDemo-CircomVerifier: ${JSON.stringify(
 KYCRequirementsDemo-AgeCitizenshipKYC: ${JSON.stringify(
     kycRequirementsDemoContracts.ageCitizenshipKYC.address,
   )}
+KYCRequirementsDemo-CompliantERC20: ${JSON.stringify(
+    kycRequirementsDemoContracts.compliantERC20.address,
+  )}
   `;
   console.log(deploymentSummary);
   // write summary to file in deployments folder, create it if not existing already
