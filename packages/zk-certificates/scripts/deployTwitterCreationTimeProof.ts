@@ -20,7 +20,7 @@ async function main() {
 
   const deployGuardianRegistryFlag = false;
   const setGuardianFlag = false;
-  const deployTwitterZkCertificateRegistryFlag = true;
+  const deployTwitterZkCertificateRegistryFlag = false;
   const deployTwitterCreationTimeProofVerifierFlag = true;
   const deployTwitterCreationTimeProofFlag = true;
 
@@ -33,7 +33,7 @@ async function main() {
     ]);
   } else {
     const guardianRegistryAddress =
-      '0xAE656f6BC00FfAdA61F7a58403A5BC9e37542c15';
+      '0x931574DE295c9D8a2f59697b6B9E560248c2EB2B';
     guardianRegistry = await ethers.getContractAt(
       'GuardianRegistry',
       guardianRegistryAddress,
@@ -83,7 +83,7 @@ async function main() {
     );
   } else {
     const twitterZkCertificateRegistryAddress =
-      '0xFa74c5025EaCC1CE76c90a19fF479e7135d3ccAA';
+      '0x913589A090011fa4Fa7C2655db943441f9d6B0dD';
     twitterZkCertificateRegistry = await ethers.getContractAt(
       'ZkCertificateRegistry',
       twitterZkCertificateRegistryAddress,
@@ -142,7 +142,7 @@ async function main() {
       twitterCreationTimeProofAddress,
     );
     console.log(
-      `use an existing twitterFollowersCountProof at ${twitterCreationTimeProofAddress}`,
+      `use an existing twitterCreationTimeProof at ${twitterCreationTimeProofAddress}`,
     );
   }
 }

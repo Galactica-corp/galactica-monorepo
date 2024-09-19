@@ -13,20 +13,28 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const SBTManagerAddress = ``;
-  const SBTManagerInstance = await ethers.getContractAt('SBTManager', SBTManagerAddress);
-  const SBTIndex = 2;
-  const SBTAddress = ``;
-  const SBTVerifierWrapperAddress = ``;
+  const SBTManagerAddress = `0x3e2Ae72c127008e738EeF1Ea5b83594558095451`;
+  const SBTManagerInstance = await ethers.getContractAt(
+    'SBTManager',
+    SBTManagerAddress,
+  );
+  const SBTIndex = 4;
+  const SBTAddress = `0xD5E27e0cE400FD70B7543Ee686951e926737793e`;
+  const SBTVerifierWrapperAddress = `0x448CED08617bf59d060fe34119A0Bd0DFEe79E7c`;
   console.log(`working with index ${SBTIndex}`);
 
-  if (SBTAddress != ``) {
+  if (SBTAddress !== ``) {
     console.log(`setting SBT adress to ${SBTAddress}`);
     await SBTManagerInstance.setSBT(SBTIndex, SBTAddress);
   }
-  if (SBTVerifierWrapperAddress != ``) {
-    console.log(`setting SBT verifier wrapper adress to ${SBTVerifierWrapperAddress}`);
-    await SBTManagerInstance.setVerifierWrapper(SBTIndex, SBTVerifierWrapperAddress);
+  if (SBTVerifierWrapperAddress !== ``) {
+    console.log(
+      `setting SBT verifier wrapper adress to ${SBTVerifierWrapperAddress}`,
+    );
+    await SBTManagerInstance.setVerifierWrapper(
+      SBTIndex,
+      SBTVerifierWrapperAddress,
+    );
   }
 }
 

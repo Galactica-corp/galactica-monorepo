@@ -16,8 +16,8 @@ async function main() {
   const VerificationSBTFactory =
     await ethers.getContractFactory('VerificationSBT');
   const uri = 'https://galactica.network/';
-  const name = 'Galactica Twitter Follower Count 10000 Verification SBT';
-  const symbol = 'GTFV';
+  const name = 'Galactica Twitter Creation Time In 2020 Verification SBT';
+  const symbol = 'GTCI2024V';
   const VerificationSBTInstance = await VerificationSBTFactory.deploy(
     uri,
     name,

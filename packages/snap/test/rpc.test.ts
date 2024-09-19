@@ -4,7 +4,6 @@ import type {
   EncryptedZkCert,
   MerkleProof,
   MerkleProofUpdateRequestParams,
-  ProverData,
   ZkCertProof,
   ZkCertRegistered,
   ZkCertSelectionParams,

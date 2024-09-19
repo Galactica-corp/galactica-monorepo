@@ -63,7 +63,7 @@ contract TwitterCreationTimeProof is Ownable {
         uint[] memory input
     ) public view returns (bool) {
         require(
-            input.length == 8,
+            input.length == 9,
             "the public proof input has an incorrect length"
         );
         require(input[INDEX_IS_VALID] == 1, "the proof output is not valid");

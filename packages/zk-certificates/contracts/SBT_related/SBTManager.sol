@@ -46,19 +46,19 @@ contract SBTManager is Ownable {
           */
           uint expirationTime = input[1];
           if (index == 0) {
-            require(input[7] == 100, "Followers count threshold is not met");
+            require(input[7] == 100, "Followers count threshold is not set correctly");
           } else if (index == 1) {
-            require(input[7] == 1000, "Followers count threshold is not met");
+            require(input[7] == 1000, "Followers count threshold is not set correctly");
           } else if (index == 2) {
-            require(input[7] == 10000, "Followers count threshold is not met");
+            require(input[7] == 10000, "Followers count threshold is not set correctly");
           } else if (index == 3) {
           // in this case we require that the account is created before 2020-01-01
-            require(input[7] == 0, "Creation time lower bound is not valid");
-            require(input[8] == 1577836800,  "Creation time upper bound is not valid");
+            require(input[7] == 0, "Creation time lower bound is set correctly");
+            require(input[8] == 1577836800,  "Creation time upper bound is not set correctly");
           } else if (index == 4) {
             // in this case we require that the account is created after 2024-01-01 and before 2025-01-01
-            require(input[7] == 1704067200, "Creation time lower bound is not valid");
-            require(input[8] == 1735689600,  "Creation time upper bound is not valid");
+            require(input[7] == 1704067200, "Creation time lower bound is not set correctly");
+            require(input[8] == 1735689600,  "Creation time upper bound is not set correctly");
           } else if (index == 5) {
             revert("Invalid index");
           }
