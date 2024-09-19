@@ -26,7 +26,6 @@ import {
   getGuardianNameMap,
   handleSnapConnectClick,
   handleWalletConnectClick,
-  changeSnapSelection,
 } from '../utils';
 import {
   ConnectSnapButton,
