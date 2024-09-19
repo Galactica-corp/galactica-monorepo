@@ -38,8 +38,8 @@ export async function deployKYCRequirementsDemoDApp(
     deployer.address,
     zkpVerifier.address,
     recordRegistryAddr,
-    // sanctioned countries: undefined ("1") + 1 placeholders ("0") to set later if needed + hash of "USA"
-    ['1', '0', hashStringToFieldNumber('USA', poseidon)],
+    // sanctioned countries: undefined ("1") + hash of Iran + hash of USA
+    ['1', hashStringToFieldNumber('IRN', poseidon), hashStringToFieldNumber('USA', poseidon)],
     // no investigation institutions
     [],
   ]);
