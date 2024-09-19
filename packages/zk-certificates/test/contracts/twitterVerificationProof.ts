@@ -16,7 +16,7 @@ import {
   generateTwitterZkCertificateProofInput,
 } from '../../scripts/generateTwitterZkCertificateInput';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { TwitterVerificationProof } from '../../typechain-types/contracts/TwitterVerificationProofProof';
+import type { TwitterVerificationProof } from '../../typechain-types/contracts/TwitterVerificationProof';
 import type { TwitterVerificationProofVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterVerificationProofVerifier';
 
 chai.config.includeStack = true;
@@ -368,21 +368,20 @@ describe('twitterVerificationProof SC', () => {
 
   it('unverified twitter account returns incorrect proof', async () => {
     const fields = {
-      accountId: '23742384',
-      creationTime: '23234234',
-      location: '12233937',
-      verified: 0,
+      id: '23742384',
+      createdAt: '1726128494',
       followersCount: 85,
-      friendsCount: 28,
-      likesCount: 10,
-      postsCount: 22,
+      followingCount: 28,
+      listedCount: 10,
+      tweetCount: 22,
+      username: 'test',
+      verified: 0,
     };
 
     const twitterZkCertificateUnverified =
       await generateSampleTwitterZkCertificate(fields);
     const sampleInputUnverified = await generateTwitterZkCertificateProofInput(
       twitterZkCertificateUnverified,
-      fields,
     );
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInputUnverified,

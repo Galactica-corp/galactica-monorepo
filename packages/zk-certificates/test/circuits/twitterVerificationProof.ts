@@ -32,11 +32,7 @@ describe('twitterVerificationProof Circuit Component', () => {
       sanityCheck,
     );
 
-    assert.propertyVal(
-      witness,
-      'main.verified',
-      sampleInput.verified.toString(),
-    );
+    assert.propertyVal(witness, 'main.verified', '1');
 
     // check resulting root as output
     assert.propertyVal(witness, 'main.valid', '1');
