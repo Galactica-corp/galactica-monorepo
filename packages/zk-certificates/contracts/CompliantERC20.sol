@@ -51,4 +51,14 @@ contract CompliantERC20 is ERC20, Ownable {
         }
         super._transfer(from, to, amount);
     }
+
+    /**
+     * @dev Sets the list of dApps that define the compliance requirements.
+     * @param _compliantRequirements The list of dApps that define the compliance requirements.
+     */
+    function setCompliancyRequirements(
+        address[] memory _compliantRequirements
+    ) external onlyOwner {
+        compliancyRequirements = _compliantRequirements;
+    }
 }

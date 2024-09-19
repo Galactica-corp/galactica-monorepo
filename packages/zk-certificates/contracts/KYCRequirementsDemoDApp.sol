@@ -75,4 +75,21 @@ contract KYCRequirementsDemoDApp {
             providerPubKey
         );
     }
+
+    /**
+     * @notice For demo purposes, the verification status of a user can be reset by replacing the verificationSBT with an invalid one.
+     * @dev This function is only for demo purposes and should not be used in production.
+     */
+    function resetVerification() external {
+        bytes32[] memory noEncryptedData;
+        SBT.mintVerificationSBT(
+            msg.sender,
+            verifierWrapper,
+            0, // expired
+            noEncryptedData,
+            [uint(0), uint(0)],
+            0,
+            [uint(0), uint(0)]
+        );
+    }
 }

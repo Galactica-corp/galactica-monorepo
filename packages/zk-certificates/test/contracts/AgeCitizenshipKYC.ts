@@ -432,4 +432,23 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address),
     ).to.be.true;
   });
+
+  it.only('should reset verificationSBT', async () => {
+    const { acc, sc, proof } = await loadFixture(deploy);
+
+    await sc.kycRequirementsDemoDApp
+      .connect(acc.user)
+      .checkRequirements(proof.piA, proof.piB, proof.piC, proof.publicInputs);
+    expect(
+      await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address),
+    ).to.be.true;
+
+    await sc.kycRequirementsDemoDApp
+      .connect(acc.user)
+      .resetVerification();
+
+    expect(
+      await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address),
+    ).to.be.false;
+  });
 });

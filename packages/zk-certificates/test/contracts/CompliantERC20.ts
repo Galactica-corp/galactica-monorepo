@@ -10,7 +10,7 @@ import type { VerificationSBT } from '../../typechain-types/contracts/Verificati
 chai.config.includeStack = true;
 const { expect } = chai;
 
-describe.only('CompliantERC20', () => {
+describe('CompliantERC20', () => {
 
   /**
    * Deploy fixtures to work with the same setup in an efficient way.
@@ -55,7 +55,7 @@ describe.only('CompliantERC20', () => {
     )) as CompliantERC20;
 
     // compliantUser passes KYC requirements
-    const expirationTime = Math.floor(Date.now() / 1000) + 10000;
+    const expirationTime = Math.floor(Date.now() / 1000) * 2;
     await mockZkKYC.connect(compliantUser).earnVerificationSBT(
       verificationSBT.address,
       expirationTime,
@@ -108,4 +108,21 @@ describe.only('CompliantERC20', () => {
     await expect(token.transfer(acc.nonCompliantUser.address, amount)).to.be.revertedWith('CompliantERC20: Recipient does not have required compliance SBTs.');
   });
 
+  it('should update compliance requirements', async () => {
+    const { token, acc } = await loadFixture(deploy);
+
+    const newComplianceRequirements = [
+      await ethers.Wallet.createRandom().getAddress(),
+      await ethers.Wallet.createRandom().getAddress(),
+    ];
+    await expect(token.connect(acc.nonCompliantUser).setCompliancyRequirements(newComplianceRequirements)).to.be.revertedWith('Ownable: caller is not the owner');
+
+    await token.connect(acc.deployer).setCompliancyRequirements(newComplianceRequirements);
+
+    expect(await token.compliancyRequirements(0)).to.equal(newComplianceRequirements[0]);
+    expect(await token.compliancyRequirements(1)).to.equal(newComplianceRequirements[1]);
+
+    // the previous user should not be compliant anymore
+    await expect(token.transfer(acc.nonCompliantUser.address, parseEther("1"))).to.be.revertedWith('CompliantERC20: Recipient does not have required compliance SBTs.');
+  });
 });
