@@ -289,6 +289,30 @@ const Index = () => {
     }
   };
 
+  const resetDemoClick = async () => {
+    try {
+      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
+
+      // get contracts
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const exampleDAppSC = new ethers.Contract(addresses.kycRequirementsDemoDApp, kycRequirementsDemoDAppABI.abi, signer);
+
+      console.log(`Resetting Verification SBT...`);
+      // this is the on-chain function that requires a ZKP
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      let tx = await exampleDAppSC.resetVerification();
+      console.log("tx", tx);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Reset TX submitted` });
+      const receipt = await tx.wait();
+      console.log("receipt", receipt);
+      dispatch({ type: MetamaskActions.SetInfo, payload: `Reset processed` });
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
   const repeatableZKPClick = async () => {
     try {
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
@@ -472,6 +496,22 @@ const Index = () => {
                 onClick={kycRequirementDemoClick}
                 disabled={false}
                 text="Generate & Submit"
+              />
+            ),
+          }}
+          disabled={false}
+          fullWidth={false}
+        />
+        <Card
+          content={{
+            title: 'Reset verification state',
+            description:
+              'Reset verification to show demo again.',
+            button: (
+              <GeneralButton
+                onClick={resetDemoClick}
+                disabled={false}
+                text="Reset"
               />
             ),
           }}
