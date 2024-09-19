@@ -4,10 +4,13 @@ pragma solidity ^0.8.0;
 import '../interfaces/IZkKYCVerifier.sol';
 import '../interfaces/IZkCertificateRegistry.sol';
 import '../interfaces/IGalacticaInstitution.sol';
+import '../interfaces/IVerificationSBT.sol';
+import '../interfaces/IVerifierWrapper.sol';
+import '../interfaces/ICircomVerifier.sol';
 
 /// @author Galactica dev team
 /// @title a mock ZkKYC which always returns true
-contract MockZkKYC {
+contract MockZkKYC is IVerifierWrapper {
     uint public constant INDEX_HUMAN_ID = 0;
     uint public constant INDEX_USER_PUBKEY_AX = 1;
     uint public constant INDEX_USER_PUBKEY_AY = 2;
@@ -37,8 +40,27 @@ contract MockZkKYC {
         return true;
     }
 
-    function verifier() public pure returns (address) {
-        return address(0);
+    function earnVerificationSBT(
+        IVerificationSBT verificationSBT,
+        uint expirationTime,
+        bytes32[] calldata _encryptedData,
+        uint[2] calldata _userPubKey,
+        bytes32 _humanID,
+        uint[2] calldata _providerPubKey
+    ) external {
+        verificationSBT.mintVerificationSBT(
+            msg.sender,
+            this,
+            expirationTime,
+            _encryptedData,
+            _userPubKey,
+            _humanID,
+            _providerPubKey
+        );
+    }
+
+    function verifier() public pure returns (ICircomVerifier) {
+        return ICircomVerifier(address(0));
     }
 
     function getAmountFraudInvestigationInstitutions()

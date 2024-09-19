@@ -2,24 +2,10 @@
 
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import chai from 'chai';
-import { buildPoseidon } from 'circomlibjs';
 import hre, { ethers } from 'hardhat';
-import { groth16 } from 'snarkjs';
-
-import type { Poseidon } from '../../lib';
-import {
-  fromDecToHex,
-  fromHexToBytes32,
-  hashStringToFieldNumber,
-  processProof,
-  processPublicSignals,
-} from '../../lib/helpers';
-import {
-  generateSampleZkKYC,
-  generateZkKYCProofInput,
-} from '../../scripts/generateZkKYCInput';
-import type { CompliantERC20 } from '../../typechain-types/contracts/CompliantERC20';
 import { parseEther } from 'ethers/lib/utils';
+import type { CompliantERC20 } from '../../typechain-types/contracts/CompliantERC20';
+import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -35,15 +21,49 @@ describe.only('CompliantERC20', () => {
     const params = {
       name: 'Compliant ERC20',
       symbol: 'CERC20',
-      initialSupply: "1000000",
+      initialSupply: parseEther("1000000"),
     };
+
+    const verificationSBTFactory = await ethers.getContractFactory(
+      'VerificationSBT',
+      deployer,
+    );
+    const verificationSBT = (await verificationSBTFactory.deploy(
+      'test URI',
+      'VerificationSBT',
+      'VerificationSBT',
+    )) as VerificationSBT;
+
+    const mockZkKYCFactory = await ethers.getContractFactory(
+      'MockZkKYC',
+      deployer,
+    );
+    const mockZkKYC = (await mockZkKYCFactory.deploy());
 
     // setup contracts
     const tokenFactory = await ethers.getContractFactory(
       'CompliantERC20',
       deployer,
     );
-    const token = (await tokenFactory.deploy(params.name, params.symbol, deployer.address, params.initialSupply)) as CompliantERC20;
+    const token = (await tokenFactory.deploy(
+      params.name,
+      params.symbol,
+      deployer.address,
+      params.initialSupply,
+      verificationSBT.address,
+      [mockZkKYC.address],
+    )) as CompliantERC20;
+
+    // compliantUser passes KYC requirements
+    const expirationTime = Math.floor(Date.now() / 1000) + 10000;
+    await mockZkKYC.connect(compliantUser).earnVerificationSBT(
+      verificationSBT.address,
+      expirationTime,
+      [],
+      [0, 0],
+      ethers.utils.hexZeroPad("0x1", 32),
+      [3, 4],
+    );
 
     return {
       token,
@@ -53,20 +73,39 @@ describe.only('CompliantERC20', () => {
         compliantUser,
         nonCompliantUser,
       },
+      verificationSBT,
+      mockZkKYC,
     };
   }
 
   it('should deploy with right params', async () => {
-    const { token, params, acc } = await loadFixture(deploy);
+    const { token, params, acc, verificationSBT, mockZkKYC } = await loadFixture(deploy);
 
-    // random user cannot change the addresses
     expect(await token.name()).to.equal(params.name);
     expect(await token.symbol()).to.equal(params.symbol);
-    const supply = ethers.utils.parseUnits(params.initialSupply, "ether");
-    expect(await token.totalSupply()).to.equal(supply);
-    expect(await token.balanceOf(acc.deployer.address)).to.equal(supply);
-
+    expect(await token.totalSupply()).to.equal(params.initialSupply);
+    expect(await token.balanceOf(acc.deployer.address)).to.equal(params.initialSupply);
     expect(await token.owner()).to.equal(acc.deployer.address);
 
+    expect(await token.verificationSBT()).to.equal(verificationSBT.address);
+    expect(await token.compliancyRequirements(0)).to.equal(mockZkKYC.address);
   });
+
+  it('should transfer to compliant user', async () => {
+    const { token, acc, params } = await loadFixture(deploy);
+    const amount = parseEther("100");
+
+    await token.transfer(acc.compliantUser.address, amount);
+
+    expect(await token.balanceOf(acc.compliantUser.address)).to.equal(amount);
+    expect(await token.balanceOf(acc.deployer.address)).to.equal(params.initialSupply.sub(amount));
+  });
+
+  it('should fail transferring to non-compliant user', async () => {
+    const { token, acc } = await loadFixture(deploy);
+    const amount = parseEther("100");
+
+    await expect(token.transfer(acc.nonCompliantUser.address, amount)).to.be.revertedWith('CompliantERC20: Recipient does not have required compliance SBTs.');
+  });
+
 });
