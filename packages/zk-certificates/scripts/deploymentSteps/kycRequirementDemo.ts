@@ -1,11 +1,11 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildPoseidon } from 'circomlibjs';
+import { parseEther } from 'ethers/lib/utils';
 
 import { deploySC } from '../../lib/hardhatHelpers';
 import { hashStringToFieldNumber } from '../../lib/helpers';
 import type { Poseidon } from '../../lib/poseidon';
-import { parseEther } from 'ethers/lib/utils';
 
 const { log } = console;
 
@@ -39,7 +39,11 @@ export async function deployKYCRequirementsDemoDApp(
     zkpVerifier.address,
     recordRegistryAddr,
     // sanctioned countries: undefined ("1") + hash of Iran + hash of USA
-    ['1', hashStringToFieldNumber('IRN', poseidon), hashStringToFieldNumber('USA', poseidon)],
+    [
+      '1',
+      hashStringToFieldNumber('IRN', poseidon),
+      hashStringToFieldNumber('USA', poseidon),
+    ],
     // no investigation institutions
     [],
   ]);
@@ -55,7 +59,7 @@ export async function deployKYCRequirementsDemoDApp(
     'Compliant ERC20',
     'CERC20',
     deployer.address,
-    parseEther("1000000"),
+    parseEther('1000000'),
     verificationSBTAddr,
     [kycRequirementsDemoDApp.address],
   ]);

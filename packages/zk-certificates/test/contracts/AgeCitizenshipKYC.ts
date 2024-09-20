@@ -433,7 +433,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     ).to.be.true;
   });
 
-  it.only('should reset verificationSBT', async () => {
+  it('should reset verificationSBT', async () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
     await sc.kycRequirementsDemoDApp
@@ -443,9 +443,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address),
     ).to.be.true;
 
-    await sc.kycRequirementsDemoDApp
-      .connect(acc.user)
-      .resetVerification();
+    await sc.kycRequirementsDemoDApp.connect(acc.user).resetVerification();
 
     expect(
       await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address),
