@@ -1,7 +1,7 @@
-export const zkKYCRegistry = '0x49FEc8ddf15a9731EfeD88b35685a45e5Fa95eFE';
+export const zkKYCRegistry = '0xc2032b11b79b05d1bd84ca4527d2ba8793cb67b2';
 export const mockDApp = '0x9a17084bb850FBF1431BBEC6e7b316F374E2b49c';
-export const kycRequirementsDemoDApp = '0x8631988B52A975AaC20e5E75836D22817426aeE5';
-export const verificationSBT = '0xc6d55A0F0f7b6b5a2418963AC35d312535F20D67';
+export const kycRequirementsDemoDApp = '0xF4B8eB634C925d95E4719a28223b0874C45FA79b';
+export const verificationSBT = '0x8DbCB0a08CFe38Ee20326471E4260be4BfD321b6';
 export const galacticaInstitutions = [
   '0x92fB78102Af6647305277539Ebbd57d0363f8E5b',
   '0x261E73E5fB59477a1b1bAF58578dC4B648341D8B',

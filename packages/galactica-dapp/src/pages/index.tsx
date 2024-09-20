@@ -215,6 +215,7 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
 
       const dateNow = new Date();
+      const iranCountryHash = '1579299172692188755949140021063317367780202106533086885574412920637882772641';
       const usCountryHash = '4020996060095781638329708372473002493481697479140228740642027622801922135907';
       const specificProofInputs = {
         // specific inputs to prove that the holder is at least 18 years old
@@ -223,7 +224,7 @@ const Index = () => {
         currentDay: dateNow.getUTCDate().toString(),
         ageThreshold: '18',
         // specific inputs to prove that the holder is not a citizen of a sanctioned country
-        countryExclusionList: ['1', '0', usCountryHash],
+        countryExclusionList: ['1', iranCountryHash, usCountryHash],
       };
       const proofInput = await prepareProofInput(addresses.kycRequirementsDemoDApp, [], specificProofInputs);
 

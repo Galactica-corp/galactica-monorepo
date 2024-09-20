@@ -8,8 +8,8 @@ import { deployKYCRequirementsDemoDApp } from './deploymentSteps/kycRequirementD
  */
 async function main() {
   // parameters
-  const zkKYCRecordRegistry = '0x49FEc8ddf15a9731EfeD88b35685a45e5Fa95eFE';
-  const verificationSBT = '0x71061C72e3D81D74E0f0578Db7DfAb9f77D461f6';
+  const zkKYCRecordRegistry = '0xc2032b11b79B05D1bd84ca4527D2ba8793cB67b2';
+  const verificationSBT = '0x8DbCB0a08CFe38Ee20326471E4260be4BfD321b6';
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
