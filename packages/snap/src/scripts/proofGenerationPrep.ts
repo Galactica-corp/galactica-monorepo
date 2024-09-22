@@ -30,7 +30,7 @@ async function testModified(
   circuitDir: string,
   params: GenZkProofParams<any>,
 ) {
-  const { prover } = params;
+  const prover = params.prover as ProverData;
   const { proof, publicSignals } = await groth16.fullProveMemory(
     params.input,
     prover.wasm,
@@ -304,7 +304,7 @@ async function main() {
   // await testStandard(input);
   await testModified(args.circuitName, args.circuitsDir, params);
 
-  await writeCircuitDataToJSON(args.output, params.prover);
+  await writeCircuitDataToJSON(args.output, params.prover as ProverData);
 
   // copy vkey file to make it available for off-chain verification
   const vkeyPath = path.join(args.circuitsDir, `${args.circuitName}.vkey.json`);
