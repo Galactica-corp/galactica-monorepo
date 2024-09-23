@@ -8,6 +8,7 @@ export enum ZkCertStandard {
   ArbitraryData = 'gip2',
   Twitter = 'gip3',
   Rey = 'gip4',
+  Exchange = 'gip5',
 }
 
 /**
@@ -161,4 +162,26 @@ export const reyZkCertificateContentFields = [
   'rey_score_all',
   'rey_score_galactica',
   'rey_faction',
+];
+
+/**
+ * Data specifically contained in DEX/CEX Certificates.
+ * The numerical values are defined as strings so they can fit into the field even if they exceed the JS number range.
+ */
+export type ExchangeZkCertificateContent = {
+  address: string;
+  totalSwapVolume: string;
+  swapVolumeYear: string;
+  swapVolumeHalfYear: string;
+};
+
+/**
+ * Ordered list of fields contained specifically in the DEX/CEX Certificates.
+ * It does not include fields that are common to all zkCerts.
+ */
+export const exchangeZkCertificateContentFields = [
+  'address',
+  'totalSwapVolume',
+  'swapVolumeYear',
+  'swapVolumeHalfYear',
 ];

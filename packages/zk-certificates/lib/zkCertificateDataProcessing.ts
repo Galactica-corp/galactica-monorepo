@@ -4,6 +4,7 @@ import {
   zkKYCContentFields,
   twitterZkCertificateContentFields,
   reyZkCertificateContentFields,
+  exchangeZkCertificateContentFields,
 } from '@galactica-net/galactica-types';
 import type { Eddsa } from 'circomlibjs';
 
@@ -49,6 +50,8 @@ export function prepareZkCertificateFields(
   } else if (zkCertificateType === ZkCertStandard.Rey) {
     stringFieldsForHashing = ['x_username'];
     zkCertificateContentFields = reyZkCertificateContentFields;
+  } else if (zkCertificateType === ZkCertStandard.Exchange) {
+    zkCertificateContentFields = exchangeZkCertificateContentFields;
   } else if (zkCertificateType === ZkCertStandard.ArbitraryData) {
     zkCertificateContentFields = Object.keys(zkCertificateData);
     stringFieldsForHashing = zkCertificateContentFields.filter(

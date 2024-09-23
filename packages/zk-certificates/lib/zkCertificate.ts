@@ -335,4 +335,5 @@ export const flagStandardMapping: Record<string, ZkCertStandard> = {
   data: ZkCertStandard.ArbitraryData,
   twitter: ZkCertStandard.Twitter,
   rey: ZkCertStandard.Rey,
+  exchange: ZkCertStandard.Exchange,
 };
