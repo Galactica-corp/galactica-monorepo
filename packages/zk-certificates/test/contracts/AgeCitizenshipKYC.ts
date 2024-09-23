@@ -37,7 +37,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
    * @returns Fixtures.
    */
   async function deploy() {
-    const [deployer, randomUser] = await hre.ethers.getSigners();
+    const [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     const poseidon = (await buildPoseidon()) as Poseidon;
 
@@ -111,12 +111,6 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     sampleInput.currentTime += 100;
     // add countries to the sanction list
     sampleInput.countryExclusionList = countryExclusionList;
-
-    // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    // get signer object authorized to use the zkKYC record
-    const user = await hre.ethers.getImpersonatedSigner(
-      sampleInput.userAddress,
-    );
 
     // compute default proof
     const { proof, publicSignals } = await groth16.fullProve(
