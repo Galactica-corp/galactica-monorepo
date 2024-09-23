@@ -22,7 +22,7 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
-import type { AgeProofZkKYC } from '../../typechain-types/contracts/AgeProofZkKYC';
+import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/AgeCitizenshipKYC';
 import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
@@ -34,7 +34,7 @@ use(chaiAsPromised);
 chai.config.includeStack = true;
 
 describe('Verification SBT Smart contract', () => {
-  let ageProofZkKYC: AgeProofZkKYC;
+  let ageProofZkKYC: AgeCitizenshipKYC;
   let exampleMockDAppVerifier: ExampleMockDAppVerifier;
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let mockGalacticaInstitutions: MockGalacticaInstitution[];
@@ -87,16 +87,17 @@ describe('Verification SBT Smart contract', () => {
     exampleMockDAppVerifier =
       (await exampleMockDAppVerifierFactory.deploy()) as ExampleMockDAppVerifier;
 
-    const ageProofZkKYCFactory = await ethers.getContractFactory(
-      'AgeProofZkKYC',
+    const ageCitizenshipKYCFactory = await ethers.getContractFactory(
+      'AgeCitizenshipKYC',
       deployer,
     );
-    ageProofZkKYC = (await ageProofZkKYCFactory.deploy(
+    ageProofZkKYC = (await ageCitizenshipKYCFactory.deploy(
       deployer.address,
       exampleMockDAppVerifier.address,
       mockZkCertificateRegistry.address,
+      [],
       mockGalacticaInstitutions.map((inst) => inst.address),
-    )) as AgeProofZkKYC;
+    )) as AgeCitizenshipKYC;
 
     const verificationSBTFactory = await ethers.getContractFactory(
       'VerificationSBT',

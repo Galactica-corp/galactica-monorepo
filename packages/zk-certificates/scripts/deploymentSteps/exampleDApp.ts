@@ -9,13 +9,13 @@ const { log } = console;
  * Deploys the example DApp, a smart contract requiring zkKYC + age proof to airdrop tokens once to each user.
  * @param deployer - The deployer wallet.
  * @param verificationSBTAddr - The address of the verification SBT.
- * @param ageProofZkKYCAddr - The address of the age proof zkKYC.
+ * @param ageCitizenshipKYCAddr - The address of the age proof zkKYC.
  * @returns The deployed contracts.
  */
 export async function deployExampleDApp(
   deployer: SignerWithAddress,
   verificationSBTAddr: string,
-  ageProofZkKYCAddr: string,
+  ageCitizenshipKYCAddr: string,
 ): Promise<{
   mockDApp: any;
   token1: any;
@@ -27,7 +27,7 @@ export async function deployExampleDApp(
   // deploying everything
   const mockDApp = await deploySC('MockDApp', true, {}, [
     verificationSBTAddr,
-    ageProofZkKYCAddr,
+    ageCitizenshipKYCAddr,
   ]);
   const token1 = await deploySC(
     'contracts/mock/MockToken.sol:MockToken',

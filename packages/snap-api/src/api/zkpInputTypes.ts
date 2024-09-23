@@ -17,6 +17,25 @@ export type ZkKYCAgeProofInput = {
 };
 
 /**
+ * Public input needed to generate a zkKYC proof with age limit.
+ */
+export type ZkKYCAgeCitizenshipProofInput = {
+  // time to check against the expiration date
+  currentTime: number;
+  // institution public key for eventual fraud investigations
+  investigationInstitutionPubKey: [string, string][];
+  // dApp address to prove the ZKP to
+  dAppAddress: string;
+
+  // age proof specific inputs
+  currentYear: string;
+  currentMonth: string;
+  currentDay: string;
+  ageThreshold: string;
+  countryExclusionList: string[];
+};
+
+/**
  * Public input needed to generate a zkKYC proof.
  */
 export type ZkKYCProofInput = {
@@ -34,4 +53,5 @@ export type ZkKYCProofInput = {
 export type ZkCertInputType =
   | ZkKYCProofInput
   | ZkKYCAgeProofInput
+  | ZkKYCAgeCitizenshipProofInput
   | Record<string, any>;
