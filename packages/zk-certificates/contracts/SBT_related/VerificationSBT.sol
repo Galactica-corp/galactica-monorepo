@@ -62,7 +62,7 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
             dApp: msg.sender,
             verifierWrapper: _verifierWrapper,
             expirationTime: _expirationTime,
-            verifierCodehash: _verifierWrapper.verifier().codehash,
+            verifierCodehash: address(_verifierWrapper.verifier()).codehash,
             encryptedData: _encryptedData,
             userPubKey: _userPubKey,
             humanID: _humanID,
@@ -91,7 +91,7 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
         // 2. the expiration time hasn't happened yet
         return
             (address(verificationSBTInfo.verifierWrapper) != address(0)) &&
-            (verificationSBTInfo.verifierWrapper.verifier().codehash ==
+            (address(verificationSBTInfo.verifierWrapper.verifier()).codehash ==
                 verificationSBTInfo.verifierCodehash) &&
             (verificationSBTInfo.expirationTime > block.timestamp);
     }
@@ -146,23 +146,23 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
         return baseURI;
     }
 
-    function approve(address, uint256) external {
+    function approve(address, uint256) external pure {
         revert NotAllowedForSBT();
     }
 
-    function getApproved(uint256) external view returns (address) {
+    function getApproved(uint256) external pure returns (address) {
         revert NotAllowedForSBT();
     }
 
-    function setApprovalForAll(address, bool) external {
+    function setApprovalForAll(address, bool) external pure {
         revert NotAllowedForSBT();
     }
 
-    function isApprovedForAll(address, address) external view returns (bool) {
+    function isApprovedForAll(address, address) external pure returns (bool) {
         revert NotAllowedForSBT();
     }
 
-    function safeTransferFrom(address, address, uint256) external {
+    function safeTransferFrom(address, address, uint256) external pure {
         revert NotAllowedForSBT();
     }
 
@@ -171,11 +171,11 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
         address,
         uint256,
         bytes calldata
-    ) external {
+    ) external pure {
         revert NotAllowedForSBT();
     }
 
-    function transferFrom(address, address, uint256) external {
+    function transferFrom(address, address, uint256) external pure {
         revert NotAllowedForSBT();
     }
 }

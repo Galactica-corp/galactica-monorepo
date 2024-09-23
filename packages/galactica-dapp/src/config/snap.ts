@@ -12,6 +12,7 @@ export const zkKYCAgeProofPublicInputDescriptions = [
   'user pubkey Ax',
   'user pubkey Ay',
   'proof valid',
+  'error code',
   'verification SBT expiration',
   'encrypted fraud investigation shard for institution 1 part 1',
   'encrypted fraud investigation shard for institution 1 part 2',
@@ -35,6 +36,28 @@ export const zkKYCAgeProofPublicInputDescriptions = [
   'institution 2 pubkey Ay',
   'institution 3 pubkey Ax',
   'institution 3 pubkey Ay',
+];
+
+export const kycRequirementsDemoDAppPublicInputDescriptions = [
+  'human id',
+  'user pubkey Ax',
+  'user pubkey Ay',
+  'proof valid',
+  'error code',
+  'verification SBT expiration',
+  'merkle root',
+  'current time',
+  'user address',
+  'current year',
+  'current month',
+  'current day',
+  'age threshold',
+  'sanctioned country hash 1',
+  'sanctioned country hash 2',
+  'sanctioned country hash 3',
+  'dapp address',
+  'zkKYC guardian pubkey Ax',
+  'zkKYC guardian pubkey Ay',
 ];
 
 export const zkKYCPublicInputDescriptions = [

@@ -34,6 +34,22 @@ async function main() {
     'utf8',
   );
 
+  // age + sanction list + kyc
+  const ageCountryKYCInput = {
+    ...ageProofZkKYCInput,
+    countryExclusionList: [
+      '0',
+      '1',
+      '4020996060095781638329708372473002493481697479140228740642027622801922135907',
+    ],
+  };
+
+  fs.writeFileSync(
+    './circuits/input/ageCountryExclusionKYC.json',
+    JSON.stringify(ageCountryKYCInput, null, 2),
+    'utf8',
+  );
+
   // investigatable zkKYC proof with 3 Shamir shares
   const investigatableZkKYCInput = await generateZkKYCProofInput(
     zkKYC,
