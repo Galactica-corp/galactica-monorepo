@@ -5,7 +5,9 @@
  */
 export enum ZkCertStandard {
   ZkKYC = 'gip1',
-  TwitterZkCertificate = 'gip2',
+  ArbitraryData = 'gip2',
+  Twitter = 'gip3',
+  Rey = 'gip4',
 }
 
 /**
@@ -110,14 +112,14 @@ export const personIDFieldOrder = [
  * Data specifically contained in twitterZkCertificate
  */
 export type TwitterZkCertificateContent = {
-  accountId: string;
-  creationTime: string;
-  location: string;
-  verified: string;
-  followersCount: string;
-  friendsCount: string;
-  likesCount: string;
-  postsCount: string;
+  createdAt: number;
+  id: string;
+  followersCount: number;
+  followingCount: number;
+  listedCount: number;
+  tweetCount: number;
+  username: string;
+  verified: boolean;
 };
 
 /**
@@ -125,12 +127,38 @@ export type TwitterZkCertificateContent = {
  * It does not include fields that are common to all zkCerts.
  */
 export const twitterZkCertificateContentFields = [
-  'accountId',
-  'creationTime',
-  'location',
-  'verified',
+  'createdAt',
+  'id',
   'followersCount',
-  'friendsCount',
-  'likesCount',
-  'postsCount',
+  'followingCount',
+  'listedCount',
+  'tweetCount',
+  'username',
+  'verified',
+];
+
+// disabled eslint rule for naming convention because the field names are defined by the standard
+/* eslint-disable @typescript-eslint/naming-convention */
+/**
+ * Data specifically contained in reyZkCertificate
+ */
+export type ReyZkCertificateContent = {
+  x_id: string;
+  x_username: string;
+  rey_score_all: number;
+  rey_score_galactica: number;
+  rey_faction: number;
+};
+/* eslint-enable @typescript-eslint/naming-convention */
+
+/**
+ * Ordered list of fields contained specifically in the reyZkCertificate.
+ * It does not include fields that are common to all zkCerts.
+ */
+export const reyZkCertificateContentFields = [
+  'x_id',
+  'x_username',
+  'rey_score_all',
+  'rey_score_galactica',
+  'rey_faction',
 ];

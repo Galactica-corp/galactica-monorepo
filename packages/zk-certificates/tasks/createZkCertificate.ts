@@ -20,7 +20,7 @@ import {
   registerZkCertToQueue,
   waitOnIssuanceQueue,
 } from '../lib/registryTools';
-import { ZkCertificate } from '../lib/zkCertificate';
+import { flagStandardMapping, ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 
 /**
@@ -42,14 +42,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   // read certificate data file
   const data = JSON.parse(fs.readFileSync(args.dataFile, 'utf-8'));
-  let zkCertificateType;
-  if (args.zkCertificateType === 'zkKYC') {
-    zkCertificateType = ZkCertStandard.ZkKYC;
-  } else if (args.zkCertificateType === `twitterZkCertificate`) {
-    zkCertificateType = ZkCertStandard.TwitterZkCertificate;
-  } else {
+  const zkCertificateType = flagStandardMapping[args.zkCertificateType];
+  if (zkCertificateType === undefined) {
     throw new Error(
-      `ZkCertStandard type ${args.zkCertificateType} is unsupported`,
+      `ZkCertStandard type ${
+        args.zkCertificateType
+      } is unsupported, available options: ${JSON.stringify(
+        Object.keys(flagStandardMapping),
+      )}`,
     );
   }
   const zkCertificateFields = prepareZkCertificateFields(
@@ -64,15 +64,13 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   const holderCommitmentData = parseHolderCommitment(holderCommitmentFile);
 
-  let randomSalt: string;
+  let { randomSalt } = args;
   // generate random number as salt for new zkCertificate if not provided
-  if (args.randomSalt === undefined) {
+  if (randomSalt === undefined) {
     randomSalt = hashStringToFieldNumber(
       Math.random().toString(),
       eddsa.poseidon,
     );
-  } else {
-    randomSalt = args.randomSalt;
   }
 
   console.log('Creating zkCertificate...');
@@ -105,9 +103,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     );
   } else {
     const recordRegistry = await hre.ethers.getContractAt(
-      (zkCertificateType = ZkCertStandard.ZkKYC
+      zkCertificateType === ZkCertStandard.ZkKYC
         ? 'ZkKYCRegistry'
-        : 'ZkCertificateRegistry'),
+        : 'ZkCertificateRegistry',
       args.registryAddress,
     );
 
@@ -220,7 +218,9 @@ task(
   )
   .addParam(
     'zkCertificateType',
-    'type of zkCertificate, default to be zkKYC',
+    `type of zkCertificate, default to be kyc. Available options: ${JSON.stringify(
+      Object.keys(flagStandardMapping),
+    )}`,
     undefined,
     types.string,
     false,
