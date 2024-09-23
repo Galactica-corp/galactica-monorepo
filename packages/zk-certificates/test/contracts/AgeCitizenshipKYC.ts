@@ -42,10 +42,10 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     const poseidon = (await buildPoseidon()) as Poseidon;
 
     const countryExclusionList = [
-      '0',
       '1',
+      hashStringToFieldNumber('IRN', poseidon),
       hashStringToFieldNumber('USA', poseidon),
-    ];
+    ].concat(Array(17).fill('0'));
 
     // setup contracts
     const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
@@ -339,7 +339,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       hashStringToFieldNumber('GER', poseidon),
       '1',
       hashStringToFieldNumber('USA', poseidon),
-    ];
+    ].concat(Array(17).fill('0'));
 
     await sc.ageCitizenshipKYC
       .connect(acc.deployer)
