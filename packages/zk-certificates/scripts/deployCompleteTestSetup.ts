@@ -28,7 +28,8 @@ async function main() {
   const exampleDApp = await deployExampleDApp(
     deployer,
     infrastructure.verificationSBT.address,
-    infrastructure.ageCitizenshipKYC.address,
+    infrastructure.recordRegistry.address,
+    infrastructure.institutionContracts.map((contract) => contract.address)
   );
   const repeatableZkKYC = await deployRepeatableZKPTest(
     deployer,
@@ -79,14 +80,17 @@ MockGalacticaInstitution3: ${JSON.stringify(
 ZkKYCVerifier: ${JSON.stringify(repeatableZkKYC.zkKYCVerifier.address)}
 ZkKYC: ${JSON.stringify(repeatableZkKYC.zkKYCSC.address)}
 
-ExampleMockDAppVerifier: ${JSON.stringify(infrastructure.zkpVerifier.address)}
-AgeCitizenshipKYC: ${JSON.stringify(infrastructure.ageCitizenshipKYC.address)}
-MockDApp: ${JSON.stringify(exampleDApp.mockDApp.address)}
 
 BasicKYCExampleDApp: ${JSON.stringify(basicKYCExample.address)}
 RepeatableZKPTest: ${JSON.stringify(repeatableZkKYC.repeatableZKPTest.address)}
 
 DevnetGuardian: ${JSON.stringify(devnetGuardian.address)}
+
+
+ExampleAirdrop-ExampleMockDAppVerifier: ${JSON.stringify(exampleDApp.zkpVerifier.address)}
+ExampleAirdrop-AgeCitizenshipKYC: ${JSON.stringify(exampleDApp.ageCitizenshipKYC.address)}
+ExampleAirdrop-MockDApp: ${JSON.stringify(exampleDApp.mockDApp.address)}
+
 
 KYCRequirementsDemo-DApp: ${JSON.stringify(
     kycRequirementsDemoContracts.kycRequirementsDemoDApp.address,

@@ -72,6 +72,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       mockZkCertificateRegistry.address,
       countryExclusionList,
       [],
+      18,
     )) as AgeCitizenshipKYC;
     await ageCitizenshipKYCVerifier.deployed();
     const verificationSBTFactory = await ethers.getContractFactory(
@@ -442,5 +443,24 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     expect(
       await sc.kycRequirementsDemoDApp.passedRequirements(acc.user.address),
     ).to.be.false;
+  });
+
+  it('should check the age', async () => {
+    const { acc, sc, proof } = await loadFixture(deploy);
+
+    expect(await sc.ageCitizenshipKYC.ageThreshold()).to.equal(18);
+
+    await expect(
+      sc.ageCitizenshipKYC.connect(acc.user).setAgeThreshold(12),
+    ).to.be.revertedWith('Ownable: caller is not the owner');
+
+    await sc.ageCitizenshipKYC.connect(acc.deployer).setAgeThreshold(21);
+    expect(await sc.ageCitizenshipKYC.ageThreshold()).to.equal(21);
+
+    await expect(
+      sc.kycRequirementsDemoDApp
+        .connect(acc.user)
+        .checkRequirements(proof.piA, proof.piB, proof.piC, proof.publicInputs),
+    ).to.be.revertedWith('the age threshold is not proven');
   });
 });

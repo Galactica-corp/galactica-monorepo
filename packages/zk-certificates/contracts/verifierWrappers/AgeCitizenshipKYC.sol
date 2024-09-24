@@ -21,6 +21,8 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier {
     uint[] public sanctionedCountries;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;
     uint256 public constant timeDifferenceTolerance = 30 * 60; // the maximal difference between the onchain time and public input current time
+    // the age threshold a user has to have at least to pass the KYC check
+    uint256 public ageThreshold;
 
     // indices of the ZKP public input array
     uint8 public immutable INDEX_USER_PUBKEY_AX;
@@ -48,7 +50,8 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier {
         address _verifier,
         address _KYCRegistry,
         uint[] memory _sanctionedCountries,
-        address[] memory _fraudInvestigationInstitutions
+        address[] memory _fraudInvestigationInstitutions,
+        uint _ageThreshold
     ) Ownable(_owner) {
         verifier = ICircomVerifier(_verifier);
         KYCRegistry = IZkCertificateRegistry(_KYCRegistry);
@@ -60,6 +63,7 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier {
                 IGalacticaInstitution(_fraudInvestigationInstitutions[i])
             );
         }
+        ageThreshold = _ageThreshold;
 
         // set public input indices according to the number of institutions
         INDEX_HUMAN_ID = 0;
@@ -131,6 +135,14 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier {
         sanctionedCountries = _sanctionedCountries;
     }
 
+    /**
+     * @notice set the age threshold for the KYC check.
+     * @param _ageTreshold - The new age threshold.
+     */
+    function setAgeThreshold(uint _ageTreshold) public onlyOwner {
+        ageThreshold = _ageTreshold;
+    }
+
     //a, b, c are the proof
     function verifyProof(
         uint[2] memory a,
@@ -197,6 +209,11 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier {
                 'the country sanction list differs'
             );
         }
+
+        require(
+            input[INDEX_AGE_THRESHOLD] >= ageThreshold,
+            'the age threshold is not proven'
+        );
 
         // check that the institution public key corresponds to the onchain one;
         for (uint i = 0; i < fraudInvestigationInstitutions.length; i++) {
