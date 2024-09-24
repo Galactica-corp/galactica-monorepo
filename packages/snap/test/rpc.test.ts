@@ -783,9 +783,11 @@ describe('Test rpc handler function', function () {
 
       const unknownZkCert = JSON.parse(JSON.stringify(zkCert));
       unknownZkCert.zkCertStandard = 'gipUKNOWN';
-      const testUnkownZkpParams = JSON.parse(JSON.stringify(testZkpParams));
-      testUnkownZkpParams.requirements.zkCertStandard =
-        unknownZkCert.zkCertStandard;
+      const testUnkownZkpParams = { ...testZkpParams };
+      testUnkownZkpParams.requirements = {
+        ...testZkpParams.requirements,
+        zkCertStandard: unknownZkCert.zkCertStandard,
+      };
 
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
