@@ -6,7 +6,7 @@ Galactica Network monorepo including zero-knowledge certificates, the Galactica 
 
 The the README in `pagages/snap` for more details.
 
-This package provides a Metamaks Snap for Galactica Network.
+This package provides a Metamask Snap for Galactica Network.
 It adds Galactica specific features, such as
 
 - Self custody wallet for zero knowledge certificates (zkCerts) providing self sovereign identity
