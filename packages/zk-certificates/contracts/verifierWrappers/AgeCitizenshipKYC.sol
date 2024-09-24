@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import {Ownable} from './Ownable.sol';
-import {IAgeCitizenshipKYCVerifier} from './interfaces/IAgeCitizenshipKYCVerifier.sol';
-import {IVerifierWrapper} from './interfaces/IVerifierWrapper.sol';
-import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
-import {BokkyPooBahsDateTimeLibrary} from './libraries/BokkyPooBahsDateTimeLibrary.sol';
-import {IGalacticaInstitution} from './interfaces/IGalacticaInstitution.sol';
-import {ICircomVerifier} from './interfaces/ICircomVerifier.sol';
+import {Ownable} from '../Ownable.sol';
+import {IAgeCitizenshipKYCVerifier} from '../interfaces/IAgeCitizenshipKYCVerifier.sol';
+import {IVerifierWrapper} from '../interfaces/IVerifierWrapper.sol';
+import {IZkCertificateRegistry} from '../interfaces/IZkCertificateRegistry.sol';
+import {BokkyPooBahsDateTimeLibrary} from '../libraries/BokkyPooBahsDateTimeLibrary.sol';
+import {IGalacticaInstitution} from '../interfaces/IGalacticaInstitution.sol';
+import {ICircomVerifier} from '../interfaces/ICircomVerifier.sol';
 
 /**
  * @title Smart contract demo for Galactica zkKYC requirements
