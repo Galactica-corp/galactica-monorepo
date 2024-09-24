@@ -56,7 +56,7 @@ describe('SBTManager', () => {
     // reset the testing chain so we can perform time related tests
     await hre.network.provider.send('hardhat_reset');
 
-    [deployer, user, user2, randomUser, client] = await hre.ethers.getSigners();
+    [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
     const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
