@@ -12,8 +12,8 @@ import { testHolder } from '../../snap/test/constants.mock';
  * Instructions:
  * 1. Choose an ecdsa key pair for testing. You can use the one suggested by running this script.
  * 2. Generate your ZkCertificate using the public encryption key.
- * 4. put the encrypted ZkCertificate in a file and import it above as `zkCert`.
- * 5. Run this script with `cd packages/zk-certificates; yarn hardhat run scripts/decryptZkCert.ts` and check the logs.
+ * 3. Put the encrypted ZkCertificate in a file and import it above as `zkCert`.
+ * 4. Run this script with `cd packages/zk-certificates; yarn hardhat run scripts/decryptZkCert.ts` and check the logs.
  */
 async function main() {
   // this is the holder you can test with or replace with your own
