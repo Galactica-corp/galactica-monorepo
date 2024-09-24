@@ -4,7 +4,6 @@ import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
 
 import zkCert from '../../../test/encryptedZkCert.json';
 import { testHolder } from '../../snap/test/constants.mock';
-// This is the zkCert you want to decrypt
 
 /**
  * Script for testing and debugging encrypted ZkCertificates.
