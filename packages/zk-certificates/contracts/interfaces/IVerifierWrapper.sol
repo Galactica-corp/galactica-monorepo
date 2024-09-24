@@ -5,7 +5,7 @@ import {ICircomVerifier} from './ICircomVerifier.sol';
 
 /// @author Galactica dev team
 interface IVerifierWrapper {
-    function verifier() external view returns (address);
+    function verifier() external view returns (ICircomVerifier);
 
     function verifyProof(
         uint[2] memory a,
