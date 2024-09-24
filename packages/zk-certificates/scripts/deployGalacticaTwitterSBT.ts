@@ -18,12 +18,12 @@ async function main() {
   /* const issuer = '0xD8fd391410FDEA9da4e899770860EaE2db09Deab'; */
   const issuer = deployer.address;
   const uri =
-    'https://quicknode.quicknode-ipfs.com/ipfs/QmbBJ6huNN6CHKpFoNoPBWJsKq6CwPH7VvKpw6Re5GAsRB';
+    'https://quicknode.quicknode-ipfs.com/ipfs/QmQc418do2SjdgigJa7zM5DjNhHcVooVHe6R8q22YUM9Da';
   const owner = deployer.address;
-  const nftName = 'Genesis SBT';
-  const nftSymbol = 'XNET';
+  const nftName = 'test mint';
+  const nftSymbol = 'TEST';
 
-  await deploySC('GalacticaTwitterSBT', true, {}, [
+  await deploySC('GalacticaOfficialSBT', true, {}, [
     issuer,
     uri,
     owner,
