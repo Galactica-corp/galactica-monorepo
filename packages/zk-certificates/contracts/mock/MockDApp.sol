@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../VerificationSBT.sol";
-import "../interfaces/IAgeProofZkKYCVerifier.sol";
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '../VerificationSBT.sol';
+import '../interfaces/IAgeCitizenshipKYCVerifier.sol';
 
 /// @author Galactica dev team
 //For testing purpose we will create a mock dApp that airdrops 2 types tokens (100 each) for user
@@ -22,9 +22,9 @@ contract MockDApp {
     uint public constant token1AirdropAmount = 100;
     uint public constant token2AirdropAmount = 100;
     VerificationSBT public SBT;
-    IAgeProofZkKYCVerifier public verifierWrapper;
+    IAgeCitizenshipKYCVerifier public verifierWrapper;
 
-    constructor(VerificationSBT _SBT, IAgeProofZkKYCVerifier _verifierWrapper) {
+    constructor(VerificationSBT _SBT, IAgeCitizenshipKYCVerifier _verifierWrapper) {
         SBT = _SBT;
         verifierWrapper = _verifierWrapper;
     }
@@ -53,13 +53,13 @@ contract MockDApp {
             // check that the public dAppAddress is correct
             require(
                 dAppAddress == uint(uint160(address(this))),
-                "incorrect dAppAddress"
+                'incorrect dAppAddress'
             );
 
             // check the zk proof
             require(
                 verifierWrapper.verifyProof(a, b, c, input),
-                "zk proof is invalid"
+                'zk proof is invalid'
             );
 
             //afterwards we mint the verification SBT
@@ -107,19 +107,19 @@ contract MockDApp {
         if (tokenIndex == 1) {
             require(
                 !hasReceivedToken1[humanID],
-                "this humandID has already received this airdrop"
+                'this humandID has already received this airdrop'
             );
             token1.transfer(msg.sender, token1AirdropAmount);
             hasReceivedToken1[humanID] = true;
         } else if (tokenIndex == 2) {
             require(
                 !hasReceivedToken2[humanID],
-                "this humandID has already received this airdrop"
+                'this humandID has already received this airdrop'
             );
             token1.transfer(msg.sender, token2AirdropAmount);
             hasReceivedToken2[humanID] = true;
         } else {
-            revert("invalid token index");
+            revert('invalid token index');
         }
     }
 }

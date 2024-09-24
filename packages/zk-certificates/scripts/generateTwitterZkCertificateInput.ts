@@ -3,7 +3,8 @@ import { twitterZkCertificateContentFields } from '@galactica-net/galactica-type
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import { ZkCertStandard } from '../lib';
+import twitterExample from '../example/twitterFields.json';
+import { prepareZkCertificateFields, ZkCertStandard } from '../lib';
 import {
   createHolderCommitment,
   getEddsaKeyFromEthSigner,
@@ -11,25 +12,13 @@ import {
 import { MerkleTree } from '../lib/merkleTree';
 import { ZkCertificate } from '../lib/zkCertificate';
 
-// sample field inputs
-export const sampleFields = {
-  accountId: '23742384',
-  creationTime: '23234234',
-  location: '12233937',
-  verified: 1,
-  followersCount: 85,
-  friendsCount: 28,
-  likesCount: 10,
-  postsCount: 22,
-};
-
 /**
  * Generates a sample twitter ZkCertificate object with the given fields.
  * @param fields - The fields to set in the twitter ZkCertificate object.
  * @returns Twitter ZkCertificate object promise.
  */
 export async function generateSampleTwitterZkCertificate(
-  fields: any = sampleFields,
+  fields: any = twitterExample,
 ): Promise<ZkCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
@@ -42,15 +31,20 @@ export async function generateSampleTwitterZkCertificate(
 
   const zkTwitterCertificate = new ZkCertificate(
     holderCommitment,
-    ZkCertStandard.TwitterZkCertificate,
+    ZkCertStandard.Twitter,
     eddsa,
-    1773,
+    '1773',
     1769736098,
     twitterZkCertificateContentFields,
   );
 
   // set the fields in zkKYC object
-  zkTwitterCertificate.setContent(fields);
+  const processedFields = prepareZkCertificateFields(
+    eddsa,
+    fields,
+    ZkCertStandard.Twitter,
+  );
+  zkTwitterCertificate.setContent(processedFields);
 
   // some default provider private key
   // providerData needs to be created before leafHash computation
@@ -63,12 +57,10 @@ export async function generateSampleTwitterZkCertificate(
 /**
  * Generates the twitter ZkCertificate proof input for the twitter ZkCertificate smart contract.
  * @param twitterZkCertificate - The twitter ZkCertificate object.
- * @param fields - The fields to set in the twitter ZkCertificate object.
  * @returns Zero Knowledge twitter proof input for the twitter ZkCertificate smart contract.
  */
 export async function generateTwitterZkCertificateProofInput(
   twitterZkCertificate: ZkCertificate,
-  fields: any = sampleFields,
 ): Promise<any> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
@@ -91,7 +83,7 @@ export async function generateTwitterZkCertificateProofInput(
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
   // construct the twitterZkCertificate inputs
-  const twitterZkCertificateInput: any = { ...fields };
+  const twitterZkCertificateInput: any = { ...twitterZkCertificate.content };
 
   twitterZkCertificateInput.providerAx = twitterZkCertificate.providerData.ax;
   twitterZkCertificateInput.providerAy = twitterZkCertificate.providerData.ay;

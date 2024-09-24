@@ -8,10 +8,10 @@ import type {
   ProviderData,
   ZkCertData,
   ZkCertRegistration,
-  ZkCertStandard,
   EddsaPrivateKey,
 } from '@galactica-net/galactica-types';
 import {
+  ZkCertStandard,
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
   zkKYCContentFields,
@@ -326,3 +326,13 @@ export class ZkCertificate implements ZkCertData {
     };
   }
 }
+
+/**
+ * Mapping of zkCert standard names to their respective enum values.
+ */
+export const flagStandardMapping: Record<string, ZkCertStandard> = {
+  zkKYC: ZkCertStandard.ZkKYC,
+  data: ZkCertStandard.ArbitraryData,
+  twitter: ZkCertStandard.Twitter,
+  rey: ZkCertStandard.Rey,
+};

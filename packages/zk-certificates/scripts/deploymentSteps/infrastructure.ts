@@ -26,7 +26,7 @@ export async function deployInfrastructure(
   recordRegistry: any;
   zkpVerifier: any;
   institutionContracts: any[];
-  ageProofZkKYC: any;
+  ageCitizenshipKYC: any;
   verificationSBT: any;
 }> {
   log(`Using account ${deployer.address} to deploy contracts`);
@@ -83,10 +83,11 @@ export async function deployInfrastructure(
     institutionContracts.push(galacticaInstitution);
   }
 
-  const ageProofZkKYC = await deploySC('AgeProofZkKYC', true, {}, [
+  const ageCitizenshipKYC = await deploySC('AgeCitizenshipKYC', true, {}, [
     deployer.address,
     zkpVerifier.address,
     recordRegistry.address,
+    [], // no sanctioned countries
     institutionContracts.map((contract) => contract.address),
   ]);
   const verificationSBT = await deploySC('VerificationSBT', true, {}, [
@@ -101,7 +102,7 @@ export async function deployInfrastructure(
     recordRegistry,
     zkpVerifier,
     institutionContracts,
-    ageProofZkKYC,
+    ageCitizenshipKYC,
     verificationSBT,
   };
 }
