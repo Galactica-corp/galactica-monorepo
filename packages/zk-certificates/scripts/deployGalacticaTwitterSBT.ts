@@ -23,7 +23,7 @@ async function main() {
   const nftName = 'Genesis SBT';
   const nftSymbol = 'XNET';
 
-  await deploySC('GalacticaTwitterSBT', true, {}, [
+  await deploySC('GalacticaOfficialSBT', true, {}, [
     issuer,
     uri,
     owner,

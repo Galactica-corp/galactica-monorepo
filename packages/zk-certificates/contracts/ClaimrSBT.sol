@@ -2,12 +2,12 @@
 pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-contract claimrSignedNFT is Ownable, ERC721 {
+contract claimrSignedSBT is Ownable, ERC721 {
     uint256 private _nextTokenId;
     string private _baseTokenURI;
     mapping(string => bool) private _usedTokens;
     address private _signee;
-    constructor(string memory name, string memory symbol, string memory baseTokenURI_, address signee_) ERC721(name, symbol) Ownable(msg.sender) {
+    constructor(string memory name, string memory symbol, string memory baseTokenURI_, address signee_) ERC721(name, symbol) Ownable() {
         _baseTokenURI = baseTokenURI_;
         _signee = signee_;
     }
@@ -75,7 +75,26 @@ contract claimrSignedNFT is Ownable, ERC721 {
         }
     }
     function burn(uint256 tokenId) external onlyOwner {
-        _requireOwned(tokenId);
+        _requireMinted(tokenId);
         _burn(tokenId);
+    }
+
+    /**
+     * @dev Transfers are rejected because the ClaimrSBT is soulbound.
+     */
+    function _transfer(address, address, uint256) internal pure override {
+        revert("ClaimrSBT: transfer is not allowed");
+    }
+
+    /**
+     * @dev Approve are rejected because the ClaimrSBT is soulbound.
+     */
+    function _approve(address to, uint256 id) internal override {
+        if (to == address(0)) {
+            // ok to approve zero address as done by the ERC721 implementation on burning
+            super._approve(to, id);
+        } else {
+            revert("ClaimrSBT: transfer approval is not allowed");
+        }
     }
 }

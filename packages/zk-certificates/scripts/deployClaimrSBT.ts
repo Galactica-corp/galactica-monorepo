@@ -22,7 +22,7 @@ async function main() {
   const nftName = 'CLAIMR';
   const nftSymbol = 'CLMR';
 
-  await deploySC('ClaimrNFT', true, {}, [nftName, nftSymbol, uri, signee]);
+  await deploySC('claimrSignedSBT', true, {}, [nftName, nftSymbol, uri, signee]);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
