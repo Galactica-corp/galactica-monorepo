@@ -1,10 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
   ZkCertStandard,
-  zkKYCContentFields,
-  twitterZkCertificateContentFields,
-  reyZkCertificateContentFields,
-  exchangeZkCertificateContentFields,
 } from '@galactica-net/galactica-types';
 import type { Eddsa } from 'circomlibjs';
 
@@ -102,4 +98,22 @@ export function dateStringToUnixTimestamp(date: string): number {
   throw new Error(
     `Invalid date format (neither RFC3339 nor unix timestamp): ${date}`,
   );
+}
+
+/**
+ * Hashes the content of a ZkCertificate into the contentHash of the ZkCertificate.
+ * @param eddsa - Eddsa object from circomlibjs.
+ * @param content - Content of the zkCertificate to hash.
+ * @returns 
+ */
+export function hashZkCertificateContent(
+  eddsa: Eddsa,
+  content: Record<string, any>,
+): string {
+  return eddsa.F.toObject(eddsa.poseidon(
+    // sort the fields alphabetically to ensure the same order as in the circuit
+    Object.keys(content).sort().map((field) => content[field]),
+    undefined,
+    1,
+  )).toString();
 }

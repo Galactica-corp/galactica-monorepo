@@ -14,7 +14,6 @@ import {
   ZkCertStandard,
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
-  zkKYCContentFields,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
 import type { Eddsa, Point, Poseidon } from 'circomlibjs';
@@ -23,6 +22,7 @@ import { Scalar } from 'ffjavascript';
 
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
+import { hashZkCertificateContent } from './zkCertificateDataProcessing';
 
 /**
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
@@ -48,8 +48,6 @@ export class ZkCertificate implements ZkCertData {
 
   public providerData: ProviderData;
 
-  public contentFields: string[];
-
   /**
    * Create a ZkCertificate.
    * @param holderCommitment - Commitment fixing the holder eddsa key without revealing it to the provider.
@@ -57,7 +55,6 @@ export class ZkCertificate implements ZkCertData {
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
    * @param expirationDate - Expiration date of the zkCert.
-   * @param contentFields - Names of fields making up the content, default to be ZkKYC.
    * @param content - ZkCertificate parameters, can be set later.
    * @param providerData - Provider data, can be set later.
    */
@@ -67,7 +64,6 @@ export class ZkCertificate implements ZkCertData {
     eddsa: Eddsa,
     randomSalt: string,
     expirationDate: number,
-    contentFields: string[] = zkKYCContentFields,
     content: Record<string, any> = {}, // standardize field definitions
     providerData: ProviderData = {
       ax: '0',
@@ -86,17 +82,10 @@ export class ZkCertificate implements ZkCertData {
     this.expirationDate = expirationDate;
     this.content = content;
     this.providerData = providerData;
-    this.contentFields = contentFields;
   }
 
   get contentHash(): string {
-    return this.poseidon.F.toObject(
-      this.poseidon(
-        this.contentFields.map((field) => this.content[field]),
-        undefined,
-        1,
-      ),
-    ).toString();
+    return hashZkCertificateContent(this.eddsa, this.content);
   }
 
   get leafHash(): string {
