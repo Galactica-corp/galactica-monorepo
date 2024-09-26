@@ -34,7 +34,8 @@ export function filterZkCerts(
       (filter?.providerAx === undefined ||
         value.providerData.ax === filter?.providerAx) &&
       (filter?.registryAddress === undefined ||
-        value.registration.address === filter?.registryAddress) &&
+        value.registration.address.toLowerCase() ===
+          filter?.registryAddress.toLowerCase()) &&
       (filter?.chainID === undefined ||
         value.registration.chainID === filter?.chainID)
     );

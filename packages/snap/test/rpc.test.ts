@@ -915,6 +915,38 @@ describe('Test rpc handler function', function () {
       );
       expect(res).to.not.have.key(zkCert.zkCertStandard);
     });
+
+    it('should ignore case when filtering', async function () {
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+      snapProvider.rpcStubs.snap_dialog
+        .withArgs(match.has('type', 'confirmation'))
+        .resolves(true);
+
+      // filter with address in mixed case
+      let res: any = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ListZkCerts, {
+          registryAddress: zkCert.registration.address,
+        }),
+        snapProvider,
+        ethereumProvider,
+      );
+      expect(res[zkCert.zkCertStandard].length).to.equal(1);
+
+      // filter with address in lower case
+      res = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ListZkCerts, {
+          registryAddress: zkCert.registration.address.toLowerCase(),
+        }),
+        snapProvider,
+        ethereumProvider,
+      );
+      expect(res[zkCert.zkCertStandard].length).to.equal(1);
+    });
   });
 
   describe('Get ZkCert Storage hash', function () {
