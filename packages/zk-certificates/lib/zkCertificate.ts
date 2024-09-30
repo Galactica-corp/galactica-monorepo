@@ -93,14 +93,14 @@ export class ZkCertificate implements ZkCertData {
       this.poseidon(
         [
           this.contentHash,
+          this.expirationDate,
+          this.holderCommitment,
           this.providerData.ax,
           this.providerData.ay,
-          this.providerData.s,
           this.providerData.r8x,
           this.providerData.r8y,
-          this.holderCommitment,
+          this.providerData.s,
           this.randomSalt,
-          this.expirationDate,
         ],
         undefined,
         1,
