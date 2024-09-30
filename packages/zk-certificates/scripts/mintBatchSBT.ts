@@ -26,22 +26,24 @@ async function main() {
     SBTAddress,
   );
 
-  let dataArray = [];
+  const dataArray = [];
 
   for (const user of data) {
-    const userAddress = user['wallet'];
-    const symbol = user['symbol'];
-    const name = user['name'];
+    const userAddress = user.wallet;
+    const { symbol } = user;
+    const { name } = user;
     const uri = user['metadata uri'];
 
-    console.log(`Giving ${userAddress} an NFT with symbol ${symbol} and name ${name}`);
+    console.log(
+      `Giving ${userAddress} an NFT with symbol ${symbol} and name ${name}`,
+    );
     console.log(`metadata uri is ${uri}`);
 
     dataArray.push(userAddress);
   }
 
   const batchSize = 300;
-  //split dataArray into subarray of batchSize
+  // split dataArray into subarray of batchSize
   const batches = [];
   for (let i = 0; i < dataArray.length; i += batchSize) {
     batches.push(dataArray.slice(i, i + batchSize));
@@ -49,12 +51,15 @@ async function main() {
   let batchNumber = 0;
   for (const batch of batches) {
     console.log(`minting batch number ${batchNumber}`);
-    batchNumber++;
+    batchNumber += 1;
     console.log(`Minting batch of ${batch.length} addresses`);
     const tx = await SBTInstance.batchMint(batch);
     const receipt = await tx.wait();
     console.log(
-      `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,)
+      `receipt ${
+        receipt.transactionHash
+      }, gas used ${receipt.gasUsed.toString()}`,
+    );
   }
 
   console.log(`Done`);

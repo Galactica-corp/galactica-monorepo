@@ -1,5 +1,4 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import csv from 'csvtojson';
 import { ethers } from 'hardhat';
 
 /**
@@ -7,10 +6,9 @@ import { ethers } from 'hardhat';
  */
 async function main() {
   // parameters for test interaction
-  const [owner] = await ethers.getSigners();
   // const SBTAddress = '0xC1d40362A2e6c295DC53BAc79F65F81D030Da3Bd';
   // const SBTAddress = '0x75C47b5210658C6beFdDb23ab34B0B025979978e';
-  //const SBTAddress = '0x589A65F4434c63A220DEDb050C3Cc03ee43fBF13';
+  // const SBTAddress = '0x589A65F4434c63A220DEDb050C3Cc03ee43fBF13';
   // const SBTAddress = '0x66Af9234673804B9c230f9AE0c6EB49cDfE93AFe';
   const SBTAddress = '0xe71D10f3065C3e2061eC044078297A0681868e78';
 
@@ -19,7 +17,7 @@ async function main() {
     SBTAddress,
   );
 
-/*   const DEFAULT_ADMIN_ROLE = await SBTInstance.DEFAULT_ADMIN_ROLE();
+  /*   const DEFAULT_ADMIN_ROLE = await SBTInstance.DEFAULT_ADMIN_ROLE();
   const ISSUER_ROLE = await SBTInstance.ISSUER_ROLE();
 
   const supposedAdmin = "0xd55935BD456E317EAFbA5B6c84B4aA77F1A0532e";

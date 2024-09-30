@@ -16,7 +16,7 @@ async function main() {
   // whitelist through private key
   await whitelistGuardian(deployer, centerRegistryAddr, guardian, metadataURL);
 
-  //whitelist through public key
+  // whitelist through public key
   /* const guardianAddress = "0x3D16Ea1a1a4129464466D5c75347a88Bf73a2288";
   const guardianPublicKey = ["2c8756904b7c7c986c86641daf427b2416174b09ed4aab1507f67384a87a0325",""];
   const centerRegistryInstance = await ethers.getContractAt('GuardianRegistry', centerRegistryAddr);

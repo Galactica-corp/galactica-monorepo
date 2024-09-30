@@ -9,7 +9,7 @@ async function main() {
     'https://quicknode.quicknode-ipfs.com/ipfs/QmTWZSCpQwzEcjCa7sriwPXoJHjC9dTyy7P94cT4KkBvTm',
     '0xC578b092204f48D34339fa76f8A2719817298978',
     'Genesis SBT',
-    'XNET'
+    'XNET',
   ];
 
   console.log(`verifying contract at address ${SCAddress}`);

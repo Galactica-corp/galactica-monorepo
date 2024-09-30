@@ -27,7 +27,7 @@ async function main() {
   );
 
   for (const user of data) {
-    const userAddress = user['wallet'];
+    const userAddress = user.wallet;
 
     console.log(`burning NFT from ${userAddress}`);
     try {
@@ -38,11 +38,9 @@ async function main() {
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,
       );
-
     } catch (error) {
       console.log(error);
     }
-
   }
 
   console.log(`Done`);

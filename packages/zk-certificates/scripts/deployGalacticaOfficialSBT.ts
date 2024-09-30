@@ -15,8 +15,8 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  let issuer = deployer.address;
-  let owner = deployer.address;
+  const issuer = deployer.address;
+  const owner = deployer.address;
   // type 1
   /* const uri =
     "https://quicknode.quicknode-ipfs.com/ipfs/QmTtA8dxzzcFqB9kaXwNMVVof83UiBJLyyTuMbuHNU2JHB";
@@ -36,13 +36,13 @@ async function main() {
   const nftName = 'Guilding Galactica - Winning team';
   const nftSymbol = 'GGWIN'; */
 
-  //type 4
+  // type 4
   const uri =
-    "https://quicknode.quicknode-ipfs.com/ipfs/QmeJS1PdjBtbE77xgez7uBuPWg8ByJm3eFQsEpE8ffSE5g";
+    'https://quicknode.quicknode-ipfs.com/ipfs/QmeJS1PdjBtbE77xgez7uBuPWg8ByJm3eFQsEpE8ffSE5g';
   const nftName = 'Guilding Galactica - Top 10 (GG10)';
   const nftSymbol = 'GG10';
 
-  //test type
+  // test type
   /* const uri =
     "https://mike-tis.github.io/XNET-SBT/content.json";
   const nftName = 'Test - Test';
