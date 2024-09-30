@@ -7,16 +7,61 @@ import { ethers, network } from 'hardhat';
 async function main() {
   const [deployer] = await ethers.getSigners();
 
+  const deployNewSBTManagerFlag = false;
+  const checkSBTManagerFlag = true;
+
   console.log(
     `Deploying contracts with account ${deployer.address} on network ${network.name}`,
   );
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const SBTManagerRegistry = await ethers.getContractFactory('SBTManager');
-  const SBTManagerInstance = await SBTManagerRegistry.deploy(deployer.address);
+  if (deployNewSBTManagerFlag) {
+    const SBTManagerRegistry = await ethers.getContractFactory('SBTManager');
+    const SBTManagerInstance = await SBTManagerRegistry.deploy(
+      deployer.address,
+    );
 
-  console.log(`The address of the contract is ${SBTManagerInstance.address}`);
+    console.log(
+      `The address of the newly deployed SBTManager contract is ${SBTManagerInstance.address}`,
+    );
+  }
+
+  if (checkSBTManagerFlag) {
+    const SBTManagerAddress = '0x3e2Ae72c127008e738EeF1Ea5b83594558095451';
+    const SBTManagerInstance = await ethers.getContractAt(
+      'SBTManager',
+      SBTManagerAddress,
+    );
+    console.log(
+      `Checking the existing SBTManager contract is ${SBTManagerInstance.address}`,
+    );
+
+    for (let i = 0; i < 5; i++) {
+      const VerificationSBTAddress =
+        await SBTManagerInstance.SBTIndexToSBTAddress(i);
+      const SBTInstance = await ethers.getContractAt(
+        'VerificationSBT',
+        VerificationSBTAddress,
+      );
+      const SBTName = await SBTInstance.name();
+      const SBTUri = await SBTInstance.baseURI();
+      const SBTsymbol = await SBTInstance.symbol();
+      console.log(`SBT ${i} address is ${VerificationSBTAddress}`);
+      console.log(`SBT ${i} name is ${SBTName}`);
+      console.log(`SBT ${i} uri is ${SBTUri}`);
+      console.log(`SBT ${i} symbol is ${SBTsymbol}`);
+      const VerifierWrapperAddress =
+        await SBTManagerInstance.SBTIndexToSBTVerifierWrapper(i);
+      const VerifierWrapperInstance = await ethers.getContractAt(
+        'IVerifierWrapper',
+        VerifierWrapperAddress,
+      );
+      const VerifierAddress = await VerifierWrapperInstance.verifier();
+      console.log(`SBT ${i} verifierWrapper is ${VerifierWrapperAddress}`);
+      console.log(`SBT ${i} verifier is ${VerifierAddress}`);
+    }
+  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
