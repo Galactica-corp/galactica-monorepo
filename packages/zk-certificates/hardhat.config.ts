@@ -1,3 +1,4 @@
+// import '@nomicfoundation/hardhat-ignition-ethers';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomiclabs/hardhat-ethers';
@@ -25,22 +26,39 @@ const config: HardhatUserConfig = {
       {
         version: '0.8.17',
       },
+      {
+        version: '0.8.12',
+      },
     ],
   },
   networks: {
     galaAndromeda: {
       url: 'https://evm-rpc-http-andromeda.galactica.com/',
       accounts: getAccounts(),
+      gasPrice: 1000000000
     },
     reticulum: {
       url: 'https://evm-rpc-http-reticulum.galactica.com/',
       accounts: getAccounts(),
     },
+    binanceTestnet: {
+      url: process.env.BSCTestnetRPCURL,
+      accounts: [process.env.BSCTestnetDeployerPrivateKey],
+    },
+    mainnet: {
+        url: process.env.MainnetInfuraAPI,
+        accounts: [ process.env.MainnetSBTDeployerPrivateKey
+      ],
+        /* gasPrice: 30000000000 */
+    },
+
   },
   etherscan: {
     apiKey: {
       galaAndromeda: 'something', // not needed for now
       reticulum: 'something', // not needed for now
+      bscTestnet: process.env.BSCScanApiKey ?? '',
+      mainnet: process.env.EtherscanApiKey ?? '',
     },
     customChains: [
       {
@@ -209,13 +227,16 @@ function getAccounts(): string[] {
   const accounts: string[] = [];
   // check if environment variables exist
   const warningMsg = ' env var not set, using random private key';
+
   if (process.env.GalaTestnetDeployerPrivateKey) {
+    console.log(`adding 1 private key ${process.env.GalaTestnetDeployerPrivateKey}`)
     accounts.push(process.env.GalaTestnetDeployerPrivateKey);
   } else {
     console.warn(`GalaTestnetDeployerPrivateKey${warningMsg}`);
     accounts.push(Wallet.createRandom().privateKey);
   }
   if (process.env.GalaTestnetInstitution1PrivateKey) {
+    console.log(`adding 2 private key ${process.env.GalaTestnetInstitution1PrivateKey}`)
     accounts.push(process.env.GalaTestnetInstitution1PrivateKey);
   } else {
     console.warn(`GalaTestnetInstitution1PrivateKey${warningMsg}`);

@@ -15,21 +15,9 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  /* const issuer = '0xD8fd391410FDEA9da4e899770860EaE2db09Deab'; */
-  const issuer = deployer.address;
-  const uri =
-    'https://quicknode.quicknode-ipfs.com/ipfs/QmQc418do2SjdgigJa7zM5DjNhHcVooVHe6R8q22YUM9Da';
-  const owner = deployer.address;
-  const nftName = 'test mint';
-  const nftSymbol = 'TEST';
+  const Multicall3 = await deploySC('Multicall3', true, {}, []);
 
-  await deploySC('GalacticaOfficialSBT', true, {}, [
-    issuer,
-    uri,
-    owner,
-    nftName,
-    nftSymbol,
-  ]);
+  console.log(`The address of the contract is ${Multicall3.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -156,6 +156,15 @@ export function bigIntToArray(bn: bigint): Uint8Array {
 }
 
 /**
+ * Converts a hex string to a bigint.
+ * @param hexString - Hex string to convert.
+ * @returns Bigint.
+ */
+export function hexStringToBigInt(hexString: string): bigint {
+  return BigInt(hexString);
+}
+
+/**
  * Converts the proof output from snarkjs to parameter format for onchain solidity verifier.
  * @param proof - Proof output from snarkjs.
  * @returns Proof in format for solidity.
