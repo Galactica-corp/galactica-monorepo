@@ -1,10 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import {
-  reyZkCertificateContentFields,
-  twitterZkCertificateContentFields,
-  ZkCertStandard,
-  zkKYCContentFields,
-} from '@galactica-net/galactica-types';
+import { ZkCertStandard } from '@galactica-net/galactica-types';
 import { expect } from 'chai';
 import type { Eddsa } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
@@ -39,12 +34,11 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        zkKYCContentFields,
         processedFields,
       );
 
       expect(zkKYC.contentHash).to.equal(
-        '17914719627421525808158970735216338105805814372033137774126563568134622504748',
+        '13498937448046187479975980844060005602014574276619662435996314654414855730267',
       );
     });
   });
@@ -63,12 +57,11 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        twitterZkCertificateContentFields,
         processedFields,
       );
 
       expect(cert.contentHash).to.equal(
-        '10565774948564100047663306092097418972162462580236918552785393430115299025199',
+        '7173914967681580661513714044878426621594256120121735766118263955779653013687',
       );
     });
 
@@ -85,7 +78,6 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        twitterZkCertificateContentFields,
         processedFields,
       );
       processedFields.verified = 1;
@@ -95,7 +87,6 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        twitterZkCertificateContentFields,
         processedFields,
       );
 
@@ -117,12 +108,11 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        reyZkCertificateContentFields,
         processedFields,
       );
 
       expect(zkKYC.contentHash).to.equal(
-        '3421856034079648403282443072620678413551125654918205943007940688743589153558',
+        '16796889243774484502652439267275078011091324372566650361683451988345743214827',
       );
     });
   });

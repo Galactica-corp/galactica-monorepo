@@ -111,19 +111,19 @@ template ZKKYC(levels, maxExpirationLengthDays, shamirK, shamirN){
 
     // content hash for zkKYC data
     component contentHash = Poseidon(13);
-    contentHash.inputs[0] <== surname;
-    contentHash.inputs[1] <== forename;
-    contentHash.inputs[2] <== middlename;
-    contentHash.inputs[3] <== yearOfBirth;
-    contentHash.inputs[4] <== monthOfBirth;
-    contentHash.inputs[5] <== dayOfBirth;
-    contentHash.inputs[6] <== verificationLevel;
-    contentHash.inputs[7] <== streetAndNumber;
-    contentHash.inputs[8] <== postcode;
-    contentHash.inputs[9] <== town;
-    contentHash.inputs[10] <== region;
-    contentHash.inputs[11] <== country;
-    contentHash.inputs[12] <== citizenship;
+    contentHash.inputs[0] <== citizenship;
+    contentHash.inputs[1] <== country;
+    contentHash.inputs[2] <== dayOfBirth;
+    contentHash.inputs[3] <== forename;
+    contentHash.inputs[4] <== middlename;
+    contentHash.inputs[5] <== monthOfBirth;
+    contentHash.inputs[6] <== postcode;
+    contentHash.inputs[7] <== region;
+    contentHash.inputs[8] <== streetAndNumber;
+    contentHash.inputs[9] <== surname;
+    contentHash.inputs[10] <== town;
+    contentHash.inputs[11] <== verificationLevel;
+    contentHash.inputs[12] <== yearOfBirth;
 
     // provider signature verification
     component providerSignatureCheck = ProviderSignatureCheck();

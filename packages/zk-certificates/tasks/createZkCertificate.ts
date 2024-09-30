@@ -81,7 +81,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     eddsa,
     randomSalt,
     args.expirationDate,
-    Object.keys(zkCertificateFields),
     zkCertificateFields,
   );
 

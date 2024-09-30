@@ -37,6 +37,7 @@ import {
   testZkpParams,
 } from './constants.mock';
 import { mockEthereumProvider, mockSnapProvider } from './wallet.mock';
+import reyCert from '../../../test/reyCert.json';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
@@ -776,6 +777,39 @@ describe('Test rpc handler function', function () {
         `Failed to fetch prover data from ${wrongURL + subPathWasm} .`,
       );
     });
+
+    it('should handle unknown zkCert types', async function (this: Mocha.Context) {
+      this.timeout(25000);
+
+      const unknownZkCert = JSON.parse(JSON.stringify(zkCert));
+      unknownZkCert.zkCertStandard = 'gipUKNOWN';
+      const testUnkownZkpParams = { ...testZkpParams };
+      testUnkownZkpParams.requirements = {
+        ...testZkpParams.requirements,
+        zkCertStandard: unknownZkCert.zkCertStandard,
+      };
+
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [unknownZkCert],
+        });
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.GenZkCertProof, testUnkownZkpParams),
+        snapProvider,
+        ethereumProvider,
+      )) as ZkCertProof;
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
+      // Merkle proof should be up to date and therefore not be fetched
+      expect(fetchMock.calls()).to.be.empty;
+
+      await verifyProof(result);
+    });
   });
 
   describe('List zkCerts', function () {
@@ -880,6 +914,38 @@ describe('Test rpc handler function', function () {
         ethereumProvider,
       );
       expect(res).to.not.have.key(zkCert.zkCertStandard);
+    });
+
+    it('should ignore case when filtering', async function () {
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+      snapProvider.rpcStubs.snap_dialog
+        .withArgs(match.has('type', 'confirmation'))
+        .resolves(true);
+
+      // filter with address in mixed case
+      let res: any = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ListZkCerts, {
+          registryAddress: zkCert.registration.address,
+        }),
+        snapProvider,
+        ethereumProvider,
+      );
+      expect(res[zkCert.zkCertStandard].length).to.equal(1);
+
+      // filter with address in lower case
+      res = await processRpcRequest(
+        buildRPCRequest(RpcMethods.ListZkCerts, {
+          registryAddress: zkCert.registration.address.toLowerCase(),
+        }),
+        snapProvider,
+        ethereumProvider,
+      );
+      expect(res[zkCert.zkCertStandard].length).to.equal(1);
     });
   });
 
@@ -989,6 +1055,40 @@ describe('Test rpc handler function', function () {
         privateKey: testHolder.encryptionPrivKey,
       });
       expect(decrypted).to.be.deep.eq(zkCert);
+    });
+
+    it('should handle unknown certificate types', async function (this: Mocha.Context) {
+      this.timeout(5000);
+
+      const unknownZkCert = JSON.parse(JSON.stringify(reyCert));
+      unknownZkCert.zkCertStandard = 'gip123456789';
+
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [unknownZkCert],
+        });
+
+      const params: ZkCertSelectionParams = {
+        zkCertStandard: unknownZkCert.zkCertStandard,
+      };
+
+      const result = (await processRpcRequest(
+        buildRPCRequest(RpcMethods.ExportZkCert, params),
+        snapProvider,
+        ethereumProvider,
+      )) as EncryptedZkCert;
+
+      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(result.holderCommitment).to.be.eq(testHolder.holderCommitment);
+
+      const decrypted = decryptSafely({
+        encryptedData: result,
+        privateKey: testHolder.encryptionPrivKey,
+      });
+      expect(decrypted).to.be.deep.eq(unknownZkCert);
     });
   });
 
