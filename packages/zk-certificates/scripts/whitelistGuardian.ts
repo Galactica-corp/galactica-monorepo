@@ -8,7 +8,7 @@ import { whitelistGuardian } from './deploymentSteps/whitelistGuardian';
  */
 async function main() {
   // parameters
-  const [deployer, guardian] = await ethers.getSigners();
+  const [deployer] = await ethers.getSigners();
   const centerRegistryAddr = '0x20682CE367cE2cA50bD255b03fEc2bd08Cc1c8Bd';
   const metadataURL = 'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx';
   console.log(`guardian address is ${deployer.address}`);

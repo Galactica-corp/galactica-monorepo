@@ -6,7 +6,7 @@ import { readFileSync } from 'fs';
 import hre from 'hardhat';
 import type { CircuitTestUtils } from 'hardhat-circom';
 
-describe.only('Calculate zkCert Hash Circuit Component', () => {
+describe('Calculate zkCert Hash Circuit Component', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(

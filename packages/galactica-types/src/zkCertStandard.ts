@@ -127,16 +127,17 @@ export type TwitterZkCertificateContent = {
  * Ordered list of fields contained specifically in the twitterZkCertificate.
  * It does not include fields that are common to all zkCerts.
  */
-export const twitterZkCertificateContentFields: (keyof TwitterZkCertificateContent)[] = [
-  'createdAt',
-  'followersCount',
-  'followingCount',
-  'id',
-  'listedCount',
-  'tweetCount',
-  'username',
-  'verified',
-];
+export const twitterZkCertificateContentFields: (keyof TwitterZkCertificateContent)[] =
+  [
+    'createdAt',
+    'followersCount',
+    'followingCount',
+    'id',
+    'listedCount',
+    'tweetCount',
+    'username',
+    'verified',
+  ];
 
 // disabled eslint rule for naming convention because the field names are defined by the standard
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -156,13 +157,8 @@ export type ReyZkCertificateContent = {
  * Ordered list of fields contained specifically in the reyZkCertificate.
  * It does not include fields that are common to all zkCerts.
  */
-export const reyZkCertificateContentFields: (keyof ReyZkCertificateContent)[] = [
-  'rey_faction',
-  'rey_score_all',
-  'rey_score_galactica',
-  'x_id',
-  'x_username',
-];
+export const reyZkCertificateContentFields: (keyof ReyZkCertificateContent)[] =
+  ['rey_faction', 'rey_score_all', 'rey_score_galactica', 'x_id', 'x_username'];
 
 /**
  * Data specifically contained in DEX/CEX Certificates.
@@ -179,9 +175,5 @@ export type ExchangeZkCertificateContent = {
  * Ordered list of fields contained specifically in the DEX/CEX Certificates.
  * It does not include fields that are common to all zkCerts.
  */
-export const exchangeZkCertificateContentFields: (keyof ExchangeZkCertificateContent)[] = [
-  'address',
-  'swapVolumeHalfYear',
-  'swapVolumeYear',
-  'totalSwapVolume',
-];
+export const exchangeZkCertificateContentFields: (keyof ExchangeZkCertificateContent)[] =
+  ['address', 'swapVolumeHalfYear', 'swapVolumeYear', 'totalSwapVolume'];

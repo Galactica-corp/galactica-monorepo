@@ -44,7 +44,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const zkCertificateType = flagStandardMapping[args.zkCertificateType];
   if (zkCertificateType === undefined) {
     throw new Error(
-      `ZkCertStandard type ${args.zkCertificateType
+      `ZkCertStandard type ${
+        args.zkCertificateType
       } is unsupported, available options: ${JSON.stringify(
         Object.keys(flagStandardMapping),
       )}`,
@@ -125,7 +126,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${args.index as number
+      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${
+        args.index as number
       }`,
     ),
   );
@@ -159,7 +161,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   console.log(
     chalk.green(
-      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${args.index as number
+      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${
+        args.index as number
       } with new expiration date ${args.expirationDate as number}`,
     ),
   );

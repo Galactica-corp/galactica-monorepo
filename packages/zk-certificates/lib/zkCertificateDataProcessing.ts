@@ -57,8 +57,6 @@ export function prepareZkCertificateFields(
     stringFieldsForHashing = zkCertificateContentFields.filter(
       (value) => typeof zkCertificateData[value] === 'string',
     );
-  } else {
-    throw new Error(`Unknown ZkCertStandard: ${zkCertificateType}. Doesn't know which fields need to be interpreted as dates or strings to be hashed.`);
   }
 
   const zkCertificateFields: Record<string, any> = {};
@@ -110,16 +108,20 @@ export function dateStringToUnixTimestamp(date: string): number {
  * Hashes the content of a ZkCertificate into the contentHash of the ZkCertificate.
  * @param eddsa - Eddsa object from circomlibjs.
  * @param content - Content of the zkCertificate to hash.
- * @returns 
+ * @returns Hashed content of the ZkCertificate.
  */
 export function hashZkCertificateContent(
   eddsa: Eddsa,
   content: Record<string, any>,
 ): string {
-  return eddsa.F.toObject(eddsa.poseidon(
-    // sort the fields alphabetically to ensure the same order as in the circuit
-    Object.keys(content).sort().map((field) => content[field]),
-    undefined,
-    1,
-  )).toString();
+  return eddsa.F.toObject(
+    eddsa.poseidon(
+      // sort the fields alphabetically to ensure the same order as in the circuit
+      Object.keys(content)
+        .sort()
+        .map((field) => content[field]),
+      undefined,
+      1,
+    ),
+  ).toString();
 }
