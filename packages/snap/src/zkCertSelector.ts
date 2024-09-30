@@ -139,11 +139,6 @@ export async function selectZkCert(
     eddsa,
     selected.randomSalt,
     selected.expirationDate,
-    // The following list of keys assumes that the keys are in the same order as used to generate the contentHash
-    // This a bit risky because the order of the keys in the object is not guaranteed.
-    // However, we want the snap to be able to handle new zkCert types it does not know the content of.
-    // This hotfix should be replaced by a more robust solution in the future.
-    Object.keys(selected.content),
     selected.content,
     selected.providerData,
   );
