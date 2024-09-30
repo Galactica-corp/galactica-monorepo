@@ -43,11 +43,11 @@ const config: HardhatUserConfig = {
     },
     binanceTestnet: {
       url: process.env.BSCTestnetRPCURL,
-      accounts: [process.env.BSCTestnetDeployerPrivateKey],
+      accounts: getAccounts(),
     },
     mainnet: {
       url: process.env.MainnetInfuraAPI,
-      accounts: [process.env.MainnetSBTDeployerPrivateKey],
+      accounts: getAccounts(),
       /* gasPrice: 30000000000 */
     },
   },
