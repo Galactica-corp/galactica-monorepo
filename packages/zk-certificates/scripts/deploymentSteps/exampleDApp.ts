@@ -9,14 +9,18 @@ const { log } = console;
  * Deploys the example DApp, a smart contract requiring zkKYC + age proof to airdrop tokens once to each user.
  * @param deployer - The deployer wallet.
  * @param verificationSBTAddr - The address of the verification SBT.
- * @param ageCitizenshipKYCAddr - The address of the age proof zkKYC.
+ * @param recordRegistryAddr - The address of the zkKYC record registry.
+ * @param institutionAddrs - The list of fraud investigation institutions.
  * @returns The deployed contracts.
  */
 export async function deployExampleDApp(
   deployer: SignerWithAddress,
   verificationSBTAddr: string,
-  ageCitizenshipKYCAddr: string,
+  recordRegistryAddr: string,
+  institutionAddrs: string[],
 ): Promise<{
+  zkpVerifier: any;
+  ageCitizenshipKYC: any;
   mockDApp: any;
   token1: any;
   token2: any;
@@ -25,9 +29,20 @@ export async function deployExampleDApp(
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   // deploying everything
+  const zkpVerifier = await deploySC('ExampleMockDAppVerifier', true);
+
+  const ageCitizenshipKYC = await deploySC('AgeCitizenshipKYC', true, {}, [
+    deployer.address,
+    zkpVerifier.address,
+    recordRegistryAddr,
+    [], // no sanctioned countries
+    institutionAddrs,
+    0, // no age threshold
+  ]);
+
   const mockDApp = await deploySC('MockDApp', true, {}, [
     verificationSBTAddr,
-    ageCitizenshipKYCAddr,
+    ageCitizenshipKYC.address,
   ]);
   const token1 = await deploySC(
     'contracts/mock/MockToken.sol:MockToken',
@@ -46,6 +61,8 @@ export async function deployExampleDApp(
   await mockDApp.setToken2(token2.address);
 
   return {
+    zkpVerifier,
+    ageCitizenshipKYC,
     mockDApp,
     token1,
     token2,

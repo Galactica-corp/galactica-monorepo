@@ -7,6 +7,7 @@ import { deployBasicKYCExampleDApp } from './deploymentSteps/basicKYCExampleDApp
 import { deployDevnetGuardian } from './deploymentSteps/devnetGuardian';
 import { deployExampleDApp } from './deploymentSteps/exampleDApp';
 import { deployInfrastructure } from './deploymentSteps/infrastructure';
+import { deployKYCComplianceProofsDApps } from './deploymentSteps/kycComplianceProofs';
 import { deployKYCRequirementsDemoDApp } from './deploymentSteps/kycRequirementDemo';
 import { deployRepeatableZKPTest } from './deploymentSteps/repeatableZKPTest';
 import { whitelistGuardian } from './deploymentSteps/whitelistGuardian';
@@ -28,7 +29,8 @@ async function main() {
   const exampleDApp = await deployExampleDApp(
     deployer,
     infrastructure.verificationSBT.address,
-    infrastructure.ageCitizenshipKYC.address,
+    infrastructure.recordRegistry.address,
+    infrastructure.institutionContracts.map((contract) => contract.address),
   );
   const repeatableZkKYC = await deployRepeatableZKPTest(
     deployer,
@@ -59,6 +61,12 @@ async function main() {
     infrastructure.verificationSBT.address,
   );
 
+  const kycComplianceProofs = await deployKYCComplianceProofsDApps(
+    deployer,
+    infrastructure.recordRegistry.address,
+    infrastructure.verificationSBT.address,
+  );
+
   const deploymentSummary = `Deployment summary:
 PoseidonT3: ${JSON.stringify(infrastructure.poseidonT3.address)}
 
@@ -79,14 +87,21 @@ MockGalacticaInstitution3: ${JSON.stringify(
 ZkKYCVerifier: ${JSON.stringify(repeatableZkKYC.zkKYCVerifier.address)}
 ZkKYC: ${JSON.stringify(repeatableZkKYC.zkKYCSC.address)}
 
-ExampleMockDAppVerifier: ${JSON.stringify(infrastructure.zkpVerifier.address)}
-AgeCitizenshipKYC: ${JSON.stringify(infrastructure.ageCitizenshipKYC.address)}
-MockDApp: ${JSON.stringify(exampleDApp.mockDApp.address)}
 
 BasicKYCExampleDApp: ${JSON.stringify(basicKYCExample.address)}
 RepeatableZKPTest: ${JSON.stringify(repeatableZkKYC.repeatableZKPTest.address)}
 
 DevnetGuardian: ${JSON.stringify(devnetGuardian.address)}
+
+
+ExampleAirdrop-ExampleMockDAppVerifier: ${JSON.stringify(
+    exampleDApp.zkpVerifier.address,
+  )}
+ExampleAirdrop-AgeCitizenshipKYC: ${JSON.stringify(
+    exampleDApp.ageCitizenshipKYC.address,
+  )}
+ExampleAirdrop-MockDApp: ${JSON.stringify(exampleDApp.mockDApp.address)}
+
 
 KYCRequirementsDemo-DApp: ${JSON.stringify(
     kycRequirementsDemoContracts.kycRequirementsDemoDApp.address,
@@ -99,6 +114,29 @@ KYCRequirementsDemo-AgeCitizenshipKYC: ${JSON.stringify(
   )}
 KYCRequirementsDemo-CompliantERC20: ${JSON.stringify(
     kycRequirementsDemoContracts.compliantERC20.address,
+  )}
+
+
+KYCComplianceProofs-ZKPVerifier: ${JSON.stringify(
+    kycComplianceProofs.zkpVerifier.address,
+  )}
+KYCComplianceProofs-NonUS-AgeCitizenshipKYC: ${JSON.stringify(
+    kycComplianceProofs.nonUS.ageCitizenshipKYC.address,
+  )}
+KYCComplianceProofs-NonUS-BasicKYCExampleDApp: ${JSON.stringify(
+    kycComplianceProofs.nonUS.basicExampleDApp.address,
+  )}
+KYCComplianceProofs-NonSanctionedJurisdiction-AgeCitizenshipKYC: ${JSON.stringify(
+    kycComplianceProofs.nonSanctionedJurisdiction.ageCitizenshipKYC.address,
+  )}
+KYCComplianceProofs-NonSanctionedJurisdiction-BasicKYCExampleDApp: ${JSON.stringify(
+    kycComplianceProofs.nonSanctionedJurisdiction.basicExampleDApp.address,
+  )}
+KYCComplianceProofs-Adult18Plus-AgeCitizenshipKYC: ${JSON.stringify(
+    kycComplianceProofs.adult18Plus.ageCitizenshipKYC.address,
+  )}
+KYCComplianceProofs-Adult18Plus-BasicKYCExampleDApp: ${JSON.stringify(
+    kycComplianceProofs.adult18Plus.basicExampleDApp.address,
   )}
   `;
   console.log(deploymentSummary);

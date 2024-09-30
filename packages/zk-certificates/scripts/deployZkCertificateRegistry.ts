@@ -23,13 +23,13 @@ async function main() {
   const poseidonT3 = await deploySC('PoseidonT3', false);
 
   // initialize the contract
-  const guardianRegistryAddress = '0x41e20898EbecC78DbE6d638BB331C70BA4E30346';
-  const description = 'twitter ZkCertificate';
+  const guardianRegistryAddress = '0xe4652B6dc7D6316907AeCf999E66BC249d010d53';
+  const description = 'Exchange ZkCertificate Registry';
   await deploySC(
     'ZkCertificateRegistry',
     true,
     { libraries: { PoseidonT3: poseidonT3.address } },
-    [guardianRegistryAddress, description],
+    [guardianRegistryAddress, 32, description],
   );
 }
 

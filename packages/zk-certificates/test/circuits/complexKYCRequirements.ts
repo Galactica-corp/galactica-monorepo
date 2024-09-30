@@ -31,7 +31,7 @@ describe('Age + Citizenship Sanction List + KYC Circuit', () => {
       '0',
       '1',
       '4020996060095781638329708372473002493481697479140228740642027622801922135907',
-    ];
+    ].concat(Array(17).fill('0'));
 
     // advance time a bit to set it later in the test
     sampleInput.currentTime += 100;

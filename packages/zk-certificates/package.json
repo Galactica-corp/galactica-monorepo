@@ -28,7 +28,8 @@
     "compile": "hardhat smartCircuitBuild --verbose",
     "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose",
     "start": "tsup --watch",
-    "test": "hardhat smartCircuitBuild --verbose && hardhat test"
+    "test": "hardhat smartCircuitBuild --verbose && hardhat test",
+    "test:parallel": "hardhat smartCircuitBuild --verbose && hardhat test --parallel"
   },
   "dependencies": {
     "@galactica-net/galactica-types": "workspace:^",

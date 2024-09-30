@@ -97,6 +97,7 @@ describe('Verification SBT Smart contract', () => {
       mockZkCertificateRegistry.address,
       [],
       mockGalacticaInstitutions.map((inst) => inst.address),
+      0,
     )) as AgeCitizenshipKYC;
 
     const verificationSBTFactory = await ethers.getContractFactory(

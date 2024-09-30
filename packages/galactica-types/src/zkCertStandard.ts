@@ -8,6 +8,7 @@ export enum ZkCertStandard {
   ArbitraryData = 'gip2',
   Twitter = 'gip3',
   Rey = 'gip4',
+  Exchange = 'gip5',
 }
 
 /**
@@ -16,11 +17,11 @@ export enum ZkCertStandard {
 export type ZkKYCContent = {
   surname: string;
   forename: string;
-  middleNames: [string];
+  middlename: string;
 
-  birthYear: string;
-  birthMonth: string;
-  birthDay: string;
+  yearOfBirth: string;
+  monthOfBirth: string;
+  dayOfBirth: string;
 
   citizenship: string;
 
@@ -38,74 +39,74 @@ export type ZkKYCContent = {
  */
 export const zkCertCommonFields = [
   'contentHash',
+  'expirationDate',
+  'holderCommitment',
   'providerAx',
   'providerAy',
-  'providerS',
   'providerR8x',
   'providerR8y',
-  'holderCommitment',
+  'providerS',
   'randomSalt',
-  'expirationDate',
 ];
 
 /**
  * Ordered list of fields contained specifically in the zkKYC.
  * It does not include fields that are common to all zkCerts.
  */
-export const zkKYCContentFields = [
-  'surname',
+export const zkKYCContentFields: (keyof ZkKYCContent)[] = [
+  'citizenship',
+  'country',
+  'dayOfBirth',
   'forename',
   'middlename',
-  'yearOfBirth',
   'monthOfBirth',
-  'dayOfBirth',
-  'verificationLevel',
-  'streetAndNumber',
   'postcode',
-  'town',
   'region',
-  'country',
-  'citizenship',
+  'streetAndNumber',
+  'surname',
+  'town',
+  'verificationLevel',
+  'yearOfBirth',
 ];
 
 /**
  * List of fields in zkKYC that are optional. They are still included in a zkKYC, but can be empty.
  */
-export const zkKYCOptionalContent = [
-  'streetAndNumber',
+export const zkKYCOptionalContent: (keyof ZkKYCContent)[] = [
   'postcode',
-  'town',
   'region',
+  'streetAndNumber',
+  'town',
 ];
 
 /**
  * Ordered list of fields determining the DApp specific Human ID.
  */
 export const humanIDFieldOrder = [
-  'surname',
-  'forename',
-  'middlename',
-  'yearOfBirth',
-  'monthOfBirth',
-  'dayOfBirth',
   'citizenship',
   'dAppAddress',
-  'saltSignatureS',
+  'dayOfBirth',
+  'forename',
+  'middlename',
+  'monthOfBirth',
   'saltSignatureRx',
   'saltSignatureRy',
+  'saltSignatureS',
+  'surname',
+  'yearOfBirth',
 ];
 
 /**
  * Ordered list of fields determining the person ID to register a unique salt in the salt registry.
  */
 export const personIDFieldOrder = [
-  'surname',
+  'citizenship',
+  'dayOfBirth',
   'forename',
   'middlename',
-  'yearOfBirth',
   'monthOfBirth',
-  'dayOfBirth',
-  'citizenship',
+  'surname',
+  'yearOfBirth',
 ];
 
 /**
@@ -126,16 +127,17 @@ export type TwitterZkCertificateContent = {
  * Ordered list of fields contained specifically in the twitterZkCertificate.
  * It does not include fields that are common to all zkCerts.
  */
-export const twitterZkCertificateContentFields = [
-  'createdAt',
-  'id',
-  'followersCount',
-  'followingCount',
-  'listedCount',
-  'tweetCount',
-  'username',
-  'verified',
-];
+export const twitterZkCertificateContentFields: (keyof TwitterZkCertificateContent)[] =
+  [
+    'createdAt',
+    'followersCount',
+    'followingCount',
+    'id',
+    'listedCount',
+    'tweetCount',
+    'username',
+    'verified',
+  ];
 
 // disabled eslint rule for naming convention because the field names are defined by the standard
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -155,10 +157,23 @@ export type ReyZkCertificateContent = {
  * Ordered list of fields contained specifically in the reyZkCertificate.
  * It does not include fields that are common to all zkCerts.
  */
-export const reyZkCertificateContentFields = [
-  'x_id',
-  'x_username',
-  'rey_score_all',
-  'rey_score_galactica',
-  'rey_faction',
-];
+export const reyZkCertificateContentFields: (keyof ReyZkCertificateContent)[] =
+  ['rey_faction', 'rey_score_all', 'rey_score_galactica', 'x_id', 'x_username'];
+
+/**
+ * Data specifically contained in DEX/CEX Certificates.
+ * The numerical values are defined as strings so they can fit into the field even if they exceed the JS number range.
+ */
+export type ExchangeZkCertificateContent = {
+  address: string;
+  totalSwapVolume: string;
+  swapVolumeYear: string;
+  swapVolumeHalfYear: string;
+};
+
+/**
+ * Ordered list of fields contained specifically in the DEX/CEX Certificates.
+ * It does not include fields that are common to all zkCerts.
+ */
+export const exchangeZkCertificateContentFields: (keyof ExchangeZkCertificateContent)[] =
+  ['address', 'swapVolumeHalfYear', 'swapVolumeYear', 'totalSwapVolume'];
