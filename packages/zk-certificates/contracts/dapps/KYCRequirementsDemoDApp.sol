@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import {VerificationSBT} from './VerificationSBT.sol';
-import {IAgeCitizenshipKYCVerifier} from './interfaces/IAgeCitizenshipKYCVerifier.sol';
+import {VerificationSBT} from '../VerificationSBT.sol';
+import {IAgeCitizenshipKYCVerifier} from '../interfaces/IAgeCitizenshipKYCVerifier.sol';
 
 /**
  * @title KYCRequirementsDemoDApp
  * @author Galactica dev team
  * @notice An example DApp that requires a zkKYC proof to issue a Verification SBT.
  *  Registration can be repeated.
- *  The ZKPs check that:
- *  1. The user has a valid zkKYC.
- *  2. The user is at least 18 years old.
- *  3. The user is a non-US citizen.
- *  It does not have other disclosures and does not include fraud investigation.
+ *  The requirements of the ZKP (i.e. age, citizenship, etc.) are defined in the verifierWrapper.
+ *  This demo DApp does not include fraud investigation features.
  */
 contract KYCRequirementsDemoDApp {
     VerificationSBT public SBT;

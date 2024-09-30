@@ -24,9 +24,7 @@ export async function deployInfrastructure(
   poseidonT3: any;
   guardianRegistry: any;
   recordRegistry: any;
-  zkpVerifier: any;
   institutionContracts: any[];
-  ageCitizenshipKYC: any;
   verificationSBT: any;
 }> {
   log(`Using account ${deployer.address} to deploy contracts`);
@@ -63,8 +61,7 @@ export async function deployInfrastructure(
   );
   await recordRegistry.changeQueueExpirationTime(queueExpirationTime);
 
-  const zkpVerifier = await deploySC('ExampleMockDAppVerifier', true);
-
+  // list of example institutions for fraud investigation
   const institutionContracts = [];
   for (const inst of institutions) {
     const galacticaInstitution = await deploySC(
@@ -82,14 +79,6 @@ export async function deployInfrastructure(
     await galacticaInstitution.setInstitutionPubkey(pubAsDecimalString);
     institutionContracts.push(galacticaInstitution);
   }
-
-  const ageCitizenshipKYC = await deploySC('AgeCitizenshipKYC', true, {}, [
-    deployer.address,
-    zkpVerifier.address,
-    recordRegistry.address,
-    [], // no sanctioned countries
-    institutionContracts.map((contract) => contract.address),
-  ]);
   const verificationSBT = await deploySC('VerificationSBT', true, {}, [
     'https://quicknode.quicknode-ipfs.com/ipfs/QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs',
     'VerificationSBT',
@@ -100,9 +89,7 @@ export async function deployInfrastructure(
     poseidonT3,
     guardianRegistry,
     recordRegistry,
-    zkpVerifier,
     institutionContracts,
-    ageCitizenshipKYC,
     verificationSBT,
   };
 }

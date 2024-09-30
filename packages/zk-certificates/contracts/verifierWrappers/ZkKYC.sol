@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import './Ownable.sol';
-import './interfaces/IZkKYCVerifier.sol';
-import './interfaces/IZkCertificateRegistry.sol';
-import './interfaces/IGalacticaInstitution.sol';
+import '../Ownable.sol';
+import '../interfaces/IZkKYCVerifier.sol';
+import '../interfaces/IZkCertificateRegistry.sol';
+import '../interfaces/IGalacticaInstitution.sol';
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of ZkKYC record existence
@@ -72,7 +72,9 @@ contract ZkKYC is Ownable {
         verifier = newVerifier;
     }
 
-    function setKYCRegistry(IZkCertificateRegistry newKYCRegistry) public onlyOwner {
+    function setKYCRegistry(
+        IZkCertificateRegistry newKYCRegistry
+    ) public onlyOwner {
         KYCRegistry = newKYCRegistry;
     }
 
@@ -90,14 +92,13 @@ contract ZkKYC is Ownable {
         uint[2] memory c,
         uint[] memory input
     ) public view returns (bool) {
-            // dev note: if we ever use proof hash, make sure to pay attention to this truncation to uint160 as it can violate uniqueness
+        // dev note: if we ever use proof hash, make sure to pay attention to this truncation to uint160 as it can violate uniqueness
         require(
             tx.origin == address(uint160(input[INDEX_USER_ADDRESS])),
             'transaction submitter is not authorized to use this proof'
         );
         return _verifyProof(a, b, c, input);
     }
-
 
     // wrapper for internal function _verifyProof which doesn't check proof submitter address
     function verifyProof2(
@@ -125,10 +126,7 @@ contract ZkKYC is Ownable {
         require(input[INDEX_IS_VALID] == 1, 'the proof output is not valid');
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
-        require(
-          KYCRegistry.verifyMerkleRoot(proofRoot),
-          "invalid merkle root"
-        );
+        require(KYCRegistry.verifyMerkleRoot(proofRoot), 'invalid merkle root');
 
         uint proofCurrentTime = input[INDEX_CURRENT_TIME];
         uint timeDiff;
@@ -158,10 +156,6 @@ contract ZkKYC is Ownable {
         require(verifier.verifyProof(a, b, c, input), 'the proof is incorrect');
         return true;
     }
-
-
-
-
 
     function getAmountFraudInvestigationInstitutions()
         public
