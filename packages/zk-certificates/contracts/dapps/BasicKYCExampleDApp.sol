@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "./SBT_related/VerificationSBT.sol";
-import "./interfaces/IZkKYCVerifier.sol";
+import {VerificationSBT} from '../SBT_related/VerificationSBT.sol';
+import {IZkKYCVerifier} from '../interfaces/IZkKYCVerifier.sol';
 
 /**
  * @title BasicKYCExampleDApp
