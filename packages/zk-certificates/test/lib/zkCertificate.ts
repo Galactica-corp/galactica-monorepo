@@ -67,6 +67,13 @@ describe('ZkCertificate', () => {
         processedFields,
       );
 
+      console.log(testHolderCommitment);
+      console.log(ZkCertStandard.Twitter);
+      console.log(testRandomSalt);
+      console.log(testExpirationDate);
+      console.log(twitterZkCertificateContentFields);
+      console.log(processedFields);
+
       expect(cert.contentHash).to.equal(
         '10565774948564100047663306092097418972162462580236918552785393430115299025199',
       );
