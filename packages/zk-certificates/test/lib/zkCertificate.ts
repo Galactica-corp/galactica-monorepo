@@ -39,12 +39,11 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        zkKYCContentFields,
         processedFields,
       );
 
       expect(zkKYC.contentHash).to.equal(
-        '17914719627421525808158970735216338105805814372033137774126563568134622504748',
+        '13498937448046187479975980844060005602014574276619662435996314654414855730267',
       );
     });
   });
@@ -63,12 +62,11 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        twitterZkCertificateContentFields,
         processedFields,
       );
 
       expect(cert.contentHash).to.equal(
-        '10565774948564100047663306092097418972162462580236918552785393430115299025199',
+        '7173914967681580661513714044878426621594256120121735766118263955779653013687',
       );
     });
 
@@ -85,7 +83,6 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        twitterZkCertificateContentFields,
         processedFields,
       );
       processedFields.verified = 1;
@@ -95,7 +92,6 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        twitterZkCertificateContentFields,
         processedFields,
       );
 
@@ -117,12 +113,11 @@ describe('ZkCertificate', () => {
         eddsa,
         testRandomSalt,
         testExpirationDate,
-        reyZkCertificateContentFields,
         processedFields,
       );
 
       expect(zkKYC.contentHash).to.equal(
-        '3421856034079648403282443072620678413551125654918205943007940688743589153558',
+        '16796889243774484502652439267275078011091324372566650361683451988345743214827',
       );
     });
   });
