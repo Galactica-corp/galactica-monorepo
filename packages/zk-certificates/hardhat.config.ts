@@ -35,7 +35,6 @@ const config: HardhatUserConfig = {
     galaAndromeda: {
       url: 'https://evm-rpc-http-andromeda.galactica.com/',
       accounts: getAccounts(),
-      gasPrice: 1000000000,
     },
     reticulum: {
       url: 'https://evm-rpc-http-reticulum.galactica.com/',
@@ -227,18 +226,12 @@ function getAccounts(): string[] {
   const warningMsg = ' env var not set, using random private key';
 
   if (process.env.GalaTestnetDeployerPrivateKey) {
-    console.log(
-      `adding 1 private key ${process.env.GalaTestnetDeployerPrivateKey}`,
-    );
     accounts.push(process.env.GalaTestnetDeployerPrivateKey);
   } else {
     console.warn(`GalaTestnetDeployerPrivateKey${warningMsg}`);
     accounts.push(Wallet.createRandom().privateKey);
   }
   if (process.env.GalaTestnetInstitution1PrivateKey) {
-    console.log(
-      `adding 2 private key ${process.env.GalaTestnetInstitution1PrivateKey}`,
-    );
     accounts.push(process.env.GalaTestnetInstitution1PrivateKey);
   } else {
     console.warn(`GalaTestnetInstitution1PrivateKey${warningMsg}`);

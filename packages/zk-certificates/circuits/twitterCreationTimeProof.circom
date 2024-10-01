@@ -128,13 +128,10 @@ template TwitterCreationTimeProof(levels, maxExpirationLengthDays){
     compare2.in[0] <== creationTimeUpperBound;
     compare2.in[1] <== createdAt;
 
-    component and1 = AND();
-    and1.a <== compare1.out;
-    and1.b <== compare2.out;
+    component and = MultiAND(3);
+    and.in[0] <== compare1.out;
+    and.in[1] <== compare2.out;
+    and.in[2] <== twitterZkCertificate.valid;
 
-    component and2 = AND();
-    and2.a <== and1.out;
-    and2.b <== twitterZkCertificate.valid;
-
-    valid <== and2.out;
+    valid <== and.out;
 }
