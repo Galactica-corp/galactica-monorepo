@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./Ownable.sol";
-import "./interfaces/ITwitterZkCertificateVerifier.sol";
-import "./interfaces/IZkCertificateRegistry.sol";
+import "../Ownable.sol";
+import "../interfaces/ITwitterZkCertificateVerifier.sol";
+import "../interfaces/IZkCertificateRegistry.sol";
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of twitter creation time proof
