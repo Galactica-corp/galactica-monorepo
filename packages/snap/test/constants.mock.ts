@@ -2,8 +2,8 @@ import { ZkCertStandard } from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
   ProverData,
-  ZkKYCAgeProofInput,
   BenchmarkZKPGenParams,
+  ZkKYCAgeCitizenshipProofInput,
 } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
@@ -48,7 +48,7 @@ export const testHolder = {
   encryptionPubKey: getEncryptionPublicKey(testEntropyEncrypt.slice(2)),
 };
 
-export const testZkpParams: GenZkProofParams<ZkKYCAgeProofInput> = {
+export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
   input: {
     // most values do not matter because they are checked on-chain only
     currentTime: 1676033833,
@@ -62,10 +62,11 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeProofInput> = {
       ['4', '5'],
     ],
     dAppAddress: '0x80c8C09868E97CF789e10666Ad10dD96639aCB6e',
+    countryExclusionList: [],
   },
   requirements: {
     zkCertStandard: ZkCertStandard.ZkKYC,
-    registryAddress: '0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD',
+    registryAddress: '0x49FEc8ddf15a9731EfeD88b35685a45e5Fa95eFE',
   },
   prover,
   userAddress: testAddress,
@@ -75,6 +76,7 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeProofInput> = {
     'user pubkey Ax',
     'user pubkey Ay',
     'proof valid',
+    'error code',
     'verification SBT expiration',
     'encrypted fraud investigation shard institution 1',
     'encrypted fraud investigation shard institution 1',

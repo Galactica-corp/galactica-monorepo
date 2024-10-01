@@ -178,12 +178,6 @@ export async function waitOnIssuanceQueue(
     console.log(`waiting for ${queueLength - 1} other zkCerts in the queue...`);
   }
   console.log('Start time reached');
-
-  if (lastBlockTime > expirationTime) {
-    throw new Error(
-      `The zkCertificate registration has expired, it should be issued before ${expirationTime}`,
-    );
-  }
 }
 
 /**

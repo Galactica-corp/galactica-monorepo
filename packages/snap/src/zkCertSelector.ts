@@ -1,9 +1,4 @@
 // SPDX-License-Identifier: BUSL-1.1
-import {
-  twitterZkCertificateContentFields,
-  zkKYCContentFields,
-  ZkCertStandard,
-} from '@galactica-net/galactica-types';
 import type {
   ZkCertRegistered,
   ZkCertSelectionParams,
@@ -39,7 +34,8 @@ export function filterZkCerts(
       (filter?.providerAx === undefined ||
         value.providerData.ax === filter?.providerAx) &&
       (filter?.registryAddress === undefined ||
-        value.registration.address === filter?.registryAddress) &&
+        value.registration.address.toLowerCase() ===
+          filter?.registryAddress.toLowerCase()) &&
       (filter?.chainID === undefined ||
         value.registration.chainID === filter?.chainID)
     );
@@ -136,11 +132,6 @@ export async function selectZkCert(
     selected = filteredCerts[indexSelection];
   }
 
-  const contentFields =
-    selected.zkCertStandard === ZkCertStandard.TwitterZkCertificate
-      ? twitterZkCertificateContentFields
-      : zkKYCContentFields;
-
   const eddsa = await buildEddsa();
   const zkCert = new ZkCertificate(
     selected.holderCommitment,
@@ -148,7 +139,6 @@ export async function selectZkCert(
     eddsa,
     selected.randomSalt,
     selected.expirationDate,
-    contentFields,
     selected.content,
     selected.providerData,
   );

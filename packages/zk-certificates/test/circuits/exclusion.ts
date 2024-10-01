@@ -3,33 +3,15 @@ import { assert } from 'chai';
 import hre from 'hardhat';
 import type { CircuitTestUtils } from 'hardhat-circom';
 
-import type { ZkCertificate } from '../../lib';
-import {
-  generateSampleZkKYC,
-  generateZkKYCProofInput,
-} from '../../scripts/generateZkKYCInput';
+import sampleInput from '../../circuits/input/exclusion3.json';
 
-describe('Age Proof combined with zkKYC Circuit Component', () => {
+describe('Exclusion Circuit Component', () => {
   let circuit: CircuitTestUtils;
-
-  let zkKYC: ZkCertificate;
-  let sampleInput: any;
 
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('ageProofZkKYC');
-    // inputs to create proof
-    zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, 0, '0x0');
-    const today = new Date(Date.now());
-    sampleInput.currentYear = today.getUTCFullYear();
-    sampleInput.currentMonth = today.getUTCMonth() + 1;
-    sampleInput.currentDay = today.getUTCDate();
-    sampleInput.ageThreshold = 18;
-
-    // advance time a bit to set it later in the test
-    sampleInput.currentTime += 100;
+    circuit = await hre.circuitTest.setup('exclusion3');
   });
 
   it('produces a witness with valid constraints', async () => {
@@ -37,18 +19,23 @@ describe('Age Proof combined with zkKYC Circuit Component', () => {
     await circuit.checkConstraints(witness);
   });
 
-  it('has expected witness values', async () => {
+  it('has expected witness values on success', async () => {
     const witness = await circuit.calculateLabeledWitness(
       sampleInput,
       sanityCheck,
     );
 
-    assert.propertyVal(
-      witness,
-      'main.ageThreshold',
-      sampleInput.ageThreshold.toString(),
-    );
+    assert.propertyVal(witness, 'main.value', sampleInput.value.toString());
     // check resulting root as output
     assert.propertyVal(witness, 'main.valid', '1');
+  });
+
+  it('should be invalid if a match is in the list', async () => {
+    const input = { ...sampleInput };
+    for (const value of input.list) {
+      input.value = value;
+      const witness = await circuit.calculateLabeledWitness(input, sanityCheck);
+      assert.propertyVal(witness, 'main.valid', '0');
+    }
   });
 });

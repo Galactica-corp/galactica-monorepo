@@ -22,16 +22,17 @@ template CalculateZkCertHash(){
     signal output zkCertHash;
 
     // calculation using a Poseidon component
+    // in alphabetical order of the inputs
     component _zkCertHash = Poseidon(9);
     _zkCertHash.inputs[0] <== contentHash;
-    _zkCertHash.inputs[1] <== providerAx;
-    _zkCertHash.inputs[2] <== providerAy;
-    _zkCertHash.inputs[3] <== providerS;
-    _zkCertHash.inputs[4] <== providerR8x;
-    _zkCertHash.inputs[5] <== providerR8y;
-    _zkCertHash.inputs[6] <== holderCommitment;
-    _zkCertHash.inputs[7] <== randomSalt;
-    _zkCertHash.inputs[8] <== expirationDate;
+    _zkCertHash.inputs[1] <== expirationDate;
+    _zkCertHash.inputs[2] <== holderCommitment;
+    _zkCertHash.inputs[3] <== providerAx;
+    _zkCertHash.inputs[4] <== providerAy;
+    _zkCertHash.inputs[5] <== providerR8x;
+    _zkCertHash.inputs[6] <== providerR8y;
+    _zkCertHash.inputs[7] <== providerS;
+    _zkCertHash.inputs[8] <== randomSalt;
 
     zkCertHash <== _zkCertHash.out;
 }

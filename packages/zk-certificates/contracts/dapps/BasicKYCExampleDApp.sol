@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "./VerificationSBT.sol";
-import "./interfaces/IZkKYCVerifier.sol";
+import '../VerificationSBT.sol';
+import '../interfaces/IZkKYCVerifier.sol';
 
 /**
  * @title BasicKYCExampleDApp
  * @author Galactica dev team
  * @notice A simple DApp that requires a zkKYC proof to issue a Verification SBT.
  *  Registration can be repeated when the previous Verification SBT expired.
- *  The ZKP only check that the user has a valid zkKYC. It does not have other disclosures and does not include fraud investigation.
+ *  The requirements of the ZKP (i.e. age, citizenship, etc.) are defined in the verifierWrapper.
  */
 contract BasicKYCExampleDApp {
     VerificationSBT public SBT;
@@ -35,7 +35,7 @@ contract BasicKYCExampleDApp {
     ) public {
         require(
             !SBT.isVerificationSBTValid(msg.sender, address(this)),
-            "The user already has a verification SBT. Please wait until it expires."
+            'The user already has a verification SBT. Please wait until it expires.'
         );
 
         bytes32 humanID = bytes32(input[verifierWrapper.INDEX_HUMAN_ID()]);
@@ -44,11 +44,11 @@ contract BasicKYCExampleDApp {
         // check that the public dAppAddress is correct
         require(
             dAppAddress == uint(uint160(address(this))),
-            "incorrect dAppAddress"
+            'incorrect dAppAddress'
         );
 
         // check the zk proof
-        require(verifierWrapper.verifyProof(a, b, c, input), "invalid proof");
+        require(verifierWrapper.verifyProof(a, b, c, input), 'invalid proof');
 
         //afterwards we mint the verification SBT
         uint256[2] memory userPubKey = [

@@ -20,14 +20,14 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     signal input randomSalt;
 
     // twitter zkCertificate data fields
-    signal input accountId;
-    signal input creationTime;
-    signal input location;
-    signal input verified;
+    signal input id;
+    signal input createdAt;
     signal input followersCount;
-    signal input friendsCount;
-    signal input likesCount;
-    signal input postsCount;
+    signal input followingCount;
+    signal input listedCount;
+    signal input tweetCount;
+    signal input username;
+    signal input verified;
 
     signal input expirationDate;
 
@@ -88,14 +88,14 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
 
     // content hash for twitter ZkCertificate data
     component contentHash = Poseidon(8);
-    contentHash.inputs[0] <== accountId;
-    contentHash.inputs[1] <== creationTime;
-    contentHash.inputs[2] <== location;
-    contentHash.inputs[3] <== verified;
-    contentHash.inputs[4] <== followersCount;
-    contentHash.inputs[5] <== friendsCount;
-    contentHash.inputs[6] <== likesCount;
-    contentHash.inputs[7] <== postsCount;
+    contentHash.inputs[0] <== createdAt;
+    contentHash.inputs[1] <== followersCount;
+    contentHash.inputs[2] <== followingCount;
+    contentHash.inputs[3] <== id;
+    contentHash.inputs[4] <== listedCount;
+    contentHash.inputs[5] <== tweetCount;
+    contentHash.inputs[6] <== username;
+    contentHash.inputs[7] <== verified;
 
     // provider signature verification
     component providerSignatureCheck = ProviderSignatureCheck();

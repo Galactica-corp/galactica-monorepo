@@ -11,6 +11,7 @@ import './tasks/smartCircuitBuild';
 import './tasks/revokeZkCertificate';
 import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
+import './tasks/hashStringToField';
 
 const config: HardhatUserConfig = {
   mocha: {
@@ -105,11 +106,11 @@ const config: HardhatUserConfig = {
         circuit: 'test/test_ageProof.circom',
         input: 'input/ageProof.json',
       },
-      {
-        name: 'ageProofZkKYC',
-        circuit: 'test/test_ageProofZkKYC.circom',
-        input: 'input/ageProofZkKYC.json',
-      },
+      // {
+      //   name: 'ageProofZkKYC',
+      //   circuit: 'test/test_ageProofZkKYC.circom',
+      //   input: 'input/ageProofZkKYC.json',
+      // },
       {
         name: 'authorization',
         circuit: 'test/test_authorization.circom',
@@ -186,6 +187,16 @@ const config: HardhatUserConfig = {
       //   circuit: 'experiments/crossAccountReputation.circom',
       //   input: 'input/experiments/crossAccountReputation.json',
       // },
+      {
+        name: 'exclusion3',
+        circuit: 'test/test_exclusion3.circom',
+        input: 'input/exclusion3.json',
+      },
+      {
+        name: 'ageCitizenshipKYC',
+        circuit: 'test/test_ageCitizenshipKYC.circom',
+        input: 'input/ageCitizenshipKYC.json',
+      },
     ],
   },
 };

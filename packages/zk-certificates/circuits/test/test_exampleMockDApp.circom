@@ -1,6 +1,6 @@
 pragma circom 2.1.4;
 
-include "../ageProofZkKYC.circom";
+include "../ageCitizenshipKYC.circom";
 
 // for the example mock DApp, we use a zkKYC proof
 // together with age >= 18 and investigation instituttions
@@ -16,4 +16,4 @@ component main {public [
   dAppAddress,
   providerAx,
   providerAy
-]} = AgeProofZkKYC(32, 60, 2, 3);
+]} = AgeCitizenshipKYC(32, 60, 2, 3, 0);

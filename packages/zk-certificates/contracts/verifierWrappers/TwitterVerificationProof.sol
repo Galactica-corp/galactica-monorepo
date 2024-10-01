@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
 
-import "./Ownable.sol";
-import "./interfaces/ITwitterZkCertificateVerifier.sol";
-import "./interfaces/IZkCertificateRegistry.sol";
+import '../Ownable.sol';
+import '../interfaces/ITwitterZkCertificateVerifier.sol';
+import '../interfaces/IZkCertificateRegistry.sol';
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of twitter being verified
 contract TwitterVerificationProof is Ownable {
     ITwitterZkCertificateVerifier public verifier;
     IZkCertificateRegistry public registry;
-    uint256 public constant timeDifferenceTolerance = 30*60; // the maximal difference between the onchain time and public input current time
+    uint256 public constant timeDifferenceTolerance = 30 * 60; // the maximal difference between the onchain time and public input current time
 
     // indices of the ZKP public input array
     uint8 public immutable INDEX_IS_VALID;
@@ -41,14 +41,15 @@ contract TwitterVerificationProof is Ownable {
         INDEX_PROVIDER_PUBKEY_AY = 6;
     }
 
-    function setVerifier(ITwitterZkCertificateVerifier newVerifier) public onlyOwner {
+    function setVerifier(
+        ITwitterZkCertificateVerifier newVerifier
+    ) public onlyOwner {
         verifier = newVerifier;
     }
 
     function setRegistry(IZkCertificateRegistry newRegistry) public onlyOwner {
         registry = newRegistry;
     }
-
 
     //a, b, c are the proof
     // input array contains the public parameters: isValid, verificationExpirationTime, merkleRoot, currentTime, userAddress, providerPubKeyA, providerPubKeyB
@@ -60,15 +61,12 @@ contract TwitterVerificationProof is Ownable {
     ) public view returns (bool) {
         require(
             input.length == 7,
-            "the public proof input has an incorrect length"
+            'the public proof input has an incorrect length'
         );
-        require(input[INDEX_IS_VALID] == 1, "the proof output is not valid");
+        require(input[INDEX_IS_VALID] == 1, 'the proof output is not valid');
 
         bytes32 proofRoot = bytes32(input[INDEX_ROOT]);
-        require(
-          registry.verifyMerkleRoot(proofRoot),
-          "invalid merkle root"
-        );
+        require(registry.verifyMerkleRoot(proofRoot), 'invalid merkle root');
 
         uint proofCurrentTime = input[INDEX_CURRENT_TIME];
         uint timeDiff;
@@ -79,18 +77,16 @@ contract TwitterVerificationProof is Ownable {
         }
         require(
             timeDiff <= timeDifferenceTolerance,
-            "the current time is incorrect"
+            'the current time is incorrect'
         );
 
         // dev note: if we ever use proof hash, make sure to pay attention to this truncation to uint160 as it can violate uniqueness
         require(
             tx.origin == address(uint160(input[INDEX_USER_ADDRESS])),
-            "transaction submitter is not authorized to use this proof"
+            'transaction submitter is not authorized to use this proof'
         );
 
-        require(verifier.verifyProof(a, b, c, input), "the proof is incorrect");
+        require(verifier.verifyProof(a, b, c, input), 'the proof is incorrect');
         return true;
     }
 }
-
-
