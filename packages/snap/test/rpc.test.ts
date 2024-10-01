@@ -43,6 +43,7 @@ import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
+import exclusion3VKey from '../../galactica-dapp/public/provers/exclusion3.vkey.json';
 import { processRpcRequest } from '../src';
 import { encryptZkCert } from '../src/encryption';
 import {
@@ -75,15 +76,21 @@ function buildRPCRequest(method: RpcMethods, params: any = undefined): RpcArgs {
 /**
  * Verifies a proof and expects it to be valid.
  * @param result - The proof to be verified.
+ * @param minPublicSignalsLength - The minimum length of the public signals.
+ * @param vkey - The verification key to be used.
  */
-async function verifyProof(result: ZkCertProof) {
+async function verifyProof(
+  result: ZkCertProof,
+  minPublicSignalsLength = 5,
+  vkey: any = exampleMockDAppVKey,
+) {
   expect(result.proof.pi_a.length).to.be.eq(3);
   expect(result.proof.pi_b.length).to.be.eq(3);
   expect(result.proof.pi_c.length).to.be.eq(3);
-  expect(result.publicSignals.length).to.be.gt(5);
+  expect(result.publicSignals.length).to.be.gt(minPublicSignalsLength);
 
   const verification = await groth16.verify(
-    exampleMockDAppVKey,
+    vkey,
     result.publicSignals,
     result.proof,
   );
@@ -1390,7 +1397,7 @@ describe('Test rpc handler function', function () {
       // Merkle proof should be up to date and therefore not be fetched
       expect(fetchMock.calls()).to.be.empty;
 
-      await verifyProof(result);
+      await verifyProof(result, 3, exclusion3VKey);
     });
   });
 
