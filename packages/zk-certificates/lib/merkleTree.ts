@@ -3,6 +3,7 @@ import type { MerkleProof } from '@galactica-net/galactica-types';
 import keccak256 from 'keccak256';
 
 import { arrayToBigInt, SNARK_SCALAR_FIELD } from './helpers';
+import { Poseidon } from './poseidon';
 
 /**
  * Class for managing and constructing merkle trees.
@@ -156,7 +157,25 @@ export class MerkleTree {
       leaf,
       pathElements: path,
       leafIndex,
-      root: this.root,
     };
   }
+}
+
+/**
+ * Calculates the root hash of a merkle tree from a proof.
+ * @param proof - Merkle proof to calculate the root hash from.
+ * @returns Root hash of the merkle tree.
+ */
+export function getMerkleRootFromProof(proof: MerkleProof, poseidon: Poseidon): string {
+  let currentNode = proof.leaf;
+  const dummyTree = new MerkleTree(0, poseidon);
+
+  // hash up the tree to the root
+  for (let i = 0; i < proof.pathElements.length; i++) {
+    const isNodeOnRight = (proof.leafIndex >> i) % 2 === 1;
+    const left = isNodeOnRight ? proof.pathElements[i] : currentNode;
+    const right = isNodeOnRight ? currentNode : proof.pathElements[i];
+    currentNode = dummyTree.calculateNodeHash(left, right);
+  }
+  return currentNode;
 }
