@@ -21,6 +21,51 @@ import type { HolderData, PanelContent } from './types';
 import { stripURLProtocol } from './utils';
 
 /**
+ * GenerateProof runs the low level groth16 proof generation.
+ * @param inputs - Input data containing signals for the proof generation.
+ * @param proverOrLink - Prover data containing the wasm and zkey header and sections, or link to it.
+ * @returns Generated ZkCert proof.
+ */
+export const generateProof = async (
+  inputs: Record<string, any>,
+  proverOrLink: ProverData | ProverLink,
+): Promise<ZkCertProof> => {
+  // get prover data from params or fetch it from a URL
+  let prover: ProverData;
+  if ('wasm' in proverOrLink) {
+    prover = proverOrLink;
+  } else {
+    if (!('url' in proverOrLink)) {
+      throw new GenZKPError({
+        name: 'MissingInputParams',
+        message: `ProverLink does not contain a URL.`,
+      });
+    }
+    prover = await fetchProverData(proverOrLink);
+  }
+
+  const processedProver = await preprocessProver(prover);
+
+  try {
+    const { proof, publicSignals } = await groth16.fullProveMemory(
+      inputs,
+      processedProver.wasm,
+      processedProver.zkeyHeader,
+      processedProver.zkeySections,
+    );
+
+    // console.log('Calculated proof: ');
+    // console.log(JSON.stringify(proof, null, 1));
+
+    return { proof, publicSignals };
+  } catch (error) {
+    console.log('proof generation failed');
+    console.log(error.stack);
+    throw error;
+  }
+};
+
+/**
  * GenerateZkCertProof constructs and checks the zkCert proof.
  * @param params - Parameters defining the proof to be generated.
  * @param zkCert - ZkCert to be used for the proof.
@@ -34,21 +79,6 @@ export const generateZkCertProof = async (
   holder: HolderData,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> => {
-  // get prover data from params or fetch it from a URL
-  let rawProver: ProverData;
-  if ('wasm' in params.prover) {
-    rawProver = params.prover;
-  } else {
-    if (!('url' in params.prover)) {
-      throw new GenZKPError({
-        name: 'MissingInputParams',
-        message: `ProverLink does not contain a URL.`,
-      });
-    }
-    rawProver = await fetchProverData(params.prover);
-  }
-  const processedProver = await preprocessProver(rawProver);
-
   const authorizationProof = zkCert.getAuthorizationProofInput(
     holder.eddsaKey,
     params.userAddress,
@@ -95,23 +125,7 @@ export const generateZkCertProof = async (
     inputs.userPrivKey = encryptionPrivKey;
   }
 
-  try {
-    const { proof, publicSignals } = await groth16.fullProveMemory(
-      inputs,
-      processedProver.wasm,
-      processedProver.zkeyHeader,
-      processedProver.zkeySections,
-    );
-
-    // console.log('Calculated proof: ');
-    // console.log(JSON.stringify(proof, null, 1));
-
-    return { proof, publicSignals };
-  } catch (error) {
-    console.log('proof generation failed');
-    console.log(error.stack);
-    throw error;
-  }
+  return generateProof(inputs, params.prover);
 };
 
 /**

@@ -7,6 +7,7 @@ import type {
   MerkleProofUpdateRequestParams,
   ZkCertSelectionParams,
   MerkleProofURLUpdateParams,
+  BenchmarkZKPGenParams,
 } from '@galactica-net/snap-api';
 import {
   RpcResponseErr,
@@ -28,6 +29,7 @@ import { getMerkleProof } from './merkleProofSelection';
 import {
   checkZkCertProofRequest,
   createProofConfirmationPrompt,
+  generateProof,
   generateZkCertProof,
 } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
@@ -529,6 +531,43 @@ export const processRpcRequest: SnapRpcProcessor = async (
       await saveState(snap, state);
       response = { message: RpcResponseMsg.MerkleProofsUpdated };
       return response;
+    }
+
+    case RpcMethods.BenchmarkZKPGen: {
+      // parse ZKP inputs
+      const genParams = request.params as unknown as BenchmarkZKPGenParams;
+
+      confirm = await snap.request({
+        method: 'snap_dialog',
+        params: {
+          type: 'confirmation',
+          content: panel([
+            heading('Allow Benchmark?'),
+            text(
+              'Do you allow the snap to run a benchmark of ZK proof generation?',
+            ),
+          ]),
+        },
+      });
+
+      if (!confirm) {
+        throw new Error(RpcResponseErr.RejectedConfirm);
+      }
+
+      const startTime = Date.now();
+      const proof = await generateProof(genParams.input, genParams.prover);
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      await snap.request({
+        method: 'snap_notify',
+        params: {
+          type: 'native',
+          message: `ZKP generation benchmark took ${duration}ms`,
+        },
+      });
+
+      return proof;
     }
 
     default: {
