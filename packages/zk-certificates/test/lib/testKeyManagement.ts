@@ -8,6 +8,7 @@ import { hashStringToFieldNumber } from '../../lib';
 import {
   getEddsaKeyFromEthSigner,
   generateEcdhSharedKey,
+  decompressEddsaPubKey,
 } from '../../lib/keyManagement';
 
 describe('Key Management', () => {
@@ -55,5 +56,16 @@ describe('Key Management', () => {
     for (const i of [0, 1]) {
       expect(sharedKeyAB[i]).to.not.equal(sharedKeyAC[i]);
     }
+  });
+
+  it('decompresses EdDSA PubKey correctly', async () => {
+    const compressedPubKey =
+      '33b8868a1a3d5f9b7d9b007bb715d7d61ecbff4dcec8bc157c41d4f2f539dca4';
+    const pubKey = await decompressEddsaPubKey(compressedPubKey);
+
+    expect(pubKey).to.deep.equal([
+      '12906622653274048346288002798184777304757770978097177804115561897972426330196',
+      '16672368933550426603185984269694304391462793696415912630187516416885071984691',
+    ]);
   });
 });
