@@ -2,29 +2,8 @@ import { Buffer } from 'buffer';
 import { expect } from 'chai';
 import { buildPoseidon } from 'circomlibjs';
 
+import { bigIntToArray } from '../../lib/helpers';
 import { hashMessage, type Poseidon } from '../../lib/poseidon';
-
-/**
- * Convert bigint to byte array.
- * @param bn - Bigint.
- * @returns Byte array.
- * @author Frederik Zwilling
- */
-function bigIntToArray(bn: bigint): Uint8Array {
-  // Convert bigint to hex string
-  let hexValue = BigInt(bn).toString(16);
-
-  // If hex is odd length then add leading zero
-  if (hexValue.length % 2) {
-    hexValue = `0${hexValue}`;
-  }
-
-  // Split into groups of 2 to create hex array
-  const hexArray = hexValue.match(/.{2}/gu) ?? [];
-
-  // Convert hex array to uint8 byte array
-  return new Uint8Array(hexArray.map((byte) => parseInt(byte, 16)));
-}
 
 describe('sponge variation of Poseidon hash', () => {
   let poseidon: Poseidon;

@@ -6,7 +6,7 @@ import {IGalacticaInstitution} from './IGalacticaInstitution.sol';
 import {ICircomVerifier} from './ICircomVerifier.sol';
 
 /// @author Galactica dev team
-interface IAgeCitizenshipKYCVerifier is IVerifierWrapper, ICircomVerifier {
+interface IAgeCitizenshipKYCVerifier is IVerifierWrapper {
     function fraudInvestigationInstitutions(
         uint index
     ) external view returns (IGalacticaInstitution);

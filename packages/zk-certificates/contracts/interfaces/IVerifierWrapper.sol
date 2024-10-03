@@ -6,4 +6,11 @@ import {ICircomVerifier} from './ICircomVerifier.sol';
 /// @author Galactica dev team
 interface IVerifierWrapper {
     function verifier() external view returns (ICircomVerifier);
+
+    function verifyProof(
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
+    ) external view returns (bool);
 }
