@@ -184,7 +184,6 @@ export class SparseMerkleTree {
       leaf,
       pathElements,
       leafIndex,
-      root: this.root,
     };
   }
 

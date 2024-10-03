@@ -15,11 +15,16 @@ import {
   RpcResponseMsg,
   ZkCertStandard,
 } from '@galactica-net/snap-api';
-import { fromDecToHex } from '@galactica-net/zk-certificates';
+import type { Poseidon } from '@galactica-net/zk-certificates';
+import {
+  fromDecToHex,
+  getMerkleRootFromProof,
+} from '@galactica-net/zk-certificates';
 import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiFetchMock from 'chai-fetch-mock';
+import { buildPoseidon } from 'circomlibjs';
 import fetchMock from 'fetch-mock';
 import { match } from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -105,7 +110,6 @@ async function verifyProof(
 function merkleProofToServiceResponse(merkleProof: MerkleProof): any {
   return {
     proof: {
-      root: merkleProof.root,
       index: merkleProof.leafIndex,
       path: merkleProof.pathElements,
     },
@@ -115,8 +119,9 @@ function merkleProofToServiceResponse(merkleProof: MerkleProof): any {
 describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
   const ethereumProvider = mockEthereumProvider();
+  let poseidon: Poseidon;
 
-  before(function () {
+  before(async function () {
     // prepare URL to fetch provers from
     const prover = testZkpParams.prover as ProverData; // we know it is a prover
     fetchMock.get(testProverURL + subPathWasm, JSON.stringify(prover.wasm));
@@ -133,6 +138,7 @@ describe('Test rpc handler function', function () {
         JSON.stringify(prover.zkeySections[i]),
       );
     }
+    poseidon = await buildPoseidon();
   });
 
   beforeEach(function () {
@@ -143,7 +149,7 @@ describe('Test rpc handler function', function () {
       .resolves(testEntropyEncrypt);
     ethereumProvider.rpcStubs.eth_chainId.resolves('41233');
     ethereumProvider.rpcStubs.eth_call.resolves(
-      fromDecToHex(zkCert.merkleProof.root, true),
+      fromDecToHex(getMerkleRootFromProof(zkCert.merkleProof, poseidon), true),
     );
 
     // setting up merkle proof service for testing
@@ -634,7 +640,7 @@ describe('Test rpc handler function', function () {
       );
 
       const outdatedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
-      outdatedZkCert.merkleProof.root = '01234';
+      outdatedZkCert.merkleProof.pathElements[0] = '01234';
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -660,7 +666,7 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const outdatedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
-      outdatedZkCert.merkleProof.root = '01234';
+      outdatedZkCert.merkleProof.pathElements[0] = '01234';
 
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
