@@ -38,14 +38,15 @@ export async function deployKYCRequirementsDemoDApp(
     deployer.address,
     zkpVerifier.address,
     recordRegistryAddr,
-    // sanctioned countries: undefined ("1") + hash of Iran + hash of USA
+    // sanctioned countries: undefined ("1") + hash of Iran + hash of USA + placeholders
     [
       '1',
       hashStringToFieldNumber('IRN', poseidon),
       hashStringToFieldNumber('USA', poseidon),
-    ],
+    ].concat(Array(17).fill('0')),
     // no investigation institutions
     [],
+    18,
   ]);
 
   const kycRequirementsDemoDApp = await deploySC(
