@@ -142,7 +142,8 @@ export function createHolderCommitment(
 export async function decompressEddsaPubKey(
   pubKeyHex: string,
 ): Promise<[string, string]> {
-  if (!pubKeyHex.match(/^[0-9A-Fa-f]{64}$/u)) {
+  /* eslint-disable-next-line require-unicode-regexp */
+  if (!pubKeyHex.match(/^[0-9A-Fa-f]{64}$/)) {
     throw new Error('Invalid public key length or symbols');
   }
   const babyjub = await buildBabyjub();
