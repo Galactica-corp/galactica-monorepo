@@ -9,10 +9,13 @@ import type {
 } from '@galactica-net/snap-api';
 import { GenZKPError } from '@galactica-net/snap-api';
 import type { ZkCertificate } from '@galactica-net/zk-certificates';
-import { formatPrivKeyForBabyJub } from '@galactica-net/zk-certificates';
+import {
+  formatPrivKeyForBabyJub,
+  getMerkleRootFromProof,
+} from '@galactica-net/zk-certificates';
 import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
-import { buildEddsa } from 'circomlibjs';
+import { buildEddsa, buildPoseidon } from 'circomlibjs';
 import { buildBls12381, buildBn128 } from 'ffjavascript';
 import hash from 'object-hash';
 import { groth16 } from 'snarkjs';
@@ -83,6 +86,8 @@ export const generateZkCertProof = async (
     holder.eddsaKey,
     params.userAddress,
   );
+  const poseidon = await buildPoseidon();
+  const merkleRoot = getMerkleRootFromProof(merkleProof, poseidon);
 
   const inputs: any = {
     ...params.input,
@@ -104,7 +109,7 @@ export const generateZkCertProof = async (
     providerR8x: zkCert.providerData.r8x,
     providerR8y: zkCert.providerData.r8y,
 
-    root: merkleProof.root,
+    root: merkleRoot,
     pathElements: merkleProof.pathElements,
     leafIndex: merkleProof.leafIndex,
   };

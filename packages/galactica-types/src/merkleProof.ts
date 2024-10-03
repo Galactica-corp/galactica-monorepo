@@ -8,5 +8,4 @@ export type MerkleProof = {
   // The leafIndex can also be interpreted as binary number. If a bit is set, it means that the path is the right part of the parent node.
   // The rightmost bit is for the leaf.
   leafIndex: number;
-  root: string;
 };
