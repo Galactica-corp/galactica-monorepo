@@ -82,19 +82,29 @@ contract claimrSignedSBT is Ownable, ERC721 {
     /**
      * @dev Transfers are rejected because the ClaimrSBT is soulbound.
      */
-    function _transfer(address, address, uint256) internal pure override {
+    function transfer(address, uint256) public pure {
+        revert("ClaimrSBT: transfer is not allowed");
+    }
+
+    /**
+     * @dev Transfers are rejected because the ClaimrSBT is soulbound.
+     */
+    function transferFrom(address, address, uint256) public pure override {
+        revert("ClaimrSBT: transfer is not allowed");
+    }
+
+    function safeTransferFrom(address, address, uint256) public pure override {
+        revert("ClaimrSBT: transfer is not allowed");
+    }
+
+    function safeTransferFrom(address, address, uint256, bytes memory) public pure override {
         revert("ClaimrSBT: transfer is not allowed");
     }
 
     /**
      * @dev Approve are rejected because the ClaimrSBT is soulbound.
      */
-    function _approve(address to, uint256 id) internal override {
-        if (to == address(0)) {
-            // ok to approve zero address as done by the ERC721 implementation on burning
-            super._approve(to, id);
-        } else {
-            revert("ClaimrSBT: transfer approval is not allowed");
-        }
+    function approve(address to, uint256 id) public pure override {
+        revert("ClaimrSBT: transfer approval is not allowed");
     }
 }

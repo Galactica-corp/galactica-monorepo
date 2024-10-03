@@ -15,15 +15,18 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  /* const issuer = '0xD8fd391410FDEA9da4e899770860EaE2db09Deab'; */
-  const uri =
-    'https://quicknode.quicknode-ipfs.com/ipfs/QmeJS1PdjBtbE77xgez7uBuPWg8ByJm3eFQsEpE8ffSE5g';
-  const signee = deployer.address;
-  const nftName = 'Guilding Galactica - Top 10 (TEST)';
-  const nftSymbol = 'GG10TEST';
+  const ClaimrSBTAddress = '0x5ed81A1E6c46Fd67a275FF6F2676EC7A788b7877';
+  const ClaimrSBT = await ethers.getContractAt('claimrSignedSBT', ClaimrSBTAddress);
+  const signee = '0x333e271244f12351b6056130AEC894EB8AAf05C2';
 
-  await deploySC('claimrSignedSBT', true, {}, [nftName, nftSymbol, uri, signee]);
-}
+  console.log('Setting signee to', signee);
+  const tx = await ClaimrSBT.setSignee(signee);
+  await tx.wait();
+
+  const newSignee = await ClaimrSBT.signee();
+  console.log('New signee is', newSignee);
+
+  }
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
