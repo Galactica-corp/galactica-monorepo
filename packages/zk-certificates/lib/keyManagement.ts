@@ -9,7 +9,7 @@ import {
 } from '@galactica-net/galactica-types';
 import createBlakeHash from 'blake-hash';
 import { Buffer } from 'buffer';
-import type { Eddsa } from 'circomlibjs';
+import { buildBabyjub, type Eddsa } from 'circomlibjs';
 import type { Signer } from 'ethers';
 import { Scalar, utils } from 'ffjavascript';
 
@@ -132,6 +132,31 @@ export function createHolderCommitment(
       poseidon.F.toObject(signature.R8[1]).toString(),
     ]),
   ).toString();
+}
+
+/**
+ * Decompress an EdDSA public key.
+ * @param pubKeyHex - Compressed public key as hex string.
+ * @returns The decompressed public key as [Ax, Ay] strings in decimal format.
+ */
+export async function decompressEddsaPubKey(
+  pubKeyHex: string,
+): Promise<[string, string]> {
+  const babyjub = await buildBabyjub();
+  if (pubKeyHex.length !== 64) {
+    throw new Error('Invalid public key length');
+  }
+  const hexArray = pubKeyHex.match(/.{2}/gu) ?? [];
+  // Convert hex array to uint8 byte array
+  const pubKeyArray = new Uint8Array(
+    hexArray.map((byte) => parseInt(byte, 16)),
+  );
+  const point = babyjub.unpackPoint(pubKeyArray);
+
+  return [
+    babyjub.F.toObject(point[0]).toString(),
+    babyjub.F.toObject(point[1]).toString(),
+  ];
 }
 
 /**

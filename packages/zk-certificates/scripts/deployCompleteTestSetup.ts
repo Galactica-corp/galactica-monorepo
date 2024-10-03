@@ -10,7 +10,7 @@ import { deployInfrastructure } from './deploymentSteps/infrastructure';
 import { deployKYCComplianceProofsDApps } from './deploymentSteps/kycComplianceProofs';
 import { deployKYCRequirementsDemoDApp } from './deploymentSteps/kycRequirementDemo';
 import { deployRepeatableZKPTest } from './deploymentSteps/repeatableZKPTest';
-import { whitelistGuardian } from './deploymentSteps/whitelistGuardian';
+import { whitelistSignerGuardian } from './deploymentSteps/whitelistGuardian';
 
 /**
  * Script to deploy the whole infrastructure and test contracts.
@@ -48,7 +48,7 @@ async function main() {
     infrastructure.recordRegistry.address,
   );
 
-  await whitelistGuardian(
+  await whitelistSignerGuardian(
     deployer,
     infrastructure.guardianRegistry.address,
     deployer,
