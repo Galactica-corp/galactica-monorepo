@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
   "proposedName": "Galactica ZK Vault",
   "repository": {
@@ -7,7 +7,7 @@
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
   "source": {
-    "shasum": "alxy1D9sVM2c35F+dGF1p56ELqtt7cV24nogOgnRKD0=",
+    "shasum": "RiE6girG68cmdvJwk8t4tc6A6L21XUKl+xkYQvovmxs=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
