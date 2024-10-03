@@ -142,16 +142,12 @@ export function createHolderCommitment(
 export async function decompressEddsaPubKey(
   pubKeyHex: string,
 ): Promise<[string, string]> {
-  const babyjub = await buildBabyjub();
-  if (pubKeyHex.length !== 64) {
-    throw new Error('Invalid public key length');
+  if (!pubKeyHex.match(/^[0-9A-Fa-f]{64}$/u)) {
+    throw new Error('Invalid public key length or symbols');
   }
-  const hexArray = pubKeyHex.match(/.{2}/gu) ?? [];
+  const babyjub = await buildBabyjub();
   // Convert hex array to uint8 byte array
-  const pubKeyArray = new Uint8Array(
-    hexArray.map((byte) => parseInt(byte, 16)),
-  );
-  const point = babyjub.unpackPoint(pubKeyArray);
+  const point = babyjub.unpackPoint(Buffer.from(pubKeyHex, 'hex'));
 
   return [
     babyjub.F.toObject(point[0]).toString(),
