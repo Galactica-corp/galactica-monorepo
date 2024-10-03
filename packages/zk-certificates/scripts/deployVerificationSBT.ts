@@ -13,13 +13,20 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const SBTAddress = '0x897717462BC1cb41Ab42A21fF135bEfb193fc26E';
-  const SBT = await ethers.getContractAt('GalacticaOfficialSBT', SBTAddress);
-  const receiverAddress = '0x19db2f832Fa74dC80Dc936A47083073072Aa5818';
+  const VerificationSBTFactory =
+    await ethers.getContractFactory('VerificationSBT');
+  const uri = 'https://galactica.network/';
+  const name = 'Galactica Twitter Creation Time In 2020 Verification SBT';
+  const symbol = 'GTCI2024V';
+  const VerificationSBTInstance = await VerificationSBTFactory.deploy(
+    uri,
+    name,
+    symbol,
+  );
 
-  console.log(`going to mint SBT ${SBTAddress} to ${receiverAddress}`);
-  const tx = await SBT.mint(receiverAddress);
-  await tx.wait();
+  console.log(
+    `The address of the contract is ${VerificationSBTInstance.address}`,
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

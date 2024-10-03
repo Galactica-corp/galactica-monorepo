@@ -8,12 +8,19 @@ import { whitelistGuardian } from './deploymentSteps/whitelistGuardian';
  */
 async function main() {
   // parameters
-  const [deployer] = await ethers.getSigners();
+  const [deployer, guardian] = await ethers.getSigners();
   const centerRegistryAddr = '0x20682CE367cE2cA50bD255b03fEc2bd08Cc1c8Bd';
   const metadataURL = 'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx';
-  console.log(`guardian address is ${deployer.address}`);
 
-  await whitelistGuardian(deployer, centerRegistryAddr, deployer, metadataURL);
+  console.log(`guardian address is ${guardian.address}`);
+  // whitelist through private key
+  await whitelistGuardian(deployer, centerRegistryAddr, guardian, metadataURL);
+
+  // whitelist through public key
+  /* const guardianAddress = "0x3D16Ea1a1a4129464466D5c75347a88Bf73a2288";
+  const guardianPublicKey = ["2c8756904b7c7c986c86641daf427b2416174b09ed4aab1507f67384a87a0325",""];
+  const centerRegistryInstance = await ethers.getContractAt('GuardianRegistry', centerRegistryAddr);
+  await centerRegistryInstance.grantGuardianRole(); */
 }
 
 // We recommend this pattern to be able to use async/await everywhere

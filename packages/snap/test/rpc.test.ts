@@ -4,10 +4,10 @@ import type {
   EncryptedZkCert,
   MerkleProof,
   MerkleProofUpdateRequestParams,
-  ProverData,
   ZkCertProof,
   ZkCertRegistered,
   ZkCertSelectionParams,
+  ProverData,
 } from '@galactica-net/snap-api';
 import {
   RpcMethods,

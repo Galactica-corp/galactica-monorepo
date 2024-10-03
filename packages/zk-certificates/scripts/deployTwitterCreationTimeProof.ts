@@ -21,8 +21,8 @@ async function main() {
   const deployGuardianRegistryFlag = false;
   const setGuardianFlag = false;
   const deployTwitterZkCertificateRegistryFlag = false;
-  const deployTwitterFollowersCountProofVerifierFlag = true;
-  const deployTwitterFollowersCountProofFlag = true;
+  const deployTwitterCreationTimeProofVerifierFlag = true;
+  const deployTwitterCreationTimeProofFlag = true;
 
   // Deploy the guardian registry if necessary
   let guardianRegistry;
@@ -95,54 +95,54 @@ async function main() {
   }
 
   // deploy the twitterFollowersCountProofVerifier if necessary
-  let twitterFollowersCountProofVerifier;
-  if (deployTwitterFollowersCountProofVerifierFlag) {
-    twitterFollowersCountProofVerifier = await deploySC(
-      'TwitterFollowersCountProofVerifier',
+  let twitterCreationTimeProofVerifier;
+  if (deployTwitterCreationTimeProofVerifierFlag) {
+    twitterCreationTimeProofVerifier = await deploySC(
+      'TwitterCreationTimeProofVerifier',
       true,
       {},
       [],
     );
     console.log(
-      `deployed a new twitterFollowersCountProofVerifier at ${twitterFollowersCountProofVerifier.address}`,
+      `deployed a new twitterFollowersCountProofVerifier at ${twitterCreationTimeProofVerifier.address}`,
     );
   } else {
-    const twitterFollowersCountProofVerifierAddress =
+    const twitterCreationTimeProofVerifierAddress =
       '0xBD05E41c748b6065C76F5A5B8E5C061C74Fe1F01';
-    twitterFollowersCountProofVerifier = await ethers.getContractAt(
+    twitterCreationTimeProofVerifier = await ethers.getContractAt(
       'TwitterFollowersCountProofVerifier',
-      twitterFollowersCountProofVerifierAddress,
+      twitterCreationTimeProofVerifierAddress,
     );
     console.log(
-      `use an existing twitterFollowersCountProofVerifier at ${twitterFollowersCountProofVerifierAddress}`,
+      `use an existing twitterFollowersCountProofVerifier at ${twitterCreationTimeProofVerifierAddress}`,
     );
   }
 
   // deploy the twitterFollowersCountProof if necessary
-  let twitterFollowersCountProof;
-  if (deployTwitterFollowersCountProofFlag) {
-    twitterFollowersCountProof = await deploySC(
-      'TwitterFollowersCountProof',
+  let twitterCreationTimeProof;
+  if (deployTwitterCreationTimeProofFlag) {
+    twitterCreationTimeProof = await deploySC(
+      'TwitterCreationTimeProof',
       true,
       {},
       [
         deployer.address,
-        twitterFollowersCountProofVerifier.address,
+        twitterCreationTimeProofVerifier.address,
         twitterZkCertificateRegistry.address,
       ],
     );
     console.log(
-      `deployed a new twitterFollowersCountProof at ${twitterFollowersCountProof.address}`,
+      `deployed a new twitterFollowersCountProof at ${twitterCreationTimeProof.address}`,
     );
   } else {
-    const twitterFollowersCountProofAddress =
+    const twitterCreationTimeProofAddress =
       '0x172cb6C095A3708c4F5f424f3f5d170cf8556A1D';
-    twitterFollowersCountProof = await ethers.getContractAt(
+    twitterCreationTimeProof = await ethers.getContractAt(
       'TwitterFollowersCountProof',
-      twitterFollowersCountProofAddress,
+      twitterCreationTimeProofAddress,
     );
     console.log(
-      `use an existing twitterFollowersCountProof at ${twitterFollowersCountProofAddress}`,
+      `use an existing twitterCreationTimeProof at ${twitterCreationTimeProofAddress}`,
     );
   }
 }
