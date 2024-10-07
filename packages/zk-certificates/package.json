@@ -1,6 +1,6 @@
 {
   "name": "@galactica-net/zk-certificates",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Galactica Network's Zero-Knowledge Certificates library containing ZK circuits and blockchain library, including zkKYC",
   "homepage": "https://galactica.com",
   "bugs": {

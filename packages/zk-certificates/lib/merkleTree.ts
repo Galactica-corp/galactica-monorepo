@@ -176,7 +176,7 @@ export function getMerkleRootFromProof(
 
   // hash up the tree to the root
   for (let i = 0; i < proof.pathElements.length; i++) {
-    const isNodeOnRight = (proof.leafIndex >> i) % 2 === 1;
+    const isNodeOnRight = (BigInt(proof.leafIndex) >> BigInt(i)) % 2n === 1n;
     const [left, right] = isNodeOnRight
       ? [proof.pathElements[i], currentNode]
       : [currentNode, proof.pathElements[i]];
