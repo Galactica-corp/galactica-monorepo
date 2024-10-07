@@ -43,6 +43,27 @@ export async function getMerkleProof(
     provider,
   );
   const poseidon = await buildPoseidon();
+
+  // make sure the MerkleProof format is correct until inconsistency is solved
+  if (zkCert.merkleProof.pathElements === undefined) {
+    if ((zkCert.merkleProof as any).path === undefined) {
+      throw new GenericError({
+        name: 'MerkleProofUpdateFailed',
+        message: `Merkle proof is missing path`,
+      });
+    }
+    zkCert.merkleProof.pathElements = (zkCert.merkleProof as any).path;
+  }
+  if (zkCert.merkleProof.leafIndex === undefined) {
+    if ((zkCert.merkleProof as any).leaf === undefined) {
+      throw new GenericError({
+        name: 'MerkleProofUpdateFailed',
+        message: `Merkle proof is missing leaf`,
+      });
+    }
+    zkCert.merkleProof.leafIndex = (zkCert.merkleProof as any).leaf;
+  }
+
   if (
     fromHexToDec(await registry.merkleRoot()) ===
     getMerkleRootFromProof(zkCert.merkleProof, poseidon)
