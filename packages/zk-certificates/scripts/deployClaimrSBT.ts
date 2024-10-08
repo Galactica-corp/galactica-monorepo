@@ -17,10 +17,10 @@ async function main() {
 
   /* const issuer = '0xD8fd391410FDEA9da4e899770860EaE2db09Deab'; */
   const uri =
-    'https://quicknode.quicknode-ipfs.com/ipfs/QmeJS1PdjBtbE77xgez7uBuPWg8ByJm3eFQsEpE8ffSE5g';
+    'https://quicknode.quicknode-ipfs.com/ipfs/QmNsE6DC38TmW7iyUVeMRevSSiBCnLvYWD7bU7KqpuwpMw';
   const signee = deployer.address;
-  const nftName = 'Guilding Galactica - Top 10 (TEST)';
-  const nftSymbol = 'GG10TEST';
+  const nftName = 'Cipher Puzzle - Honorary';
+  const nftSymbol = 'PUZH';
 
   await deploySC('claimrSignedSBT', true, {}, [nftName, nftSymbol, uri, signee]);
 }

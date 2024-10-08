@@ -15,7 +15,7 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const ClaimrSBTAddress = '0x5ed81A1E6c46Fd67a275FF6F2676EC7A788b7877';
+  const ClaimrSBTAddress = '0x201bEc1E7535D8a701AEa2f09b06Ce5d462B32Ba';
   const ClaimrSBT = await ethers.getContractAt('claimrSignedSBT', ClaimrSBTAddress);
   const signee = '0x333e271244f12351b6056130AEC894EB8AAf05C2';
 
