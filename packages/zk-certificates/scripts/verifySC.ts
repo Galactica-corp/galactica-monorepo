@@ -3,7 +3,7 @@ import hre from 'hardhat';
  * Verifies a smart contract after deployment.
  */
 async function main() {
-  const SCAddress = '0xCAFbc2D4a4E83ABD5A77391c8984B956c78001Af';
+  const SCAddress = '0xBeB69Fff8C39aa0f2C1896AAa68757e9e2Cf32B4';
   const constructorInputs = [
     '0xb5e4A15F468AC505Bf0D53ceA2144b52135cCEF9',
     'twitter ZkCertificate',

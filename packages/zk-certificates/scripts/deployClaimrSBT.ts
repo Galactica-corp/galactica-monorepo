@@ -17,10 +17,10 @@ async function main() {
 
   /* const issuer = '0xD8fd391410FDEA9da4e899770860EaE2db09Deab'; */
   const uri =
-    'https://quicknode.quicknode-ipfs.com/ipfs/QmNsE6DC38TmW7iyUVeMRevSSiBCnLvYWD7bU7KqpuwpMw';
-  const signee = deployer.address;
-  const nftName = 'Cipher Puzzle - Honorary';
-  const nftSymbol = 'PUZH';
+    'https://quicknode.quicknode-ipfs.com/ipfs/QmamnStu3KuWVWDCYDeERSE62WWU5PsSTdZJrqqsBicomN';
+  const signee = "0x333e271244f12351b6056130AEC894EB8AAf05C2";
+  const nftName = 'Galactica Network Validator';
+  const nftSymbol = 'GALAVAL';
 
   await deploySC('claimrSignedSBT', true, {}, [nftName, nftSymbol, uri, signee]);
 }
