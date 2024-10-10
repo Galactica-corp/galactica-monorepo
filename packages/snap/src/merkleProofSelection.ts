@@ -58,10 +58,10 @@ export async function getMerkleProof(
     if ((zkCert.merkleProof as any).leaf === undefined) {
       throw new GenericError({
         name: 'MerkleProofUpdateFailed',
-        message: `Merkle proof is missing leaf`,
+        message: `Merkle proof is missing index`,
       });
     }
-    zkCert.merkleProof.leafIndex = (zkCert.merkleProof as any).leaf;
+    zkCert.merkleProof.leafIndex = (zkCert.merkleProof as any).index;
   }
 
   if (
