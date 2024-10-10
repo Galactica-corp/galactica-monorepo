@@ -123,20 +123,20 @@ KYCComplianceProofs-ZKPVerifier: ${JSON.stringify(
 KYCComplianceProofs-NonUS-AgeCitizenshipKYC: ${JSON.stringify(
     kycComplianceProofs.nonUS.ageCitizenshipKYC.address,
   )}
-KYCComplianceProofs-NonUS-BasicKYCExampleDApp: ${JSON.stringify(
-    kycComplianceProofs.nonUS.basicExampleDApp.address,
+KYCComplianceProofs-NonUS-DApp: ${JSON.stringify(
+    kycComplianceProofs.nonUS.dApp.address,
   )}
 KYCComplianceProofs-NonSanctionedJurisdiction-AgeCitizenshipKYC: ${JSON.stringify(
     kycComplianceProofs.nonSanctionedJurisdiction.ageCitizenshipKYC.address,
   )}
-KYCComplianceProofs-NonSanctionedJurisdiction-BasicKYCExampleDApp: ${JSON.stringify(
-    kycComplianceProofs.nonSanctionedJurisdiction.basicExampleDApp.address,
+KYCComplianceProofs-NonSanctionedJurisdiction-DApp: ${JSON.stringify(
+    kycComplianceProofs.nonSanctionedJurisdiction.dApp.address,
   )}
 KYCComplianceProofs-Adult18Plus-AgeCitizenshipKYC: ${JSON.stringify(
     kycComplianceProofs.adult18Plus.ageCitizenshipKYC.address,
   )}
-KYCComplianceProofs-Adult18Plus-BasicKYCExampleDApp: ${JSON.stringify(
-    kycComplianceProofs.adult18Plus.basicExampleDApp.address,
+KYCComplianceProofs-Adult18Plus-DApp: ${JSON.stringify(
+    kycComplianceProofs.adult18Plus.dApp.address,
   )}
   `;
   console.log(deploymentSummary);

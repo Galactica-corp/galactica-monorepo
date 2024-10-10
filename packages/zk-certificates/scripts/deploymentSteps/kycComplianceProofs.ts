@@ -10,7 +10,7 @@ const { log } = console;
 
 type ComplianceContracts = {
   ageCitizenshipKYC: any;
-  basicExampleDApp: any;
+  dApp: any;
 };
 
 /**
@@ -54,7 +54,7 @@ export async function deployKYCComplianceProofsDApps(
     ]),
     basicExampleDApp: undefined,
   };
-  nonUS.basicExampleDApp = await deploySC('BasicKYCExampleDApp', true, {}, [
+  nonUS.dApp = await deploySC('NonUSProverDApp', true, {}, [
     verificationSBTAddr,
     nonUS.ageCitizenshipKYC.address,
   ]);
@@ -90,8 +90,8 @@ export async function deployKYCComplianceProofsDApps(
     ]),
     basicExampleDApp: undefined,
   };
-  nonSanctionedJurisdiction.basicExampleDApp = await deploySC(
-    'BasicKYCExampleDApp',
+  nonSanctionedJurisdiction.dApp = await deploySC(
+    'NonSanctionedProverDApp',
     true,
     {},
     [verificationSBTAddr, nonSanctionedJurisdiction.ageCitizenshipKYC.address],
@@ -111,8 +111,8 @@ export async function deployKYCComplianceProofsDApps(
     ]),
     basicExampleDApp: undefined,
   };
-  adult18Plus.basicExampleDApp = await deploySC(
-    'BasicKYCExampleDApp',
+  adult18Plus.dApp = await deploySC(
+    'Age18ProverDApp',
     true,
     {},
     [verificationSBTAddr, adult18Plus.ageCitizenshipKYC.address],
