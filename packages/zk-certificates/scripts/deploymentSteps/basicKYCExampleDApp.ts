@@ -21,8 +21,10 @@ export async function deployBasicKYCExampleDApp(
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   // deploying everything
-  return await deploySC('BasicKYCExampleDApp', true, {}, [
-    verificationSBTAddr,
-    zkKYCAddr,
-  ]);
+  return await deploySC(
+    'contracts/dapps/BasicKYCExampleDApp.sol:BasicKYCExampleDApp',
+    true,
+    {},
+    [verificationSBTAddr, zkKYCAddr],
+  );
 }

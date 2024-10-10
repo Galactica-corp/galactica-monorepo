@@ -224,7 +224,7 @@ const Index = () => {
         currentDay: dateNow.getUTCDate().toString(),
         ageThreshold: '18',
         // specific inputs to prove that the holder is not a citizen of a sanctioned country
-        countryExclusionList: ['1', iranCountryHash, usCountryHash],
+        countryExclusionList: ['1', iranCountryHash, usCountryHash].concat(Array(17).fill('0')),
       };
       const proofInput = await prepareProofInput(addresses.kycRequirementsDemoDApp, [], specificProofInputs);
 
@@ -257,7 +257,6 @@ const Index = () => {
       const errorFieldIndex = await ageCitizenshipKYCVerifierSC.INDEX_ERROR();
       const error = parseInt(publicInputs[errorFieldIndex]);
       if (error !== 0) {
-        let errorMessage = '';
         if ((error & 1) !== 0) {
           throw new Error("zkKYC is not valid");
         } else if ((error & 2) !== 0) {
