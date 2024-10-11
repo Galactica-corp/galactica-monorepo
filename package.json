@@ -1,6 +1,6 @@
 {
   "name": "@galactica-net/galactica-monorepo",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "description": "Galactica Network monorepo including zero-knowledge certificates, the Galactica ZK Vault Snap for Metamask and front-end examples.",
   "homepage": "https://galactica.com",
