@@ -434,7 +434,7 @@ describe('zkKYC SC', () => {
     ).to.be.revertedWith('the first part of institution pubkey is incorrect');
   });
 
-  it.only('revert if provider is not whitelisted', async () => {
+  it('revert if provider is not whitelisted', async () => {
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,

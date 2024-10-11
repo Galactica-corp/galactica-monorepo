@@ -23,6 +23,7 @@ import type { AgeCitizenshipKYCVerifier } from '../../typechain-types/contracts/
 import type { KYCRequirementsDemoDApp } from '../../typechain-types/contracts/KYCRequirementsDemoDApp';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -94,8 +95,19 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       ageCitizenshipKYC.address,
     )) as KYCRequirementsDemoDApp;
 
+    const guardianRegistryFactory = await ethers.getContractFactory(
+      'GuardianRegistry',
+      deployer,
+    );
+    const guardianRegistry = (await guardianRegistryFactory.deploy("")) as GuardianRegistry;
+    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
+
     // default zkKYC
     const zkKYC = await generateSampleZkKYC();
+
+    // Assuming zkKYC is your sample ZkCertificate
+    const providerData = zkKYC.providerData;
+    await guardianRegistry.grantGuardianRole(deployer.address, [providerData.ax, providerData.ay], "");
 
     // default inputs to create proof
     const sampleInput = await generateZkKYCProofInput(
@@ -149,6 +161,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
         mockZkCertificateRegistry,
         verificationSBT,
         kycRequirementsDemoDApp,
+        guardianRegistry, // Add this to the returned object
       },
       poseidon,
       zkKYC,
@@ -462,5 +475,34 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
         .connect(acc.user)
         .checkRequirements(proof.piA, proof.piB, proof.piC, proof.publicInputs),
     ).to.be.revertedWith('the age threshold is not proven');
+  });
+
+  it('revert if provider is not whitelisted', async () => {
+    const { acc, sc, proof } = await loadFixture(deploy);
+
+    const publicRoot = proof.publicInputs[await sc.ageCitizenshipKYC.INDEX_ROOT()];
+
+    // set the merkle root to the correct one
+    await sc.mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    const publicTime = parseInt(
+      proof.publicInputs[await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME()],
+      16,
+    );
+
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime + 10]);
+    await hre.network.provider.send('evm_mine');
+
+    // Revoke the guardian role
+    await sc.guardianRegistry.revokeGuardianRole(acc.deployer.address);
+
+    await expect(
+      sc.ageCitizenshipKYC
+        .connect(acc.user)
+        .verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs)
+    ).to.be.revertedWith('the provider is not whitelisted');
   });
 });
