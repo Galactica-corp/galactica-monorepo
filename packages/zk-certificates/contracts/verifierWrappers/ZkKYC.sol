@@ -142,16 +142,16 @@ contract ZkKYC is Ownable {
         );
 
         // check that the pubkey belongs to a whitelisted provider
-        address guardianRegistry = KYCRegistry.guardianRegistry();
-        address guardianAddress = IGuardianRegistry(guardianRegistry).pubKeyToAddress(
+        IGuardianRegistry guardianRegistry = KYCRegistry.guardianRegistry();
+        address guardianAddress = guardianRegistry.pubKeyToAddress(
             input[INDEX_PROVIDER_PUBKEY_AX],
             input[INDEX_PROVIDER_PUBKEY_AY]
             );
         require(
-            IGuardianRegistry(guardianRegistry).isWhitelisted(guardianAddress),
+            guardianRegistry.isWhitelisted(guardianAddress),
             'the provider is not whitelisted'
         );
-        
+
         // check that the institution public keys corresponds to the onchain ones;
         for (uint i = 0; i < fraudInvestigationInstitutions.length; i++) {
             require(

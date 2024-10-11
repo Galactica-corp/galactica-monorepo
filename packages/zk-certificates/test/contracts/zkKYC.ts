@@ -98,14 +98,14 @@ describe('zkKYC SC', () => {
       'GuardianRegistry',
       deployer,
     );
-    guardianRegistry = (await guardianRegistryFactory.deploy()) as GuardianRegistry;
+    guardianRegistry = (await guardianRegistryFactory.deploy("")) as GuardianRegistry;
     await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
-
-    console.log(zkKYC);
+    const providerData = zkKYC.providerData;
+    await guardianRegistry.grantGuardianRole(deployer.address, [providerData.ax, providerData.ay], "");
 
   });
 
-  it.only('only owner can change KYCRegistry and Verifier addresses', async () => {
+  it('only owner can change KYCRegistry and Verifier addresses', async () => {
     // random user cannot change the addresses
     await expect(
       zkKYCContract.connect(user).setVerifier(user.address),
@@ -434,7 +434,7 @@ describe('zkKYC SC', () => {
     ).to.be.revertedWith('the first part of institution pubkey is incorrect');
   });
 
-  it('revert if provider is not whitelisted', async () => {
+  it.only('revert if provider is not whitelisted', async () => {
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
       circuitWasmPath,
@@ -460,11 +460,8 @@ describe('zkKYC SC', () => {
     const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    console.log(`public inputs are`);
-    console.log(publicInputs);
-    const guardianRegistry = await zkKYCContract.guardianRegistry();
-    await guardianRegistry.revokeGuardianRole(user.address);
+    await guardianRegistry.revokeGuardianRole(deployer.address);
 
-    await zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
+    await expect(zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs)).to.be.revertedWith('the provider is not whitelisted');
   });
 });
