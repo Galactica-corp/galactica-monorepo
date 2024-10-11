@@ -8,6 +8,7 @@ import {IZkCertificateRegistry} from '../interfaces/IZkCertificateRegistry.sol';
 import {BokkyPooBahsDateTimeLibrary} from '../libraries/BokkyPooBahsDateTimeLibrary.sol';
 import {IGalacticaInstitution} from '../interfaces/IGalacticaInstitution.sol';
 import {ICircomVerifier} from '../interfaces/ICircomVerifier.sol';
+import {IGuardianRegistry} from '../interfaces/IGuardianRegistry.sol';
 
 /**
  * @title Smart contract demo for Galactica zkKYC requirements

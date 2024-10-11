@@ -9,8 +9,9 @@ import {SNARK_SCALAR_FIELD} from './helpers/Globals.sol';
 
 import {PoseidonT3} from './helpers/Poseidon.sol';
 
-import {GuardianRegistry, GuardianInfo} from './GuardianRegistry.sol';
+import {GuardianInfo} from './GuardianRegistry.sol';
 
+import {IGuardianRegistry} from './interfaces/IGuardianRegistry.sol';
 import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
 
 import {Ownable} from './Ownable.sol';
@@ -67,7 +68,7 @@ contract ZkCertificateRegistry is
     mapping(bytes32 => uint) public ZkCertificateHashToQueueTime;
     mapping(bytes32 => address) public ZkCertificateHashToCommitedGuardian;
 
-    GuardianRegistry public _GuardianRegistry;
+    IGuardianRegistry public guardianRegistry;
     event zkCertificateAddition(
         bytes32 indexed zkCertificateLeafHash,
         address indexed Guardian,
@@ -133,7 +134,7 @@ contract ZkCertificateRegistry is
 
         // Set merkle root
         merkleRoots.push(currentZero);
-        _GuardianRegistry = GuardianRegistry(GuardianRegistry_);
+        guardianRegistry = IGuardianRegistry(GuardianRegistry_);
 
         // Set the block height at which the contract was initialized
         initBlockHeight = block.number;
@@ -160,7 +161,7 @@ contract ZkCertificateRegistry is
         // since we are adding a new zkCertificate record, we assume that the leaf is of zero value
         bytes32 currentLeafHash = ZERO_VALUE;
         require(
-            _GuardianRegistry.isWhitelisted(msg.sender),
+            guardianRegistry.isWhitelisted(msg.sender),
             'ZkCertificateRegistry: not a Guardian'
         );
 
@@ -233,7 +234,7 @@ contract ZkCertificateRegistry is
      */
     function registerToQueue(bytes32 zkCertificateHash) public {
         require(
-            _GuardianRegistry.isWhitelisted(msg.sender),
+            guardianRegistry.isWhitelisted(msg.sender),
             'ZkCertificateRegistry: not a Guardian'
         );
         // we need to determine the time until which the Guardian needs to add/revoke the zkCertificate after registration to the queue

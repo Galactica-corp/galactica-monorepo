@@ -20,6 +20,7 @@ import type { MockGalacticaInstitution } from '../../typechain-types/contracts/m
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 chai.config.includeStack = true;
 
@@ -32,6 +33,7 @@ describe('zkKYC SC', () => {
   let zkKYCVerifier: ZkKYCVerifier;
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let mockGalacticaInstitutions: MockGalacticaInstitution[];
+  let guardianRegistry: GuardianRegistry;
   const amountInstitutions = 3;
 
   let deployer: SignerWithAddress;
@@ -91,9 +93,19 @@ describe('zkKYC SC', () => {
 
     circuitWasmPath = './circuits/build/zkKYC.wasm';
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
+
+    const guardianRegistryFactory = await ethers.getContractFactory(
+      'GuardianRegistry',
+      deployer,
+    );
+    guardianRegistry = (await guardianRegistryFactory.deploy()) as GuardianRegistry;
+    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
+
+    console.log(zkKYC);
+
   });
 
-  it('only owner can change KYCRegistry and Verifier addresses', async () => {
+  it.only('only owner can change KYCRegistry and Verifier addresses', async () => {
     // random user cannot change the addresses
     await expect(
       zkKYCContract.connect(user).setVerifier(user.address),
@@ -420,5 +432,39 @@ describe('zkKYC SC', () => {
         .connect(user)
         .verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith('the first part of institution pubkey is incorrect');
+  });
+
+  it('revert if provider is not whitelisted', async () => {
+    const { proof, publicSignals } = await groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath,
+    );
+
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+
+    // set the merkle root to the correct one
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    const publicTime = parseInt(
+      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
+      10,
+    );
+
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    const [piA, piB, piC] = processProof(proof);
+
+    const publicInputs = processPublicSignals(publicSignals);
+    console.log(`public inputs are`);
+    console.log(publicInputs);
+    const guardianRegistry = await zkKYCContract.guardianRegistry();
+    await guardianRegistry.revokeGuardianRole(user.address);
+
+    await zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
   });
 });

@@ -8,6 +8,7 @@ contract MockZkCertificateRegistry is IZkCertificateRegistry {
     bytes32 public constant MERKLE_ROOT_INITIAL_VALUE = bytes32(0);
     bytes32[] public merkleRoots = [MERKLE_ROOT_INITIAL_VALUE];
     uint256 public merkleRootValidIndex = 1;
+    address public guardianRegistry;
 
     mapping (bytes32 => uint256) public merkleRootIndex;
 
@@ -28,4 +29,8 @@ contract MockZkCertificateRegistry is IZkCertificateRegistry {
       uint _merkleRootIndex = merkleRootIndex[_merkleRoot];
       return _merkleRootIndex >= merkleRootValidIndex;
     }
+
+    function setGuardianRegistry(address _guardianRegistry) public {
+      guardianRegistry = _guardianRegistry;
+    } 
 }

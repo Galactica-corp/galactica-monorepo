@@ -7,4 +7,5 @@ interface IZkCertificateRegistry {
     function merkleRootIndex(bytes32) external view returns (uint);
     function merkleRootValidIndex() external view returns (uint);
     function verifyMerkleRoot(bytes32) external view returns (bool);
+    function guardianRegistry() external view returns (address);
 }
