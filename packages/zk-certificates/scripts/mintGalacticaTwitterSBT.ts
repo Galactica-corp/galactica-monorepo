@@ -13,10 +13,12 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const SBTAddress = '0xB77CB93023104C347e0704A7000633d21B192975';
-  const SBT = await ethers.getContractAt('GalacticaTwitterSBT', SBTAddress);
+  const SBTAddress = '0x897717462BC1cb41Ab42A21fF135bEfb193fc26E';
+  const SBT = await ethers.getContractAt('GalacticaOfficialSBT', SBTAddress);
+  const receiverAddress = '0x19db2f832Fa74dC80Dc936A47083073072Aa5818';
 
-  const tx = await SBT.mint(deployer.address);
+  console.log(`going to mint SBT ${SBTAddress} to ${receiverAddress}`);
+  const tx = await SBT.mint(receiverAddress);
   await tx.wait();
 }
 

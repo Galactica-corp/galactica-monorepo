@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import '../VerificationSBT.sol';
-import '../interfaces/IAgeCitizenshipKYCVerifier.sol';
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../SBT_related/VerificationSBT.sol";
+import "../interfaces/IAgeCitizenshipKYCVerifier.sol";
 
 /// @author Galactica dev team
 //For testing purpose we will create a mock dApp that airdrops 2 types tokens (100 each) for user

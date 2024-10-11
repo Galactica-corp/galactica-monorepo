@@ -15,4 +15,4 @@ component main {public [
   providerAx,
   providerAy,
   countryExclusionList
-]} = AgeCitizenshipKYC(32, 60, 0, 0, 3);
+]} = AgeCitizenshipKYC(32, 60, 0, 0, 20);

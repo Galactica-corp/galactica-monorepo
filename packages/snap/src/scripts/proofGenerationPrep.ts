@@ -4,6 +4,7 @@ import { ZkCertStandard } from '@galactica-net/snap-api';
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
 import * as fs from 'fs';
+import hash from 'object-hash';
 import path from 'path';
 import { groth16, zKey } from 'snarkjs';
 import { parse } from 'ts-command-line-args';
@@ -189,6 +190,15 @@ async function writeCircuitDataToJSON(filePath: string, prover: ProverData) {
     );
   }
   console.log(`Written prover parts to ${proverDir}`);
+
+  // save hash for verification
+  delete jsContent.zkeyHeader.sectionsLength;
+  const proverHash = hash.MD5(jsContent);
+  console.log(`Prover hash: ${proverHash}`);
+  fs.writeFileSync(
+    path.join(proverDir, 'hash.json'),
+    JSON.stringify(proverHash),
+  );
 }
 
 /**

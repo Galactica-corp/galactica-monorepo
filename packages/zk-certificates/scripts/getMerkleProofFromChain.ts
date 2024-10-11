@@ -10,9 +10,9 @@ import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
  */
 async function main() {
   // input
-  const registryAddress = '0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD';
+  const registryAddress = '0x49FEc8ddf15a9731EfeD88b35685a45e5Fa95eFE';
   const leavesToProve = [
-    '880835428566192188762397152380361633406349765127880297460839764059573809692',
+    '1308179671240528936391414005825751669522278571022431835427338852808248413183',
   ];
   const merkleDepth = 32;
 

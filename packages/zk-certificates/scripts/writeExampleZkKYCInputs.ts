@@ -45,7 +45,7 @@ async function main() {
   };
 
   fs.writeFileSync(
-    './circuits/input/ageCountryExclusionKYC.json',
+    './circuits/input/ageCitizenshipKYC.json',
     JSON.stringify(ageCountryKYCInput, null, 2),
     'utf8',
   );

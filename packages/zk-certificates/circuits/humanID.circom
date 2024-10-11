@@ -30,17 +30,17 @@ template HumanID(){
     signal output humanID;
 
     component hash = Poseidon(11);
-    hash.inputs[0] <== surname;
-    hash.inputs[1] <== forename;
-    hash.inputs[2] <== middlename;
-    hash.inputs[3] <== yearOfBirth;
-    hash.inputs[4] <== monthOfBirth;
-    hash.inputs[5] <== dayOfBirth;
-    hash.inputs[6] <== citizenship;
-    hash.inputs[7] <== dAppAddress;
+    hash.inputs[0] <== citizenship;
+    hash.inputs[1] <== dAppAddress;
+    hash.inputs[2] <== dayOfBirth;
+    hash.inputs[3] <== forename;
+    hash.inputs[4] <== middlename;
+    hash.inputs[5] <== monthOfBirth;
+    hash.inputs[6] <== saltSignatureRx;
+    hash.inputs[7] <== saltSignatureRy;
     hash.inputs[8] <== saltSignatureS;
-    hash.inputs[9] <== saltSignatureRx;
-    hash.inputs[10] <== saltSignatureRy;
+    hash.inputs[9] <== surname;
+    hash.inputs[10] <== yearOfBirth;
 
     humanID <== hash.out;
 }

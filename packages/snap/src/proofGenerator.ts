@@ -9,16 +9,64 @@ import type {
 } from '@galactica-net/snap-api';
 import { GenZKPError } from '@galactica-net/snap-api';
 import type { ZkCertificate } from '@galactica-net/zk-certificates';
-import { formatPrivKeyForBabyJub } from '@galactica-net/zk-certificates';
+import {
+  formatPrivKeyForBabyJub,
+  getMerkleRootFromProof,
+} from '@galactica-net/zk-certificates';
 import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
-import { buildEddsa } from 'circomlibjs';
+import { buildEddsa, buildPoseidon } from 'circomlibjs';
 import { buildBls12381, buildBn128 } from 'ffjavascript';
 import hash from 'object-hash';
 import { groth16 } from 'snarkjs';
 
 import type { HolderData, PanelContent } from './types';
 import { stripURLProtocol } from './utils';
+
+/**
+ * GenerateProof runs the low level groth16 proof generation.
+ * @param inputs - Input data containing signals for the proof generation.
+ * @param proverOrLink - Prover data containing the wasm and zkey header and sections, or link to it.
+ * @returns Generated ZkCert proof.
+ */
+export const generateProof = async (
+  inputs: Record<string, any>,
+  proverOrLink: ProverData | ProverLink,
+): Promise<ZkCertProof> => {
+  // get prover data from params or fetch it from a URL
+  let prover: ProverData;
+  if ('wasm' in proverOrLink) {
+    prover = proverOrLink;
+  } else {
+    if (!('url' in proverOrLink)) {
+      throw new GenZKPError({
+        name: 'MissingInputParams',
+        message: `ProverLink does not contain a URL.`,
+      });
+    }
+    prover = await fetchProverData(proverOrLink);
+  }
+
+  const processedProver = await preprocessProver(prover);
+
+  try {
+    const { proof, publicSignals } = await groth16.fullProveMemory(
+      inputs,
+      processedProver.wasm,
+      processedProver.zkeyHeader,
+      processedProver.zkeySections,
+    );
+
+    // console.log('Calculated proof: ');
+    // console.log(JSON.stringify(proof, null, 1));
+
+    return { proof, publicSignals };
+  } catch (error) {
+    console.log('proof generation failed');
+    console.log(error.stack);
+    throw error;
+  }
+};
 
 /**
  * GenerateZkCertProof constructs and checks the zkCert proof.
@@ -34,25 +82,12 @@ export const generateZkCertProof = async (
   holder: HolderData,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> => {
-  // get prover data from params or fetch it from a URL
-  let rawProver: ProverData;
-  if ('wasm' in params.prover) {
-    rawProver = params.prover;
-  } else {
-    if (!('url' in params.prover)) {
-      throw new GenZKPError({
-        name: 'MissingInputParams',
-        message: `ProverLink does not contain a URL.`,
-      });
-    }
-    rawProver = await fetchProverData(params.prover);
-  }
-  const processedProver = await preprocessProver(rawProver);
-
   const authorizationProof = zkCert.getAuthorizationProofInput(
     holder.eddsaKey,
     params.userAddress,
   );
+  const poseidon = await buildPoseidon();
+  const merkleRoot = getMerkleRootFromProof(merkleProof, poseidon);
 
   const inputs: any = {
     ...params.input,
@@ -74,7 +109,7 @@ export const generateZkCertProof = async (
     providerR8x: zkCert.providerData.r8x,
     providerR8y: zkCert.providerData.r8y,
 
-    root: merkleProof.root,
+    root: merkleRoot,
     pathElements: merkleProof.pathElements,
     leafIndex: merkleProof.leafIndex,
   };
@@ -95,23 +130,7 @@ export const generateZkCertProof = async (
     inputs.userPrivKey = encryptionPrivKey;
   }
 
-  try {
-    const { proof, publicSignals } = await groth16.fullProveMemory(
-      inputs,
-      processedProver.wasm,
-      processedProver.zkeyHeader,
-      processedProver.zkeySections,
-    );
-
-    // console.log('Calculated proof: ');
-    // console.log(JSON.stringify(proof, null, 1));
-
-    return { proof, publicSignals };
-  } catch (error) {
-    console.log('proof generation failed');
-    console.log(error.stack);
-    throw error;
-  }
+  return generateProof(inputs, params.prover);
 };
 
 /**

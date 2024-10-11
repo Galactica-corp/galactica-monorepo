@@ -89,9 +89,9 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
     // content hash for twitter ZkCertificate data
     component contentHash = Poseidon(8);
     contentHash.inputs[0] <== createdAt;
-    contentHash.inputs[1] <== id;
-    contentHash.inputs[2] <== followersCount;
-    contentHash.inputs[3] <== followingCount;
+    contentHash.inputs[1] <== followersCount;
+    contentHash.inputs[2] <== followingCount;
+    contentHash.inputs[3] <== id;
     contentHash.inputs[4] <== listedCount;
     contentHash.inputs[5] <== tweetCount;
     contentHash.inputs[6] <== username;

@@ -2,6 +2,7 @@ import { ZkCertStandard } from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
   ProverData,
+  BenchmarkZKPGenParams,
   ZkKYCAgeCitizenshipProofInput,
 } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
@@ -9,6 +10,8 @@ import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import hash from 'object-hash';
 
 import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
+import exclusionProver from '../../galactica-dapp/public/provers/exclusion3.json';
+import exclusionInput from '../../zk-certificates/circuits/input/exclusion3.json';
 import type { RpcArgs } from '../src/types';
 
 // Tell JSON how to serialize BigInts
@@ -65,7 +68,7 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
   },
   requirements: {
     zkCertStandard: ZkCertStandard.ZkKYC,
-    registryAddress: '0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD',
+    registryAddress: '0x49FEc8ddf15a9731EfeD88b35685a45e5Fa95eFE',
   },
   prover,
   userAddress: testAddress,
@@ -101,6 +104,11 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
     'institution 3 pubkey Ay',
   ],
   zkInputRequiresPrivKey: true,
+};
+
+export const benchmarkZKPGenParams: BenchmarkZKPGenParams = {
+  input: exclusionInput,
+  prover: exclusionProver as ProverData,
 };
 
 export const merkleProofServiceURL =

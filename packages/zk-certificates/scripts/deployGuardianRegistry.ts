@@ -15,7 +15,7 @@ async function main() {
 
   console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
-  const description = 'Socials';
+  const description = 'ExchangeData Guardian Registry';
   const GuardianRegistry = await deploySC('GuardianRegistry', true, {}, [
     description,
   ]);

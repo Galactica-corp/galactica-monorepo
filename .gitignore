@@ -85,4 +85,5 @@ node_modules/
 packages/zk-certificates/artifacts
 packages/zk-certificates/cache
 
+# npm version manager
 .npmrc

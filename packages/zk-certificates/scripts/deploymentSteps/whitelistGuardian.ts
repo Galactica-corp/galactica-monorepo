@@ -12,17 +12,12 @@ import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
  * @param guardian - The signer of the guardian to whitelist (needed to generate EdDSA keys).
  * @param metadataURL - The URL of the guardian metadata, see https://github.com/Galactica-corp/Documentation/blob/master/kyc-guardian-guide/create-and-issue-zkkyc.md for schema.
  */
-export async function whitelistGuardian(
+export async function whitelistSignerGuardian(
   authorizer: SignerWithAddress,
   guardianRegistryAddr: string,
   guardian: SignerWithAddress,
   metadataURL: string,
 ) {
-  console.log(`Using account ${authorizer.address} for controlling whitelist`);
-  console.log(`Account balance: ${(await authorizer.getBalance()).toString()}`);
-  console.log();
-
-  const guardianAddr = guardian.address;
   // get pubkey of guardian, if we have the private key, we can derive it here, otherwise just enter the pubkey
   const eddsa = await buildEddsa();
   const privKey = await getEddsaKeyFromEthSigner(guardian);
@@ -30,8 +25,36 @@ export async function whitelistGuardian(
     .prv2pub(privKey)
     .map((component: any) => eddsa.poseidon.F.toObject(component).toString());
 
+  await whitelistGuardian(
+    authorizer,
+    guardianRegistryAddr,
+    guardian.address,
+    guardianPubKey as [string, string],
+    metadataURL,
+  );
+}
+
+/**
+ * Whitelists a guardian in the guardian registry.
+ * @param authorizer - The signer to submit the whitelist tx.
+ * @param guardianRegistryAddr - The address of the guardian registry.
+ * @param guardianAddress - The address of the guardian to whitelist.
+ * @param guardianPubKey - The EdDSA public key of the guardian to whitelist.
+ * @param metadataURL - The URL of the guardian metadata, see https://github.com/Galactica-corp/Documentation/blob/master/kyc-guardian-guide/create-and-issue-zkkyc.md for schema.
+ */
+export async function whitelistGuardian(
+  authorizer: SignerWithAddress,
+  guardianRegistryAddr: string,
+  guardianAddress: string,
+  guardianPubKey: [string, string],
+  metadataURL: string,
+) {
+  console.log(`Using account ${authorizer.address} for controlling whitelist`);
+  console.log(`Account balance: ${(await authorizer.getBalance()).toString()}`);
+  console.log();
+
   console.log(
-    `Whitelisting guardian ${guardian.address} with pubkey ${JSON.stringify(
+    `Whitelisting guardian ${guardianAddress} with pubkey ${JSON.stringify(
       guardianPubKey,
     )} and metadata ${metadataURL}`,
   );
@@ -42,9 +65,9 @@ export async function whitelistGuardian(
     guardianRegistryAddr,
   );
 
-  console.log(`Adding ${guardianAddr} as guardian...`);
+  console.log(`Adding ${guardianAddress} as guardian...`);
   const tx = await guardianRegistry.grantGuardianRole(
-    guardian.address,
+    guardianAddress,
     guardianPubKey,
     metadataURL,
   );

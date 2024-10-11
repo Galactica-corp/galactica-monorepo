@@ -4,8 +4,12 @@ import type {
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import { GenericError } from '@galactica-net/snap-api';
-import { fromHexToDec } from '@galactica-net/zk-certificates';
+import {
+  fromHexToDec,
+  getMerkleRootFromProof,
+} from '@galactica-net/zk-certificates';
 import type { BaseProvider } from '@metamask/providers';
+import { buildPoseidon } from 'circomlibjs';
 import { Contract, providers } from 'ethers';
 
 import { fetchWithTimeout } from './utils';
@@ -38,7 +42,32 @@ export async function getMerkleProof(
     ['function merkleRoot() external view returns (bytes32)'],
     provider,
   );
-  if (fromHexToDec(await registry.merkleRoot()) === zkCert.merkleProof.root) {
+  const poseidon = await buildPoseidon();
+
+  // make sure the MerkleProof format is correct until inconsistency is solved
+  if (zkCert.merkleProof.pathElements === undefined) {
+    if ((zkCert.merkleProof as any).path === undefined) {
+      throw new GenericError({
+        name: 'MerkleProofUpdateFailed',
+        message: `Merkle proof is missing path`,
+      });
+    }
+    zkCert.merkleProof.pathElements = (zkCert.merkleProof as any).path;
+  }
+  if (zkCert.merkleProof.leafIndex === undefined) {
+    if ((zkCert.merkleProof as any).leaf === undefined) {
+      throw new GenericError({
+        name: 'MerkleProofUpdateFailed',
+        message: `Merkle proof is missing index`,
+      });
+    }
+    zkCert.merkleProof.leafIndex = (zkCert.merkleProof as any).index;
+  }
+
+  if (
+    fromHexToDec(await registry.merkleRoot()) ===
+    getMerkleRootFromProof(zkCert.merkleProof, poseidon)
+  ) {
     // The merkle root is the same as the one in the zkCert, so we can just use the old one
     return zkCert.merkleProof;
   }
@@ -63,7 +92,6 @@ export async function getMerkleProof(
     const resJson = await response.json();
     if (
       resJson.proof === undefined ||
-      resJson.proof.root === undefined ||
       resJson.proof.index === undefined ||
       resJson.proof.path === undefined
     ) {
@@ -77,7 +105,6 @@ export async function getMerkleProof(
 
     // Format into MerkleProof object
     const merkleProof: MerkleProof = {
-      root: resJson.proof.root,
       leaf: zkCert.leafHash,
       pathElements: resJson.proof.path,
       leafIndex: resJson.proof.index,

@@ -148,11 +148,17 @@ export function bigIntToArray(bn: bigint): Uint8Array {
     hexValue = `0${hexValue}`;
   }
 
-  // Split into groups of 2 to create hex array
-  const hexArray = hexValue.match(/.{2}/gu) ?? [];
-
   // Convert hex array to uint8 byte array
-  return new Uint8Array(hexArray.map((byte) => parseInt(byte, 16)));
+  return Buffer.from(hexValue, 'hex');
+}
+
+/**
+ * Converts a hex string to a bigint.
+ * @param hexString - Hex string to convert.
+ * @returns Bigint.
+ */
+export function hexStringToBigInt(hexString: string): bigint {
+  return BigInt(hexString);
 }
 
 /**
