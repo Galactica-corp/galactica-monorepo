@@ -20,10 +20,10 @@ import {
 } from '../../scripts/generateZkKYCInput';
 import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/AgeCitizenshipKYC';
 import type { AgeCitizenshipKYCVerifier } from '../../typechain-types/contracts/AgeCitizenshipKYCVerifier';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { KYCRequirementsDemoDApp } from '../../typechain-types/contracts/KYCRequirementsDemoDApp';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
-import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -99,15 +99,23 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       'GuardianRegistry',
       deployer,
     );
-    const guardianRegistry = (await guardianRegistryFactory.deploy("")) as GuardianRegistry;
-    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
+    const guardianRegistry = (await guardianRegistryFactory.deploy(
+      '',
+    )) as GuardianRegistry;
+    await mockZkCertificateRegistry.setGuardianRegistry(
+      guardianRegistry.address,
+    );
 
     // default zkKYC
     const zkKYC = await generateSampleZkKYC();
 
     // Assuming zkKYC is your sample ZkCertificate
-    const providerData = zkKYC.providerData;
-    await guardianRegistry.grantGuardianRole(deployer.address, [providerData.ax, providerData.ay], "");
+    const { providerData } = zkKYC;
+    await guardianRegistry.grantGuardianRole(
+      deployer.address,
+      [providerData.ax, providerData.ay],
+      '',
+    );
 
     // default inputs to create proof
     const sampleInput = await generateZkKYCProofInput(
@@ -480,7 +488,8 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
   it('revert if provider is not whitelisted', async () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
-    const publicRoot = proof.publicInputs[await sc.ageCitizenshipKYC.INDEX_ROOT()];
+    const publicRoot =
+      proof.publicInputs[await sc.ageCitizenshipKYC.INDEX_ROOT()];
 
     // set the merkle root to the correct one
     await sc.mockZkCertificateRegistry.setMerkleRoot(
@@ -493,7 +502,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     );
 
     // set time to the public time
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime + 10]);
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [
+      publicTime + 10,
+    ]);
     await hre.network.provider.send('evm_mine');
 
     // Revoke the guardian role
@@ -502,7 +513,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     await expect(
       sc.ageCitizenshipKYC
         .connect(acc.user)
-        .verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs)
+        .verifyProof(proof.piA, proof.piB, proof.piC, proof.publicInputs),
     ).to.be.revertedWith('the provider is not whitelisted');
   });
 });

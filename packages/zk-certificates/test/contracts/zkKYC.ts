@@ -16,11 +16,11 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
-import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 chai.config.includeStack = true;
 
@@ -98,11 +98,18 @@ describe('zkKYC SC', () => {
       'GuardianRegistry',
       deployer,
     );
-    guardianRegistry = (await guardianRegistryFactory.deploy("")) as GuardianRegistry;
-    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
-    const providerData = zkKYC.providerData;
-    await guardianRegistry.grantGuardianRole(deployer.address, [providerData.ax, providerData.ay], "");
-
+    guardianRegistry = (await guardianRegistryFactory.deploy(
+      '',
+    )) as GuardianRegistry;
+    await mockZkCertificateRegistry.setGuardianRegistry(
+      guardianRegistry.address,
+    );
+    const { providerData } = zkKYC;
+    await guardianRegistry.grantGuardianRole(
+      deployer.address,
+      [providerData.ax, providerData.ay],
+      '',
+    );
   });
 
   it('only owner can change KYCRegistry and Verifier addresses', async () => {
@@ -462,6 +469,8 @@ describe('zkKYC SC', () => {
     const publicInputs = processPublicSignals(publicSignals);
     await guardianRegistry.revokeGuardianRole(deployer.address);
 
-    await expect(zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs)).to.be.revertedWith('the provider is not whitelisted');
+    await expect(
+      zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+    ).to.be.revertedWith('the provider is not whitelisted');
   });
 });
