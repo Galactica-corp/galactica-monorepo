@@ -215,6 +215,17 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier {
             'the age threshold is not proven'
         );
 
+        // check that the pubkey belongs to a whitelisted provider
+        address guardianRegistry = KYCRegistry.guardianRegistry();
+        address guardianAddress = IGuardianRegistry(guardianRegistry).pubKeyToAddress(
+            input[INDEX_PROVIDER_PUBKEY_AX],
+            input[INDEX_PROVIDER_PUBKEY_AY]
+            );
+        require(
+            IGuardianRegistry(guardianRegistry).isWhitelisted(guardianAddress),
+            'the provider is not whitelisted'
+        );
+
         // check that the institution public key corresponds to the onchain one;
         for (uint i = 0; i < fraudInvestigationInstitutions.length; i++) {
             require(

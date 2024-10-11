@@ -5,6 +5,7 @@ import '../Ownable.sol';
 import '../interfaces/IZkKYCVerifier.sol';
 import '../interfaces/IZkCertificateRegistry.sol';
 import '../interfaces/IGalacticaInstitution.sol';
+import '../interfaces/IGuardianRegistry.sol';
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of ZkKYC record existence
@@ -139,6 +140,18 @@ contract ZkKYC is Ownable {
             timeDiff <= timeDifferenceTolerance,
             'the current time is incorrect'
         );
+
+        // check that the pubkey belongs to a whitelisted provider
+        address guardianRegistry = KYCRegistry.guardianRegistry();
+        address guardianAddress = IGuardianRegistry(guardianRegistry).pubKeyToAddress(
+            input[INDEX_PROVIDER_PUBKEY_AX],
+            input[INDEX_PROVIDER_PUBKEY_AY]
+            );
+        require(
+            IGuardianRegistry(guardianRegistry).isWhitelisted(guardianAddress),
+            'the provider is not whitelisted'
+        );
+        
         // check that the institution public keys corresponds to the onchain ones;
         for (uint i = 0; i < fraudInvestigationInstitutions.length; i++) {
             require(
