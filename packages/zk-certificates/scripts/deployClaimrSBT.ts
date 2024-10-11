@@ -18,11 +18,16 @@ async function main() {
   /* const issuer = '0xD8fd391410FDEA9da4e899770860EaE2db09Deab'; */
   const uri =
     'https://quicknode.quicknode-ipfs.com/ipfs/QmamnStu3KuWVWDCYDeERSE62WWU5PsSTdZJrqqsBicomN';
-  const signee = "0x333e271244f12351b6056130AEC894EB8AAf05C2";
+  const signee = '0x333e271244f12351b6056130AEC894EB8AAf05C2';
   const nftName = 'Galactica Network Validator';
   const nftSymbol = 'GALAVAL';
 
-  await deploySC('claimrSignedSBT', true, {}, [nftName, nftSymbol, uri, signee]);
+  await deploySC('claimrSignedSBT', true, {}, [
+    nftName,
+    nftSymbol,
+    uri,
+    signee,
+  ]);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
