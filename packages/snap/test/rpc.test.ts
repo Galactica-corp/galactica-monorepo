@@ -964,10 +964,6 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Get ZkCert Storage hash', function () {
-    afterEach(function () {
-      expect(snapProvider.rpcStubs.snap_dialog).to.not.have.been.called;
-    });
-
     it('should stay the same if the storage is the same', async function () {
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -989,6 +985,7 @@ describe('Test rpc handler function', function () {
 
       expect(hashes0).to.have.key(zkCert.zkCertStandard);
       expect(hashes0).to.deep.equal(hashes1);
+      expect(snapProvider.rpcStubs.snap_dialog).to.not.have.been.called;
     });
 
     it('should change when the storage changes', async function () {
@@ -1019,6 +1016,48 @@ describe('Test rpc handler function', function () {
       expect(hashes0).to.have.key(zkCert.zkCertStandard);
       expect(hashes1).to.have.key(zkCert.zkCertStandard);
       expect(hashes0).to.not.deep.equal(hashes1);
+      expect(snapProvider.rpcStubs.snap_dialog).to.not.have.been.called;
+    });
+
+    it('should not change on updating the merkle proof', async function () {
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+
+      const hashes0 = await processRpcRequest(
+        buildRPCRequest(RpcMethods.GetZkCertStorageHashes),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      const updateParams: MerkleProofUpdateRequestParams = {
+        updates: [
+          {
+            proof: updatedMerkleProof,
+            registryAddr: zkCert.registration.address,
+          },
+        ],
+      };
+
+      await processRpcRequest(
+        buildRPCRequest(RpcMethods.UpdateMerkleProof, updateParams),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      const hashes1 = await processRpcRequest(
+        buildRPCRequest(RpcMethods.GetZkCertStorageHashes),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      expect(hashes0).to.have.key(zkCert.zkCertStandard);
+      expect(hashes1).to.have.key(zkCert.zkCertStandard);
+      expect(hashes0).to.deep.equal(hashes1);
     });
   });
 

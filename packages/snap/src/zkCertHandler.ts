@@ -70,7 +70,10 @@ export function getZkCertStorageHashes(
       storageHashes[zkCert.zkCertStandard] = keccak256(origin);
     }
     storageHashes[zkCert.zkCertStandard] = keccak256(
-      (storageHashes[zkCert.zkCertStandard] as string) + JSON.stringify(zkCert),
+      (storageHashes[zkCert.zkCertStandard] as string) +
+        zkCert.leafHash +
+        zkCert.registration.address +
+        zkCert.registration.chainID,
     );
   }
   return storageHashes;
