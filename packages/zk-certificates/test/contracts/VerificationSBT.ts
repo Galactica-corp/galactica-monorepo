@@ -29,7 +29,6 @@ import type { MockGalacticaInstitution } from '../../typechain-types/contracts/m
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import type { ExampleMockDAppVerifier } from '../../typechain-types/contracts/zkpVerifiers/ExampleMockDAppVerifier';
-import type { GuardianRegistry } from '../../typechain-types';
 
 use(chaiAsPromised);
 
@@ -159,19 +158,24 @@ describe('Verification SBT Smart contract', () => {
     circuitZkeyPath = './circuits/build/exampleMockDApp.zkey';
 
     // Deploy GuardianRegistry
-    const GuardianRegistryFactory = await ethers.getContractFactory('GuardianRegistry');
-    guardianRegistry = await GuardianRegistryFactory.deploy('https://example.com/metadata') as GuardianRegistry;
+    const GuardianRegistryFactory =
+      await ethers.getContractFactory('GuardianRegistry');
+    guardianRegistry = (await GuardianRegistryFactory.deploy(
+      'https://example.com/metadata',
+    )) as GuardianRegistry;
     await guardianRegistry.deployed();
 
     // Set GuardianRegistry in MockZkCertificateRegistry
-    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
+    await mockZkCertificateRegistry.setGuardianRegistry(
+      guardianRegistry.address,
+    );
 
     // Approve the provider's public key
     const providerPubKey = [zkKYC.providerData.ax, zkKYC.providerData.ay];
     await guardianRegistry.grantGuardianRole(
       deployer.address,
       providerPubKey,
-      'https://example.com/provider-metadata'
+      'https://example.com/provider-metadata',
     );
   });
 

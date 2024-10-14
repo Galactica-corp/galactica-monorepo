@@ -15,6 +15,7 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
+import type { GuardianRegistry } from '../../typechain-types';
 import type { AirdropGateway } from '../../typechain-types/contracts/AirdropGateway';
 import type { GalacticaOfficialSBT } from '../../typechain-types/contracts/GalacticaOfficialSBT';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
@@ -22,7 +23,6 @@ import type { MockToken } from '../../typechain-types/contracts/mock/MockToken';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
-import { GuardianRegistry } from '../../typechain-types';
 
 chai.config.includeStack = true;
 
@@ -153,19 +153,24 @@ describe('AirdropGateway', () => {
     rewardToken = (await tokenFactory.deploy(deployer.address)) as MockToken;
 
     // Deploy GuardianRegistry
-    const GuardianRegistryFactory = await ethers.getContractFactory('GuardianRegistry');
-    guardianRegistry = await GuardianRegistryFactory.deploy('https://example.com/metadata') as GuardianRegistry;
+    const GuardianRegistryFactory =
+      await ethers.getContractFactory('GuardianRegistry');
+    guardianRegistry = (await GuardianRegistryFactory.deploy(
+      'https://example.com/metadata',
+    )) as GuardianRegistry;
     await guardianRegistry.deployed();
 
     // Set GuardianRegistry in MockZkCertificateRegistry
-    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
+    await mockZkCertificateRegistry.setGuardianRegistry(
+      guardianRegistry.address,
+    );
 
     // Grant guardian role to owner
     const { providerData } = zkKYC;
     await guardianRegistry.grantGuardianRole(
       deployer.address,
       [providerData.ax, providerData.ay],
-      'https://example.com/guardian-metadata'
+      'https://example.com/guardian-metadata',
     );
   });
 
@@ -356,7 +361,7 @@ describe('AirdropGateway', () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
     await expect(
-      airdropGateway.connect(user).register(piA, piB, piC, publicInputs)
+      airdropGateway.connect(user).register(piA, piB, piC, publicInputs),
     ).to.be.revertedWith(`registration has not started yet`);
 
     // set time to the registration start time

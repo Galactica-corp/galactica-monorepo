@@ -26,7 +26,7 @@ chai.config.includeStack = true;
 
 const { expect } = chai;
 
-describe.only('zkKYC SC', () => {
+describe('zkKYC SC', () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKYCContract: ZkKYC;
@@ -57,11 +57,18 @@ describe.only('zkKYC SC', () => {
       (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     // Deploy GuardianRegistry
-    const guardianRegistryFactory = await ethers.getContractFactory('GuardianRegistry', deployer);
-    guardianRegistry = await guardianRegistryFactory.deploy('https://example.com/metadata') as GuardianRegistry;
+    const guardianRegistryFactory = await ethers.getContractFactory(
+      'GuardianRegistry',
+      deployer,
+    );
+    guardianRegistry = (await guardianRegistryFactory.deploy(
+      'https://example.com/metadata',
+    )) as GuardianRegistry;
     await guardianRegistry.deployed();
 
-    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
+    await mockZkCertificateRegistry.setGuardianRegistry(
+      guardianRegistry.address,
+    );
 
     const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
       'MockGalacticaInstitution',
@@ -81,12 +88,12 @@ describe.only('zkKYC SC', () => {
     zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
 
     const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
-    zkKYCContract = await zkKYCFactory.deploy(
+    zkKYCContract = (await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
       mockZkCertificateRegistry.address,
-      []
-    ) as ZkKYC;
+      [],
+    )) as ZkKYC;
     await zkKYCContract.deployed();
 
     // Generate sample ZkKYC and proof input
@@ -108,7 +115,7 @@ describe.only('zkKYC SC', () => {
     await guardianRegistry.grantGuardianRole(
       deployer.address,
       [providerData.ax, providerData.ay],
-      'https://example.com/guardian-metadata'
+      'https://example.com/guardian-metadata',
     );
   });
 

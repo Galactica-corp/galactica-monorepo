@@ -48,11 +48,12 @@ describe('RepeatableZKPTest', () => {
     [deployer, user] = await hre.ethers.getSigners();
 
     // Deploy GuardianRegistry
-    const GuardianRegistryFactory = await ethers.getContractFactory('GuardianRegistry');
-    guardianRegistry = await GuardianRegistryFactory.deploy('https://example.com/metadata') as GuardianRegistry;
+    const GuardianRegistryFactory =
+      await ethers.getContractFactory('GuardianRegistry');
+    guardianRegistry = (await GuardianRegistryFactory.deploy(
+      'https://example.com/metadata',
+    )) as GuardianRegistry;
     await guardianRegistry.deployed();
-
-
 
     // Deploy MockZkCertificateRegistry
     const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
@@ -63,7 +64,9 @@ describe('RepeatableZKPTest', () => {
       (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
 
     // Set GuardianRegistry in MockZkCertificateRegistry
-    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
+    await mockZkCertificateRegistry.setGuardianRegistry(
+      guardianRegistry.address,
+    );
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
       'ZkKYCVerifier',
@@ -114,7 +117,7 @@ describe('RepeatableZKPTest', () => {
     await guardianRegistry.grantGuardianRole(
       deployer.address,
       providerPubKey,
-      'https://example.com/provider-metadata'
+      'https://example.com/provider-metadata',
     );
 
     // advance time a bit to set it later in the test

@@ -16,11 +16,11 @@ import {
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
 import type { BasicKYCExampleDApp } from '../../typechain-types/contracts/BasicKYCExampleDApp';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
-import { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -108,21 +108,25 @@ describe('BasicKYCExampleDApp', () => {
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
 
     // Deploy GuardianRegistry
-    const GuardianRegistryFactory = await ethers.getContractFactory('GuardianRegistry');
-    guardianRegistry = await GuardianRegistryFactory.deploy('https://example.com/metadata') as GuardianRegistry;
+    const GuardianRegistryFactory =
+      await ethers.getContractFactory('GuardianRegistry');
+    guardianRegistry = (await GuardianRegistryFactory.deploy(
+      'https://example.com/metadata',
+    )) as GuardianRegistry;
     await guardianRegistry.deployed();
 
     // Set GuardianRegistry in MockZkCertificateRegistry
-    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
+    await mockZkCertificateRegistry.setGuardianRegistry(
+      guardianRegistry.address,
+    );
 
     // Approve the provider's public key
     const providerPubKey = [zkKYC.providerData.ax, zkKYC.providerData.ay];
     await guardianRegistry.grantGuardianRole(
       deployer.address,
       providerPubKey,
-      'https://example.com/provider-metadata'
+      'https://example.com/provider-metadata',
     );
-
   });
 
   it('should issue VerificationSBT on correct proof and refuse to re-register before expiration', async () => {
