@@ -22,6 +22,7 @@ import type { MockToken } from '../../typechain-types/contracts/mock/MockToken';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
+import { GuardianRegistry } from '../../typechain-types';
 
 chai.config.includeStack = true;
 
@@ -50,6 +51,7 @@ describe('AirdropGateway', () => {
   let defaultAdminRole: string;
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
   let sampleInput2: any;
+  let guardianRegistry: GuardianRegistry;
 
   beforeEach(async () => {
     // reset the testing chain so we can perform time related tests
@@ -149,6 +151,22 @@ describe('AirdropGateway', () => {
 
     const tokenFactory = await ethers.getContractFactory('MockToken', deployer);
     rewardToken = (await tokenFactory.deploy(deployer.address)) as MockToken;
+
+    // Deploy GuardianRegistry
+    const GuardianRegistryFactory = await ethers.getContractFactory('GuardianRegistry');
+    guardianRegistry = await GuardianRegistryFactory.deploy('https://example.com/metadata') as GuardianRegistry;
+    await guardianRegistry.deployed();
+
+    // Set GuardianRegistry in MockZkCertificateRegistry
+    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
+
+    // Grant guardian role to owner
+    const { providerData } = zkKYC;
+    await guardianRegistry.grantGuardianRole(
+      deployer.address,
+      [providerData.ax, providerData.ay],
+      'https://example.com/guardian-metadata'
+    );
   });
 
   it('only owner can whitelist or dewhitelist clients', async () => {
@@ -315,7 +333,7 @@ describe('AirdropGateway', () => {
 
     // distribution parameters
     const requiredSBTs = [GalaSBT.address, GalaSBT2.address];
-    const registrationStartTime = publicTime + 10;
+    const registrationStartTime = publicTime + 100;
     const registrationEndTime = registrationStartTime + 10000;
     const claimStartTime = registrationEndTime + 10000;
     const claimEndTime = claimStartTime + 10000;
@@ -338,7 +356,7 @@ describe('AirdropGateway', () => {
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await hre.network.provider.send('evm_mine');
     await expect(
-      airdropGateway.connect(user).register(piA, piB, piC, publicInputs),
+      airdropGateway.connect(user).register(piA, piB, piC, publicInputs)
     ).to.be.revertedWith(`registration has not started yet`);
 
     // set time to the registration start time

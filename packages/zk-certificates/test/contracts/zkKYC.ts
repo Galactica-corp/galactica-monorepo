@@ -26,7 +26,7 @@ chai.config.includeStack = true;
 
 const { expect } = chai;
 
-describe('zkKYC SC', () => {
+describe.only('zkKYC SC', () => {
   // reset the testing chain so we can perform time related tests
   /* await hre.network.provider.send('hardhat_reset'); */
   let zkKYCContract: ZkKYC;
@@ -43,7 +43,7 @@ describe('zkKYC SC', () => {
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
-    // reset the testing chain so we can perform time related tests
+    // Reset the testing chain
     await hre.network.provider.send('hardhat_reset');
 
     [deployer, user, randomUser] = await hre.ethers.getSigners();
@@ -55,6 +55,13 @@ describe('zkKYC SC', () => {
     );
     mockZkCertificateRegistry =
       (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+
+    // Deploy GuardianRegistry
+    const guardianRegistryFactory = await ethers.getContractFactory('GuardianRegistry', deployer);
+    guardianRegistry = await guardianRegistryFactory.deploy('https://example.com/metadata') as GuardianRegistry;
+    await guardianRegistry.deployed();
+
+    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
 
     const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
       'MockGalacticaInstitution',
@@ -74,13 +81,15 @@ describe('zkKYC SC', () => {
     zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
 
     const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
-    zkKYCContract = (await zkKYCFactory.deploy(
+    zkKYCContract = await zkKYCFactory.deploy(
       deployer.address,
       zkKYCVerifier.address,
       mockZkCertificateRegistry.address,
-      [],
-    )) as ZkKYC;
+      []
+    ) as ZkKYC;
+    await zkKYCContract.deployed();
 
+    // Generate sample ZkKYC and proof input
     zkKYC = await generateSampleZkKYC();
     sampleInput = await generateZkKYCProofInput(
       zkKYC,
@@ -94,21 +103,12 @@ describe('zkKYC SC', () => {
     circuitWasmPath = './circuits/build/zkKYC.wasm';
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
 
-    const guardianRegistryFactory = await ethers.getContractFactory(
-      'GuardianRegistry',
-      deployer,
-    );
-    guardianRegistry = (await guardianRegistryFactory.deploy(
-      '',
-    )) as GuardianRegistry;
-    await mockZkCertificateRegistry.setGuardianRegistry(
-      guardianRegistry.address,
-    );
+    // Grant guardian role to deployer
     const { providerData } = zkKYC;
     await guardianRegistry.grantGuardianRole(
       deployer.address,
       [providerData.ax, providerData.ay],
-      '',
+      'https://example.com/guardian-metadata'
     );
   });
 
@@ -155,8 +155,7 @@ describe('zkKYC SC', () => {
     const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    console.log(`public inputs are`);
-    console.log(publicInputs);
+
     await zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
   });
 

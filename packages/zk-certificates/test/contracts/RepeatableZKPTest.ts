@@ -15,6 +15,7 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { RepeatableZKPTest } from '../../typechain-types/contracts/mock/RepeatableZKPTest';
 import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
@@ -32,6 +33,7 @@ describe('RepeatableZKPTest', () => {
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let verificationSBT: VerificationSBT;
   let repeatableZKPTest: RepeatableZKPTest;
+  let guardianRegistry: GuardianRegistry;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
@@ -45,13 +47,23 @@ describe('RepeatableZKPTest', () => {
 
     [deployer, user] = await hre.ethers.getSigners();
 
-    // set up KYCRegistry, ZkKYCVerifier, ZkKYC
+    // Deploy GuardianRegistry
+    const GuardianRegistryFactory = await ethers.getContractFactory('GuardianRegistry');
+    guardianRegistry = await GuardianRegistryFactory.deploy('https://example.com/metadata') as GuardianRegistry;
+    await guardianRegistry.deployed();
+
+
+
+    // Deploy MockZkCertificateRegistry
     const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
       'MockZkCertificateRegistry',
       deployer,
     );
     mockZkCertificateRegistry =
       (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+
+    // Set GuardianRegistry in MockZkCertificateRegistry
+    await mockZkCertificateRegistry.setGuardianRegistry(guardianRegistry.address);
 
     const zkKYCVerifierFactory = await ethers.getContractFactory(
       'ZkKYCVerifier',
@@ -96,6 +108,14 @@ describe('RepeatableZKPTest', () => {
       repeatableZKPTest.address,
     );
     sampleInput.dAppAddress = repeatableZKPTest.address;
+
+    // Approve the provider's public key
+    const providerPubKey = [zkKYC.providerData.ax, zkKYC.providerData.ay];
+    await guardianRegistry.grantGuardianRole(
+      deployer.address,
+      providerPubKey,
+      'https://example.com/provider-metadata'
+    );
 
     // advance time a bit to set it later in the test
     sampleInput.currentTime += 100;
