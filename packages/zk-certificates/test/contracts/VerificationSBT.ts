@@ -22,6 +22,7 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
+import type { GuardianRegistry } from '../../typechain-types';
 import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/AgeCitizenshipKYC';
 import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
@@ -51,6 +52,7 @@ describe('Verification SBT Smart contract', () => {
   let sampleInput: any;
   let circuitWasmPath: string;
   let circuitZkeyPath: string;
+  let guardianRegistry: GuardianRegistry;
 
   beforeEach(async () => {
     // reset the testing chain so we can perform time related tests
@@ -154,6 +156,27 @@ describe('Verification SBT Smart contract', () => {
 
     circuitWasmPath = './circuits/build/exampleMockDApp.wasm';
     circuitZkeyPath = './circuits/build/exampleMockDApp.zkey';
+
+    // Deploy GuardianRegistry
+    const GuardianRegistryFactory =
+      await ethers.getContractFactory('GuardianRegistry');
+    guardianRegistry = (await GuardianRegistryFactory.deploy(
+      'https://example.com/metadata',
+    )) as GuardianRegistry;
+    await guardianRegistry.deployed();
+
+    // Set GuardianRegistry in MockZkCertificateRegistry
+    await mockZkCertificateRegistry.setGuardianRegistry(
+      guardianRegistry.address,
+    );
+
+    // Approve the provider's public key
+    const providerPubKey = [zkKYC.providerData.ax, zkKYC.providerData.ay];
+    await guardianRegistry.grantGuardianRole(
+      deployer.address,
+      providerPubKey,
+      'https://example.com/provider-metadata',
+    );
   });
 
   it('if the proof is correct the verification SBT is minted', async () => {

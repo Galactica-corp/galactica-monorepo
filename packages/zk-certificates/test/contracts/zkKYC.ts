@@ -16,6 +16,7 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
@@ -32,6 +33,7 @@ describe('zkKYC SC', () => {
   let zkKYCVerifier: ZkKYCVerifier;
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let mockGalacticaInstitutions: MockGalacticaInstitution[];
+  let guardianRegistry: GuardianRegistry;
   const amountInstitutions = 3;
 
   let deployer: SignerWithAddress;
@@ -41,7 +43,7 @@ describe('zkKYC SC', () => {
   let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
 
   beforeEach(async () => {
-    // reset the testing chain so we can perform time related tests
+    // Reset the testing chain
     await hre.network.provider.send('hardhat_reset');
 
     [deployer, user, randomUser] = await hre.ethers.getSigners();
@@ -53,6 +55,20 @@ describe('zkKYC SC', () => {
     );
     mockZkCertificateRegistry =
       (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+
+    // Deploy GuardianRegistry
+    const guardianRegistryFactory = await ethers.getContractFactory(
+      'GuardianRegistry',
+      deployer,
+    );
+    guardianRegistry = (await guardianRegistryFactory.deploy(
+      'https://example.com/metadata',
+    )) as GuardianRegistry;
+    await guardianRegistry.deployed();
+
+    await mockZkCertificateRegistry.setGuardianRegistry(
+      guardianRegistry.address,
+    );
 
     const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
       'MockGalacticaInstitution',
@@ -78,7 +94,9 @@ describe('zkKYC SC', () => {
       mockZkCertificateRegistry.address,
       [],
     )) as ZkKYC;
+    await zkKYCContract.deployed();
 
+    // Generate sample ZkKYC and proof input
     zkKYC = await generateSampleZkKYC();
     sampleInput = await generateZkKYCProofInput(
       zkKYC,
@@ -91,6 +109,14 @@ describe('zkKYC SC', () => {
 
     circuitWasmPath = './circuits/build/zkKYC.wasm';
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
+
+    // Grant guardian role to deployer
+    const { providerData } = zkKYC;
+    await guardianRegistry.grantGuardianRole(
+      deployer.address,
+      [providerData.ax, providerData.ay],
+      'https://example.com/guardian-metadata',
+    );
   });
 
   it('only owner can change KYCRegistry and Verifier addresses', async () => {
@@ -136,8 +162,7 @@ describe('zkKYC SC', () => {
     const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    console.log(`public inputs are`);
-    console.log(publicInputs);
+
     await zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs);
   });
 
@@ -420,5 +445,38 @@ describe('zkKYC SC', () => {
         .connect(user)
         .verifyProof(piA, piB, piC, publicInputs),
     ).to.be.revertedWith('the first part of institution pubkey is incorrect');
+  });
+
+  it('revert if provider is not whitelisted', async () => {
+    const { proof, publicSignals } = await groth16.fullProve(
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath,
+    );
+
+    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+
+    // set the merkle root to the correct one
+    await mockZkCertificateRegistry.setMerkleRoot(
+      fromHexToBytes32(fromDecToHex(publicRoot)),
+    );
+
+    const publicTime = parseInt(
+      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
+      10,
+    );
+
+    // set time to the public time
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
+    await hre.network.provider.send('evm_mine');
+
+    const [piA, piB, piC] = processProof(proof);
+
+    const publicInputs = processPublicSignals(publicSignals);
+    await guardianRegistry.revokeGuardianRole(deployer.address);
+
+    await expect(
+      zkKYCContract.connect(user).verifyProof(piA, piB, piC, publicInputs),
+    ).to.be.revertedWith('the provider is not whitelisted');
   });
 });
