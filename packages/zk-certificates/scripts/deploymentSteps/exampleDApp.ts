@@ -29,7 +29,7 @@ export async function deployExampleDApp(
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   // deploying everything
-  const zkpVerifier = await deploySC('ExampleMockDAppVerifier', true);
+  const zkpVerifier = await deploySC('AgeCitizenshipKYCVerifier', true);
 
   const ageCitizenshipKYC = await deploySC('AgeCitizenshipKYC', true, {}, [
     deployer.address,
