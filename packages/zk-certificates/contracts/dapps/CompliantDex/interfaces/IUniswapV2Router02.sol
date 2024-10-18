@@ -1,4 +1,6 @@
-pragma solidity >=0.6.2;
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+pragma solidity ^0.8.0;
 
 import './IUniswapV2Router01.sol';
 
@@ -10,10 +12,10 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountETHMin,
         address to,
         uint deadline,
-        uint[2] calldata a,
-        uint[2][2] calldata b,
-        uint[2] calldata c,
-        uint[5] calldata input
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
     ) external returns (uint amountETH);
 
     function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
@@ -24,10 +26,10 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         address to,
         uint deadline,
         bool approveMax, uint8 v, bytes32 r, bytes32 s,
-        uint[2] calldata a,
-        uint[2][2] calldata b,
-        uint[2] calldata c,
-        uint[5] calldata input
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
     ) external returns (uint amountETH);
 
     function swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -36,10 +38,10 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         address[] calldata path,
         address to,
         uint deadline,
-        uint[2] calldata a,
-        uint[2][2] calldata b,
-        uint[2] calldata c,
-        uint[5] calldata input
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
     ) external;
 
     function swapExactETHForTokensSupportingFeeOnTransferTokens(
@@ -47,10 +49,10 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         address[] calldata path,
         address to,
         uint deadline,
-        uint[2] calldata a,
-        uint[2][2] calldata b,
-        uint[2] calldata c,
-        uint[5] calldata input
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
     ) external payable;
 
     function swapExactTokensForETHSupportingFeeOnTransferTokens(
@@ -59,9 +61,9 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         address[] calldata path,
         address to,
         uint deadline,
-        uint[2] calldata a,
-        uint[2][2] calldata b,
-        uint[2] calldata c,
-        uint[5] calldata input
+        uint[2] memory a,
+        uint[2][2] memory b,
+        uint[2] memory c,
+        uint[] memory input
     ) external;
 }

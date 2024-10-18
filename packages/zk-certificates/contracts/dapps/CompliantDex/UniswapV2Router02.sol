@@ -1,17 +1,14 @@
-pragma solidity =0.6.6;
+pragma solidity ^0.8.0;
 
 import './interfaces/IUniswapV2Factory.sol';
-import './libraries/TransferHelper.sol';
 import './interfaces/IUniswapV2Router02.sol';
 import './libraries/UniswapV2Library.sol';
-import './libraries/SafeMath.sol';
+import './libraries/TransferHelper.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
-import './interfaces/IZkKYCVerifier.sol';
+import './../../interfaces/IZkKYCVerifier.sol';
 
 contract UniswapV2Router02 is IUniswapV2Router02 {
-    using SafeMath for uint;
-
     address public immutable override factory;
     address public immutable override WETH;
     IZkKYCVerifier public immutable zkKYCVerifier;
@@ -25,13 +22,13 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) {
         require(zkKYCVerifier.verifyProof(a, b, c, input), 'UniswapV2Router: INVALID_ZKKYC_PROOF');
         _;
     }
 
-    constructor(address _factory, address _WETH, address _zkKYCVerifier) public {
+    constructor(address _factory, address _WETH, address _zkKYCVerifier) {
         factory = _factory;
         WETH = _WETH;
         zkKYCVerifier = IZkKYCVerifier(_zkKYCVerifier);
@@ -82,7 +79,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) external virtual override ensure(deadline) verifyZKKYC(a, b, c, input) returns (uint amountA, uint amountB, uint liquidity) {
         (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
         address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
@@ -100,7 +97,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) external virtual override payable ensure(deadline) verifyZKKYC(a, b, c, input) returns (uint amountToken, uint amountETH, uint liquidity) {
         (amountToken, amountETH) = _addLiquidity(
             token,
@@ -131,7 +128,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) public virtual override ensure(deadline) verifyZKKYC(a, b, c, input) returns (uint amountA, uint amountB) {
         address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
         IUniswapV2Pair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
@@ -151,7 +148,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) public virtual override ensure(deadline) verifyZKKYC(a, b, c, input) returns (uint amountToken, uint amountETH) {
         (amountToken, amountETH) = removeLiquidity(
             token,
@@ -182,10 +179,10 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) external virtual override returns (uint amountA, uint amountB) {
         address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
-        uint value = approveMax ? uint(-1) : liquidity;
+        uint value = approveMax ? type(uint256).max : liquidity;
         IUniswapV2Pair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountA, amountB) = removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline, a, b, c, input);
     }
@@ -200,10 +197,10 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) external virtual override returns (uint amountToken, uint amountETH) {
         address pair = UniswapV2Library.pairFor(factory, token, WETH);
-        uint value = approveMax ? uint(-1) : liquidity;
+        uint value = approveMax ? type(uint256).max : liquidity;
         IUniswapV2Pair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountToken, amountETH) = removeLiquidityETH(token, liquidity, amountTokenMin, amountETHMin, to, deadline, a, b, c, input);
     }
@@ -219,7 +216,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) public virtual override ensure(deadline) verifyZKKYC(a, b, c, input) returns (uint amountETH) {
         (, amountETH) = removeLiquidity(
             token,
@@ -249,10 +246,10 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) external virtual override returns (uint amountETH) {
         address pair = UniswapV2Library.pairFor(factory, token, WETH);
-        uint value = approveMax ? uint(-1) : liquidity;
+        uint value = approveMax ? type(uint256).max : liquidity;
         IUniswapV2Pair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         amountETH = removeLiquidityETHSupportingFeeOnTransferTokens(
             token, liquidity, amountTokenMin, amountETHMin, to, deadline, a, b, c, input
@@ -282,7 +279,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) external virtual override ensure(deadline) verifyZKKYC(a, b, c, input) returns (uint[] memory amounts) {
         amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
@@ -300,7 +297,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) external virtual override ensure(deadline) verifyZKKYC(a, b, c, input) returns (uint[] memory amounts) {
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
@@ -309,7 +306,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         );
         _swap(amounts, path, to);
     }
-    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline, uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[5] memory input)
+    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline, uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[] memory input)
         external
         virtual
         override
@@ -325,7 +322,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
     }
-    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline, uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[5] memory input)
+    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline, uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[] memory input)
         external
         virtual
         override
@@ -343,7 +340,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
     }
-    function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline, uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[5] memory input)
+    function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline, uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[] memory input)
         external
         virtual
         override
@@ -361,7 +358,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         TransferHelper.safeTransferETH(to, amounts[amounts.length - 1]);
     }
-    function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline, uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[5] memory input)
+    function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline, uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[] memory input)
         external
         virtual
         override
@@ -392,7 +389,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
             { // scope to avoid stack too deep errors
             (uint reserve0, uint reserve1,) = pair.getReserves();
             (uint reserveInput, uint reserveOutput) = input == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
-            amountInput = IERC20(input).balanceOf(address(pair)).sub(reserveInput);
+            amountInput = IERC20(input).balanceOf(address(pair)) + reserveInput;
             amountOutput = UniswapV2Library.getAmountOut(amountInput, reserveInput, reserveOutput);
             }
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOutput) : (amountOutput, uint(0));
@@ -409,7 +406,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     ) external virtual override ensure(deadline) verifyZKKYC(a, b, c, input) {
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amountIn
@@ -417,7 +414,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         _swapSupportingFeeOnTransferTokens(path, to);
         require(
-            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
+            IERC20(path[path.length - 1]).balanceOf(to) - balanceBefore >= amountOutMin,
             'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
@@ -429,7 +426,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     )
         external
         virtual
@@ -445,7 +442,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
         _swapSupportingFeeOnTransferTokens(path, to);
         require(
-            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
+            IERC20(path[path.length - 1]).balanceOf(to) - balanceBefore >= amountOutMin,
             'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
@@ -458,7 +455,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,
-        uint[5] memory input
+        uint[] memory input
     )
         external
         virtual

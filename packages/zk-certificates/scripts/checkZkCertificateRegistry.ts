@@ -16,6 +16,8 @@ async function main() {
   const GuardianRegistryAddress =
     await ZkCertificateRegistryInstance._GuardianRegistry();
   console.log(`GuardianRegistryAddress is ${GuardianRegistryAddress}`);
+
+  const ZkCertHash = 
 }
 
 // We recommend this pattern to be able to use async/await everywhere
