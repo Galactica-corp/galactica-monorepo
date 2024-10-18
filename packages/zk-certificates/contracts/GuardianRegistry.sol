@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import './Ownable.sol';
+import './interfaces/IGuardianRegistry.sol';
 
 /**
  * @title GuardianInfo struct containing data about a guardian's registration
@@ -26,7 +27,7 @@ struct GuardianIssuer {
 
 /// @author Galactica dev team
 /// @title Smart contract storing whitelist of GNET guardians, for example KYC provider guardians
-contract GuardianRegistry is Ownable {
+contract GuardianRegistry is Ownable, IGuardianRegistry {
     // a short description to describe which type of zkCertificate is managed by Guardians in this Registry
 
     string public description;
@@ -74,7 +75,6 @@ contract GuardianRegistry is Ownable {
         string calldata metadataURL
     ) public onlyOwner {
         guardians[guardian].whitelisted = true;
-        // dev: do we need to check that the pubkey here indeed relates to the guardian?
         guardians[guardian].pubKey = pubKey;
         guardians[guardian].metadataURL = metadataURL;
 

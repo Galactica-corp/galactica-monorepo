@@ -2,12 +2,14 @@
 pragma solidity ^0.8.0;
 
 import {IZkCertificateRegistry} from "../interfaces/IZkCertificateRegistry.sol";
+import {IGuardianRegistry} from "../interfaces/IGuardianRegistry.sol";
 
 /// @author Galactica dev team
 contract MockZkCertificateRegistry is IZkCertificateRegistry {
     bytes32 public constant MERKLE_ROOT_INITIAL_VALUE = bytes32(0);
     bytes32[] public merkleRoots = [MERKLE_ROOT_INITIAL_VALUE];
     uint256 public merkleRootValidIndex = 1;
+    IGuardianRegistry public guardianRegistry;
 
     mapping (bytes32 => uint256) public merkleRootIndex;
 
@@ -27,5 +29,9 @@ contract MockZkCertificateRegistry is IZkCertificateRegistry {
     function verifyMerkleRoot(bytes32 _merkleRoot) external view returns (bool) {
       uint _merkleRootIndex = merkleRootIndex[_merkleRoot];
       return _merkleRootIndex >= merkleRootValidIndex;
+    }
+
+    function setGuardianRegistry(address _guardianRegistry) public {
+      guardianRegistry = IGuardianRegistry(_guardianRegistry);
     }
 }

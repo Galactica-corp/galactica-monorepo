@@ -8,6 +8,7 @@ import {IZkCertificateRegistry} from '../interfaces/IZkCertificateRegistry.sol';
 import {BokkyPooBahsDateTimeLibrary} from '../libraries/BokkyPooBahsDateTimeLibrary.sol';
 import {IGalacticaInstitution} from '../interfaces/IGalacticaInstitution.sol';
 import {ICircomVerifier} from '../interfaces/ICircomVerifier.sol';
+import {IGuardianRegistry} from '../interfaces/IGuardianRegistry.sol';
 
 /**
  * @title Smart contract demo for Galactica zkKYC requirements
@@ -213,6 +214,17 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier {
         require(
             input[INDEX_AGE_THRESHOLD] >= ageThreshold,
             'the age threshold is not proven'
+        );
+
+        // check that the pubkey belongs to a whitelisted provider
+        IGuardianRegistry guardianRegistry = KYCRegistry.guardianRegistry();
+        address guardianAddress = guardianRegistry.pubKeyToAddress(
+            input[INDEX_PROVIDER_PUBKEY_AX],
+            input[INDEX_PROVIDER_PUBKEY_AY]
+            );
+        require(
+            guardianRegistry.isWhitelisted(guardianAddress),
+            'the provider is not whitelisted'
         );
 
         // check that the institution public key corresponds to the onchain one;
