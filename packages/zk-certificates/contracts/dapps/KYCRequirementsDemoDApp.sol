@@ -16,10 +16,17 @@ contract KYCRequirementsDemoDApp {
     IAgeCitizenshipKYCVerifier public verifierWrapper;
 
     constructor(
-        VerificationSBT _SBT,
-        IAgeCitizenshipKYCVerifier _verifierWrapper
+        IAgeCitizenshipKYCVerifier _verifierWrapper,
+        string memory _sbt_uri,
+        string memory _sbt_name,
+        string memory _sbt_symbol
     ) {
-        SBT = _SBT;
+        SBT = new VerificationSBT(
+            _sbt_uri,
+            _sbt_name,
+            _sbt_symbol,
+            address(this)
+        );
         verifierWrapper = _verifierWrapper;
     }
 
@@ -28,7 +35,7 @@ contract KYCRequirementsDemoDApp {
      * @param account the address to check
      */
     function passedRequirements(address account) public view returns (bool) {
-        return SBT.isVerificationSBTValid(account, address(this));
+        return SBT.isVerificationSBTValid(account);
     }
 
     function checkRequirements(

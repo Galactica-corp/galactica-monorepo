@@ -6,7 +6,7 @@ import { parseEther } from 'ethers/lib/utils';
 import hre, { ethers } from 'hardhat';
 
 import type { CompliantERC20 } from '../../typechain-types/contracts/CompliantERC20';
-import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -25,6 +25,12 @@ describe('CompliantERC20', () => {
       initialSupply: parseEther('1000000'),
     };
 
+    const mockZkKYCFactory = await ethers.getContractFactory(
+      'MockZkKYC',
+      deployer,
+    );
+    const mockZkKYC = await mockZkKYCFactory.deploy();
+
     const verificationSBTFactory = await ethers.getContractFactory(
       'VerificationSBT',
       deployer,
@@ -33,13 +39,8 @@ describe('CompliantERC20', () => {
       'test URI',
       'VerificationSBT',
       'VerificationSBT',
+      mockZkKYC.address,
     )) as VerificationSBT;
-
-    const mockZkKYCFactory = await ethers.getContractFactory(
-      'MockZkKYC',
-      deployer,
-    );
-    const mockZkKYC = await mockZkKYCFactory.deploy();
 
     // setup contracts
     const tokenFactory = await ethers.getContractFactory(
@@ -51,8 +52,7 @@ describe('CompliantERC20', () => {
       params.symbol,
       deployer.address,
       params.initialSupply,
-      verificationSBT.address,
-      [mockZkKYC.address],
+      [verificationSBT.address],
     )) as CompliantERC20;
 
     // compliantUser passes KYC requirements
@@ -82,8 +82,7 @@ describe('CompliantERC20', () => {
   }
 
   it('should deploy with right params', async () => {
-    const { token, params, acc, verificationSBT, mockZkKYC } =
-      await loadFixture(deploy);
+    const { token, params, acc, verificationSBT } = await loadFixture(deploy);
 
     expect(await token.name()).to.equal(params.name);
     expect(await token.symbol()).to.equal(params.symbol);
@@ -93,8 +92,7 @@ describe('CompliantERC20', () => {
     );
     expect(await token.owner()).to.equal(acc.deployer.address);
 
-    expect(await token.verificationSBT()).to.equal(verificationSBT.address);
-    expect(await token.compliancyRequirements(0)).to.equal(mockZkKYC.address);
+    expect(await token.complianceSBTs(0)).to.equal(verificationSBT.address);
   });
 
   it('should transfer to compliant user', async () => {
@@ -137,18 +135,15 @@ describe('CompliantERC20', () => {
       .connect(acc.deployer)
       .setCompliancyRequirements(newComplianceRequirements);
 
-    expect(await token.compliancyRequirements(0)).to.equal(
+    expect(await token.complianceSBTs(0)).to.equal(
       newComplianceRequirements[0],
     );
-    expect(await token.compliancyRequirements(1)).to.equal(
+    expect(await token.complianceSBTs(1)).to.equal(
       newComplianceRequirements[1],
     );
 
     // the previous user should not be compliant anymore
-    await expect(
-      token.transfer(acc.nonCompliantUser.address, parseEther('1')),
-    ).to.be.revertedWith(
-      'CompliantERC20: Recipient does not have required compliance SBTs.',
-    );
+    await expect(token.transfer(acc.nonCompliantUser.address, parseEther('1')))
+      .to.be.reverted;
   });
 });

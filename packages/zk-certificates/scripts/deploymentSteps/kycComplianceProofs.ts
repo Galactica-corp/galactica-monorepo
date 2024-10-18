@@ -10,7 +10,7 @@ const { log } = console;
 
 type ComplianceContracts = {
   ageCitizenshipKYC: any;
-  basicExampleDApp: any;
+  dApp: any;
 };
 
 /**
@@ -52,12 +52,14 @@ export async function deployKYCComplianceProofsDApps(
       [],
       0, // no age threshold
     ]),
-    basicExampleDApp: undefined,
+    dApp: undefined,
   };
-  nonUS.basicExampleDApp = await deploySC('BasicKYCExampleDApp', true, {}, [
-    verificationSBTAddr,
-    nonUS.ageCitizenshipKYC.address,
-  ]);
+  nonUS.dApp = await deploySC(
+    'contracts/dapps/NonUSProverDApp.sol:NonUSProverDApp',
+    true,
+    {},
+    [verificationSBTAddr, nonUS.ageCitizenshipKYC.address],
+  );
 
   log('NonSanctionedJurisdiction:');
   const nonSanctionedJurisdiction: ComplianceContracts = {
@@ -88,10 +90,10 @@ export async function deployKYCComplianceProofsDApps(
       [],
       0, // no age threshold
     ]),
-    basicExampleDApp: undefined,
+    dApp: undefined,
   };
-  nonSanctionedJurisdiction.basicExampleDApp = await deploySC(
-    'BasicKYCExampleDApp',
+  nonSanctionedJurisdiction.dApp = await deploySC(
+    'contracts/dapps/NonSanctionedProverDApp.sol:NonSanctionedProverDApp',
     true,
     {},
     [verificationSBTAddr, nonSanctionedJurisdiction.ageCitizenshipKYC.address],
@@ -109,10 +111,10 @@ export async function deployKYCComplianceProofsDApps(
       [],
       18, // no age threshold
     ]),
-    basicExampleDApp: undefined,
+    dApp: undefined,
   };
-  adult18Plus.basicExampleDApp = await deploySC(
-    'BasicKYCExampleDApp',
+  adult18Plus.dApp = await deploySC(
+    'contracts/dapps/Age18ProverDApp.sol:Age18ProverDApp',
     true,
     {},
     [verificationSBTAddr, adult18Plus.ageCitizenshipKYC.address],

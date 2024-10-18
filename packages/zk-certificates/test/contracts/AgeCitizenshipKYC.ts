@@ -76,24 +76,25 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       18,
     )) as AgeCitizenshipKYC;
     await ageCitizenshipKYCVerifier.deployed();
-    const verificationSBTFactory = await ethers.getContractFactory(
-      'VerificationSBT',
-      deployer,
-    );
-    const verificationSBT = (await verificationSBTFactory.deploy(
-      'test URI',
-      'VerificationSBT',
-      'VerificationSBT',
-    )) as VerificationSBT;
 
     const mockDAppFactory = await ethers.getContractFactory(
       'KYCRequirementsDemoDApp',
       deployer,
     );
     const kycRequirementsDemoDApp = (await mockDAppFactory.deploy(
-      verificationSBT.address,
       ageCitizenshipKYC.address,
+      'test URI',
+      'VerificationSBT',
+      'VerificationSBT',
     )) as KYCRequirementsDemoDApp;
+
+    const verificationSBTFactory = await ethers.getContractFactory(
+      'VerificationSBT',
+      deployer,
+    );
+    const verificationSBT = verificationSBTFactory.attach(
+      await kycRequirementsDemoDApp.SBT(),
+    ) as VerificationSBT;
 
     const guardianRegistryFactory = await ethers.getContractFactory(
       'GuardianRegistry',
