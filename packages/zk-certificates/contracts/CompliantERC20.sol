@@ -10,29 +10,27 @@ import './interfaces/IVerificationSBT.sol';
 contract CompliantERC20 is ERC20, Ownable {
     // The compliance requirements are defined by a list of dApps.
     // Recipients must have received a VerificationSBT from each of these dApps to be compliant.
-    address[] public compliancyRequirements;
-    IVerificationSBT public verificationSBT;
+    IVerificationSBT[] public complianceSBTs;
 
     /**
      * @dev Constructor that initializes the token and mints the initial supply to the owner.
-     * @param _name The name of the token.
-     * @param _symbol The symbol of the token.
-     * @param _owner The owner of the token.
-     * @param _initialSupply The initial supply of the token.
-     * @param _verificationSBT The address of the verificationSBT contract.
-     * @param _compliantRequirements The list of dApps that define the compliance requirements.
+     * @param _name - The name of the token.
+     * @param _symbol - The symbol of the token.
+     * @param _owner - The owner of the token.
+     * @param _initialSupply - The initial supply of the token.
+     * @param _complianceSBTs - The list of dApps that define the compliance requirements.
      */
     constructor(
         string memory _name,
         string memory _symbol,
         address _owner,
         uint _initialSupply,
-        address _verificationSBT,
-        address[] memory _compliantRequirements
+        address[] memory _complianceSBTs
     ) ERC20(_name, _symbol) Ownable() {
         _mint(_owner, _initialSupply);
-        verificationSBT = IVerificationSBT(_verificationSBT);
-        compliancyRequirements = _compliantRequirements;
+        for (uint i = 0; i < _complianceSBTs.length; i++) {
+            complianceSBTs.push(IVerificationSBT(_complianceSBTs[i]));
+        }
     }
 
     function _transfer(
@@ -40,12 +38,9 @@ contract CompliantERC20 is ERC20, Ownable {
         address to,
         uint256 amount
     ) internal override {
-        for (uint i = 0; i < compliancyRequirements.length; i++) {
+        for (uint i = 0; i < complianceSBTs.length; i++) {
             require(
-                verificationSBT.isVerificationSBTValid(
-                    to,
-                    compliancyRequirements[i]
-                ),
+                complianceSBTs[i].isVerificationSBTValid(to),
                 'CompliantERC20: Recipient does not have required compliance SBTs.'
             );
         }
@@ -54,11 +49,14 @@ contract CompliantERC20 is ERC20, Ownable {
 
     /**
      * @dev Sets the list of dApps that define the compliance requirements.
-     * @param _compliantRequirements The list of dApps that define the compliance requirements.
+     * @param _complianceSBTs - The list of dApps that define the compliance requirements.
      */
     function setCompliancyRequirements(
-        address[] memory _compliantRequirements
+        address[] memory _complianceSBTs
     ) external onlyOwner {
-        compliancyRequirements = _compliantRequirements;
+        delete complianceSBTs;
+        for (uint i = 0; i < _complianceSBTs.length; i++) {
+            complianceSBTs.push(IVerificationSBT(_complianceSBTs[i]));
+        }
     }
 }

@@ -15,10 +15,7 @@ const sbtContract = new ethers.Contract(
   VerificationSbtABI.abi,
   provider,
 );
-const sbtInfo = await sbtContract.getVerificationSBTInfo(
-  loggedUser,
-  loggedDApp,
-);
+const sbtInfo = await sbtContract.getVerificationSBTInfo(loggedUser);
 ```
 
 Alternatively, if you want to find all verification SBTs of a user or a DApp, you can search through the event log using the following filter:

@@ -11,7 +11,9 @@ import {BasicKYCExampleDApp} from './BasicKYCExampleDApp.sol';
  */
 contract Age18ProverDApp is BasicKYCExampleDApp {
     constructor(
-        VerificationSBT _SBT,
-        IZkKYCVerifier _verifierWrapper
-    ) BasicKYCExampleDApp(_SBT, _verifierWrapper) {}
+        IZkKYCVerifier _verifierWrapper,
+        string memory _uri,
+        string memory _name,
+        string memory _symbol
+    ) BasicKYCExampleDApp(_verifierWrapper, _uri, _name, _symbol) {}
 }

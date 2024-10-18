@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../SBT_related/VerificationSBT.sol";
-import "../interfaces/IAgeCitizenshipKYCVerifier.sol";
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '../SBT_related/VerificationSBT.sol';
+import '../interfaces/IAgeCitizenshipKYCVerifier.sol';
 
 /// @author Galactica dev team
 //For testing purpose we will create a mock dApp that airdrops 2 types tokens (100 each) for user
@@ -24,9 +24,19 @@ contract MockDApp {
     VerificationSBT public SBT;
     IAgeCitizenshipKYCVerifier public verifierWrapper;
 
-    constructor(VerificationSBT _SBT, IAgeCitizenshipKYCVerifier _verifierWrapper) {
-        SBT = _SBT;
+    constructor(
+        IAgeCitizenshipKYCVerifier _verifierWrapper,
+        string memory _sbt_uri,
+        string memory _sbt_name,
+        string memory _sbt_symbol
+    ) {
         verifierWrapper = _verifierWrapper;
+        SBT = new VerificationSBT(
+            _sbt_uri,
+            _sbt_name,
+            _sbt_symbol,
+            address(this)
+        );
     }
 
     function setToken1(ERC20 _token1) public {
@@ -46,7 +56,7 @@ contract MockDApp {
     ) public {
         bytes32 humanID;
         // first check if this user already already has a verification SBT, if no we will check the supplied proof
-        if (!SBT.isVerificationSBTValid(msg.sender, address(this))) {
+        if (!SBT.isVerificationSBTValid(msg.sender)) {
             humanID = bytes32(input[verifierWrapper.INDEX_HUMAN_ID()]);
             uint dAppAddress = input[verifierWrapper.INDEX_DAPP_ID()];
 
@@ -100,7 +110,7 @@ contract MockDApp {
             );
         }
 
-        humanID = SBT.getHumanID(msg.sender, address(this));
+        humanID = SBT.getHumanID(msg.sender);
 
         // if everything is good then we transfer the airdrop
         // then mark it in the mapping

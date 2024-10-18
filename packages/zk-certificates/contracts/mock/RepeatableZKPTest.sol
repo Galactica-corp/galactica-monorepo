@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.0;
-import "../SBT_related/VerificationSBT.sol";
-import "../interfaces/IZkKYCVerifier.sol";
+import '../SBT_related/VerificationSBT.sol';
+import '../interfaces/IZkKYCVerifier.sol';
 
 /**
  * @title RepeatableZKPTest is a simple smart contract that can be used to test ZKP submission to create a verification SBT
@@ -12,8 +12,18 @@ contract RepeatableZKPTest {
     VerificationSBT public SBT;
     IZkKYCVerifier public verifierWrapper;
 
-    constructor(VerificationSBT _SBT, IZkKYCVerifier _verifierWrapper) {
-        SBT = _SBT;
+    constructor(
+        IZkKYCVerifier _verifierWrapper,
+        string memory _sbt_uri,
+        string memory _sbt_name,
+        string memory _sbt_symbol
+    ) {
+        SBT = new VerificationSBT(
+            _sbt_uri,
+            _sbt_name,
+            _sbt_symbol,
+            address(this)
+        );
         verifierWrapper = _verifierWrapper;
     }
 
@@ -29,11 +39,11 @@ contract RepeatableZKPTest {
         // check that the public dAppAddress is correct
         require(
             dAppAddress == uint(uint160(address(this))),
-            "incorrect dAppAddress"
+            'incorrect dAppAddress'
         );
 
         // check the zk proof
-        require(verifierWrapper.verifyProof(a, b, c, input), "invalid proof");
+        require(verifierWrapper.verifyProof(a, b, c, input), 'invalid proof');
 
         //afterwards we mint the verification SBT
         uint256[2] memory userPubKey = [
@@ -74,6 +84,6 @@ contract RepeatableZKPTest {
      * @param account the address to check
      */
     function isVerified(address account) public view returns (bool) {
-        return SBT.isVerificationSBTValid(account, address(this));
+        return SBT.isVerificationSBTValid(account);
     }
 }

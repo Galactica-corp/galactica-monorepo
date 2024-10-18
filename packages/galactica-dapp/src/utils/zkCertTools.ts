@@ -12,7 +12,7 @@ import KYCRecordRegistryABI from '../config/abi/KYCRecordRegistry.json';
  */
 export class SBT {
   constructor(
-    public dApp: string,
+    public sbtAddr: string,
     public verifierWrapper: string,
     public expirationTime: number,
     public verifierCodehash: string,
@@ -53,7 +53,6 @@ const LOCAL_STORAGE_KEY_SBT = 'cachedVerificationSBTs';
  * @param sbtContractAddr - Address of the verification SBT contract holding the mapping of completed verifications.
  * @param provider - Provider to use to query logs.
  * @param userAddr - Address of the user to find verification SBTs for.
- * @param dAppAddr - Address of the dApp the SBT was created for (default: undefined).
  * @param humanID - HumanID of the user the SBT was created for (default: undefined).
  * @param filterExpiration - Whether to filter out expired SBTs (default: false).
  * @returns List of verification SBTs.
@@ -62,7 +61,6 @@ export async function queryVerificationSBTs(
   sbtContractAddr: string,
   provider: ethers.providers.Web3Provider,
   userAddr: string,
-  dAppAddr: string | undefined = undefined,
   humanID: string | undefined = undefined,
   filterExpiration = false,
 ): Promise<SBT[]> {
@@ -111,8 +109,7 @@ export async function queryVerificationSBTs(
   const filter = {
     address: sbtContractAddr,
     topics: [
-      ethers.utils.id('VerificationSBTMinted(address,address,bytes32)'),
-      dAppAddr ? ethers.utils.hexZeroPad(dAppAddr, 32) : null,
+      ethers.utils.id('VerificationSBTMinted(address,bytes32)'),
       userAddr ? ethers.utils.hexZeroPad(userAddr, 32) : null,
       humanID ? ethers.utils.hexZeroPad(humanID, 32) : null,
     ],
@@ -138,11 +135,7 @@ export async function queryVerificationSBTs(
       if (log.topics === undefined) {
         continue;
       }
-      const loggedDApp = ethers.utils.hexDataSlice(log.topics[1], 12);
-      const sbtInfo = await sbtContract.getVerificationSBTInfo(
-        userAddr,
-        loggedDApp,
-      );
+      const sbtInfo = await sbtContract.getVerificationSBTInfo(userAddr);
 
       if (
         filterExpiration &&
@@ -153,7 +146,7 @@ export async function queryVerificationSBTs(
 
       userSBTs.verificationSBTs.push(
         new SBT(
-          sbtInfo.dApp,
+          sbtContractAddr,
           sbtInfo.verifierWrapper,
           BigNumber.from(sbtInfo.expirationTime).toNumber(),
           sbtInfo.verifierCodehash,
@@ -182,7 +175,7 @@ export function formatVerificationSBTs(
   let count = 1;
   for (const sbt of sbts) {
     res += `SBT ${count}:\n`;
-    res += `  proven to DApp ${sbt.dApp}\n`;
+    res += `  addr ${sbt.sbtAddr}\n`;
     res += `  expiration ${new Date(
       sbt.expirationTime * 1000,
     ).toDateString()}\n`;
