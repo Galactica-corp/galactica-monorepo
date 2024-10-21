@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Signer } from "ethers";
+import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+
 import { groth16 } from 'snarkjs';
 import {
   fromDecToHex,
@@ -23,9 +24,9 @@ import type { UniswapV2Router02 } from '../../typechain-types/contracts/dapps/Co
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/verifierWrappers/ZkKYCVerifier';
 
 describe("Compliant UniswapV2", function () {
-  let deployer: Signer;
-  let user1: Signer;
-  let user2: Signer;
+  let deployer: SignerWithAddress;
+  let user1: SignerWithAddress;
+  let user2: SignerWithAddress;
   let factory: UniswapV2Factory;
   let router: UniswapV2Router02;
   let tokenA: MockToken;
@@ -100,9 +101,10 @@ describe("Compliant UniswapV2", function () {
     return { piA, piB, piC, publicInputs };
   }
 
-  it.only("Should create a pair and add liquidity", async function () {
+  it("Should create a pair, add liquidity, remove liquidity, and swap tokens", async function () {
     const { piA, piB, piC, publicInputs } = await generateAndProcessProof(sampleInput, circuitWasmPath, circuitZkeyPath);
 
+    // Add liquidity
     await router.addLiquidity(
       tokenA.address,
       tokenB.address,
@@ -118,31 +120,60 @@ describe("Compliant UniswapV2", function () {
     const pairAddress = await factory.getPair(tokenA.address, tokenB.address);
     const pair = await ethers.getContractAt("UniswapV2Pair", pairAddress);
 
-    expect(await pair.token0()).to.equal(tokenA.address);
-    expect(await pair.token1()).to.equal(tokenB.address);
-    expect(await pair.balanceOf(await owner.getAddress())).to.be.gt(0);
-  });
+    const pairBalanceA = await tokenA.balanceOf(pairAddress);
+    const pairBalanceB = await tokenB.balanceOf(pairAddress);
+    expect(pairBalanceA).to.be.equal(INITIAL_LIQUIDITY);
+    expect(pairBalanceB).to.be.equal(INITIAL_LIQUIDITY);
+    const lpTokenBalance = await pair.balanceOf(deployer.address);
+    expect(lpTokenBalance).to.be.gt(0);
+    const removeBalance = lpTokenBalance.div(2);
 
-  it("Should swap tokens", async function () {
-    const { piA, piB, piC, publicInputs } = await generateAndProcessProof(user1);
-    const amountIn = ethers.utils.parseEther("100");
-    const path = [tokenA.address, tokenB.address];
-
-    await tokenA.transfer(await user1.getAddress(), amountIn);
-    await tokenA.connect(user1).approve(router.address, amountIn);
-
-    const balanceBefore = await tokenB.balanceOf(await user1.getAddress());
-
-    await router.connect(user1).swapExactTokensForTokens(
-      amountIn,
+    // Remove liquidity
+    await pair.approve(router.address, lpTokenBalance);
+    await router.removeLiquidity(
+      tokenA.address,
+      tokenB.address,
+      removeBalance,
       0,
-      path,
-      await user1.getAddress(),
+      0,
+      deployer.address,
       ethers.constants.MaxUint256,
       piA, piB, piC, publicInputs
     );
 
-    const balanceAfter = await tokenB.balanceOf(await user1.getAddress());
+    const pairBalanceAAfterRemove = await tokenA.balanceOf(pairAddress);
+    const pairBalanceBAfterRemove = await tokenB.balanceOf(pairAddress);
+    expect(pairBalanceAAfterRemove).to.be.equal(0);
+    expect(pairBalanceBAfterRemove).to.be.equal(0);
+
+    // Add liquidity again for swap test
+    await router.addLiquidity(
+      tokenA.address,
+      tokenB.address,
+      INITIAL_LIQUIDITY,
+      INITIAL_LIQUIDITY,
+      0,
+      0,
+      deployer.address,
+      ethers.constants.MaxUint256,
+      piA, piB, piC, publicInputs
+    );
+
+    // Swap tokens
+    const swapAmount = ethers.utils.parseEther("100");
+    await tokenA.approve(router.address, swapAmount);
+    const balanceBefore = await tokenB.balanceOf(deployer.address);
+
+    await router.swapExactTokensForTokens(
+      swapAmount,
+      0,
+      [tokenA.address, tokenB.address],
+      deployer.address,
+      ethers.constants.MaxUint256,
+      piA, piB, piC, publicInputs
+    );
+
+    const balanceAfter = await tokenB.balanceOf(deployer.address);
     expect(balanceAfter).to.be.gt(balanceBefore);
   });
 

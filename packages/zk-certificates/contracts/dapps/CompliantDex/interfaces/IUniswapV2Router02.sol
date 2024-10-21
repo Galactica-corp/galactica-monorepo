@@ -11,11 +11,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountTokenMin,
         uint amountETHMin,
         address to,
-        uint deadline,
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[] memory input
+        uint deadline
     ) external returns (uint amountETH);
 
     function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
@@ -25,11 +21,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountETHMin,
         address to,
         uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s,
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[] memory input
+        bool approveMax, uint8 v, bytes32 r, bytes32 s
     ) external returns (uint amountETH);
 
     function swapExactTokensForTokensSupportingFeeOnTransferTokens(
@@ -37,22 +29,14 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline,
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[] memory input
+        uint deadline
     ) external;
 
     function swapExactETHForTokensSupportingFeeOnTransferTokens(
         uint amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline,
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[] memory input
+        uint deadline
     ) external payable;
 
     function swapExactTokensForETHSupportingFeeOnTransferTokens(
@@ -60,10 +44,6 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         uint amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline,
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[] memory input
+        uint deadline
     ) external;
 }
