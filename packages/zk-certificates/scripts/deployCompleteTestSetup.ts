@@ -4,7 +4,6 @@ import hre from 'hardhat';
 import path from 'path';
 
 import { deployBasicKYCExampleDApp } from './deploymentSteps/basicKYCExampleDApp';
-import { deployDevnetGuardian } from './deploymentSteps/devnetGuardian';
 import { deployExampleDApp } from './deploymentSteps/exampleDApp';
 import { deployInfrastructure } from './deploymentSteps/infrastructure';
 import { deployKYCComplianceProofsDApps } from './deploymentSteps/kycComplianceProofs';
@@ -41,11 +40,6 @@ async function main() {
     deployer,
     infrastructure.verificationSBT.address,
     repeatableZkKYC.zkKYCSC.address,
-  );
-  const devnetGuardian = await deployDevnetGuardian(
-    deployer,
-    infrastructure.guardianRegistry.address,
-    infrastructure.recordRegistry.address,
   );
 
   await whitelistSignerGuardian(
@@ -90,8 +84,6 @@ ZkKYC: ${JSON.stringify(repeatableZkKYC.zkKYCSC.address)}
 
 BasicKYCExampleDApp: ${JSON.stringify(basicKYCExample.address)}
 RepeatableZKPTest: ${JSON.stringify(repeatableZkKYC.repeatableZKPTest.address)}
-
-DevnetGuardian: ${JSON.stringify(devnetGuardian.address)}
 
 
 ExampleAirdrop-ExampleMockDAppVerifier: ${JSON.stringify(
