@@ -58,7 +58,7 @@ describe('Compliant UniswapV2', function () {
     // Deploy Factory
     const Factory = await ethers.getContractFactory('UniswapV2Factory');
     factory = (await Factory.deploy(
-      await deployer.getAddress(),
+      deployer.address
     )) as UniswapV2Factory;
 
     // Deploy Router
@@ -69,6 +69,9 @@ describe('Compliant UniswapV2', function () {
       mockZkKYC.address,
       verificationSBT.address,
     )) as UniswapV2Router02;
+
+    // Set router
+    await factory.setRouter(router.address);
 
     // Deploy mock tokens
     const MockToken = await ethers.getContractFactory('MockToken');

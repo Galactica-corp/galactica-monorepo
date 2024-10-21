@@ -17,9 +17,8 @@ contract UniswapV2Factory is IUniswapV2Factory {
     address[] public override allPairs;
     address public override router;
 
-    constructor(address _feeToSetter, address _router) {
+    constructor(address _feeToSetter) {
         feeToSetter = _feeToSetter;
-        router = _router;
     }
 
     function allPairsLength() external view override returns (uint256) {
@@ -60,5 +59,10 @@ contract UniswapV2Factory is IUniswapV2Factory {
     function setFeeToSetter(address _feeToSetter) external override {
         require(msg.sender == feeToSetter, "UniswapV2: FORBIDDEN");
         feeToSetter = _feeToSetter;
+    }
+
+    function setRouter(address _router) external override {
+        require(msg.sender == feeToSetter, "UniswapV2: FORBIDDEN");
+        router = _router;
     }
 }
