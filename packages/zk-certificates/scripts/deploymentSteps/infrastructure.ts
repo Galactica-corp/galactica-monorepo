@@ -25,7 +25,6 @@ export async function deployInfrastructure(
   guardianRegistry: any;
   recordRegistry: any;
   institutionContracts: any[];
-  verificationSBT: any;
 }> {
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
@@ -79,17 +78,11 @@ export async function deployInfrastructure(
     await galacticaInstitution.setInstitutionPubkey(pubAsDecimalString);
     institutionContracts.push(galacticaInstitution);
   }
-  const verificationSBT = await deploySC('VerificationSBT', true, {}, [
-    'https://quicknode.quicknode-ipfs.com/ipfs/QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs',
-    'VerificationSBT',
-    'VerificationSBT',
-  ]);
 
   return {
     poseidonT3,
     guardianRegistry,
     recordRegistry,
     institutionContracts,
-    verificationSBT,
   };
 }

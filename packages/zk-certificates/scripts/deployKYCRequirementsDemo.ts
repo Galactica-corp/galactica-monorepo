@@ -9,7 +9,11 @@ import { deployKYCRequirementsDemoDApp } from './deploymentSteps/kycRequirementD
 async function main() {
   // parameters
   const zkKYCRecordRegistry = '0xc2032b11b79B05D1bd84ca4527D2ba8793cB67b2';
-  const verificationSBT = '0x8DbCB0a08CFe38Ee20326471E4260be4BfD321b6';
+  const verificationSBT = {
+    uri: 'ipfs://QmRXjRe3w6ZTbuf1yhanzkEcvyyB9HymkNf4NMQQk5pNpC',
+    name: 'Compliance Demo Verification SBT',
+    symbol: 'COMP',
+  };
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();

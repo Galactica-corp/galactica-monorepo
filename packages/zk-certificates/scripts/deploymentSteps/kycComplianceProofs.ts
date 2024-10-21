@@ -1,4 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import type { TokenData } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildPoseidon } from 'circomlibjs';
 
@@ -11,19 +12,24 @@ const { log } = console;
 type ComplianceContracts = {
   ageCitizenshipKYC: any;
   dApp: any;
+  sbtAddr: string;
 };
 
 /**
  * Deploys the standard KYC compliance proofs used in the Galactica Passport.
  * @param deployer - The deployer wallet.
  * @param recordRegistryAddr - The address of the ZkKYC record registry.
- * @param verificationSBTAddr - The address of the verification SBT.
+ * @param sbtDataNonUS - The data of the NonUS SBT.
+ * @param sbtDataNonSanctionedJurisdiction - The data of the NonSanctionedJurisdiction SBT.
+ * @param sbtDataAdult18Plus - The data of the Adult18Plus SBT.
  * @returns The deployed contracts.
  */
 export async function deployKYCComplianceProofsDApps(
   deployer: SignerWithAddress,
   recordRegistryAddr: string,
-  verificationSBTAddr: string,
+  sbtDataNonUS: TokenData,
+  sbtDataNonSanctionedJurisdiction: TokenData,
+  sbtDataAdult18Plus: TokenData,
 ): Promise<{
   zkpVerifier: any;
   nonUS: ComplianceContracts;
@@ -39,31 +45,35 @@ export async function deployKYCComplianceProofsDApps(
   const zkpVerifier = await deploySC('AgeCitizenshipKYCVerifier', true);
 
   log('NonUS:');
-  const nonUS: ComplianceContracts = {
-    ageCitizenshipKYC: await deploySC('AgeCitizenshipKYC', true, {}, [
-      deployer.address,
-      zkpVerifier.address,
-      recordRegistryAddr,
-      // sanctioned countries: undefined ("1") + hash of USA + placeholders
-      ['1', hashStringToFieldNumber('USA', poseidon)].concat(
-        Array(18).fill('0'),
-      ),
-      // no investigation institutions
-      [],
-      0, // no age threshold
-    ]),
-    dApp: undefined,
-  };
-  nonUS.dApp = await deploySC(
+  const nonUSWrapper = await deploySC('AgeCitizenshipKYC', true, {}, [
+    deployer.address,
+    zkpVerifier.address,
+    recordRegistryAddr,
+    // sanctioned countries: undefined ("1") + hash of USA + placeholders
+    ['1', hashStringToFieldNumber('USA', poseidon)].concat(Array(18).fill('0')),
+    // no investigation institutions
+    [],
+    0, // no age threshold
+  ]);
+  const nonUSDApp = await deploySC(
     'contracts/dapps/NonUSProverDApp.sol:NonUSProverDApp',
     true,
     {},
-    [verificationSBTAddr, nonUS.ageCitizenshipKYC.address],
+    [
+      nonUSWrapper.address,
+      sbtDataNonUS.uri,
+      sbtDataNonUS.name,
+      sbtDataNonUS.symbol,
+    ],
   );
+  const nonUSSBTAddr = await nonUSWrapper.sbt();
 
   log('NonSanctionedJurisdiction:');
-  const nonSanctionedJurisdiction: ComplianceContracts = {
-    ageCitizenshipKYC: await deploySC('AgeCitizenshipKYC', true, {}, [
+  const nonSanctionedJurisdictionWrapper = await deploySC(
+    'AgeCitizenshipKYC',
+    true,
+    {},
+    [
       deployer.address,
       zkpVerifier.address,
       recordRegistryAddr,
@@ -89,41 +99,62 @@ export async function deployKYCComplianceProofsDApps(
       // no investigation institutions
       [],
       0, // no age threshold
-    ]),
-    dApp: undefined,
-  };
-  nonSanctionedJurisdiction.dApp = await deploySC(
+    ],
+  );
+  const nonSanctionedJurisdictionDApp = await deploySC(
     'contracts/dapps/NonSanctionedProverDApp.sol:NonSanctionedProverDApp',
     true,
     {},
-    [verificationSBTAddr, nonSanctionedJurisdiction.ageCitizenshipKYC.address],
+    [
+      nonSanctionedJurisdictionWrapper.address,
+      sbtDataNonSanctionedJurisdiction.uri,
+      sbtDataNonSanctionedJurisdiction.name,
+      sbtDataNonSanctionedJurisdiction.symbol,
+    ],
   );
+  const nonSanctionedJurisdictionSBTAddr =
+    await nonSanctionedJurisdictionDApp.sbt();
 
   log('Adult18Plus:');
-  const adult18Plus: ComplianceContracts = {
-    ageCitizenshipKYC: await deploySC('AgeCitizenshipKYC', true, {}, [
-      deployer.address,
-      zkpVerifier.address,
-      recordRegistryAddr,
-      // sanctioned countries: undefined ("1") + hash of USA + placeholders
-      ['1'].concat(Array(19).fill('0')),
-      // no investigation institutions
-      [],
-      18, // no age threshold
-    ]),
-    dApp: undefined,
-  };
-  adult18Plus.dApp = await deploySC(
+  const adult18PlusWrapper = await deploySC('AgeCitizenshipKYC', true, {}, [
+    deployer.address,
+    zkpVerifier.address,
+    recordRegistryAddr,
+    // sanctioned countries: undefined ("1") + hash of USA + placeholders
+    ['1'].concat(Array(19).fill('0')),
+    // no investigation institutions
+    [],
+    18, // no age threshold
+  ]);
+  const adult18PlusDApp = await deploySC(
     'contracts/dapps/Age18ProverDApp.sol:Age18ProverDApp',
     true,
     {},
-    [verificationSBTAddr, adult18Plus.ageCitizenshipKYC.address],
+    [
+      adult18PlusWrapper.address,
+      sbtDataAdult18Plus.uri,
+      sbtDataAdult18Plus.name,
+      sbtDataAdult18Plus.symbol,
+    ],
   );
+  const adult18PlusSBTAddr = await adult18PlusWrapper.sbt();
 
   return {
     zkpVerifier,
-    nonUS,
-    nonSanctionedJurisdiction,
-    adult18Plus,
+    nonUS: {
+      ageCitizenshipKYC: nonUSWrapper,
+      dApp: nonUSDApp,
+      sbtAddr: nonUSSBTAddr,
+    },
+    nonSanctionedJurisdiction: {
+      ageCitizenshipKYC: nonSanctionedJurisdictionWrapper,
+      dApp: nonSanctionedJurisdictionDApp,
+      sbtAddr: nonSanctionedJurisdictionSBTAddr,
+    },
+    adult18Plus: {
+      ageCitizenshipKYC: adult18PlusWrapper,
+      dApp: adult18PlusDApp,
+      sbtAddr: adult18PlusSBTAddr,
+    },
   };
 }

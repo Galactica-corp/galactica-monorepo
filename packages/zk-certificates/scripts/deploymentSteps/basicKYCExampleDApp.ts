@@ -1,5 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import type { TokenData } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { Contract } from 'ethers';
 
 import { deploySC } from '../../lib/hardhatHelpers';
 
@@ -8,23 +10,28 @@ const { log } = console;
 /**
  * Deploy the example DApp, a smart contract requiring zkKYC to issue a verification SBT.
  * @param deployer - The deployer wallet.
- * @param verificationSBTAddr - The address of the verification SBT.
  * @param zkKYCAddr - The address of the zkKYC.
+ * @param sbtData - The data of the verification SBT.
  * @returns The deployed contract.
  */
 export async function deployBasicKYCExampleDApp(
   deployer: SignerWithAddress,
-  verificationSBTAddr: string,
   zkKYCAddr: string,
-): Promise<any> {
+  sbtData: TokenData,
+): Promise<{
+  dApp: Contract;
+  sbtAddr: string;
+}> {
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
 
   // deploying everything
-  return await deploySC(
+  const dApp = await deploySC(
     'contracts/dapps/BasicKYCExampleDApp.sol:BasicKYCExampleDApp',
     true,
     {},
-    [verificationSBTAddr, zkKYCAddr],
+    [zkKYCAddr, sbtData.uri, sbtData.name, sbtData.symbol],
   );
+  const sbtAddr = await dApp.SBT();
+  return { dApp, sbtAddr };
 }

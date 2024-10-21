@@ -8,13 +8,17 @@ import { deployRepeatableZKPTest } from './deploymentSteps/repeatableZKPTest';
  */
 async function main() {
   // parameters
-  const verificationSBT = '0x9EA4559bf6d41237dc89A8e78691C4Ea0c2E8eB6';
   const zkKYCRegistry = '0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD';
+  const verificationSBT = {
+    uri: 'ipfs://QmVG5b34f8DHGnPZQwi1GD4NUXEVhh7bTub5SG6MPHvHz6',
+    name: 'Repeatable KYC Verification SBT',
+    symbol: 'KYCREP',
+  };
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
 
-  await deployRepeatableZKPTest(deployer, verificationSBT, zkKYCRegistry);
+  await deployRepeatableZKPTest(deployer, zkKYCRegistry, verificationSBT);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
