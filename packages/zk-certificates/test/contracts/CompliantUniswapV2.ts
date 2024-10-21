@@ -23,7 +23,7 @@ import type { UniswapV2Router02 } from '../../typechain-types/contracts/dapps/Co
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/verifierWrappers/ZkKYCVerifier';
 
 describe("Compliant UniswapV2", function () {
-  let owner: Signer;
+  let deployer: Signer;
   let user1: Signer;
   let user2: Signer;
   let factory: UniswapV2Factory;
@@ -31,68 +31,46 @@ describe("Compliant UniswapV2", function () {
   let tokenA: MockToken;
   let tokenB: MockToken;
   let weth: WETH9;
-  let zkKYCVerifier: ZkKYCVerifier;
-  let zkKYC: MockZkKYC;
+  let mockZkKYC: MockZkKYC;
   let sampleInput: any;
   let circuitWasmPath: string;
   let circuitZkeyPath: string;
-  let mockZkCertificateRegistry: MockZkCertificateRegistry;
-  let guardianRegistry: GuardianRegistry;
 
   const INITIAL_SUPPLY = ethers.utils.parseEther("1000000");
   const INITIAL_LIQUIDITY = ethers.utils.parseEther("10000");
 
   before(async function () {
-    [owner, user1, user2] = await ethers.getSigners();
+    [deployer, user1, user2] = await ethers.getSigners();
 
     // Deploy mock WETH
     const WETH = await ethers.getContractFactory("WETH9");
     weth = await WETH.deploy() as WETH9;
 
-    // Deploy mock ZKKYCVerifier
-    const ZKKYCVerifier = await ethers.getContractFactory("ZkKYCVerifier");
-    zkKYCVerifier = await ZKKYCVerifier.deploy() as ZkKYCVerifier;
+    const mockZkKYCFactory = await ethers.getContractFactory(
+      'MockZkKYC',
+      deployer,
+    );
+    const mockZkKYC = await mockZkKYCFactory.deploy();
 
     // Deploy Factory
     const Factory = await ethers.getContractFactory("UniswapV2Factory");
-    factory = await Factory.deploy(await owner.getAddress()) as UniswapV2Factory;
+    factory = await Factory.deploy(await deployer.getAddress()) as UniswapV2Factory;
 
     // Deploy Router
     const Router = await ethers.getContractFactory("UniswapV2Router02");
-    router = await Router.deploy(factory.address, weth.address, zkKYCVerifier.address) as UniswapV2Router02;
+    router = await Router.deploy(factory.address, weth.address, mockZkKYC.address) as UniswapV2Router02;
 
     // Deploy mock tokens
     const MockToken = await ethers.getContractFactory("MockToken");
-    tokenA = await MockToken.deploy(owner.address) as MockToken;
-    tokenB = await MockToken.deploy(owner.address) as MockToken;
+    tokenA = await MockToken.deploy(deployer.address) as MockToken;
+    tokenB = await MockToken.deploy(deployer.address) as MockToken;
 
     // Approve router to spend tokens
     await tokenA.approve(router.address, ethers.constants.MaxUint256);
     await tokenB.approve(router.address, ethers.constants.MaxUint256);
 
-    // Deploy MockZkCertificateRegistry
-    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
-      'MockZkCertificateRegistry',
-      owner,
-    );
-    mockZkCertificateRegistry = await mockZkCertificateRegistryFactory.deploy() as MockZkCertificateRegistry;
-
-    // Deploy GuardianRegistry
-    const guardianRegistryFactory = await ethers.getContractFactory(
-      'GuardianRegistry',
-      owner,
-    );
-    guardianRegistry = await guardianRegistryFactory.deploy(
-      'https://example.com/metadata',
-    ) as GuardianRegistry;
-    await guardianRegistry.deployed();
-
-    await mockZkCertificateRegistry.setGuardianRegistry(
-      guardianRegistry.address,
-    );
-
     // Generate sample ZkKYC and proof input
-    zkKYC = await generateSampleZkKYC();
+    let zkKYC = await generateSampleZkKYC();
     sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
@@ -102,18 +80,9 @@ describe("Compliant UniswapV2", function () {
     circuitWasmPath = './circuits/build/zkKYC.wasm';
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
 
-    // Grant guardian role to owner
-    const { providerData } = zkKYC;
-    await guardianRegistry.grantGuardianRole(
-      await owner.getAddress(),
-      [providerData.ax, providerData.ay],
-      'https://example.com/guardian-metadata',
-    );
   });
 
-  async function generateAndProcessProof(signer: Signer) {
-    const signerAddress = await signer.getAddress();
-    const input = { ...sampleInput, userAddress: signerAddress };
+  async function generateAndProcessProof(input: any, circuitWasmPath: string, circuitZkeyPath: string) {
     const { proof, publicSignals } = await groth16.fullProve(
       input,
       circuitWasmPath,
@@ -123,12 +92,8 @@ describe("Compliant UniswapV2", function () {
     const [piA, piB, piC] = processProof(proof);
     const publicInputs = processPublicSignals(publicSignals);
 
-    const publicRoot = publicSignals[0]; // Assuming INDEX_ROOT is 0
-    await mockZkCertificateRegistry.setMerkleRoot(
-      fromHexToBytes32(fromDecToHex(publicRoot)),
-    );
+    const publicTime = parseInt(publicSignals[6], 10); // Assuming INDEX_CURRENT_TIME is 1
 
-    const publicTime = parseInt(publicSignals[1], 10); // Assuming INDEX_CURRENT_TIME is 1
     await ethers.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await ethers.provider.send('evm_mine', []);
 
@@ -136,7 +101,7 @@ describe("Compliant UniswapV2", function () {
   }
 
   it.only("Should create a pair and add liquidity", async function () {
-    const { piA, piB, piC, publicInputs } = await generateAndProcessProof(owner);
+    const { piA, piB, piC, publicInputs } = await generateAndProcessProof(sampleInput, circuitWasmPath, circuitZkeyPath);
 
     await router.addLiquidity(
       tokenA.address,
@@ -145,7 +110,7 @@ describe("Compliant UniswapV2", function () {
       INITIAL_LIQUIDITY,
       0,
       0,
-      await owner.getAddress(),
+      deployer.address,
       ethers.constants.MaxUint256,
       piA, piB, piC, publicInputs
     );
