@@ -57,9 +57,7 @@ describe('Compliant UniswapV2', function () {
 
     // Deploy Factory
     const Factory = await ethers.getContractFactory('UniswapV2Factory');
-    factory = (await Factory.deploy(
-      deployer.address
-    )) as UniswapV2Factory;
+    factory = (await Factory.deploy(deployer.address)) as UniswapV2Factory;
 
     // Deploy Router
     const Router = await ethers.getContractFactory('UniswapV2Router02');

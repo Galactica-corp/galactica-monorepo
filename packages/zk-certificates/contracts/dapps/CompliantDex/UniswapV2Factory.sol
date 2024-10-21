@@ -61,7 +61,7 @@ contract UniswapV2Factory is IUniswapV2Factory {
         feeToSetter = _feeToSetter;
     }
 
-    function setRouter(address _router) external override {
+    function setRouter(address _router) external {
         require(msg.sender == feeToSetter, "UniswapV2: FORBIDDEN");
         router = _router;
     }
