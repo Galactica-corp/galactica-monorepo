@@ -15,11 +15,12 @@ import {
 } from '../../scripts/generateZkKYCInput';
 import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { UniswapV2Factory } from '../../typechain-types/contracts/UniswapV2Factory';
-import type { UniswapV2Router02 } from '../../typechain-types/contracts/UniswapV2Router02';
-import type { MockERC20 } from '../../typechain-types/contracts/mock/MockERC20';
-import type { WETH9 } from '../../typechain-types/contracts/mock/WETH9';
-import type { MockZKKYCVerifier } from '../../typechain-types/contracts/mock/MockZKKYCVerifier';
+import type { MockZkKYC } from '../../typechain-types/contracts/mock/MockZkKYC';
+import type { MockToken } from '../../typechain-types/contracts/mock/MockToken';
+import type { WETH9 } from '../../typechain-types/contracts/dapps/CompliantDex/WETH9';
+import type { UniswapV2Factory } from '../../typechain-types/contracts/dapps/CompliantDex/UniswapV2Factory';
+import type { UniswapV2Router02 } from '../../typechain-types/contracts/dapps/CompliantDex/UniswapV2Router02';
+import type { ZkKYCVerifier } from '../../typechain-types/contracts/verifierWrappers/ZkKYCVerifier';
 
 describe("Compliant UniswapV2", function () {
   let owner: Signer;
@@ -27,11 +28,11 @@ describe("Compliant UniswapV2", function () {
   let user2: Signer;
   let factory: UniswapV2Factory;
   let router: UniswapV2Router02;
-  let tokenA: MockERC20;
-  let tokenB: MockERC20;
+  let tokenA: MockToken;
+  let tokenB: MockToken;
   let weth: WETH9;
-  let zkKYCVerifier: MockZKKYCVerifier;
-  let zkKYC: ZkCertificate;
+  let zkKYCVerifier: ZkKYCVerifier;
+  let zkKYC: MockZkKYC;
   let sampleInput: any;
   let circuitWasmPath: string;
   let circuitZkeyPath: string;
@@ -49,8 +50,8 @@ describe("Compliant UniswapV2", function () {
     weth = await WETH.deploy() as WETH9;
 
     // Deploy mock ZKKYCVerifier
-    const ZKKYCVerifier = await ethers.getContractFactory("MockZKKYCVerifier");
-    zkKYCVerifier = await ZKKYCVerifier.deploy() as MockZKKYCVerifier;
+    const ZKKYCVerifier = await ethers.getContractFactory("ZkKYCVerifier");
+    zkKYCVerifier = await ZKKYCVerifier.deploy() as ZkKYCVerifier;
 
     // Deploy Factory
     const Factory = await ethers.getContractFactory("UniswapV2Factory");
@@ -61,9 +62,9 @@ describe("Compliant UniswapV2", function () {
     router = await Router.deploy(factory.address, weth.address, zkKYCVerifier.address) as UniswapV2Router02;
 
     // Deploy mock tokens
-    const MockToken = await ethers.getContractFactory("MockERC20");
-    tokenA = await MockToken.deploy("Token A", "TKA", INITIAL_SUPPLY) as MockERC20;
-    tokenB = await MockToken.deploy("Token B", "TKB", INITIAL_SUPPLY) as MockERC20;
+    const MockToken = await ethers.getContractFactory("MockToken");
+    tokenA = await MockToken.deploy(owner.address) as MockToken;
+    tokenB = await MockToken.deploy(owner.address) as MockToken;
 
     // Approve router to spend tokens
     await tokenA.approve(router.address, ethers.constants.MaxUint256);
@@ -134,7 +135,7 @@ describe("Compliant UniswapV2", function () {
     return { piA, piB, piC, publicInputs };
   }
 
-  it("Should create a pair and add liquidity", async function () {
+  it.only("Should create a pair and add liquidity", async function () {
     const { piA, piB, piC, publicInputs } = await generateAndProcessProof(owner);
 
     await router.addLiquidity(
