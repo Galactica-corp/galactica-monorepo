@@ -22,6 +22,7 @@ import type { WETH9 } from '../../typechain-types/contracts/dapps/CompliantDex/W
 import type { UniswapV2Factory } from '../../typechain-types/contracts/dapps/CompliantDex/UniswapV2Factory';
 import type { UniswapV2Router02 } from '../../typechain-types/contracts/dapps/CompliantDex/UniswapV2Router02';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/verifierWrappers/ZkKYCVerifier';
+import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 
 describe("Compliant UniswapV2", function () {
   let deployer: SignerWithAddress;
@@ -33,12 +34,13 @@ describe("Compliant UniswapV2", function () {
   let tokenB: MockToken;
   let weth: WETH9;
   let mockZkKYC: MockZkKYC;
+  let verificationSBT: VerificationSBT;
   let sampleInput: any;
   let circuitWasmPath: string;
   let circuitZkeyPath: string;
 
-  const INITIAL_SUPPLY = ethers.utils.parseEther("1000000");
-  const INITIAL_LIQUIDITY = ethers.utils.parseEther("10000");
+  const INITIAL_SUPPLY = ethers.utils.parseEther("10000");
+  const INITIAL_LIQUIDITY = ethers.utils.parseEther("1000");
 
   before(async function () {
     [deployer, user1, user2] = await ethers.getSigners();
@@ -51,7 +53,11 @@ describe("Compliant UniswapV2", function () {
       'MockZkKYC',
       deployer,
     );
-    const mockZkKYC = await mockZkKYCFactory.deploy();
+    mockZkKYC = await mockZkKYCFactory.deploy() as MockZkKYC;
+
+    // Deploy VerificationSBT
+    const VerificationSBTFactory = await ethers.getContractFactory("VerificationSBT");
+    verificationSBT = await VerificationSBTFactory.deploy("VerificationSBT", "VSBT", "https://example.com/token/") as VerificationSBT;
 
     // Deploy Factory
     const Factory = await ethers.getContractFactory("UniswapV2Factory");
@@ -59,16 +65,24 @@ describe("Compliant UniswapV2", function () {
 
     // Deploy Router
     const Router = await ethers.getContractFactory("UniswapV2Router02");
-    router = await Router.deploy(factory.address, weth.address, mockZkKYC.address) as UniswapV2Router02;
+    router = await Router.deploy(factory.address, weth.address, mockZkKYC.address, verificationSBT.address) as UniswapV2Router02;
 
     // Deploy mock tokens
     const MockToken = await ethers.getContractFactory("MockToken");
     tokenA = await MockToken.deploy(deployer.address) as MockToken;
     tokenB = await MockToken.deploy(deployer.address) as MockToken;
 
-    // Approve router to spend tokens
-    await tokenA.approve(router.address, ethers.constants.MaxUint256);
-    await tokenB.approve(router.address, ethers.constants.MaxUint256);
+    // Transfer tokens to users
+    await tokenA.transfer(user1.address, INITIAL_SUPPLY);
+    await tokenB.transfer(user1.address, INITIAL_SUPPLY);
+    await tokenA.transfer(user2.address, INITIAL_SUPPLY);
+    await tokenB.transfer(user2.address, INITIAL_SUPPLY);
+
+    // Approve router to spend tokens for users
+    await tokenA.connect(user1).approve(router.address, ethers.constants.MaxUint256);
+    await tokenB.connect(user1).approve(router.address, ethers.constants.MaxUint256);
+    await tokenA.connect(user2).approve(router.address, ethers.constants.MaxUint256);
+    await tokenB.connect(user2).approve(router.address, ethers.constants.MaxUint256);
 
     // Generate sample ZkKYC and proof input
     let zkKYC = await generateSampleZkKYC();
@@ -80,7 +94,6 @@ describe("Compliant UniswapV2", function () {
 
     circuitWasmPath = './circuits/build/zkKYC.wasm';
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
-
   });
 
   async function generateAndProcessProof(input: any, circuitWasmPath: string, circuitZkeyPath: string) {
@@ -101,20 +114,25 @@ describe("Compliant UniswapV2", function () {
     return { piA, piB, piC, publicInputs };
   }
 
-  it("Should create a pair, add liquidity, remove liquidity, and swap tokens", async function () {
+  it("Should register user, add liquidity, remove liquidity, and swap tokens", async function () {
     const { piA, piB, piC, publicInputs } = await generateAndProcessProof(sampleInput, circuitWasmPath, circuitZkeyPath);
 
+    // Register user and mint VerificationSBT
+    await router.connect(user1).register(piA, piB, piC, publicInputs);
+
+    // Verify that the VerificationSBT was minted
+    expect(await verificationSBT.balanceOf(user1.address)).to.equal(1);
+
     // Add liquidity
-    await router.addLiquidity(
+    await router.connect(user1).addLiquidity(
       tokenA.address,
       tokenB.address,
       INITIAL_LIQUIDITY,
       INITIAL_LIQUIDITY,
       0,
       0,
-      deployer.address,
-      ethers.constants.MaxUint256,
-      piA, piB, piC, publicInputs
+      user1.address,
+      ethers.constants.MaxUint256
     );
 
     const pairAddress = await factory.getPair(tokenA.address, tokenB.address);
@@ -124,79 +142,80 @@ describe("Compliant UniswapV2", function () {
     const pairBalanceB = await tokenB.balanceOf(pairAddress);
     expect(pairBalanceA).to.be.equal(INITIAL_LIQUIDITY);
     expect(pairBalanceB).to.be.equal(INITIAL_LIQUIDITY);
-    const lpTokenBalance = await pair.balanceOf(deployer.address);
+    const lpTokenBalance = await pair.balanceOf(user1.address);
     expect(lpTokenBalance).to.be.gt(0);
     const removeBalance = lpTokenBalance.div(2);
 
     // Remove liquidity
-    await pair.approve(router.address, lpTokenBalance);
-    await router.removeLiquidity(
+    await pair.connect(user1).approve(router.address, lpTokenBalance);
+    await router.connect(user1).removeLiquidity(
       tokenA.address,
       tokenB.address,
       removeBalance,
       0,
       0,
-      deployer.address,
-      ethers.constants.MaxUint256,
-      piA, piB, piC, publicInputs
+      user1.address,
+      ethers.constants.MaxUint256
     );
 
     const pairBalanceAAfterRemove = await tokenA.balanceOf(pairAddress);
     const pairBalanceBAfterRemove = await tokenB.balanceOf(pairAddress);
-    expect(pairBalanceAAfterRemove).to.be.equal(0);
-    expect(pairBalanceBAfterRemove).to.be.equal(0);
-
-    // Add liquidity again for swap test
-    await router.addLiquidity(
-      tokenA.address,
-      tokenB.address,
-      INITIAL_LIQUIDITY,
-      INITIAL_LIQUIDITY,
-      0,
-      0,
-      deployer.address,
-      ethers.constants.MaxUint256,
-      piA, piB, piC, publicInputs
-    );
+    expect(pairBalanceAAfterRemove).to.be.lt(INITIAL_LIQUIDITY);
+    expect(pairBalanceBAfterRemove).to.be.lt(INITIAL_LIQUIDITY);
 
     // Swap tokens
     const swapAmount = ethers.utils.parseEther("100");
-    await tokenA.approve(router.address, swapAmount);
-    const balanceBefore = await tokenB.balanceOf(deployer.address);
+    const balanceBefore = await tokenB.balanceOf(user1.address);
 
-    await router.swapExactTokensForTokens(
+    await router.connect(user1).swapExactTokensForTokens(
       swapAmount,
       0,
       [tokenA.address, tokenB.address],
-      deployer.address,
-      ethers.constants.MaxUint256,
-      piA, piB, piC, publicInputs
+      user1.address,
+      ethers.constants.MaxUint256
     );
 
-    const balanceAfter = await tokenB.balanceOf(deployer.address);
+    const balanceAfter = await tokenB.balanceOf(user1.address);
     expect(balanceAfter).to.be.gt(balanceBefore);
   });
 
-  it("Should fail with invalid ZKKYC proof", async function () {
-    const invalidProof = {
-      piA: [0, 0],
-      piB: [[0, 0], [0, 0]],
-      piC: [0, 0],
-      publicInputs: [0, 0, 0, 0, 0]
-    };
-
+  it("Should fail operations without VerificationSBT", async function () {
+    // Try to add liquidity without VerificationSBT
     await expect(
-      router.addLiquidity(
+      router.connect(user2).addLiquidity(
         tokenA.address,
         tokenB.address,
         INITIAL_LIQUIDITY,
         INITIAL_LIQUIDITY,
         0,
         0,
-        await owner.getAddress(),
-        ethers.constants.MaxUint256,
-        invalidProof.piA, invalidProof.piB, invalidProof.piC, invalidProof.publicInputs
+        user2.address,
+        ethers.constants.MaxUint256
       )
-    ).to.be.revertedWith("UniswapV2Router: INVALID_ZKKYC_PROOF");
+    ).to.be.revertedWith("UniswapV2Router: User does not have a valid VerificationSBT");
+
+    // Try to remove liquidity without VerificationSBT
+    await expect(
+      router.connect(user2).removeLiquidity(
+        tokenA.address,
+        tokenB.address,
+        INITIAL_LIQUIDITY,
+        0,
+        0,
+        user2.address,
+        ethers.constants.MaxUint256
+      )
+    ).to.be.revertedWith("UniswapV2Router: User does not have a valid VerificationSBT");
+
+    // Try to swap tokens without VerificationSBT
+    await expect(
+      router.connect(user2).swapExactTokensForTokens(
+        ethers.utils.parseEther("100"),
+        0,
+        [tokenA.address, tokenB.address],
+        user2.address,
+        ethers.constants.MaxUint256
+      )
+    ).to.be.revertedWith("UniswapV2Router: User does not have a valid VerificationSBT");
   });
 });
