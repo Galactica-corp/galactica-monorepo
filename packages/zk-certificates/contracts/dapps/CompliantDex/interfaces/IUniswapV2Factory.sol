@@ -14,6 +14,8 @@ interface IUniswapV2Factory {
 
     function feeToSetter() external view returns (address);
 
+    function router() external view returns (address);
+
     function getPair(
         address tokenA,
         address tokenB
