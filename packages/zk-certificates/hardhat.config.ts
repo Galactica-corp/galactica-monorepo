@@ -57,7 +57,6 @@ const config: HardhatUserConfig = {
         version: '0.5.6',
       },
     ],
-    viaIR: true,
   },
   networks: {
     galaAndromeda: {
