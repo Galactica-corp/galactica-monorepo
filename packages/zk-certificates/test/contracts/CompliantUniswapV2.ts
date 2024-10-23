@@ -125,7 +125,7 @@ describe('Compliant UniswapV2', function () {
     const [piA, piB, piC] = processProof(proof);
     const publicInputs = processPublicSignals(publicSignals);
 
-    const publicTime = parseInt(publicSignals[6], 10); // Assuming INDEX_CURRENT_TIME is 1
+    const publicTime = parseInt(publicSignals[6], 10); // Assuming INDEX_CURRENT_TIME is 6
 
     await ethers.provider.send('evm_setNextBlockTimestamp', [publicTime]);
     await ethers.provider.send('evm_mine', []);
