@@ -16,12 +16,12 @@ import {
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
 import type { GuardianRegistry } from '../../typechain-types';
-import type { AirdropGateway } from '../../typechain-types/contracts/AirdropGateway';
-import type { GalacticaOfficialSBT } from '../../typechain-types/contracts/GalacticaOfficialSBT';
+import type { AirdropGateway } from '../../typechain-types/contracts/dapps/AirdropGateway';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { MockToken } from '../../typechain-types/contracts/mock/MockToken';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
+import type { GalacticaOfficialSBT } from '../../typechain-types/contracts/SBT_related/GalacticaOfficialSBT';
+import type { ZkKYC } from '../../typechain-types/contracts/verifierWrappers/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
 
 chai.config.includeStack = true;

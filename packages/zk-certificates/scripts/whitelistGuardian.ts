@@ -13,14 +13,14 @@ import { decompressEddsaPubKey } from '../lib';
 async function main() {
   // parameters
   const [deployer] = await ethers.getSigners();
-  const centerRegistryAddr = '0xBeB69Fff8C39aa0f2C1896AAa68757e9e2Cf32B4';
+  const centerRegistryAddr = '0x1263E38AFb0449932F1aa0e108a009d895190Ee6';
   const metadataURL = 'ipfs://QmTdHoVA9gLA1Mk6Csfd2SxMkEdbuSu7xK8dDxUdFVCunx';
   console.log(`guardian address is ${deployer.address}`);
   // await whitelistSignerGuardian(deployer, centerRegistryAddr, deployer, metadataURL);
 
   const compressedPubKey =
-    'e98cd12ffb3bba21b08f5e875a3f1e4498583157621bc8ebdefc972ff4a5d91f';
-  const guardianAddress = '0xd47fee108816E4aDdc97A723f5e6CD640F9ecb73';
+    '1c896106914117927552a77aef0a771af8376435adc3fd51f819d34fbfda93a1';
+  const guardianAddress = '0x43532C0b134E2173c08b386AA17ec8E8e0ecadd0';
   const pubKey = await decompressEddsaPubKey(compressedPubKey);
   await whitelistGuardian(
     deployer,

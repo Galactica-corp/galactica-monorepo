@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
   shouldDisplayReconnectButton,
-  queryVerificationSBTs,
+  queryVerificationSBT,
   formatVerificationSBTs,
   getUserAddress,
   getGuardianNameMap,
@@ -27,6 +27,7 @@ import mockDAppABI from '../config/abi/MockDApp.json';
 import kycRequirementsDemoDAppABI from '../config/abi/KYCRequirementsDemoDApp.json';
 import IAgeCitizenshipKYCVerifierABI from '../config/abi/IAgeCitizenshipKYCVerifier.json';
 import repeatableZKPTestABI from '../config/abi/RepeatableZKPTest.json';
+import IVerificationSBTIssuer from '../config/abi/IVerificationSBTIssuer.json';
 import { getProver, prepareProofInput } from '../utils/zkp';
 
 import {
@@ -224,7 +225,7 @@ const Index = () => {
         currentDay: dateNow.getUTCDate().toString(),
         ageThreshold: '18',
         // specific inputs to prove that the holder is not a citizen of a sanctioned country
-        countryExclusionList: ['1', iranCountryHash, usCountryHash],
+        countryExclusionList: ['1', iranCountryHash, usCountryHash].concat(Array(17).fill('0')),
       };
       const proofInput = await prepareProofInput(addresses.kycRequirementsDemoDApp, [], specificProofInputs);
 
@@ -257,7 +258,6 @@ const Index = () => {
       const errorFieldIndex = await ageCitizenshipKYCVerifierSC.INDEX_ERROR();
       const error = parseInt(publicInputs[errorFieldIndex]);
       if (error !== 0) {
-        let errorMessage = '';
         if ((error & 1) !== 0) {
           throw new Error("zkKYC is not valid");
         } else if ((error & 2) !== 0) {
@@ -275,6 +275,7 @@ const Index = () => {
       console.log(`Sending proof for on-chain verification...`);
       // this is the on-chain function that requires a ZKP
       //@ts-ignore https://github.com/metamask/providers/issues/200
+      console.log("checkRequirements", a, b, c, publicInputs);
       let tx = await exampleDAppSC.checkRequirements(a, b, c, publicInputs);
       console.log("tx", tx);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
@@ -369,7 +370,16 @@ const Index = () => {
       //@ts-ignore https://github.com/metamask/providers/issues/200
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
-      const sbts = await queryVerificationSBTs(addresses.verificationSBT, provider, await signer.getAddress());
+      const sbtContracts = addresses.sbtIssuingContracts.map(async (addr) =>
+        await (new ethers.Contract(addr, IVerificationSBTIssuer.abi, signer)).sbt()
+      );
+      let sbts = [];
+      for (const sbtContract of sbtContracts) {
+        const sbt = await queryVerificationSBT(await sbtContract, provider, await signer.getAddress());
+        if (sbt) {
+          sbts.push(sbt);
+        }
+      }
       const guardianNameMap = await getGuardianNameMap(sbts, addresses.zkKYCRegistry, provider);
       console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts, guardianNameMap)} `);
       dispatch({ type: MetamaskActions.SetVerificationSBT, payload: { sbts, guardianNameMap } });

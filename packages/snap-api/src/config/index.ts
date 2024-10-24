@@ -13,7 +13,6 @@ export type SdkConfig = {
       exampleInstitution: string[];
       exampleZkKyc: string;
       repeatableZkpTest: string;
-      devnetGuardian: string;
     }
   >;
   defaultSnapOrigin: string;
@@ -38,7 +37,6 @@ export const sdkConfig = {
       ],
       exampleZkKyc: '0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD',
       repeatableZkpTest: '0xa99fcD678D985fB2ac8aD3fE913aED88705A44fc',
-      devnetGuardian: '0x71d80ea7744302E5b1cFD61a7a26153FF221ca9E',
     },
     9302: {
       kycGuardianWhitelist: '0x8Db9C6d860694d6bF151c961E2A55d3F51e2D138',
@@ -54,7 +52,6 @@ export const sdkConfig = {
       ],
       exampleZkKyc: '0x6989febF9623FAD3c5FC25B84e0b8F2F0d9a68f0',
       repeatableZkpTest: '0x4262b70fDBBF05C48a0887472b89988B84C98564',
-      devnetGuardian: '0xEcE0BBeB552710718A1bD5E028443ff9B2f26BE5',
     },
   },
 };

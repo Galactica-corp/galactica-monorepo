@@ -8,13 +8,23 @@ import { deployExampleDApp } from './deploymentSteps/exampleDApp';
  */
 async function main() {
   // parameters
-  const verificationSBT = '0x7d1A6e0FC5ad5B20250B02fb735B640a4232a061';
-  const ageProofZkKYC = '0x0996Dc2e822DcAa077B6D5C58DED6408bf7557b4';
+  const recordRegistry = '0x68272A56A0e9b095E5606fDD8b6c297702C0dfe5';
+  const verificationSBT = {
+    uri: 'ipfs://QmX2EppfoPMNEMqf55CsTHJr1565UheAonDGb9w1bAW96z',
+    name: 'Airdrop Example SBT',
+    symbol: 'KYCDROP',
+  };
+  const institutions: string[] = [];
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
 
-  await deployExampleDApp(deployer, verificationSBT, ageProofZkKYC);
+  await deployExampleDApp(
+    deployer,
+    recordRegistry,
+    institutions,
+    verificationSBT,
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

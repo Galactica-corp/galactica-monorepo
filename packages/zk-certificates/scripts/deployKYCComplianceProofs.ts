@@ -9,7 +9,21 @@ import { deployKYCComplianceProofsDApps } from './deploymentSteps/kycComplianceP
 async function main() {
   // parameters
   const zkKYCRecordRegistry = '0x454d8a0B2abdc7bAfef7FCbfb6B4c538c6F11C3b';
-  const verificationSBT = '0x8eB78221742a837AD71f329b28e9AEd5C2397824';
+  const nonUSSBT = {
+    uri: 'ipfs://QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs', // TODO: replace with the actual URI
+    name: 'KYC Non-US Verification SBT',
+    symbol: 'NONUS',
+  };
+  const nonSanctionedSBT = {
+    uri: 'ipfs://QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs', // TODO: replace with the actual URI
+    name: 'KYC Non-sanctioned citizenship Verification SBT',
+    symbol: 'NONSAN',
+  };
+  const age18SBT = {
+    uri: 'ipfs://QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs', // TODO: replace with the actual URI
+    name: 'KYC 18+ Verification SBT',
+    symbol: 'KYC18',
+  };
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
@@ -17,7 +31,9 @@ async function main() {
   await deployKYCComplianceProofsDApps(
     deployer,
     zkKYCRecordRegistry,
-    verificationSBT,
+    nonUSSBT,
+    nonSanctionedSBT,
+    age18SBT,
   );
 }
 
