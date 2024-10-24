@@ -10,8 +10,7 @@ import {IERC721Metadata, IERC721} from '@openzeppelin/contracts/token/ERC721/ext
 contract VerificationSBT is IVerificationSBT, IERC721Metadata {
     // mapping to store verification SBT
     mapping(uint256 => VerificationSBTInfo) public sbtData;
-    // number of SBTs minted for each user address
-    mapping(address => uint256) public balances;
+
     address public issuingDApp;
 
     string public name;
@@ -115,8 +114,6 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
             tokenId: tokenId
         });
 
-        balances[_user] += 1;
-
         emit VerificationSBTMinted(_user, _humanID);
         emit Transfer(address(0), _user, tokenId);
     }
@@ -132,13 +129,11 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
         // we check 2 conditions
         // 1. the verifier wrapper address is set and the codehash of the verifier is still the same as the one referred to in the verification wrapper
         // 2. the expiration time hasn't happened yet
-        // 3. the user a SBT in the balance
         return
             (address(verificationSBTInfo.verifierWrapper) != address(0)) &&
             (address(verificationSBTInfo.verifierWrapper.verifier()).codehash ==
                 verificationSBTInfo.verifierCodehash) &&
-            (verificationSBTInfo.expirationTime > block.timestamp) &&
-            (balances[_user] > 0);
+            (verificationSBTInfo.expirationTime > block.timestamp);
     }
 
     function getUsersTokenID(address _user) public pure returns (uint256) {
@@ -166,12 +161,21 @@ contract VerificationSBT is IVerificationSBT, IERC721Metadata {
     }
 
     function balanceOf(address user) external view returns (uint256 balance) {
-        balance = balances[user];
+        require(
+            user != address(0),
+            'VerificationSBT: address zero is not a valid owner'
+        );
+        // the user has a verification SBT iff the SBT is valid
+        // meaning the balance expires with the SBT expiration date
+        if (isVerificationSBTValid(user)) {
+            return 1;
+        }
+        return 0;
     }
 
     function ownerOf(uint256 tokenId) public view returns (address) {
         address user = tokenIdToOwner(tokenId);
-        if (balances[user] > 0) {
+        if (isVerificationSBTValid(user)) {
             return user;
         }
         return address(0);

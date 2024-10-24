@@ -23,11 +23,11 @@ import {
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
 import type { GuardianRegistry } from '../../typechain-types';
-import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/AgeCitizenshipKYC';
 import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
+import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/verifierWrappers/AgeCitizenshipKYC';
 import type { ExampleMockDAppVerifier } from '../../typechain-types/contracts/zkpVerifiers/ExampleMockDAppVerifier';
 
 use(chaiAsPromised);
@@ -316,6 +316,21 @@ describe('Verification SBT Smart contract', () => {
     expect(loggedSBTs.has(verificationSBT.address)).to.be.true;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     expect(loggedSBTs.get(verificationSBT.address)!.length).to.be.equal(1);
+
+    // wait for SBT expiration
+    const expirationTime = parseInt(
+      publicSignals[await ageProofZkKYC.INDEX_VERIFICATION_EXPIRATION()],
+      10,
+    );
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [
+      expirationTime + 1,
+    ]);
+    await hre.network.provider.send('evm_mine');
+
+    // check that the verification SBT is not valid anymore
+    expect(await verificationSBT.isVerificationSBTValid(user.address)).to.be
+      .false;
+    expect(await verificationSBT.balanceOf(user.address)).to.be.equal(0);
   });
 
   it('should revert on incorrect proof', async () => {
