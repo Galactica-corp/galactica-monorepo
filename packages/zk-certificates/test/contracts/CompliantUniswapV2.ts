@@ -66,6 +66,7 @@ describe('Compliant UniswapV2', function () {
       weth.address,
       mockZkKYC.address,
       verificationSBT.address,
+      [mockZkKYC.address],
     )) as UniswapV2Router02;
 
     // Set router

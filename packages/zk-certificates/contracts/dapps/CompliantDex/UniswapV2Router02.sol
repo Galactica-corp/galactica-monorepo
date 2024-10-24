@@ -15,13 +15,15 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     address public immutable override factory;
     address public immutable override WETH;
     IZkKYCVerifier public immutable zkKYC;
-    IVerificationSBT public immutable verificationSBT;
+    address[] public compliancyRequirements;
+    IVerificationSBT public verificationSBT;
 
-    constructor(address _factory, address _WETH, address _zkKYC, address _verificationSBT) {
+    constructor(address _factory, address _WETH, address _zkKYC, address _verificationSBT,address[] memory _compliantRequirements) {
         factory = _factory;
         WETH = _WETH;
         zkKYC = IZkKYCVerifier(_zkKYC);
         verificationSBT = IVerificationSBT(_verificationSBT);
+        compliancyRequirements = _compliantRequirements;
     }
 
     modifier ensure(uint deadline) {
@@ -31,71 +33,16 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
 
     // Add this new modifier
     modifier hasValidVerificationSBT() {
-        require(
-            verificationSBT.isVerificationSBTValid(msg.sender, address(this)),
-            "UniswapV2Router: User does not have a valid VerificationSBT"
-        );
-        _;
-    }
-
-
-
-    function register(
-        uint[2] memory a,
-        uint[2][2] memory b,
-        uint[2] memory c,
-        uint[] memory input
-    ) external {
-        bytes32 humanID = bytes32(input[zkKYC.INDEX_HUMAN_ID()]);
-        uint dAppAddress = input[zkKYC.INDEX_DAPP_ID()];
-
-        require(
-            !verificationSBT.isVerificationSBTValid(msg.sender, address(this)),
-            'The user already has a verification SBT. Please wait until it expires.'
-        );
-        // check that the public dAppAddress is correct
-        require(
-            dAppAddress == uint(uint160(address(this))),
-            'incorrect dAppAddress'
-        );
-
-        // check the zk proof
-        require(zkKYC.verifyProof(a, b, c, input), 'invalid proof');
-
-        uint256[2] memory userPubKey = [
-            input[zkKYC.INDEX_USER_PUBKEY_AX()],
-            input[zkKYC.INDEX_USER_PUBKEY_AY()]
-        ];
-        uint amountInstitutions = zkKYC
-            .getAmountFraudInvestigationInstitutions();
-        bytes32[] memory encryptedData = new bytes32[](amountInstitutions * 2);
-        for (uint i = 0; i < amountInstitutions; i++) {
-            encryptedData[2 * i] = bytes32(
-                input[zkKYC.START_INDEX_ENCRYPTED_DATA() + 2 * i]
-            );
-            encryptedData[2 * i + 1] = bytes32(
-                input[zkKYC.START_INDEX_ENCRYPTED_DATA() + 2 * i + 1]
+        for (uint i = 0; i < compliancyRequirements.length; i++) {
+            require(
+                verificationSBT.isVerificationSBTValid(
+                    to,
+                    compliancyRequirements[i]
+                ),
+                'CompliantERC20: Recipient does not have required compliance SBTs.'
             );
         }
-
-        uint expirationTime = input[
-            zkKYC.INDEX_VERIFICATION_EXPIRATION()
-        ];
-        uint256[2] memory providerPubKey = [
-            input[zkKYC.INDEX_PROVIDER_PUBKEY_AX()],
-            input[zkKYC.INDEX_PROVIDER_PUBKEY_AY()]
-        ];
-
-        verificationSBT.mintVerificationSBT(
-            msg.sender,
-            zkKYC,
-            expirationTime,
-            encryptedData,
-            userPubKey,
-            humanID,
-            providerPubKey
-        );
-
+        _;
     }
 
     receive() external payable {
