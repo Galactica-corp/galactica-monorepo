@@ -2,14 +2,16 @@
 pragma solidity ^0.8.0;
 import '../SBT_related/VerificationSBT.sol';
 import '../interfaces/IZkKYCVerifier.sol';
+import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
+import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
 
 /**
  * @title RepeatableZKPTest is a simple smart contract that can be used to test ZKP submission to create a verification SBT
  * @author Galactica dev team
  */
 
-contract RepeatableZKPTest {
-    VerificationSBT public SBT;
+contract RepeatableZKPTest is IVerificationSBTIssuer {
+    IVerificationSBT public sbt;
     IZkKYCVerifier public verifierWrapper;
 
     constructor(
@@ -18,7 +20,7 @@ contract RepeatableZKPTest {
         string memory _sbt_name,
         string memory _sbt_symbol
     ) {
-        SBT = new VerificationSBT(
+        sbt = new VerificationSBT(
             _sbt_uri,
             _sbt_name,
             _sbt_symbol,
@@ -68,7 +70,7 @@ contract RepeatableZKPTest {
             input[verifierWrapper.INDEX_PROVIDER_PUBKEY_AX()],
             input[verifierWrapper.INDEX_PROVIDER_PUBKEY_AY()]
         ];
-        SBT.mintVerificationSBT(
+        sbt.mintVerificationSBT(
             msg.sender,
             verifierWrapper,
             expirationTime,
@@ -84,6 +86,6 @@ contract RepeatableZKPTest {
      * @param account the address to check
      */
     function isVerified(address account) public view returns (bool) {
-        return SBT.isVerificationSBTValid(account);
+        return sbt.isVerificationSBTValid(account);
     }
 }

@@ -119,7 +119,7 @@ describe('Verification SBT Smart contract', () => {
     )) as MockDApp;
 
     verificationSBT = verificationSBTFactory
-      .attach(await mockDApp.SBT())
+      .attach(await mockDApp.sbt())
       .connect(deployer) as VerificationSBT;
 
     const mockTokenFactory = await ethers.getContractFactory(

@@ -41,7 +41,7 @@ export async function deployRepeatableZKPTest(
     sbtData.symbol,
   ]);
 
-  const sbtAddr = await repeatableZKPTest.SBT();
+  const sbtAddr = await repeatableZKPTest.sbt();
   await tryVerification(
     sbtAddr,
     [sbtData.uri, sbtData.name, sbtData.symbol, repeatableZKPTest.address],

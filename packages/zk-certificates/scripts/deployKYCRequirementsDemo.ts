@@ -8,7 +8,7 @@ import { deployKYCRequirementsDemoDApp } from './deploymentSteps/kycRequirementD
  */
 async function main() {
   // parameters
-  const zkKYCRecordRegistry = '0xc2032b11b79B05D1bd84ca4527D2ba8793cB67b2';
+  const zkKYCRecordRegistry = '0x68272A56A0e9b095E5606fDD8b6c297702C0dfe5';
   const verificationSBT = {
     uri: 'ipfs://QmRXjRe3w6ZTbuf1yhanzkEcvyyB9HymkNf4NMQQk5pNpC',
     name: 'Compliance Demo Verification SBT',

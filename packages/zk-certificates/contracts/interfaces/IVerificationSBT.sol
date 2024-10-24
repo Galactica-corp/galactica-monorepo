@@ -3,8 +3,9 @@ pragma solidity ^0.8.9;
 
 /// @author Galactica dev team
 import './IVerifierWrapper.sol';
+import {IERC721Metadata} from '@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol';
 
-interface IVerificationSBT {
+interface IVerificationSBT is IERC721Metadata {
     struct VerificationSBTInfo {
         IVerifierWrapper verifierWrapper;
         uint256 expirationTime;

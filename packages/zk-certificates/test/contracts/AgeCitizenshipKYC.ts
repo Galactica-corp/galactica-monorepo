@@ -18,12 +18,12 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
-import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/AgeCitizenshipKYC';
-import type { AgeCitizenshipKYCVerifier } from '../../typechain-types/contracts/AgeCitizenshipKYCVerifier';
+import type { KYCRequirementsDemoDApp } from '../../typechain-types/contracts/dapps/KYCRequirementsDemoDApp';
 import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
-import type { KYCRequirementsDemoDApp } from '../../typechain-types/contracts/KYCRequirementsDemoDApp';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
+import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/verifierWrappers/AgeCitizenshipKYC';
+import type { AgeCitizenshipKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/AgeCitizenshipKYCVerifier';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -93,7 +93,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       deployer,
     );
     const verificationSBT = verificationSBTFactory.attach(
-      await kycRequirementsDemoDApp.SBT(),
+      await kycRequirementsDemoDApp.sbt(),
     ) as VerificationSBT;
 
     const guardianRegistryFactory = await ethers.getContractFactory(

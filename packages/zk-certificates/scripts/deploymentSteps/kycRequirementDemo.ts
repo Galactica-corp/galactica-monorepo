@@ -57,7 +57,7 @@ export async function deployKYCRequirementsDemoDApp(
     {},
     [ageCitizenshipKYC.address, sbtData.uri, sbtData.name, sbtData.symbol],
   );
-  const verificationSBTAddr = await kycRequirementsDemoDApp.SBT();
+  const verificationSBTAddr = await kycRequirementsDemoDApp.sbt();
 
   const compliantERC20 = await deploySC('CompliantERC20', true, {}, [
     'Compliant ERC20',
@@ -68,7 +68,7 @@ export async function deployKYCRequirementsDemoDApp(
     [kycRequirementsDemoDApp.address],
   ]);
 
-  const sbtAddr = await kycRequirementsDemoDApp.SBT();
+  const sbtAddr = await kycRequirementsDemoDApp.sbt();
 
   await tryVerification(
     sbtAddr,

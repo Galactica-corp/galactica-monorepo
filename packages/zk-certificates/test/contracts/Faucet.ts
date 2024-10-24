@@ -85,7 +85,7 @@ describe('AirdropGateway', () => {
       deployer,
     );
     verificationSBT = verificationSBTFactory.attach(
-      await faucet.SBT(),
+      await faucet.sbt(),
     ) as VerificationSBT;
 
     // make zkKYC record for airdropGateway

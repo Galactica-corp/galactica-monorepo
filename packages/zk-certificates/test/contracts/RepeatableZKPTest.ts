@@ -100,7 +100,7 @@ describe('RepeatableZKPTest', () => {
       deployer,
     );
     verificationSBT = verificationSBTFactory.attach(
-      await repeatableZKPTest.SBT(),
+      await repeatableZKPTest.sbt(),
     ) as VerificationSBT;
 
     // inputs to create proof

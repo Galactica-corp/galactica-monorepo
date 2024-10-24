@@ -3,11 +3,11 @@ pragma solidity ^0.8.9;
 
 import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
 import {IVerifierWrapper} from '../interfaces/IVerifierWrapper.sol';
-import {IERC721Metadata, IERC721} from '@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol';
+import {IERC721} from '@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol';
 
 /// @author Galactica dev team
 /// @title A global smart contract that store verification SBTs, minted by dApp for users submitting zk proofs
-contract VerificationSBT is IVerificationSBT, IERC721Metadata {
+contract VerificationSBT is IVerificationSBT {
     // mapping to store verification SBT
     mapping(uint256 => VerificationSBTInfo) public sbtData;
 

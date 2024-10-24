@@ -7,18 +7,20 @@ import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import '../interfaces/IZkKYCVerifier.sol';
 import '../interfaces/IVerificationSBT.sol';
 import {VerificationSBT} from '../SBT_related/VerificationSBT.sol';
+import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
+import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
 
 /**
  * @title Faucet: distributes Gala to users on testnet
  */
-contract Faucet is AccessControl {
+contract Faucet is AccessControl, IVerificationSBTIssuer {
     uint256 public immutable epochDuration;
     uint256 public immutable epochStartTime;
     uint256 public immutable amountPerEpoch;
 
     mapping(bytes32 => uint256) public lastEpochClaimed;
     mapping(bytes32 => address) public humanIdToAddress;
-    IVerificationSBT public immutable SBT;
+    IVerificationSBT public immutable sbt;
     IZkKYCVerifier public immutable verifierWrapper;
 
     constructor(
@@ -35,7 +37,7 @@ contract Faucet is AccessControl {
         epochDuration = _epochDuration;
         epochStartTime = _epochStartTime;
         amountPerEpoch = _amountPerEpoch;
-        SBT = new VerificationSBT(
+        sbt = new VerificationSBT(
             _sbt_uri,
             _sbt_name,
             _sbt_symbol,
@@ -73,7 +75,7 @@ contract Faucet is AccessControl {
             'incorrect dAppAddress'
         );
         // check if there is an SBT for that humanID then proceed accordingly
-        if (SBT.isVerificationSBTValid(humanIdToAddress[humanID])) {
+        if (sbt.isVerificationSBTValid(humanIdToAddress[humanID])) {
             // SBT still valid for a different address
             if (humanIdToAddress[humanID] != userAddress) {
                 revert('SBT is still valid for different address.');
@@ -118,7 +120,7 @@ contract Faucet is AccessControl {
                 input[verifierWrapper.INDEX_PROVIDER_PUBKEY_AY()]
             ];
 
-            SBT.mintVerificationSBT(
+            sbt.mintVerificationSBT(
                 userAddress,
                 verifierWrapper,
                 expirationTime,
@@ -134,9 +136,9 @@ contract Faucet is AccessControl {
     }
 
     function claimWithSBT() public {
-        require(SBT.isVerificationSBTValid(msg.sender), 'no SBT found.');
+        require(sbt.isVerificationSBTValid(msg.sender), 'no SBT found.');
 
-        bytes32 humanId = SBT.getHumanID(msg.sender);
+        bytes32 humanId = sbt.getHumanID(msg.sender);
         // in theory this check should be redundant, but I put it here to make sure
         require(humanIdToAddress[humanId] == msg.sender, 'address not matched');
         _transferForHumanId(humanId);

@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 import {VerificationSBT} from '../SBT_related/VerificationSBT.sol';
 import {IZkKYCVerifier} from '../interfaces/IZkKYCVerifier.sol';
+import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
+import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
 
 /**
  * @title BasicKYCExampleDApp
@@ -10,8 +12,8 @@ import {IZkKYCVerifier} from '../interfaces/IZkKYCVerifier.sol';
  *  Registration can be repeated when the previous Verification SBT expired.
  *  The requirements of the ZKP (i.e. age, citizenship, etc.) are defined in the verifierWrapper.
  */
-contract BasicKYCExampleDApp {
-    VerificationSBT public sbt;
+contract BasicKYCExampleDApp is IVerificationSBTIssuer {
+    IVerificationSBT public sbt;
     IZkKYCVerifier public verifierWrapper;
 
     /**

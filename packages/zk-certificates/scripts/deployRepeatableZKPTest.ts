@@ -8,7 +8,7 @@ import { deployRepeatableZKPTest } from './deploymentSteps/repeatableZKPTest';
  */
 async function main() {
   // parameters
-  const zkKYCRegistry = '0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD';
+  const zkKYCRegistry = '0x68272A56A0e9b095E5606fDD8b6c297702C0dfe5';
   const verificationSBT = {
     uri: 'ipfs://QmVG5b34f8DHGnPZQwi1GD4NUXEVhh7bTub5SG6MPHvHz6',
     name: 'Repeatable KYC Verification SBT',

@@ -64,7 +64,7 @@ export async function deployExampleDApp(
   await mockDApp.setToken1(token1.address);
   await mockDApp.setToken2(token2.address);
 
-  const sbtAddr = await mockDApp.SBT();
+  const sbtAddr = await mockDApp.sbt();
 
   await tryVerification(
     sbtAddr,

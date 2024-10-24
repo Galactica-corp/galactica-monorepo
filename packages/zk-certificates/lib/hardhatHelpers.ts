@@ -93,8 +93,8 @@ export async function tryVerification(
         `Sometimes the block explorer is slow to update. Try again in a few minutes.`,
       ),
     );
+    console.log(`Command to run verification later:`);
     console.log(
-      `Command to run verification later:`,
       chalk.yellow(
         `yarn hardhat verify --contract "${contract}" ${address} "${constructorArguments.join(
           '" "',

@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '../SBT_related/VerificationSBT.sol';
 import '../interfaces/IAgeCitizenshipKYCVerifier.sol';
+import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
+import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
 
 /// @author Galactica dev team
 //For testing purpose we will create a mock dApp that airdrops 2 types tokens (100 each) for user
@@ -10,7 +12,7 @@ import '../interfaces/IAgeCitizenshipKYCVerifier.sol';
 //There are two things that we will test
 //1. After the first airdrop claim the SC will mint a verification SBT for that user
 //2. With the verification SBT user won't need to supply the zk proof
-contract MockDApp {
+contract MockDApp is IVerificationSBTIssuer {
     // mappings to see if certain humanID has received the token airdrop
     // in real DApp this should be a merkle root so that we can aggregate data across different humanID in a zk way
     // but here for simplicity I use normal mapping
@@ -21,7 +23,7 @@ contract MockDApp {
     ERC20 public token2;
     uint public constant token1AirdropAmount = 100;
     uint public constant token2AirdropAmount = 100;
-    VerificationSBT public SBT;
+    IVerificationSBT public sbt;
     IAgeCitizenshipKYCVerifier public verifierWrapper;
 
     constructor(
@@ -31,7 +33,7 @@ contract MockDApp {
         string memory _sbt_symbol
     ) {
         verifierWrapper = _verifierWrapper;
-        SBT = new VerificationSBT(
+        sbt = new VerificationSBT(
             _sbt_uri,
             _sbt_name,
             _sbt_symbol,
@@ -56,7 +58,7 @@ contract MockDApp {
     ) public {
         bytes32 humanID;
         // first check if this user already already has a verification SBT, if no we will check the supplied proof
-        if (!SBT.isVerificationSBTValid(msg.sender)) {
+        if (!sbt.isVerificationSBTValid(msg.sender)) {
             humanID = bytes32(input[verifierWrapper.INDEX_HUMAN_ID()]);
             uint dAppAddress = input[verifierWrapper.INDEX_DAPP_ID()];
 
@@ -99,7 +101,7 @@ contract MockDApp {
                 input[verifierWrapper.INDEX_PROVIDER_PUBKEY_AX()],
                 input[verifierWrapper.INDEX_PROVIDER_PUBKEY_AY()]
             ];
-            SBT.mintVerificationSBT(
+            sbt.mintVerificationSBT(
                 msg.sender,
                 verifierWrapper,
                 expirationTime,
@@ -110,7 +112,7 @@ contract MockDApp {
             );
         }
 
-        humanID = SBT.getHumanID(msg.sender);
+        humanID = sbt.getHumanID(msg.sender);
 
         // if everything is good then we transfer the airdrop
         // then mark it in the mapping
