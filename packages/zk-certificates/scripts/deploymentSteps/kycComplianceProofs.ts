@@ -3,7 +3,7 @@ import type { TokenData } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildPoseidon } from 'circomlibjs';
 
-import { deploySC } from '../../lib/hardhatHelpers';
+import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
 import { hashStringToFieldNumber } from '../../lib/helpers';
 import type { Poseidon } from '../../lib/poseidon';
 
@@ -67,6 +67,16 @@ export async function deployKYCComplianceProofsDApps(
     ],
   );
   const nonUSSBTAddr = await nonUSWrapper.sbt();
+  await tryVerification(
+    nonUSSBTAddr,
+    [
+      sbtDataNonUS.uri,
+      sbtDataNonUS.name,
+      sbtDataNonUS.symbol,
+      nonUSDApp.address,
+    ],
+    'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
+  );
 
   log('NonSanctionedJurisdiction:');
   const nonSanctionedJurisdictionWrapper = await deploySC(
@@ -114,6 +124,16 @@ export async function deployKYCComplianceProofsDApps(
   );
   const nonSanctionedJurisdictionSBTAddr =
     await nonSanctionedJurisdictionDApp.sbt();
+  await tryVerification(
+    nonSanctionedJurisdictionSBTAddr,
+    [
+      sbtDataNonSanctionedJurisdiction.uri,
+      sbtDataNonSanctionedJurisdiction.name,
+      sbtDataNonSanctionedJurisdiction.symbol,
+      nonSanctionedJurisdictionDApp.address,
+    ],
+    'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
+  );
 
   log('Adult18Plus:');
   const adult18PlusWrapper = await deploySC('AgeCitizenshipKYC', true, {}, [
@@ -138,6 +158,16 @@ export async function deployKYCComplianceProofsDApps(
     ],
   );
   const adult18PlusSBTAddr = await adult18PlusWrapper.sbt();
+  await tryVerification(
+    adult18PlusSBTAddr,
+    [
+      sbtDataAdult18Plus.uri,
+      sbtDataAdult18Plus.name,
+      sbtDataAdult18Plus.symbol,
+      adult18PlusDApp.address,
+    ],
+    'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
+  );
 
   return {
     zkpVerifier,

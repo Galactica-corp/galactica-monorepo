@@ -4,7 +4,7 @@ import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildPoseidon } from 'circomlibjs';
 import { parseEther } from 'ethers/lib/utils';
 
-import { deploySC } from '../../lib/hardhatHelpers';
+import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
 import { hashStringToFieldNumber } from '../../lib/helpers';
 import type { Poseidon } from '../../lib/poseidon';
 
@@ -69,6 +69,17 @@ export async function deployKYCRequirementsDemoDApp(
   ]);
 
   const sbtAddr = await kycRequirementsDemoDApp.SBT();
+
+  await tryVerification(
+    sbtAddr,
+    [
+      sbtData.uri,
+      sbtData.name,
+      sbtData.symbol,
+      kycRequirementsDemoDApp.address,
+    ],
+    'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
+  );
 
   return {
     zkpVerifier,

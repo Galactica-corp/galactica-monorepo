@@ -65,3 +65,41 @@ export async function deploySC(
   }
   return contract;
 }
+
+/**
+ * Helper to try verifying a contract and log an error if it fails. If it fails, it will also log the command to run verification later.
+ * @param address - Address of the contract.
+ * @param constructorArguments - Constructor arguments used for deployment.
+ * @param contract - Fully qualified name of the contract (e.g. "contracts/SBT_related/VerificationSBT.sol:VerificationSBT").
+ * @param options - Options as taken by hardhat, such as library addresses.
+ */
+export async function tryVerification(
+  address: string,
+  constructorArguments: any[],
+  contract: string,
+  options: FactoryOptions = {},
+) {
+  try {
+    await run('verify:verify', {
+      address,
+      constructorArguments,
+      contract,
+      ...options,
+    });
+  } catch (error: any) {
+    console.error(chalk.red(`Verification failed: ${error.message as string}`));
+    console.error(
+      chalk.red(
+        `Sometimes the block explorer is slow to update. Try again in a few minutes.`,
+      ),
+    );
+    console.log(
+      `Command to run verification later:`,
+      chalk.yellow(
+        `yarn hardhat verify --contract "${contract}" ${address} "${constructorArguments.join(
+          '" "',
+        )}" --network [NETWORK] `,
+      ),
+    );
+  }
+}

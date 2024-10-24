@@ -2,7 +2,7 @@
 import type { TokenData } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { deploySC } from '../../lib/hardhatHelpers';
+import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
 
 const { log } = console;
 
@@ -41,10 +41,17 @@ export async function deployRepeatableZKPTest(
     sbtData.symbol,
   ]);
 
+  const sbtAddr = await repeatableZKPTest.SBT();
+  await tryVerification(
+    sbtAddr,
+    [sbtData.uri, sbtData.name, sbtData.symbol, repeatableZKPTest.address],
+    'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
+  );
+
   return {
     zkKYCVerifier,
     zkKYCSC,
     repeatableZKPTest,
-    sbtAddr: await repeatableZKPTest.SBT(),
+    sbtAddr,
   };
 }

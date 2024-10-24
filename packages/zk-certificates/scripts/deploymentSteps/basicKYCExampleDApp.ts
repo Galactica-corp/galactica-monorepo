@@ -3,7 +3,7 @@ import type { TokenData } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import type { Contract } from 'ethers';
 
-import { deploySC } from '../../lib/hardhatHelpers';
+import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
 
 const { log } = console;
 
@@ -32,6 +32,14 @@ export async function deployBasicKYCExampleDApp(
     {},
     [zkKYCAddr, sbtData.uri, sbtData.name, sbtData.symbol],
   );
-  const sbtAddr = await dApp.SBT();
+
+  const sbtAddr = await dApp.sbt();
+
+  await tryVerification(
+    sbtAddr,
+    [sbtData.uri, sbtData.name, sbtData.symbol, dApp.address],
+    'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
+  );
+
   return { dApp, sbtAddr };
 }
