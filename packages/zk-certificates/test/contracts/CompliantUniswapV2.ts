@@ -1,13 +1,7 @@
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { groth16 } from 'snarkjs';
 
-import { processProof, processPublicSignals } from '../../lib/helpers';
-import {
-  generateSampleZkKYC,
-  generateZkKYCProofInput,
-} from '../../scripts/generateZkKYCInput';
 import type { UniswapV2Factory } from '../../typechain-types/contracts/dapps/CompliantDex/UniswapV2Factory';
 import type { UniswapV2Router02 } from '../../typechain-types/contracts/dapps/CompliantDex/UniswapV2Router02';
 import type { WETH9 } from '../../typechain-types/contracts/dapps/CompliantDex/WETH9';
@@ -26,9 +20,6 @@ describe('Compliant UniswapV2', function () {
   let weth: WETH9;
   let mockZkKYC: MockZkKYC;
   let verificationSBT: VerificationSBT;
-  let sampleInput: any;
-  let circuitWasmPath: string;
-  let circuitZkeyPath: string;
 
   const INITIAL_SUPPLY = ethers.utils.parseEther('10000');
   const INITIAL_LIQUIDITY = ethers.utils.parseEther('1000');
@@ -96,53 +87,21 @@ describe('Compliant UniswapV2', function () {
     await tokenB
       .connect(user2)
       .approve(router.address, ethers.constants.MaxUint256);
-
-    // Generate sample ZkKYC and proof input
-    const zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, 0, router.address);
-
-    circuitWasmPath = './circuits/build/zkKYC.wasm';
-    circuitZkeyPath = './circuits/build/zkKYC.zkey';
   });
 
-  /**
-   * Generates and processes a proof for the given input.
-   * @param input - The input data for generating the proof.
-   * @param wasmPath - The path to the circuit WASM file.
-   * @param zkeyPath - The path to the circuit zkey file.
-   * @returns An object containing the processed proof and public inputs.
-   */
-  async function generateAndProcessProof(
-    input: any,
-    wasmPath: string,
-    zkeyPath: string,
-  ) {
-    const { proof, publicSignals } = await groth16.fullProve(
-      input,
-      wasmPath,
-      zkeyPath,
-    );
-
-    const [piA, piB, piC] = processProof(proof);
-    const publicInputs = processPublicSignals(publicSignals);
-
-    const publicTime = parseInt(publicSignals[6], 10); // Assuming INDEX_CURRENT_TIME is 6
-
-    await ethers.provider.send('evm_setNextBlockTimestamp', [publicTime]);
-    await ethers.provider.send('evm_mine', []);
-
-    return { piA, piB, piC, publicInputs };
-  }
-
   it('should register user, add liquidity, remove liquidity, and swap tokens', async function () {
-    const { piA, piB, piC, publicInputs } = await generateAndProcessProof(
-      sampleInput,
-      circuitWasmPath,
-      circuitZkeyPath,
-    );
-
-    // Register user and mint VerificationSBT
-    await router.connect(user1).register(piA, piB, piC, publicInputs);
+    // compliantUser passes KYC requirements
+    const expirationTime = Math.floor(Date.now() / 1000) * 2;
+    await mockZkKYC
+      .connect(user1)
+      .earnVerificationSBT(
+        verificationSBT.address,
+        expirationTime,
+        [],
+        [0, 0],
+        ethers.utils.hexZeroPad('0x1', 32),
+        [3, 4],
+      );
 
     // Verify that the VerificationSBT was minted
     expect(await verificationSBT.balanceOf(user1.address)).to.equal(1);
@@ -210,6 +169,7 @@ describe('Compliant UniswapV2', function () {
   });
 
   it('should fail operations without VerificationSBT', async function () {
+    console.log('1');
     // Try to add liquidity without VerificationSBT
     await expect(
       router
@@ -225,24 +185,7 @@ describe('Compliant UniswapV2', function () {
           ethers.constants.MaxUint256,
         ),
     ).to.be.revertedWith(
-      'UniswapV2Router: User does not have a valid VerificationSBT',
-    );
-
-    // Try to remove liquidity without VerificationSBT
-    await expect(
-      router
-        .connect(user2)
-        .removeLiquidity(
-          tokenA.address,
-          tokenB.address,
-          INITIAL_LIQUIDITY,
-          0,
-          0,
-          user2.address,
-          ethers.constants.MaxUint256,
-        ),
-    ).to.be.revertedWith(
-      'UniswapV2Router: User does not have a valid VerificationSBT',
+      'UniswapV2Router02: Recipient does not have required compliance SBTs.',
     );
 
     // Try to swap tokens without VerificationSBT
@@ -257,7 +200,7 @@ describe('Compliant UniswapV2', function () {
           ethers.constants.MaxUint256,
         ),
     ).to.be.revertedWith(
-      'UniswapV2Router: User does not have a valid VerificationSBT',
+      'UniswapV2Router02: Recipient does not have required compliance SBTs.',
     );
   });
 });

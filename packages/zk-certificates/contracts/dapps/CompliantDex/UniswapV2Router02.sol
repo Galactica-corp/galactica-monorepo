@@ -39,7 +39,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
                     to,
                     compliancyRequirements[i]
                 ),
-                'CompliantERC20: Recipient does not have required compliance SBTs.'
+                'UniswapV2Router02: Recipient does not have required compliance SBTs.'
             );
         }
         _;
