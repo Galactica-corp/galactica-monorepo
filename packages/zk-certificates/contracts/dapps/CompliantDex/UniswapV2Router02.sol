@@ -32,7 +32,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
     }
 
     // Add this new modifier
-    modifier hasValidVerificationSBT() {
+    modifier hasValidVerificationSBT(address to) {
         for (uint i = 0; i < compliancyRequirements.length; i++) {
             require(
                 verificationSBT.isVerificationSBTValid(
@@ -87,7 +87,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint amountBMin,
         address to,
         uint deadline
-    ) external virtual override ensure(deadline) hasValidVerificationSBT returns (uint amountA, uint amountB, uint liquidity) {
+    ) external virtual override ensure(deadline) hasValidVerificationSBT(msg.sender) returns (uint amountA, uint amountB, uint liquidity) {
         (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
         address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
         TransferHelper.safeTransferFrom(tokenA, msg.sender, pair, amountA);
@@ -101,7 +101,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint amountETHMin,
         address to,
         uint deadline
-    ) external virtual override payable ensure(deadline) hasValidVerificationSBT returns (uint amountToken, uint amountETH, uint liquidity) {
+    ) external virtual override payable ensure(deadline) hasValidVerificationSBT(msg.sender) returns (uint amountToken, uint amountETH, uint liquidity) {
         (amountToken, amountETH) = _addLiquidity(
             token,
             WETH,
@@ -128,7 +128,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint amountBMin,
         address to,
         uint deadline
-    ) public virtual override ensure(deadline) hasValidVerificationSBT returns (uint amountA, uint amountB) {
+    ) public virtual override ensure(deadline) returns (uint amountA, uint amountB) {
         address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
         IUniswapV2Pair(pair).transferFrom(msg.sender, pair, liquidity); // send liquidity to pair
         (uint amount0, uint amount1) = IUniswapV2Pair(pair).burn(to);
@@ -144,7 +144,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint amountETHMin,
         address to,
         uint deadline
-    ) public virtual override ensure(deadline) hasValidVerificationSBT returns (uint amountToken, uint amountETH) {
+    ) public virtual override ensure(deadline) returns (uint amountToken, uint amountETH) {
         (amountToken, amountETH) = removeLiquidity(
             token,
             WETH,
@@ -196,7 +196,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         uint amountETHMin,
         address to,
         uint deadline
-    ) public virtual override ensure(deadline) hasValidVerificationSBT returns (uint amountETH) {
+    ) public virtual override ensure(deadline) returns (uint amountETH) {
         (, amountETH) = removeLiquidity(
             token,
             WETH,
@@ -247,7 +247,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         address[] calldata path,
         address to,
         uint deadline
-    ) external virtual override ensure(deadline) hasValidVerificationSBT returns (uint[] memory amounts) {
+    ) external virtual override ensure(deadline) hasValidVerificationSBT(msg.sender) returns (uint[] memory amounts) {
         amounts = UniswapV2Library.getAmountsOut(factory, amountIn, path);
         require(amounts[amounts.length - 1] >= amountOutMin, 'UniswapV2Router: INSUFFICIENT_OUTPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
@@ -261,7 +261,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         address[] calldata path,
         address to,
         uint deadline
-    ) external virtual override ensure(deadline) hasValidVerificationSBT returns (uint[] memory amounts) {
+    ) external virtual override ensure(deadline) hasValidVerificationSBT(msg.sender) returns (uint[] memory amounts) {
         amounts = UniswapV2Library.getAmountsIn(factory, amountOut, path);
         require(amounts[0] <= amountInMax, 'UniswapV2Router: EXCESSIVE_INPUT_AMOUNT');
         TransferHelper.safeTransferFrom(
@@ -275,7 +275,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         override
         payable
         ensure(deadline)
-        hasValidVerificationSBT
+        hasValidVerificationSBT(msg.sender)
         returns (uint[] memory amounts)
     {
         require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
@@ -290,7 +290,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         virtual
         override
         ensure(deadline)
-        hasValidVerificationSBT
+        hasValidVerificationSBT(msg.sender)
         returns (uint[] memory amounts)
     {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
@@ -308,7 +308,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         virtual
         override
         ensure(deadline)
-        hasValidVerificationSBT
+        hasValidVerificationSBT(msg.sender)
         returns (uint[] memory amounts)
     {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
@@ -327,7 +327,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         override
         payable
         ensure(deadline)
-        hasValidVerificationSBT
+        hasValidVerificationSBT(msg.sender)
         returns (uint[] memory amounts)
     {
         require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
@@ -366,7 +366,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         address[] calldata path,
         address to,
         uint deadline
-    ) external virtual override ensure(deadline) hasValidVerificationSBT {
+    ) external virtual override ensure(deadline) hasValidVerificationSBT(msg.sender) {
         TransferHelper.safeTransferFrom(
             path[0], msg.sender, UniswapV2Library.pairFor(factory, path[0], path[1]), amountIn
         );
@@ -388,7 +388,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         override
         payable
         ensure(deadline)
-        hasValidVerificationSBT
+        hasValidVerificationSBT(msg.sender)
     {
         require(path[0] == WETH, 'UniswapV2Router: INVALID_PATH');
         uint amountIn = msg.value;
@@ -412,7 +412,7 @@ contract UniswapV2Router02 is IUniswapV2Router02 {
         virtual
         override
         ensure(deadline)
-        hasValidVerificationSBT
+        hasValidVerificationSBT(msg.sender)
     {
         require(path[path.length - 1] == WETH, 'UniswapV2Router: INVALID_PATH');
         TransferHelper.safeTransferFrom(
