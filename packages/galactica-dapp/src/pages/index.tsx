@@ -3,12 +3,11 @@ import styled from 'styled-components';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
   shouldDisplayReconnectButton,
-  queryVerificationSBT,
   formatVerificationSBTs,
   getUserAddress,
-  getGuardianNameMap,
   handleSnapConnectClick,
   handleWalletConnectClick,
+  showVerificationSBTs,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -27,7 +26,6 @@ import mockDAppABI from '../config/abi/MockDApp.json';
 import kycRequirementsDemoDAppABI from '../config/abi/KYCRequirementsDemoDApp.json';
 import IAgeCitizenshipKYCVerifierABI from '../config/abi/IAgeCitizenshipKYCVerifier.json';
 import repeatableZKPTestABI from '../config/abi/RepeatableZKPTest.json';
-import IVerificationSBTIssuer from '../config/abi/IVerificationSBTIssuer.json';
 import { getProver, prepareProofInput } from '../utils/zkp';
 
 import {
@@ -204,7 +202,7 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
 
       console.log(`Updating verification SBTs...`);
-      await showVerificationSBTs();
+      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -284,7 +282,7 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Passed all requirements, got Verification SBT` });
 
       console.log(`Updating verification SBTs...`);
-      await showVerificationSBTs();
+      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -358,31 +356,7 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
 
       console.log(`Updating verification SBTs...`);
-      await showVerificationSBTs();
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
-    }
-  };
-
-  const showVerificationSBTs = async () => {
-    try {
-      //@ts-ignore https://github.com/metamask/providers/issues/200
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const sbtContracts = addresses.sbtIssuingContracts.map(async (addr) =>
-        await (new ethers.Contract(addr, IVerificationSBTIssuer.abi, signer)).sbt()
-      );
-      let sbts = [];
-      for (const sbtContract of sbtContracts) {
-        const sbt = await queryVerificationSBT(await sbtContract, provider, await signer.getAddress());
-        if (sbt) {
-          sbts.push(sbt);
-        }
-      }
-      const guardianNameMap = await getGuardianNameMap(sbts, addresses.zkKYCRegistry, provider);
-      console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts, guardianNameMap)} `);
-      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: { sbts, guardianNameMap } });
+      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });

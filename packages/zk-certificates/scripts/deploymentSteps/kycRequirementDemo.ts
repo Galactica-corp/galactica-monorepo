@@ -64,8 +64,7 @@ export async function deployKYCRequirementsDemoDApp(
     'CERC20',
     deployer.address,
     parseEther('1000000'),
-    verificationSBTAddr,
-    [kycRequirementsDemoDApp.address],
+    [verificationSBTAddr],
   ]);
 
   const sbtAddr = await kycRequirementsDemoDApp.sbt();

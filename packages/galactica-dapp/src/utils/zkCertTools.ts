@@ -2,6 +2,7 @@ import { BigNumber, ethers } from 'ethers';
 
 import GuardianRegistryABI from '../config/abi/GuardianRegistry.json';
 import VerificationSbtABI from '../config/abi/IVerificationSBT.json';
+import IVerificationSBTIssuer from '../config/abi/IVerificationSBTIssuer.json';
 import KYCRecordRegistryABI from '../config/abi/KYCRecordRegistry.json';
 
 /**
@@ -82,6 +83,39 @@ export async function queryVerificationSBT(
     sbtInfo.humanID,
     sbtInfo.providerPubKey,
   );
+}
+
+export async function showVerificationSBTs(
+  sbtIssuingContracts: string[],
+  zkKYCRegistryAddr: string,
+): Promise<{ sbts: SBT[]; guardianNameMap: Map<string[2], string> }> {
+  // @ts-expect-error https://github.com/metamask/providers/issues/200
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  const sbtContracts = sbtIssuingContracts.map(
+    async (addr) =>
+      await new ethers.Contract(addr, IVerificationSBTIssuer.abi, signer).sbt(),
+  );
+  const sbts = [];
+  for (const sbtContract of sbtContracts) {
+    const sbt = await queryVerificationSBT(
+      await sbtContract,
+      provider,
+      await signer.getAddress(),
+    );
+    if (sbt) {
+      sbts.push(sbt);
+    }
+  }
+  const guardianNameMap = await getGuardianNameMap(
+    sbts,
+    zkKYCRegistryAddr,
+    provider,
+  );
+  console.log(
+    `Verification SBTs:\n ${formatVerificationSBTs(sbts, guardianNameMap)} `,
+  );
+  return { sbts, guardianNameMap };
 }
 
 export function formatVerificationSBTs(
