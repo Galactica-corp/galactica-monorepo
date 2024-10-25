@@ -8,9 +8,9 @@ import { deployBasicKYCExampleDApp } from './deploymentSteps/basicKYCExampleDApp
  */
 async function main() {
   // parameters
-  const zkKYC = '0x86aCd7EC220583eEcDC10b50535b37FD77133E8D'; // you can reuse the zkKYC smart contract from the deployment of the RepeatableZKPTest
+  const zkKYC = '0xfDa5904dC71a244Ab88D86CE015365c17FEbe3CE'; // you can reuse the zkKYC smart contract from the deployment of the RepeatableZKPTest
   const verificationSBT = {
-    uri: 'ipfs://QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs', // TODO: replace with the actual URI
+    uri: 'ipfs://QmeFsERdKfKW3fmdXVHvvwdkqVHNs3TU6oqEdUrgPchyw7',
     name: 'KYC Verification SBT',
     symbol: 'KYCOK',
   };

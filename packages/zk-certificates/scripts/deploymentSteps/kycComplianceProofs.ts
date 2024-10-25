@@ -66,7 +66,7 @@ export async function deployKYCComplianceProofsDApps(
       sbtDataNonUS.symbol,
     ],
   );
-  const nonUSSBTAddr = await nonUSWrapper.sbt();
+  const nonUSSBTAddr = await nonUSDApp.sbt();
   await tryVerification(
     nonUSSBTAddr,
     [
@@ -157,7 +157,7 @@ export async function deployKYCComplianceProofsDApps(
       sbtDataAdult18Plus.symbol,
     ],
   );
-  const adult18PlusSBTAddr = await adult18PlusWrapper.sbt();
+  const adult18PlusSBTAddr = await adult18PlusDApp.sbt();
   await tryVerification(
     adult18PlusSBTAddr,
     [
