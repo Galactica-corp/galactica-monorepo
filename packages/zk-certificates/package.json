@@ -21,7 +21,7 @@
     "!/circuits/*.ptau",
     "!/circuits/build",
     "/contracts",
-    "/typechain-types/contracts"
+    "/typechain-types"
   ],
   "scripts": {
     "build": "hardhat smartCircuitBuild --verbose && hardhat compile && tsup --dts",
