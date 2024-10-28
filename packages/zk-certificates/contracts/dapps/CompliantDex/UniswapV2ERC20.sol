@@ -4,8 +4,6 @@ pragma solidity ^0.8.0;
 
 import {IUniswapV2ERC20} from "./interfaces/IUniswapV2ERC20.sol";
 import {IVerificationSBT} from "../../interfaces/IVerificationSBT.sol";
-import {UniswapV2Factory} from "./UniswapV2Factory.sol";
-import {UniswapV2Router02} from "./UniswapV2Router02.sol";
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
     string public constant override name = "Uniswap V2";
@@ -54,49 +52,12 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         emit Approval(owner, spender, value);
     }
 
-    function _transfer(address from, address to, uint256 value) private {
-        address router = UniswapV2Factory(factory).router();
-        IVerificationSBT verificationSBT = UniswapV2Router02(router).verificationSBT();
-        address[] memory compliancyRequirements = UniswapV2Router02(router).getCompliancyRequirements();
-        for (uint i = 0; i < compliancyRequirements.length; i++) {
-            require(
-                verificationSBT.isVerificationSBTValid(
-                    to,
-                    compliancyRequirements[i]
-                ),
-                'UniswapV2ERC20: Recipient does not have required compliance SBTs.'
-            );
-        }
-        balanceOf[from] -= value;
-        balanceOf[to] += value;
-        emit Transfer(from, to, value);
-    }
 
     function approve(
         address spender,
         uint256 value
     ) external override returns (bool) {
         _approve(msg.sender, spender, value);
-        return true;
-    }
-
-    function transfer(
-        address to,
-        uint256 value
-    ) external override returns (bool) {
-        _transfer(msg.sender, to, value);
-        return true;
-    }
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external override returns (bool) {
-        if (allowance[from][msg.sender] != type(uint256).max) {
-            allowance[from][msg.sender] -= value;
-        }
-        _transfer(from, to, value);
         return true;
     }
 

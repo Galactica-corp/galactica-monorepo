@@ -59,4 +59,12 @@ interface IUniswapV2Pair is IUniswapV2ERC20 {
     function sync() external;
 
     function initialize(address, address) external;
+
+    function transfer(address to, uint256 value) external returns (bool);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) external returns (bool);
 }
