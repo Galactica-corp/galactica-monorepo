@@ -15,6 +15,7 @@ contract UniswapV2Factory is IUniswapV2Factory {
 
     mapping(address => mapping(address => address)) public override getPair;
     address[] public override allPairs;
+    // we need to use address payable because the router has a payable fallback function
     address payable public override router;
 
     constructor(address _feeToSetter) {

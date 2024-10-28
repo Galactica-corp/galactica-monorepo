@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import './IUniswapV2Router01.sol';
+import {IVerificationSBT} from '../../../interfaces/IVerificationSBT.sol';
 
 interface IUniswapV2Router02 is IUniswapV2Router01 {
     function removeLiquidityETHSupportingFeeOnTransferTokens(
@@ -24,7 +25,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         bool approveMax, uint8 v, bytes32 r, bytes32 s
     ) external returns (uint amountETH);
 
-    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
+    /* function swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint amountIn,
         uint amountOutMin,
         address[] calldata path,
@@ -45,5 +46,9 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         address[] calldata path,
         address to,
         uint deadline
-    ) external;
+    ) external; */
+
+    function verificationSBT() external view returns (IVerificationSBT);
+
+    function getCompliancyRequirements() external view returns (address[] memory);
 }

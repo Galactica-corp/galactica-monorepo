@@ -89,7 +89,7 @@ describe('Compliant UniswapV2', function () {
       .approve(router.address, ethers.constants.MaxUint256);
   });
 
-  it.only('should register user, add liquidity, remove liquidity, and swap tokens', async function () {
+  it('should register user, add liquidity, remove liquidity, and swap tokens', async function () {
     // compliantUser passes KYC requirements
     const expirationTime = Math.floor(Date.now() / 1000) * 2;
     await mockZkKYC
@@ -105,6 +105,8 @@ describe('Compliant UniswapV2', function () {
 
     // Verify that the VerificationSBT was minted
     expect(await verificationSBT.balanceOf(user1.address)).to.equal(1);
+
+    await factory.createPair(tokenA.address, tokenB.address);
 
     // Add liquidity
     await router
@@ -202,5 +204,72 @@ describe('Compliant UniswapV2', function () {
     ).to.be.revertedWith(
       'UniswapV2Router02: Recipient does not have required compliance SBTs.',
     );
+  });
+
+  it('Liquidity tokens cannot be transferred to non-compliant addresses', async function () {
+    // compliantUser passes KYC requirements
+    const expirationTime = Math.floor(Date.now() / 1000) * 2;
+    await mockZkKYC
+      .connect(user1)
+      .earnVerificationSBT(
+        verificationSBT.address,
+        expirationTime,
+        [],
+        [0, 0],
+        ethers.utils.hexZeroPad('0x1', 32),
+        [3, 4],
+      );
+
+    // Verify that the VerificationSBT was minted
+    expect(await verificationSBT.balanceOf(user1.address)).to.equal(1);
+
+    await factory.createPair(tokenA.address, tokenB.address);
+
+    // Add liquidity
+    await router
+      .connect(user1)
+      .addLiquidity(
+        tokenA.address,
+        tokenB.address,
+        INITIAL_LIQUIDITY,
+        INITIAL_LIQUIDITY,
+        0,
+        0,
+        user1.address,
+        ethers.constants.MaxUint256,
+      );
+
+    const pairAddress = await factory.getPair(tokenA.address, tokenB.address);
+    const pair = await ethers.getContractAt('UniswapV2Pair', pairAddress);
+    const lpTokenBalance = await pair.balanceOf(user1.address);
+
+    // Try to swap tokens without VerificationSBT
+    await expect(
+      pair
+        .connect(user1)
+        .transfer(
+          user2.address,
+          lpTokenBalance,
+        ),
+    ).to.be.revertedWith(
+      'UniswapV2ERC20: Recipient does not have required compliance SBTs.',
+    );
+
+    // now mint a new VerificationSBT for user2
+    await mockZkKYC
+      .connect(user2)
+      .earnVerificationSBT(
+        verificationSBT.address,
+        expirationTime,
+        [],
+        [0, 0],
+        ethers.utils.hexZeroPad('0x1', 32),
+        [3, 4],
+      );
+
+    // now the transfer should succeed
+    await pair.connect(user1).transfer(user2.address, lpTokenBalance);
+
+    expect(await pair.balanceOf(user2.address)).to.equal(lpTokenBalance);
   });
 });

@@ -10,7 +10,7 @@ import {IERC20} from "./interfaces/IERC20.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import {IUniswapV2Callee} from "./interfaces/IUniswapV2Callee.sol";
 import {IVerificationSBT} from "../../interfaces/IVerificationSBT.sol";
-import {UniswapV2Router02} from "./UniswapV2Router02.sol";
+import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
 
 contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     using UQ112x112 for uint224;
@@ -283,17 +283,21 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     // and the router is defined in UniswapV2Pair
     function _transfer(address from, address to, uint256 value) private {
         address payable router = IUniswapV2Factory(factory).router();
-        IVerificationSBT verificationSBT = UniswapV2Router02(router).verificationSBT();
-        address[] memory compliancyRequirements = UniswapV2Router02(router).getCompliancyRequirements();
-        for (uint i = 0; i < compliancyRequirements.length; i++) {
-            require(
-                verificationSBT.isVerificationSBTValid(
-                    to,
-                    compliancyRequirements[i]
-                ),
-                'UniswapV2ERC20: Recipient does not have required compliance SBTs.'
-            );
+        IVerificationSBT verificationSBT = IUniswapV2Router02(router).verificationSBT();
+        address[] memory compliancyRequirements = IUniswapV2Router02(router).getCompliancyRequirements();
+        // exclude this contract address to enable burning
+        if (to != address(this)) {
+          for (uint i = 0; i < compliancyRequirements.length; i++) {
+              require(
+                  verificationSBT.isVerificationSBTValid(
+                      to,
+                      compliancyRequirements[i]
+                  ),
+                  'UniswapV2ERC20: Recipient does not have required compliance SBTs.'
+              );
+          }
         }
+
         balanceOf[from] -= value;
         balanceOf[to] += value;
         emit Transfer(from, to, value);
