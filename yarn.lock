@@ -3800,12 +3800,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galactica-net/zk-certificates@^0.11.1, @galactica-net/zk-certificates@workspace:^, @galactica-net/zk-certificates@workspace:packages/zk-certificates":
+"@galactica-net/zk-certificates@workspace:^, @galactica-net/zk-certificates@workspace:packages/zk-certificates":
   version: 0.0.0-use.local
   resolution: "@galactica-net/zk-certificates@workspace:packages/zk-certificates"
   dependencies:
     "@galactica-net/galactica-types": "workspace:^"
-    "@galactica-net/zk-certificates": ^0.11.1
     "@metamask/eth-sig-util": ^7.0.1
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.4
     "@nomicfoundation/hardhat-ethers": ^3.0.6
