@@ -8,20 +8,17 @@ import './libraries/UniswapV2Library.sol';
 import './libraries/TransferHelper.sol';
 import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
-import './../../interfaces/IZkKYCVerifier.sol';
 import './../../interfaces/IVerificationSBT.sol';
 
 contract UniswapV2Router02 is IUniswapV2Router02 {
     address public immutable override factory;
     address public immutable override WETH;
-    IZkKYCVerifier public immutable zkKYC;
     address[] public compliancyRequirements;
     IVerificationSBT public verificationSBT;
 
-    constructor(address _factory, address _WETH, address _zkKYC, address _verificationSBT,address[] memory _compliantRequirements) {
+    constructor(address _factory, address _WETH, address _verificationSBT,address[] memory _compliantRequirements) {
         factory = _factory;
         WETH = _WETH;
-        zkKYC = IZkKYCVerifier(_zkKYC);
         verificationSBT = IVerificationSBT(_verificationSBT);
         compliancyRequirements = _compliantRequirements;
     }
