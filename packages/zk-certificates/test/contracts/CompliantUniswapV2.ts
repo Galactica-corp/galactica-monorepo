@@ -55,7 +55,6 @@ describe('Compliant UniswapV2', function () {
     router = (await Router.deploy(
       factory.address,
       weth.address,
-      mockZkKYC.address,
       verificationSBT.address,
       [mockZkKYC.address],
     )) as UniswapV2Router02;
@@ -105,8 +104,6 @@ describe('Compliant UniswapV2', function () {
 
     // Verify that the VerificationSBT was minted
     expect(await verificationSBT.balanceOf(user1.address)).to.equal(1);
-
-    await factory.createPair(tokenA.address, tokenB.address);
 
     // Add liquidity
     await router
@@ -171,7 +168,6 @@ describe('Compliant UniswapV2', function () {
   });
 
   it('should fail operations without VerificationSBT', async function () {
-    console.log('1');
     // Try to add liquidity without VerificationSBT
     await expect(
       router
@@ -219,11 +215,6 @@ describe('Compliant UniswapV2', function () {
         ethers.utils.hexZeroPad('0x1', 32),
         [3, 4],
       );
-
-    // Verify that the VerificationSBT was minted
-    expect(await verificationSBT.balanceOf(user1.address)).to.equal(1);
-
-    await factory.createPair(tokenA.address, tokenB.address);
 
     // Add liquidity
     await router
