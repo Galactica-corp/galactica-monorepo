@@ -207,7 +207,6 @@ describe('Compliant UniswapV2', function () {
   });
 
   it('liquidity tokens cannot be transferred to non-compliant addresses', async function () {
-
     // compliantUser passes KYC requirements
     const expirationTime = Math.floor(Date.now() / 1000) * 2;
     await mockZkKYC
