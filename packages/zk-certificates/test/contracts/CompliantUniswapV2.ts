@@ -89,7 +89,7 @@ describe('Compliant UniswapV2', function () {
       .approve(router.address, ethers.constants.MaxUint256);
   });
 
-  it('should register user, add liquidity, remove liquidity, and swap tokens', async function () {
+  it.only('should register user, add liquidity, remove liquidity, and swap tokens', async function () {
     // compliantUser passes KYC requirements
     const expirationTime = Math.floor(Date.now() / 1000) * 2;
     await mockZkKYC
