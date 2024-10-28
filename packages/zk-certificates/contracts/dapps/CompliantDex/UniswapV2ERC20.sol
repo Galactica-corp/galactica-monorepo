@@ -3,6 +3,9 @@
 pragma solidity ^0.8.0;
 
 import {IUniswapV2ERC20} from "./interfaces/IUniswapV2ERC20.sol";
+import {IVerificationSBT} from "../../interfaces/IVerificationSBT.sol";
+import {UniswapV2Factory} from "./UniswapV2Factory.sol";
+import {UniswapV2Router02} from "./UniswapV2Router02.sol";
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
     string public constant override name = "Uniswap V2";
@@ -32,6 +35,8 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         );
     }
 
+
+
     function _mint(address to, uint256 value) internal {
         totalSupply += value;
         balanceOf[to] += value;
@@ -50,6 +55,18 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function _transfer(address from, address to, uint256 value) private {
+        address router = UniswapV2Factory(factory).router();
+        IVerificationSBT verificationSBT = UniswapV2Router02(router).verificationSBT();
+        address[] memory compliancyRequirements = UniswapV2Router02(router).getCompliancyRequirements();
+        for (uint i = 0; i < compliancyRequirements.length; i++) {
+            require(
+                verificationSBT.isVerificationSBTValid(
+                    to,
+                    compliancyRequirements[i]
+                ),
+                'UniswapV2ERC20: Recipient does not have required compliance SBTs.'
+            );
+        }
         balanceOf[from] -= value;
         balanceOf[to] += value;
         emit Transfer(from, to, value);
