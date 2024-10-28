@@ -56,11 +56,13 @@ export async function deploySC(
       console.error(
         chalk.red(`Verification failed: ${error.message as string}`),
       );
-      console.error(
-        chalk.red(
-          `If you get a file not found error, try running 'npx hardhat clean' first`,
-        ),
-      );
+      if (error.message.includes('not found')) {
+        console.error(
+          chalk.red(
+            `If you get a file not found error, try running 'npx hardhat clean' first`,
+          ),
+        );
+      }
     }
   }
   return contract;
