@@ -89,7 +89,7 @@ describe('Compliant UniswapV2', function () {
       .approve(router.address, ethers.constants.MaxUint256);
   });
 
-  it.only('should register user, add liquidity, remove liquidity, and swap tokens', async function () {
+  it('should register user, add liquidity, remove liquidity, and swap tokens', async function () {
     // compliantUser passes KYC requirements
     const expirationTime = Math.floor(Date.now() / 1000) * 2;
     await mockZkKYC
@@ -206,7 +206,11 @@ describe('Compliant UniswapV2', function () {
     );
   });
 
+<<<<<<< HEAD
   it('liquidity tokens cannot be transferred to non-compliant addresses', async function () {
+=======
+  it('Liquidity tokens cannot be transferred to non-compliant addresses', async function () {
+>>>>>>> ffef562 (add test for compliant LP tokens)
     // compliantUser passes KYC requirements
     const expirationTime = Math.floor(Date.now() / 1000) * 2;
     await mockZkKYC
@@ -245,7 +249,12 @@ describe('Compliant UniswapV2', function () {
 
     // Try to swap tokens without VerificationSBT
     await expect(
-      pair.connect(user1).transfer(user2.address, lpTokenBalance),
+      pair
+        .connect(user1)
+        .transfer(
+          user2.address,
+          lpTokenBalance,
+        ),
     ).to.be.revertedWith(
       'UniswapV2ERC20: Recipient does not have required compliance SBTs.',
     );
