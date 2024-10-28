@@ -10,7 +10,7 @@ import {IERC20} from "./interfaces/IERC20.sol";
 import {IUniswapV2Factory} from "./interfaces/IUniswapV2Factory.sol";
 import {IUniswapV2Callee} from "./interfaces/IUniswapV2Callee.sol";
 import {IVerificationSBT} from "../../interfaces/IVerificationSBT.sol";
-import {IUniswapV2Router02} from "../../interfaces/IUniswapV2Router02.sol";
+import {IUniswapV2Router02} from "./interfaces/IUniswapV2Router02.sol";
 
 contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     using UQ112x112 for uint224;
