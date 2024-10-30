@@ -8,14 +8,18 @@ import { deployBasicKYCExampleDApp } from './deploymentSteps/basicKYCExampleDApp
  */
 async function main() {
   // parameters
-  const verificationSBT = '0x7d1A6e0FC5ad5B20250B02fb735B640a4232a061';
-  const zkKYC = '0x86aCd7EC220583eEcDC10b50535b37FD77133E8D'; // you can reuse the zkKYC smart contract from the deployment of the RepeatableZKPTest
+  const zkKYC = '0xfDa5904dC71a244Ab88D86CE015365c17FEbe3CE'; // you can reuse the zkKYC smart contract from the deployment of the RepeatableZKPTest
+  const verificationSBT = {
+    uri: 'ipfs://QmeFsERdKfKW3fmdXVHvvwdkqVHNs3TU6oqEdUrgPchyw7',
+    name: 'KYC Verification SBT',
+    symbol: 'KYCOK',
+  };
 
   // wallets
   const [deployer] = await hre.ethers.getSigners();
 
   // deploying everything
-  await deployBasicKYCExampleDApp(deployer, verificationSBT, zkKYC);
+  await deployBasicKYCExampleDApp(deployer, zkKYC, verificationSBT);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

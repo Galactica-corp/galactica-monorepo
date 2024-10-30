@@ -23,11 +23,11 @@ import {
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
 import type { GuardianRegistry } from '../../typechain-types';
-import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/AgeCitizenshipKYC';
 import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
+import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/verifierWrappers/AgeCitizenshipKYC';
 import type { ExampleMockDAppVerifier } from '../../typechain-types/contracts/zkpVerifiers/ExampleMockDAppVerifier';
 
 use(chaiAsPromised);
@@ -106,20 +106,21 @@ describe('Verification SBT Smart contract', () => {
       'VerificationSBT',
       deployer,
     );
-    verificationSBT = (await verificationSBTFactory.deploy(
-      'test URI',
-      'VerificationSBT',
-      'VerificationSBT',
-    )) as VerificationSBT;
 
     const mockDAppFactory = await ethers.getContractFactory(
       'MockDApp',
       deployer,
     );
     mockDApp = (await mockDAppFactory.deploy(
-      verificationSBT.address,
       ageProofZkKYC.address,
+      'test URI',
+      'VerificationSBT',
+      'VerificationSBT',
     )) as MockDApp;
+
+    verificationSBT = verificationSBTFactory
+      .attach(await mockDApp.sbt())
+      .connect(deployer) as VerificationSBT;
 
     const mockTokenFactory = await ethers.getContractFactory(
       'MockToken',
@@ -171,10 +172,9 @@ describe('Verification SBT Smart contract', () => {
     );
 
     // Approve the provider's public key
-    const providerPubKey = [zkKYC.providerData.ax, zkKYC.providerData.ay];
     await guardianRegistry.grantGuardianRole(
       deployer.address,
-      providerPubKey,
+      [zkKYC.providerData.ax, zkKYC.providerData.ay],
       'https://example.com/provider-metadata',
     );
   });
@@ -221,10 +221,10 @@ describe('Verification SBT Smart contract', () => {
     const publicInputs = processPublicSignals(publicSignals);
     const humanID = publicInputs[await ageProofZkKYC.INDEX_HUMAN_ID()];
 
-    const currentTokenId = await verificationSBT.tokenCounter();
     const previousUserBalance = await verificationSBT.balanceOf(user.address);
 
     // test that the transfer event is emitted
+    const tokenId = await verificationSBT.getUsersTokenID(user.address);
     await expect(
       mockDApp.connect(user).airdropToken(1, piA, piB, piC, publicInputs),
     )
@@ -232,29 +232,20 @@ describe('Verification SBT Smart contract', () => {
       .withArgs(
         '0x0000000000000000000000000000000000000000',
         user.address,
-        currentTokenId,
+        tokenId,
       );
 
-    // test that the token counter has been increased
-    expect(await verificationSBT.tokenCounter()).to.be.equal(
-      currentTokenId.add(1),
-    );
     expect(await verificationSBT.balanceOf(user.address)).to.be.equal(
       previousUserBalance.add(1),
     );
-    expect(await verificationSBT.tokenIdToOwner(currentTokenId)).to.be.equal(
+    expect(await verificationSBT.tokenIdToOwner(tokenId)).to.be.equal(
       user.address,
     );
-    expect(await verificationSBT.tokenIdToDApp(currentTokenId)).to.be.equal(
-      mockDApp.address,
-    );
+    expect(await verificationSBT.issuingDApp()).to.be.equal(mockDApp.address);
 
     // check that the verification SBT is created
     expect(
-      await verificationSBT.isVerificationSBTValid(
-        user.address,
-        mockDApp.address,
-      ),
+      await verificationSBT.isVerificationSBTValid(user.address),
     ).to.be.equal(true);
     // data is stored for the correct humanID
     expect(
@@ -264,9 +255,7 @@ describe('Verification SBT Smart contract', () => {
     // check the content of the verification SBT
     const verificationSBTInfo = await verificationSBT.getVerificationSBTInfo(
       user.address,
-      mockDApp.address,
     );
-    expect(verificationSBTInfo.dApp).to.be.equal(mockDApp.address);
     expect(verificationSBTInfo.verifierWrapper).to.be.equal(
       ageProofZkKYC.address,
     );
@@ -319,15 +308,29 @@ describe('Verification SBT Smart contract', () => {
       reconstructedSecret,
       'Fraud investigation should be able to reconstruct the secret',
     ).to.be.equal(zkKYC.leafHash);
-
     // check that the verification SBT can be found by the frontend
     const loggedSBTs = await queryVerificationSBTs(
-      verificationSBT.address,
+      [verificationSBT.address],
       user.address,
     );
-    expect(loggedSBTs.has(mockDApp.address)).to.be.true;
+    expect(loggedSBTs.has(verificationSBT.address)).to.be.true;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(loggedSBTs.get(mockDApp.address)!.length).to.be.equal(1);
+    expect(loggedSBTs.get(verificationSBT.address)!.length).to.be.equal(1);
+
+    // wait for SBT expiration
+    const expirationTime = parseInt(
+      publicSignals[await ageProofZkKYC.INDEX_VERIFICATION_EXPIRATION()],
+      10,
+    );
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [
+      expirationTime + 1,
+    ]);
+    await hre.network.provider.send('evm_mine');
+
+    // check that the verification SBT is not valid anymore
+    expect(await verificationSBT.isVerificationSBTValid(user.address)).to.be
+      .false;
+    expect(await verificationSBT.balanceOf(user.address)).to.be.equal(0);
   });
 
   it('should revert on incorrect proof', async () => {

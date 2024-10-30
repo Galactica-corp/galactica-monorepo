@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 import {VerificationSBT} from '../SBT_related/VerificationSBT.sol';
 import {IZkKYCVerifier} from '../interfaces/IZkKYCVerifier.sol';
+import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
+import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
 
 /**
  * @title BasicKYCExampleDApp
@@ -10,13 +12,25 @@ import {IZkKYCVerifier} from '../interfaces/IZkKYCVerifier.sol';
  *  Registration can be repeated when the previous Verification SBT expired.
  *  The requirements of the ZKP (i.e. age, citizenship, etc.) are defined in the verifierWrapper.
  */
-contract BasicKYCExampleDApp {
-    VerificationSBT public SBT;
+contract BasicKYCExampleDApp is IVerificationSBTIssuer {
+    IVerificationSBT public sbt;
     IZkKYCVerifier public verifierWrapper;
 
-    constructor(VerificationSBT _SBT, IZkKYCVerifier _verifierWrapper) {
-        SBT = _SBT;
+    /**
+     * Constructor for the BasicKYCExampleDApp contract.
+     * @param _verifierWrapper - IZkKYCVerifier that verifies the ZK proof integrety.
+     * @param _uri - URI to SBT metadata (description, image, etc.).
+     * @param _name - Name of the SBT token.
+     * @param _symbol - Symbol of the SBT token.
+     */
+    constructor(
+        IZkKYCVerifier _verifierWrapper,
+        string memory _uri,
+        string memory _name,
+        string memory _symbol
+    ) {
         verifierWrapper = _verifierWrapper;
+        sbt = new VerificationSBT(_uri, _name, _symbol, address(this));
     }
 
     /**
@@ -24,7 +38,7 @@ contract BasicKYCExampleDApp {
      * @param account the address to check
      */
     function isVerified(address account) public view returns (bool) {
-        return SBT.isVerificationSBTValid(account, address(this));
+        return sbt.isVerificationSBTValid(account);
     }
 
     function registerKYC(
@@ -34,7 +48,7 @@ contract BasicKYCExampleDApp {
         uint[] memory input
     ) public {
         require(
-            !SBT.isVerificationSBTValid(msg.sender, address(this)),
+            !sbt.isVerificationSBTValid(msg.sender),
             'The user already has a verification SBT. Please wait until it expires.'
         );
 
@@ -73,7 +87,7 @@ contract BasicKYCExampleDApp {
             input[verifierWrapper.INDEX_PROVIDER_PUBKEY_AX()],
             input[verifierWrapper.INDEX_PROVIDER_PUBKEY_AY()]
         ];
-        SBT.mintVerificationSBT(
+        sbt.mintVerificationSBT(
             msg.sender,
             verifierWrapper,
             expirationTime,

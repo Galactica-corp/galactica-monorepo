@@ -142,11 +142,11 @@ contract ZkKYC is Ownable {
         );
 
         // check that the pubkey belongs to a whitelisted provider
-        IGuardianRegistry guardianRegistry = KYCRegistry.guardianRegistry();
+        IGuardianRegistry guardianRegistry = KYCRegistry._GuardianRegistry();
         address guardianAddress = guardianRegistry.pubKeyToAddress(
             input[INDEX_PROVIDER_PUBKEY_AX],
             input[INDEX_PROVIDER_PUBKEY_AY]
-            );
+        );
         require(
             guardianRegistry.isWhitelisted(guardianAddress),
             'the provider is not whitelisted'

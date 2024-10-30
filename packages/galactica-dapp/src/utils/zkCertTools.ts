@@ -1,9 +1,8 @@
-import type { EventFilter } from 'ethers';
 import { BigNumber, ethers } from 'ethers';
 
-import { getLocalStorage, setLocalStorage } from './localStorage';
 import GuardianRegistryABI from '../config/abi/GuardianRegistry.json';
 import VerificationSbtABI from '../config/abi/IVerificationSBT.json';
+import IVerificationSBTIssuer from '../config/abi/IVerificationSBTIssuer.json';
 import KYCRecordRegistryABI from '../config/abi/KYCRecordRegistry.json';
 
 /**
@@ -12,7 +11,7 @@ import KYCRecordRegistryABI from '../config/abi/KYCRecordRegistry.json';
  */
 export class SBT {
   constructor(
-    public dApp: string,
+    public sbtAddr: string,
     public verifierWrapper: string,
     public expirationTime: number,
     public verifierCodehash: string,
@@ -44,134 +43,79 @@ export class SBTsPerAddress {
   }
 }
 
-const LOCAL_STORAGE_KEY_SBT = 'cachedVerificationSBTs';
-
 /**
- * Finds verification SBTs for a user. Searches through logs of created verificationSBTs
- * and filters according to the userAddr (and optionally dAppAddr and humanID) provided.
- * Modifies the local storage to speedup future calls by caching results.
+ * Finds verification SBT of a user.
  * @param sbtContractAddr - Address of the verification SBT contract holding the mapping of completed verifications.
  * @param provider - Provider to use to query logs.
  * @param userAddr - Address of the user to find verification SBTs for.
- * @param dAppAddr - Address of the dApp the SBT was created for (default: undefined).
- * @param humanID - HumanID of the user the SBT was created for (default: undefined).
  * @param filterExpiration - Whether to filter out expired SBTs (default: false).
- * @returns List of verification SBTs.
+ * @returns Verification SBT or undefined if it does not exist.
  */
-export async function queryVerificationSBTs(
+export async function queryVerificationSBT(
   sbtContractAddr: string,
   provider: ethers.providers.Web3Provider,
   userAddr: string,
-  dAppAddr: string | undefined = undefined,
-  humanID: string | undefined = undefined,
   filterExpiration = false,
-): Promise<SBT[]> {
+): Promise<SBT | undefined> {
   const sbtContract = new ethers.Contract(
     sbtContractAddr,
     VerificationSbtABI.abi,
     provider,
   );
-
-  const currentBlock = await provider.getBlockNumber();
-  const lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
-
-  const localStorage = getLocalStorage(LOCAL_STORAGE_KEY_SBT);
-  let cachedSBTsPerAddr: SBTsPerAddress[];
-  if (localStorage === null) {
-    cachedSBTsPerAddr = [];
-  } else {
-    cachedSBTsPerAddr = JSON.parse(localStorage);
+  if (filterExpiration && sbtContract.isVerificationSBTValid(userAddr)) {
+    return undefined;
   }
 
-  // find user's cached SBTs
-  let userIndex = -1;
-  for (let i = 0; i < cachedSBTsPerAddr.length; i++) {
-    if (cachedSBTsPerAddr[i].userAddress === userAddr) {
-      userIndex = i;
-      break;
+  const sbtInfo = await sbtContract.getVerificationSBTInfo(userAddr);
+
+  if (BigNumber.from(sbtInfo.verifierWrapper).eq(0)) {
+    // if there is no verifierWrapper set, no SBT has been issued
+    return undefined;
+  }
+
+  return new SBT(
+    sbtContractAddr,
+    sbtInfo.verifierWrapper,
+    BigNumber.from(sbtInfo.expirationTime).toNumber(),
+    sbtInfo.verifierCodehash,
+    sbtInfo.encryptedData,
+    sbtInfo.userPubKey,
+    sbtInfo.humanID,
+    sbtInfo.providerPubKey,
+  );
+}
+
+export async function showVerificationSBTs(
+  sbtIssuingContracts: string[],
+  zkKYCRegistryAddr: string,
+): Promise<{ sbts: SBT[]; guardianNameMap: Map<string[2], string> }> {
+  // @ts-expect-error https://github.com/metamask/providers/issues/200
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const signer = provider.getSigner();
+  const sbtContracts = sbtIssuingContracts.map(
+    async (addr) =>
+      await new ethers.Contract(addr, IVerificationSBTIssuer.abi, signer).sbt(),
+  );
+  const sbts = [];
+  for (const sbtContract of sbtContracts) {
+    const sbt = await queryVerificationSBT(
+      await sbtContract,
+      provider,
+      await signer.getAddress(),
+    );
+    if (sbt) {
+      sbts.push(sbt);
     }
   }
-
-  let userSBTs: SBTsPerAddress;
-  if (userIndex === -1) {
-    userSBTs = new SBTsPerAddress(userAddr);
-    cachedSBTsPerAddr.push(userSBTs);
-    userIndex = cachedSBTsPerAddr.length - 1;
-  } else {
-    userSBTs = cachedSBTsPerAddr[userIndex];
-    // filter out SBTs that expired since the last time they were checked
-    userSBTs.verificationSBTs = userSBTs.verificationSBTs.filter(
-      (sbt) => sbt.expirationTime > lastBlockTime,
-    );
-    // It might happen that the browser cache contains SBTs that are not in the blockchain anymore because of a fork.
-    // We ignore this because it is unlikeluy and it is not relevant for security because it only impacts the user's browser.
-  }
-
-  // filter through all logs adding a verification SBT for the user
-  const filter = {
-    address: sbtContractAddr,
-    topics: [
-      ethers.utils.id('VerificationSBTMinted(address,address,bytes32)'),
-      dAppAddr ? ethers.utils.hexZeroPad(dAppAddr, 32) : null,
-      userAddr ? ethers.utils.hexZeroPad(userAddr, 32) : null,
-      humanID ? ethers.utils.hexZeroPad(humanID, 32) : null,
-    ],
-  };
-
-  // query block of verification SBT contract deployment so that new users do not have to search from genesis
-  const earliestBlock = await sbtContract.deploymentBlock();
-  const firstBlock = Math.max(userSBTs.latestBlockChecked, earliestBlock);
-  const maxBlockInterval = 10000;
-
-  // get logs in batches of 10000 blocks because of rpc call size limit
-  for (let i = firstBlock; i < currentBlock; i += maxBlockInterval) {
-    const maxBlock = Math.min(i + maxBlockInterval, currentBlock);
-    console.log(`Querying logs from block ${i} to ${maxBlock}...`);
-    const createStakeLogs = await sbtContract.queryFilter(
-      filter as EventFilter,
-      i,
-      maxBlock,
-    );
-
-    for (const log of createStakeLogs) {
-      console.log(`found sbtInfo: ${JSON.stringify(log, null, 2)}}`);
-      if (log.topics === undefined) {
-        continue;
-      }
-      const loggedDApp = ethers.utils.hexDataSlice(log.topics[1], 12);
-      const sbtInfo = await sbtContract.getVerificationSBTInfo(
-        userAddr,
-        loggedDApp,
-      );
-
-      if (
-        filterExpiration &&
-        sbtInfo.expirationTime < BigNumber.from(lastBlockTime)
-      ) {
-        continue; // skip expired SBT
-      }
-
-      userSBTs.verificationSBTs.push(
-        new SBT(
-          sbtInfo.dApp,
-          sbtInfo.verifierWrapper,
-          BigNumber.from(sbtInfo.expirationTime).toNumber(),
-          sbtInfo.verifierCodehash,
-          sbtInfo.encryptedData,
-          sbtInfo.userPubKey,
-          sbtInfo.humanID,
-          sbtInfo.providerPubKey,
-        ),
-      );
-    }
-  }
-
-  // update cached SBTs
-  userSBTs.latestBlockChecked = currentBlock;
-  cachedSBTsPerAddr[userIndex] = userSBTs;
-  setLocalStorage(LOCAL_STORAGE_KEY_SBT, JSON.stringify(cachedSBTsPerAddr));
-
-  return userSBTs.verificationSBTs;
+  const guardianNameMap = await getGuardianNameMap(
+    sbts,
+    zkKYCRegistryAddr,
+    provider,
+  );
+  console.log(
+    `Verification SBTs:\n ${formatVerificationSBTs(sbts, guardianNameMap)} `,
+  );
+  return { sbts, guardianNameMap };
 }
 
 export function formatVerificationSBTs(
@@ -182,7 +126,7 @@ export function formatVerificationSBTs(
   let count = 1;
   for (const sbt of sbts) {
     res += `SBT ${count}:\n`;
-    res += `  proven to DApp ${sbt.dApp}\n`;
+    res += `  addr ${sbt.sbtAddr}\n`;
     res += `  expiration ${new Date(
       sbt.expirationTime * 1000,
     ).toDateString()}\n`;

@@ -21,9 +21,9 @@ import {
 } from '../../scripts/generateTwitterZkCertificateInput';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { SBTManager } from '../../typechain-types/contracts/SBT_related/SBTManager';
-import type { TwitterCreationTimeProof } from '../../typechain-types/contracts/TwitterCreationTimeProof';
+import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
 import type { TwitterFollowersCountProof } from '../../typechain-types/contracts/TwitterFollowersCountProof';
-import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
+import type { TwitterCreationTimeProof } from '../../typechain-types/contracts/verifierWrappers/TwitterCreationTimeProof';
 import type { TwitterCreationTimeProofVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterCreationTimeProofVerifier';
 import type { TwitterFollowersCountProofVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterFollowersCountProofVerifier';
 
@@ -192,6 +192,7 @@ describe('SBTManager', () => {
           `test_${i}`,
           `test_${i}`,
           `test_${i}`,
+          SBTManager.address,
         )) as VerificationSBT,
       );
     }

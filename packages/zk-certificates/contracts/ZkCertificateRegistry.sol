@@ -139,6 +139,7 @@ contract ZkCertificateRegistry is
         // Set the block height at which the contract was initialized
         initBlockHeight = block.number;
     }
+
     /**
      * @notice Change the time until which the Guardian needs to add/revoke the zkCertificate after registration to the queue
      * @param newTime - New time
@@ -375,5 +376,12 @@ contract ZkCertificateRegistry is
             ];
             return (startTime, expirationTime);
         }
+    }
+
+    /**
+     * @notice Depricated function to share interface with old contract version.
+     */
+    function _GuardianRegistry() public view returns (IGuardianRegistry) {
+        return guardianRegistry;
     }
 }

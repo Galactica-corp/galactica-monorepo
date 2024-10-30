@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 import {VerificationSBT} from '../SBT_related/VerificationSBT.sol';
 import {IAgeCitizenshipKYCVerifier} from '../interfaces/IAgeCitizenshipKYCVerifier.sol';
+import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
+import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
 
 /**
  * @title KYCRequirementsDemoDApp
@@ -11,15 +13,22 @@ import {IAgeCitizenshipKYCVerifier} from '../interfaces/IAgeCitizenshipKYCVerifi
  *  The requirements of the ZKP (i.e. age, citizenship, etc.) are defined in the verifierWrapper.
  *  This demo DApp does not include fraud investigation features.
  */
-contract KYCRequirementsDemoDApp {
-    VerificationSBT public SBT;
+contract KYCRequirementsDemoDApp is IVerificationSBTIssuer {
+    IVerificationSBT public sbt;
     IAgeCitizenshipKYCVerifier public verifierWrapper;
 
     constructor(
-        VerificationSBT _SBT,
-        IAgeCitizenshipKYCVerifier _verifierWrapper
+        IAgeCitizenshipKYCVerifier _verifierWrapper,
+        string memory _sbt_uri,
+        string memory _sbt_name,
+        string memory _sbt_symbol
     ) {
-        SBT = _SBT;
+        sbt = new VerificationSBT(
+            _sbt_uri,
+            _sbt_name,
+            _sbt_symbol,
+            address(this)
+        );
         verifierWrapper = _verifierWrapper;
     }
 
@@ -28,7 +37,7 @@ contract KYCRequirementsDemoDApp {
      * @param account the address to check
      */
     function passedRequirements(address account) public view returns (bool) {
-        return SBT.isVerificationSBTValid(account, address(this));
+        return sbt.isVerificationSBTValid(account);
     }
 
     function checkRequirements(
@@ -62,7 +71,7 @@ contract KYCRequirementsDemoDApp {
             input[verifierWrapper.INDEX_USER_PUBKEY_AY()]
         ];
         bytes32[] memory noEncryptedData;
-        SBT.mintVerificationSBT(
+        sbt.mintVerificationSBT(
             msg.sender,
             verifierWrapper,
             expirationTime,
@@ -79,7 +88,7 @@ contract KYCRequirementsDemoDApp {
      */
     function resetVerification() external {
         bytes32[] memory noEncryptedData;
-        SBT.mintVerificationSBT(
+        sbt.mintVerificationSBT(
             msg.sender,
             verifierWrapper,
             0, // expired
