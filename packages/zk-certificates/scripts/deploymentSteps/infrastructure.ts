@@ -3,7 +3,7 @@ import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
 import hre from 'hardhat';
 
-import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
+import { deploySC } from '../../lib/hardhatHelpers';
 import { overwriteArtifact } from '../../lib/helpers';
 import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 
@@ -25,7 +25,7 @@ export async function deployInfrastructure(
   guardianRegistry: any;
   recordRegistry: any;
   institutionContracts: any[];
-  humanIDSaltRegistryAddr: string;
+  verificationSBT: any;
 }> {
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
@@ -61,13 +61,6 @@ export async function deployInfrastructure(
   );
   await recordRegistry.changeQueueExpirationTime(queueExpirationTime);
 
-  const humanIDSaltRegistryAddr = await recordRegistry.humanIDSaltRegistry();
-  await tryVerification(
-    humanIDSaltRegistryAddr,
-    [guardianRegistry.address, recordRegistry.address],
-    'contracts/HumanIDSaltRegistry.sol:HumanIDSaltRegistry',
-  );
-
   // list of example institutions for fraud investigation
   const institutionContracts = [];
   for (const inst of institutions) {
@@ -86,12 +79,17 @@ export async function deployInfrastructure(
     await galacticaInstitution.setInstitutionPubkey(pubAsDecimalString);
     institutionContracts.push(galacticaInstitution);
   }
+  const verificationSBT = await deploySC('VerificationSBT', true, {}, [
+    'https://quicknode.quicknode-ipfs.com/ipfs/QmNiiVqLKE9WxUegeWoKBtVVaPaA44sQBcrTCPnHt6Kecs',
+    'VerificationSBT',
+    'VerificationSBT',
+  ]);
 
   return {
     poseidonT3,
     guardianRegistry,
     recordRegistry,
     institutionContracts,
-    humanIDSaltRegistryAddr,
+    verificationSBT,
   };
 }

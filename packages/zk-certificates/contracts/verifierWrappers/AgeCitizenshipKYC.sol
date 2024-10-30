@@ -217,11 +217,11 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier {
         );
 
         // check that the pubkey belongs to a whitelisted provider
-        IGuardianRegistry guardianRegistry = KYCRegistry._GuardianRegistry();
+        IGuardianRegistry guardianRegistry = KYCRegistry.guardianRegistry();
         address guardianAddress = guardianRegistry.pubKeyToAddress(
             input[INDEX_PROVIDER_PUBKEY_AX],
             input[INDEX_PROVIDER_PUBKEY_AY]
-        );
+            );
         require(
             guardianRegistry.isWhitelisted(guardianAddress),
             'the provider is not whitelisted'

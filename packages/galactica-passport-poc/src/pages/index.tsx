@@ -22,11 +22,12 @@ import { useContext } from 'react';
 import styled from 'styled-components';
 import {
   shouldDisplayReconnectButton,
+  queryVerificationSBTs,
   formatVerificationSBTs,
   getUserAddress,
+  getGuardianNameMap,
   handleSnapConnectClick,
   handleWalletConnectClick,
-  showVerificationSBTs,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -331,7 +332,7 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
 
       console.log(`Updating verification SBTs...`);
-      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) });
+      await showVerificationSBTs();
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -358,7 +359,7 @@ const Index = () => {
             'provers/twitterFollowersCountProof.json',
           ),
           requirements: {
-            zkCertStandard: ZkCertStandard.Twitter,
+            zkCertStandard: ZkCertStandard.TwitterZkCertificate,
             // eslint-disable-next-line import/no-named-as-default-member
             registryAddress: addresses.twitterZkCertificateRegistry,
           },
@@ -442,6 +443,21 @@ const Index = () => {
       console.log(`Prover size: ${JSON.stringify(prover).length / 1024 / 1024} MB`);
 
       dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const showVerificationSBTs = async () => {
+    try {
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const sbts = await queryVerificationSBTs(addresses.verificationSBT, provider, await signer.getAddress());
+      const guardianNameMap = await getGuardianNameMap(sbts, addresses.zkKYCRegistry, provider);
+      console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts, guardianNameMap)} `);
+      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: { sbts, guardianNameMap } });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -612,7 +628,7 @@ const Index = () => {
             description: formatVerificationSBTs(state.verificationSbts, state.guardianNameMap),
             button: (
               <GeneralButton
-                onClick={async () => dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) })}
+                onClick={showVerificationSBTs}
                 disabled={false}
                 text="Query"
               />

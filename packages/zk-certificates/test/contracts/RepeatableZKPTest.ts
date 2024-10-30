@@ -18,7 +18,7 @@ import {
 import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { RepeatableZKPTest } from '../../typechain-types/contracts/mock/RepeatableZKPTest';
-import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
+import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
 
@@ -84,24 +84,24 @@ describe('RepeatableZKPTest', () => {
     )) as ZkKYC;
     await zkKYCVerifier.deployed();
 
+    const verificationSBTFactory = await ethers.getContractFactory(
+      'VerificationSBT',
+      deployer,
+    );
+    verificationSBT = (await verificationSBTFactory.deploy(
+      'test URI',
+      'VerificationSBT',
+      'VerificationSBT',
+    )) as VerificationSBT;
+
     const repeatableZKPTestFactory = await ethers.getContractFactory(
       'RepeatableZKPTest',
       deployer,
     );
     repeatableZKPTest = (await repeatableZKPTestFactory.deploy(
+      verificationSBT.address,
       zkKycSC.address,
-      'test URI',
-      'VerificationSBT',
-      'VerificationSBT',
     )) as RepeatableZKPTest;
-
-    const verificationSBTFactory = await ethers.getContractFactory(
-      'VerificationSBT',
-      deployer,
-    );
-    verificationSBT = verificationSBTFactory.attach(
-      await repeatableZKPTest.sbt(),
-    ) as VerificationSBT;
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
@@ -113,9 +113,10 @@ describe('RepeatableZKPTest', () => {
     sampleInput.dAppAddress = repeatableZKPTest.address;
 
     // Approve the provider's public key
+    const providerPubKey = [zkKYC.providerData.ax, zkKYC.providerData.ay];
     await guardianRegistry.grantGuardianRole(
       deployer.address,
-      [zkKYC.providerData.ax, zkKYC.providerData.ay],
+      providerPubKey,
       'https://example.com/provider-metadata',
     );
 
@@ -157,8 +158,12 @@ describe('RepeatableZKPTest', () => {
       .connect(user)
       .submitZKP(piA, piB, piC, publicInputs);
 
-    expect(await verificationSBT.isVerificationSBTValid(user.address)).to.be
-      .true;
+    expect(
+      await verificationSBT.isVerificationSBTValid(
+        user.address,
+        repeatableZKPTest.address,
+      ),
+    ).to.be.true;
 
     await repeatableZKPTest
       .connect(user)

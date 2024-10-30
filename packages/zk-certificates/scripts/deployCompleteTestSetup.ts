@@ -4,6 +4,7 @@ import hre from 'hardhat';
 import path from 'path';
 
 import { deployBasicKYCExampleDApp } from './deploymentSteps/basicKYCExampleDApp';
+import { deployDevnetGuardian } from './deploymentSteps/devnetGuardian';
 import { deployExampleDApp } from './deploymentSteps/exampleDApp';
 import { deployInfrastructure } from './deploymentSteps/infrastructure';
 import { deployKYCComplianceProofsDApps } from './deploymentSteps/kycComplianceProofs';
@@ -27,31 +28,24 @@ async function main() {
   );
   const exampleDApp = await deployExampleDApp(
     deployer,
+    infrastructure.verificationSBT.address,
     infrastructure.recordRegistry.address,
     infrastructure.institutionContracts.map((contract) => contract.address),
-    {
-      uri: 'ipfs://QmX2EppfoPMNEMqf55CsTHJr1565UheAonDGb9w1bAW96z',
-      name: 'Airdrop Example SBT',
-      symbol: 'KYCDROP',
-    },
   );
   const repeatableZkKYC = await deployRepeatableZKPTest(
     deployer,
+    infrastructure.verificationSBT.address,
     infrastructure.recordRegistry.address,
-    {
-      uri: 'ipfs://QmVG5b34f8DHGnPZQwi1GD4NUXEVhh7bTub5SG6MPHvHz6',
-      name: 'Repeatable KYC Verification SBT',
-      symbol: 'KYCREP',
-    },
   );
   const basicKYCExample = await deployBasicKYCExampleDApp(
     deployer,
+    infrastructure.verificationSBT.address,
     repeatableZkKYC.zkKYCSC.address,
-    {
-      uri: 'ipfs://QmeFsERdKfKW3fmdXVHvvwdkqVHNs3TU6oqEdUrgPchyw7',
-      name: 'KYC Verification SBT',
-      symbol: 'KYCOK',
-    },
+  );
+  const devnetGuardian = await deployDevnetGuardian(
+    deployer,
+    infrastructure.guardianRegistry.address,
+    infrastructure.recordRegistry.address,
   );
 
   await whitelistSignerGuardian(
@@ -64,31 +58,13 @@ async function main() {
   const kycRequirementsDemoContracts = await deployKYCRequirementsDemoDApp(
     deployer,
     infrastructure.recordRegistry.address,
-    {
-      uri: 'ipfs://QmRXjRe3w6ZTbuf1yhanzkEcvyyB9HymkNf4NMQQk5pNpC',
-      name: 'Compliance Demo Verification SBT',
-      symbol: 'COMP',
-    },
+    infrastructure.verificationSBT.address,
   );
 
   const kycComplianceProofs = await deployKYCComplianceProofsDApps(
     deployer,
     infrastructure.recordRegistry.address,
-    {
-      uri: 'ipfs://Qmeurn8qiGQF5CacFD4QnnHGMqTb4oNrDVJWC1SH3RaaU8',
-      name: 'KYC Non-US Verification SBT',
-      symbol: 'NONUS',
-    },
-    {
-      uri: 'ipfs://Qmeu9GcAhTDkafd4RRqx22NkboerSiNdoXsjwoWPCBnAK8',
-      name: 'KYC Non-sanctioned citizenship Verification SBT',
-      symbol: 'NONSAN',
-    },
-    {
-      uri: 'ipfs://QmcS1oxPNs59cM3zuYP3uQbu95JoegnCZ3wHnBHyS9YPUS',
-      name: 'KYC 18+ Verification SBT',
-      symbol: 'KYC18',
-    },
+    infrastructure.verificationSBT.address,
   );
 
   const deploymentSummary = `Deployment summary:
@@ -96,6 +72,7 @@ PoseidonT3: ${JSON.stringify(infrastructure.poseidonT3.address)}
 
 KYCGuardianRegistry: ${JSON.stringify(infrastructure.guardianRegistry.address)}
 KYCRecordRegistry: ${JSON.stringify(infrastructure.recordRegistry.address)}
+VerificationSBT: ${JSON.stringify(infrastructure.verificationSBT.address)}
 
 MockGalacticaInstitution1: ${JSON.stringify(
     infrastructure.institutionContracts[0].address,
@@ -110,13 +87,11 @@ MockGalacticaInstitution3: ${JSON.stringify(
 ZkKYCVerifier: ${JSON.stringify(repeatableZkKYC.zkKYCVerifier.address)}
 ZkKYC: ${JSON.stringify(repeatableZkKYC.zkKYCSC.address)}
 
-BasicKYCExampleDApp: ${JSON.stringify(basicKYCExample.dApp.address)}
-BasicKYCExampleDApp-SBT: ${JSON.stringify(basicKYCExample.sbtAddr)}
 
+BasicKYCExampleDApp: ${JSON.stringify(basicKYCExample.address)}
 RepeatableZKPTest: ${JSON.stringify(repeatableZkKYC.repeatableZKPTest.address)}
-RepeatableZKPTest-SBT: ${JSON.stringify(
-    repeatableZkKYC.repeatableZKPTest.sbtAddr,
-  )}
+
+DevnetGuardian: ${JSON.stringify(devnetGuardian.address)}
 
 
 ExampleAirdrop-ExampleMockDAppVerifier: ${JSON.stringify(
@@ -126,7 +101,6 @@ ExampleAirdrop-AgeCitizenshipKYC: ${JSON.stringify(
     exampleDApp.ageCitizenshipKYC.address,
   )}
 ExampleAirdrop-MockDApp: ${JSON.stringify(exampleDApp.mockDApp.address)}
-ExampleAirdrop-SBT: ${JSON.stringify(exampleDApp.sbtAddr)}
 
 
 KYCRequirementsDemo-DApp: ${JSON.stringify(
@@ -141,7 +115,6 @@ KYCRequirementsDemo-AgeCitizenshipKYC: ${JSON.stringify(
 KYCRequirementsDemo-CompliantERC20: ${JSON.stringify(
     kycRequirementsDemoContracts.compliantERC20.address,
   )}
-KYCRequirementsDemo-SBT: ${JSON.stringify(kycRequirementsDemoContracts.sbtAddr)}
 
 
 KYCComplianceProofs-ZKPVerifier: ${JSON.stringify(
@@ -150,29 +123,20 @@ KYCComplianceProofs-ZKPVerifier: ${JSON.stringify(
 KYCComplianceProofs-NonUS-AgeCitizenshipKYC: ${JSON.stringify(
     kycComplianceProofs.nonUS.ageCitizenshipKYC.address,
   )}
-KYCComplianceProofs-NonUS-DApp: ${JSON.stringify(
-    kycComplianceProofs.nonUS.dApp.address,
-  )}
-KYCComplianceProofs-NonUS-SBT: ${JSON.stringify(
-    kycComplianceProofs.nonUS.sbtAddr,
+KYCComplianceProofs-NonUS-BasicKYCExampleDApp: ${JSON.stringify(
+    kycComplianceProofs.nonUS.basicExampleDApp.address,
   )}
 KYCComplianceProofs-NonSanctionedJurisdiction-AgeCitizenshipKYC: ${JSON.stringify(
     kycComplianceProofs.nonSanctionedJurisdiction.ageCitizenshipKYC.address,
   )}
-KYCComplianceProofs-NonSanctionedJurisdiction-DApp: ${JSON.stringify(
-    kycComplianceProofs.nonSanctionedJurisdiction.dApp.address,
-  )}
-KYCComplianceProofs-NonSanctionedJurisdiction-SBT: ${JSON.stringify(
-    kycComplianceProofs.nonSanctionedJurisdiction.sbtAddr,
+KYCComplianceProofs-NonSanctionedJurisdiction-BasicKYCExampleDApp: ${JSON.stringify(
+    kycComplianceProofs.nonSanctionedJurisdiction.basicExampleDApp.address,
   )}
 KYCComplianceProofs-Adult18Plus-AgeCitizenshipKYC: ${JSON.stringify(
     kycComplianceProofs.adult18Plus.ageCitizenshipKYC.address,
   )}
-KYCComplianceProofs-Adult18Plus-DApp: ${JSON.stringify(
-    kycComplianceProofs.adult18Plus.dApp.address,
-  )}
-KYCComplianceProofs-Adult18Plus-SBT: ${JSON.stringify(
-    kycComplianceProofs.adult18Plus.sbtAddr,
+KYCComplianceProofs-Adult18Plus-BasicKYCExampleDApp: ${JSON.stringify(
+    kycComplianceProofs.adult18Plus.basicExampleDApp.address,
   )}
   `;
   console.log(deploymentSummary);

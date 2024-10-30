@@ -2,7 +2,6 @@
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Buffer } from 'buffer';
 import chai from 'chai';
-import type { BigNumber } from 'ethers';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
@@ -18,7 +17,7 @@ import {
 } from '../../scripts/generateZkKYCInput';
 import type { Faucet } from '../../typechain-types/contracts/Faucet';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
-import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
+import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 
 chai.config.includeStack = true;
 
@@ -33,7 +32,7 @@ describe('AirdropGateway', () => {
   let verificationSBT: VerificationSBT;
   let epochDuration: number;
   let epochStartTime: number;
-  let amountPerEpoch: BigNumber;
+  let amountPerEpoch: number;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
@@ -63,6 +62,17 @@ describe('AirdropGateway', () => {
     const mockZkKYC = await MockZkKYCFactory.deploy();
     await mockZkKYC.deployed();
 
+    // set up VerificationSBT
+    const verificationSBTFactory = await ethers.getContractFactory(
+      'VerificationSBT',
+      deployer,
+    );
+    verificationSBT = (await verificationSBTFactory.deploy(
+      'test URI',
+      'VerificationSBT',
+      'VerificationSBT',
+    )) as VerificationSBT;
+
     // set up the faucet
     epochDuration = 100;
     epochStartTime = (await hre.ethers.provider.getBlock('latest')).timestamp;
@@ -74,19 +84,9 @@ describe('AirdropGateway', () => {
       epochDuration,
       epochStartTime,
       amountPerEpoch,
+      verificationSBT.address,
       mockZkKYC.address,
-      'test URI',
-      'VerificationSBT',
-      'VerificationSBT',
     )) as Faucet;
-
-    const verificationSBTFactory = await ethers.getContractFactory(
-      'VerificationSBT',
-      deployer,
-    );
-    verificationSBT = verificationSBTFactory.attach(
-      await faucet.sbt(),
-    ) as VerificationSBT;
 
     // make zkKYC record for airdropGateway
     zkKYC = await generateSampleZkKYC();
@@ -146,7 +146,10 @@ describe('AirdropGateway', () => {
     expect(userBalanceAfter).to.be.equal(userBalanceBefore.add(amountPerEpoch));
     // check that user has minted a valid SBT
     expect(
-      await verificationSBT.isVerificationSBTValid(user.address),
+      await verificationSBT.isVerificationSBTValid(
+        user.address,
+        faucet.address,
+      ),
     ).to.be.equal(true);
     // check that humanID has been assigned user address
     expect(await faucet.humanIdToAddress(humanID1)).to.be.equal(user.address);

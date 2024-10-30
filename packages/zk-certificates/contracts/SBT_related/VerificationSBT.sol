@@ -1,17 +1,23 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.9;
 
-import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
-import {IVerifierWrapper} from '../interfaces/IVerifierWrapper.sol';
-import {IERC721} from '@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol';
+import '../interfaces/IVerificationSBT.sol';
+import '../interfaces/IVerifierWrapper.sol';
+import '@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol';
 
 /// @author Galactica dev team
 /// @title A global smart contract that store verification SBTs, minted by dApp for users submitting zk proofs
-contract VerificationSBT is IVerificationSBT {
+contract VerificationSBT is IVerificationSBT, IERC721Metadata {
     // mapping to store verification SBT
-    mapping(uint256 => VerificationSBTInfo) public sbtData;
-
-    address public issuingDApp;
+    mapping(bytes32 => VerificationSBTInfo) public VerificationSBTMapping;
+    // number of SBTs minted for each user address
+    mapping(address => uint256) public balances;
+    // token id counter
+    uint256 public tokenCounter;
+    // token id to owner
+    mapping(uint256 => address) public tokenIdToOwner;
+    // token id to dApp
+    mapping(uint256 => address) public tokenIdToDApp;
 
     string public name;
     string public symbol;
@@ -26,84 +32,34 @@ contract VerificationSBT is IVerificationSBT {
 
     // event emitted when a verification SBT is minted
     event VerificationSBTMinted(
+        address indexed dApp,
         address indexed user,
-        // if the SBTs should be consistent for different accounts of a user, we can use the humanID to identify the user
         bytes32 indexed humanID
     );
 
-    /**
-     * Constructor for the VerificationSBT contract.
-     * @param _uri - URI to SBT metadata (description, image, etc.).
-     * @param _name - Name of the SBT token.
-     * @param _symbol - Symbol of the SBT token.
-     * @param _issuingDApp - Address that can mint SBTs.
-     */
-    constructor(
-        string memory _uri,
-        string memory _name,
-        string memory _symbol,
-        address _issuingDApp
-    ) {
+    constructor(string memory uri, string memory _name, string memory _symbol) {
         deploymentBlock = uint64(block.number);
-        baseURI = _uri;
+        baseURI = uri;
         name = _name;
         symbol = _symbol;
-        issuingDApp = _issuingDApp;
     }
 
-    /**
-     * Simplified mint of a SBT for successful verification of a ZK proof without KYC data.
-     * @param _user - Address of the users to mint the SBT for.
-     * @param _verifierWrapper - Address of the verifier wrapper contract to keep track of verifier versions.
-     * @param _expirationTime - Expiration time of the verification SBT.
-     */
     function mintVerificationSBT(
-        address _user,
-        IVerifierWrapper _verifierWrapper,
-        uint _expirationTime
-    ) external {
-        bytes32[] memory encryptedData = new bytes32[](0);
-        uint256[2] memory userPubKey = [uint(0), uint(0)];
-        bytes32 humanID = bytes32(0);
-        uint256[2] memory providerPubKey = [uint(0), uint(0)];
-        mintVerificationSBT(
-            _user,
-            _verifierWrapper,
-            _expirationTime,
-            encryptedData,
-            userPubKey,
-            humanID,
-            providerPubKey
-        );
-    }
-
-    /**
-     * Mints a SBT for successful verification of a ZK proof.
-     * @param _user - Address of the users to mint the SBT for.
-     * @param _verifierWrapper - Address of the verifier wrapper contract to keep track of verifier versions.
-     * @param _expirationTime - Expiration time of the verification SBT.
-     * @param _encryptedData - Optional encrypted data of the verification SBT if fraud investigation is used.
-     * @param _userPubKey - Optional public key of the user for ECDH.
-     * @param _humanID - Optional human ID to identify the user if KYC identity uniqueness should be tracked across accounts.
-     * @param _providerPubKey - Optional public key of the provider for ECDH.
-     */
-    function mintVerificationSBT(
-        address _user,
+        address user,
         IVerifierWrapper _verifierWrapper,
         uint _expirationTime,
-        bytes32[] memory _encryptedData,
-        uint256[2] memory _userPubKey,
+        bytes32[] calldata _encryptedData,
+        uint256[2] calldata _userPubKey,
         bytes32 _humanID,
-        uint256[2] memory _providerPubKey
-    ) public {
-        require(
-            msg.sender == issuingDApp,
-            'VerificationSBT: Only the issuing dApp can mint'
-        );
-
-        uint tokenId = getUsersTokenID(_user);
-
-        sbtData[tokenId] = VerificationSBTInfo({
+        uint256[2] calldata _providerPubKey
+    ) external {
+        uint tokenId = tokenCounter;
+        // The function is public so anyone can call it, but the msg.sender is included in the key, so that each dApp can only mint SBTs corresponding to it. When we search for relevant SBTs we only care about the corresponding mapping keys.
+        
+        VerificationSBTMapping[
+            keccak256(abi.encode(user, msg.sender))
+        ] = VerificationSBTInfo({
+            dApp: msg.sender,
             verifierWrapper: _verifierWrapper,
             expirationTime: _expirationTime,
             verifierCodehash: address(_verifierWrapper.verifier()).codehash,
@@ -114,18 +70,22 @@ contract VerificationSBT is IVerificationSBT {
             tokenId: tokenId
         });
 
-        emit VerificationSBTMinted(_user, _humanID);
-        emit Transfer(address(0), _user, tokenId);
+        tokenIdToOwner[tokenId] = user;
+        tokenIdToDApp[tokenId] = msg.sender;
+        tokenCounter += 1;
+        balances[user] += 1;
+        emit VerificationSBTMinted(msg.sender, user, _humanID);
+        emit Transfer(address(0), user, tokenId);
     }
 
-    /**
-     * Checks if a user holds a valid verification SBT (not expired, not outdated).
-     * @param _user - Address of the user to check.
-     */
-    function isVerificationSBTValid(address _user) public view returns (bool) {
-        VerificationSBTInfo storage verificationSBTInfo = sbtData[
-            getUsersTokenID(_user)
-        ];
+    function isVerificationSBTValid(
+        address user,
+        address dApp
+    ) public view returns (bool) {
+        VerificationSBTInfo
+            storage verificationSBTInfo = VerificationSBTMapping[
+                keccak256(abi.encode(user, dApp))
+            ];
         // we check 2 conditions
         // 1. the verifier wrapper address is set and the codehash of the verifier is still the same as the one referred to in the verification wrapper
         // 2. the expiration time hasn't happened yet
@@ -136,49 +96,37 @@ contract VerificationSBT is IVerificationSBT {
             (verificationSBTInfo.expirationTime > block.timestamp);
     }
 
-    function getUsersTokenID(address _user) public pure returns (uint256) {
-        return uint256(uint160(_user));
-    }
-
-    function tokenIdToOwner(uint256 _tokenId) public pure returns (address) {
-        return address(uint160(_tokenId));
-    }
-
     function getVerificationSBTInfo(
-        address _user
+        address user,
+        address dApp
     ) public view returns (VerificationSBTInfo memory) {
-        return sbtData[getUsersTokenID(_user)];
+        return VerificationSBTMapping[keccak256(abi.encode(user, dApp))];
     }
 
     function getVerificationSBTInfoById(
-        uint256 _tokenId
+        uint256 tokenId
     ) public view returns (VerificationSBTInfo memory) {
-        return sbtData[_tokenId];
+        return
+            getVerificationSBTInfo(
+                tokenIdToOwner[tokenId],
+                tokenIdToDApp[tokenId]
+            );
     }
 
-    function getHumanID(address _user) public view returns (bytes32) {
-        return sbtData[getUsersTokenID(_user)].humanID;
+    function getHumanID(
+        address user,
+        address dApp
+    ) public view returns (bytes32) {
+        return
+            VerificationSBTMapping[keccak256(abi.encode(user, dApp))].humanID;
     }
 
     function balanceOf(address user) external view returns (uint256 balance) {
-        require(
-            user != address(0),
-            'VerificationSBT: address zero is not a valid owner'
-        );
-        // the user has a verification SBT iff the SBT is valid
-        // meaning the balance expires with the SBT expiration date
-        if (isVerificationSBTValid(user)) {
-            return 1;
-        }
-        return 0;
+        balance = balances[user];
     }
 
     function ownerOf(uint256 tokenId) public view returns (address) {
-        address user = tokenIdToOwner(tokenId);
-        if (isVerificationSBTValid(user)) {
-            return user;
-        }
-        return address(0);
+        return tokenIdToOwner[tokenId];
     }
 
     function supportsInterface(bytes4 interfaceId) public pure returns (bool) {

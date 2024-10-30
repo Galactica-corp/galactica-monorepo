@@ -11,7 +11,8 @@ import { deployInfrastructure } from './deploymentSteps/infrastructure';
  * - KYCRecordRegistry
  * - ExampleMockDAppVerifier
  * - 3 example institutions for fraud investigation
- * - AgeProofZkKYC.
+ * - AgeProofZkKYC
+ * - VerificationSBT.
  */
 async function main() {
   const [deployer, institution1, institution2, institution3] =

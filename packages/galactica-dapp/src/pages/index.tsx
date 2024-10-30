@@ -3,11 +3,12 @@ import styled from 'styled-components';
 import { MetamaskActions, MetaMaskContext } from '../hooks';
 import {
   shouldDisplayReconnectButton,
+  queryVerificationSBTs,
   formatVerificationSBTs,
   getUserAddress,
+  getGuardianNameMap,
   handleSnapConnectClick,
   handleWalletConnectClick,
-  showVerificationSBTs,
 } from '../utils';
 import {
   ConnectSnapButton,
@@ -202,7 +203,7 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
 
       console.log(`Updating verification SBTs...`);
-      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) });
+      await showVerificationSBTs();
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -223,7 +224,7 @@ const Index = () => {
         currentDay: dateNow.getUTCDate().toString(),
         ageThreshold: '18',
         // specific inputs to prove that the holder is not a citizen of a sanctioned country
-        countryExclusionList: ['1', iranCountryHash, usCountryHash].concat(Array(17).fill('0')),
+        countryExclusionList: ['1', iranCountryHash, usCountryHash],
       };
       const proofInput = await prepareProofInput(addresses.kycRequirementsDemoDApp, [], specificProofInputs);
 
@@ -256,6 +257,7 @@ const Index = () => {
       const errorFieldIndex = await ageCitizenshipKYCVerifierSC.INDEX_ERROR();
       const error = parseInt(publicInputs[errorFieldIndex]);
       if (error !== 0) {
+        let errorMessage = '';
         if ((error & 1) !== 0) {
           throw new Error("zkKYC is not valid");
         } else if ((error & 2) !== 0) {
@@ -273,7 +275,6 @@ const Index = () => {
       console.log(`Sending proof for on-chain verification...`);
       // this is the on-chain function that requires a ZKP
       //@ts-ignore https://github.com/metamask/providers/issues/200
-      console.log("checkRequirements", a, b, c, publicInputs);
       let tx = await exampleDAppSC.checkRequirements(a, b, c, publicInputs);
       console.log("tx", tx);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
@@ -282,7 +283,7 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Passed all requirements, got Verification SBT` });
 
       console.log(`Updating verification SBTs...`);
-      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) });
+      await showVerificationSBTs();
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });
@@ -356,7 +357,22 @@ const Index = () => {
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
 
       console.log(`Updating verification SBTs...`);
-      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) });
+      await showVerificationSBTs();
+    } catch (e) {
+      console.error(e);
+      dispatch({ type: MetamaskActions.SetError, payload: e });
+    }
+  };
+
+  const showVerificationSBTs = async () => {
+    try {
+      //@ts-ignore https://github.com/metamask/providers/issues/200
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const sbts = await queryVerificationSBTs(addresses.verificationSBT, provider, await signer.getAddress());
+      const guardianNameMap = await getGuardianNameMap(sbts, addresses.zkKYCRegistry, provider);
+      console.log(`Verification SBTs:\n ${formatVerificationSBTs(sbts, guardianNameMap)} `);
+      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: { sbts, guardianNameMap } });
     } catch (e) {
       console.error(e);
       dispatch({ type: MetamaskActions.SetError, payload: e });

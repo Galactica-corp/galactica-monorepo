@@ -20,6 +20,7 @@ import type { SaltLockingZkCertStruct } from '../typechain-types/contracts/Human
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert (guardian).
  * @param merkleTree - Merkle tree of the registry (passed to not reconstruct it repeatedly).
+ * @param devnetGuardian - Optional proxy contract on DevNet to test without a whitelisted guardian.
  * @returns MerkleProof of the new leaf in the tree and registration data.
  */
 export async function issueZkCert(
@@ -27,17 +28,20 @@ export async function issueZkCert(
   recordRegistry: Contract,
   issuer: Signer,
   merkleTree: SparseMerkleTree,
+  devnetGuardian?: Contract,
 ): Promise<{ merkleProof: MerkleProof; registration: ZkCertRegistration }> {
   const leafBytes = fromHexToBytes32(fromDecToHex(zkCert.leafHash));
 
   const chosenLeafIndex = merkleTree.getFreeLeafIndex();
   const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
+
+  const contractToCall = devnetGuardian ?? recordRegistry;
   // now we have the merkle proof to add a new leaf
 
   let tx;
   // if the zkCert is a zkKYC, we need to pass a few more parameters for the salt registry
   if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
-    tx = await recordRegistry.connect(issuer).addZkKYC(
+    tx = await contractToCall.connect(issuer).addZkKYC(
       chosenLeafIndex,
       leafBytes,
       leafEmptyMerkleProof.pathElements.map((value) =>
@@ -48,7 +52,7 @@ export async function issueZkCert(
       zkCert.expirationDate,
     );
   } else {
-    tx = await recordRegistry.connect(issuer).addZkCertificate(
+    tx = await contractToCall.connect(issuer).addZkCertificate(
       chosenLeafIndex,
       leafBytes,
       leafEmptyMerkleProof.pathElements.map((value) =>
@@ -58,7 +62,7 @@ export async function issueZkCert(
   }
 
   await tx.wait();
-  const { provider } = recordRegistry;
+  const { provider } = contractToCall;
   const txReceipt = await provider.getTransactionReceipt(tx.hash);
   if (txReceipt.status !== 1) {
     throw Error('Transaction failed');

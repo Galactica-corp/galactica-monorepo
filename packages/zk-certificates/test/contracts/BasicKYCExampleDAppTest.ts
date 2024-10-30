@@ -15,12 +15,12 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/generateZkKYCInput';
-import type { BasicKYCExampleDApp } from '../../typechain-types/contracts/dapps/BasicKYCExampleDApp';
+import type { BasicKYCExampleDApp } from '../../typechain-types/contracts/BasicKYCExampleDApp';
 import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
+import type { VerificationSBT } from '../../typechain-types/contracts/VerificationSBT';
 import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
-import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
+import type { ZkKYCVerifier } from '../../typechain-types/contracts/ZkKYCVerifier';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -70,24 +70,24 @@ describe('BasicKYCExampleDApp', () => {
     )) as ZkKYC;
     await zkKYCVerifier.deployed();
 
+    const verificationSBTFactory = await ethers.getContractFactory(
+      'VerificationSBT',
+      deployer,
+    );
+    verificationSBT = (await verificationSBTFactory.deploy(
+      'test URI',
+      'VerificationSBT',
+      'VerificationSBT',
+    )) as VerificationSBT;
+
     const repeatableZKPTestFactory = await ethers.getContractFactory(
       'BasicKYCExampleDApp',
       deployer,
     );
     basicExampleDApp = (await repeatableZKPTestFactory.deploy(
+      verificationSBT.address,
       zkKycSC.address,
-      'test URI',
-      'VerificationSBT',
-      'VerificationSBT',
     )) as BasicKYCExampleDApp;
-
-    const verificationSBTFactory = await ethers.getContractFactory(
-      'VerificationSBT',
-      deployer,
-    );
-    verificationSBT = verificationSBTFactory.attach(
-      await basicExampleDApp.sbt(),
-    ) as VerificationSBT;
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
@@ -121,9 +121,10 @@ describe('BasicKYCExampleDApp', () => {
     );
 
     // Approve the provider's public key
+    const providerPubKey = [zkKYC.providerData.ax, zkKYC.providerData.ay];
     await guardianRegistry.grantGuardianRole(
       deployer.address,
-      [zkKYC.providerData.ax, zkKYC.providerData.ay],
+      providerPubKey,
       'https://example.com/provider-metadata',
     );
   });
@@ -157,8 +158,12 @@ describe('BasicKYCExampleDApp', () => {
       .connect(user)
       .registerKYC(piA, piB, piC, publicInputs);
 
-    expect(await verificationSBT.isVerificationSBTValid(user.address)).to.be
-      .true;
+    expect(
+      await verificationSBT.isVerificationSBTValid(
+        user.address,
+        basicExampleDApp.address,
+      ),
+    ).to.be.true;
 
     await expect(
       basicExampleDApp.connect(user).registerKYC(piA, piB, piC, publicInputs),
@@ -167,7 +172,10 @@ describe('BasicKYCExampleDApp', () => {
     );
 
     // wait until verification SBT expires to renew it
-    const sbt = await verificationSBT.getVerificationSBTInfo(user.address);
+    const sbt = await verificationSBT.getVerificationSBTInfo(
+      user.address,
+      basicExampleDApp.address,
+    );
     const laterProofInput = { ...sampleInput };
     const expirationTime: number = sbt.expirationTime.toNumber();
     laterProofInput.currentTime = expirationTime + 1;
@@ -176,8 +184,12 @@ describe('BasicKYCExampleDApp', () => {
     ]);
     await hre.network.provider.send('evm_mine');
 
-    expect(await verificationSBT.isVerificationSBTValid(user.address)).to.be
-      .false;
+    expect(
+      await verificationSBT.isVerificationSBTValid(
+        user.address,
+        basicExampleDApp.address,
+      ),
+    ).to.be.false;
 
     const laterProof = await groth16.fullProve(
       laterProofInput,
@@ -190,8 +202,12 @@ describe('BasicKYCExampleDApp', () => {
       .connect(user)
       .registerKYC(piA, piB, piC, laterProof.publicSignals);
 
-    expect(await verificationSBT.isVerificationSBTValid(user.address)).to.be
-      .true;
+    expect(
+      await verificationSBT.isVerificationSBTValid(
+        user.address,
+        basicExampleDApp.address,
+      ),
+    ).to.be.true;
   });
 
   it('should catch incorrect proof', async () => {

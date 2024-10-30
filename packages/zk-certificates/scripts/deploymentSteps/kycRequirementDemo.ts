@@ -1,10 +1,9 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { TokenData } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildPoseidon } from 'circomlibjs';
 import { parseEther } from 'ethers/lib/utils';
 
-import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
+import { deploySC } from '../../lib/hardhatHelpers';
 import { hashStringToFieldNumber } from '../../lib/helpers';
 import type { Poseidon } from '../../lib/poseidon';
 
@@ -14,19 +13,18 @@ const { log } = console;
  * Deploys the KYC requirement demo, a smart contract requiring zkKYC + age proof + citizenship sanctioned to mint an SBT for the user.
  * @param deployer - The deployer wallet.
  * @param recordRegistryAddr - The address of the ZkKYC record registry.
- * @param sbtData - The data of the verification SBT.
+ * @param verificationSBTAddr - The address of the verification SBT.
  * @returns The deployed contracts.
  */
 export async function deployKYCRequirementsDemoDApp(
   deployer: SignerWithAddress,
   recordRegistryAddr: string,
-  sbtData: TokenData,
+  verificationSBTAddr: string,
 ): Promise<{
   zkpVerifier: any;
   ageCitizenshipKYC: any;
   kycRequirementsDemoDApp: any;
   compliantERC20: any;
-  sbtAddr: string;
 }> {
   log(`Using account ${deployer.address} to deploy contracts`);
   log(`Account balance: ${(await deployer.getBalance()).toString()}`);
@@ -55,36 +53,22 @@ export async function deployKYCRequirementsDemoDApp(
     'KYCRequirementsDemoDApp',
     true,
     {},
-    [ageCitizenshipKYC.address, sbtData.uri, sbtData.name, sbtData.symbol],
+    [verificationSBTAddr, ageCitizenshipKYC.address],
   );
-  const verificationSBTAddr = await kycRequirementsDemoDApp.sbt();
 
   const compliantERC20 = await deploySC('CompliantERC20', true, {}, [
     'Compliant ERC20',
     'CERC20',
     deployer.address,
     parseEther('1000000'),
-    [verificationSBTAddr],
+    verificationSBTAddr,
+    [kycRequirementsDemoDApp.address],
   ]);
-
-  const sbtAddr = await kycRequirementsDemoDApp.sbt();
-
-  await tryVerification(
-    sbtAddr,
-    [
-      sbtData.uri,
-      sbtData.name,
-      sbtData.symbol,
-      kycRequirementsDemoDApp.address,
-    ],
-    'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
-  );
 
   return {
     zkpVerifier,
     ageCitizenshipKYC,
     kycRequirementsDemoDApp,
     compliantERC20,
-    sbtAddr,
   };
 }
