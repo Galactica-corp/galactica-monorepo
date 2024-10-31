@@ -1,8 +1,8 @@
 import { expect } from 'chai';
+import type { Contract } from 'ethers';
 import { ethers } from 'hardhat';
-import { Contract } from 'ethers';
 
-describe.only('Fallback', () => {
+describe('Fallback', () => {
   let fallbackContract: Contract;
 
   beforeEach(async () => {
@@ -12,13 +12,16 @@ describe.only('Fallback', () => {
   });
 
   it('should revert with correct error message when calling unsupported function', async () => {
-
     // Get the contract address and format it to match the expected error message format
-    const fallbackWrongInterface = await ethers.getContractAt('MockToken', fallbackContract.address);
+    const fallbackWrongInterface = await ethers.getContractAt(
+      'MockToken',
+      fallbackContract.address,
+    );
 
-    // Call the contract with the non-existent function
     await expect(
-      fallbackWrongInterface.transfer(fallbackContract.address, 1)
-      ).to.be.revertedWith(`unsupported method ${fallbackContract.address.toLowerCase()}`);
+      fallbackWrongInterface.transfer(fallbackContract.address, 1),
+    ).to.be.revertedWith(
+      `unsupported method ${fallbackContract.address.toLowerCase()}`,
+    );
   });
 });
