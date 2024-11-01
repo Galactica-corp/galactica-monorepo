@@ -27,6 +27,12 @@ interface IVerificationSBT is IERC721Metadata {
         uint256[2] calldata _providerPubKey
     ) external;
 
+    function mintVerificationSBT(
+        address user,
+        IVerifierWrapper _verifierWrapper,
+        uint _expirationTime
+    ) external;
+
     function isVerificationSBTValid(address user) external view returns (bool);
 
     function getVerificationSBTInfo(
