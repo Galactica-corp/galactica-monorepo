@@ -69,19 +69,19 @@ export async function deployTwitterProofs(
     sbtFollowersCount100.uri,
     sbtFollowersCount100.name,
     sbtFollowersCount100.symbol,
-    followersCountWrapper.address,
+    dAppSBTManager.address,
   ]);
   const followersCountSBT1k = await deploySC('VerificationSBT', true, {}, [
     sbtFollowersCount1k.uri,
     sbtFollowersCount1k.name,
     sbtFollowersCount1k.symbol,
-    followersCountWrapper.address,
+    dAppSBTManager.address,
   ]);
   const followersCountSBT10k = await deploySC('VerificationSBT', true, {}, [
     sbtFollowersCount10k.uri,
     sbtFollowersCount10k.name,
     sbtFollowersCount10k.symbol,
-    followersCountWrapper.address,
+    dAppSBTManager.address,
   ]);
 
   await dAppSBTManager.setSBT(0, followersCountSBT100.address);
@@ -112,14 +112,14 @@ export async function deployTwitterProofs(
       sbtCreationTimeBefore2020.uri,
       sbtCreationTimeBefore2020.name,
       sbtCreationTimeBefore2020.symbol,
-      creationTimeWrapper.address,
+      dAppSBTManager.address,
     ],
   );
   const creationTimeSBTIn2024 = await deploySC('VerificationSBT', true, {}, [
     sbtCreationTimeIn2024.uri,
     sbtCreationTimeIn2024.name,
     sbtCreationTimeIn2024.symbol,
-    creationTimeWrapper.address,
+    dAppSBTManager.address,
   ]);
 
   // Set SBT and verifier wrapper in SBTManager
