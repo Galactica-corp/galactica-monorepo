@@ -4,13 +4,14 @@ import '../SBT_related/VerificationSBT.sol';
 import '../interfaces/IZkKYCVerifier.sol';
 import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
 import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /**
  * @title RepeatableZKPTest is a simple smart contract that can be used to test ZKP submission to create a verification SBT
  * @author Galactica dev team
  */
 
-contract RepeatableZKPTest is IVerificationSBTIssuer {
+contract RepeatableZKPTest is IVerificationSBTIssuer, Fallback {
     IVerificationSBT public sbt;
     IZkKYCVerifier public verifierWrapper;
 

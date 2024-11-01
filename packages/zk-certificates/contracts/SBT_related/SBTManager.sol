@@ -6,11 +6,12 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import '../interfaces/IVerifierWrapper.sol';
 import './VerificationSBT.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /**
  * @title AirdropGateway: manages airdrops for the Galactica
  */
-contract SBTManager is Ownable {
+contract SBTManager is Ownable, Fallback {
     mapping(uint => address) public SBTIndexToSBTAddress;
     mapping(uint => address) public SBTIndexToSBTVerifierWrapper;
 

@@ -9,13 +9,14 @@ import {BokkyPooBahsDateTimeLibrary} from '../libraries/BokkyPooBahsDateTimeLibr
 import {IGalacticaInstitution} from '../interfaces/IGalacticaInstitution.sol';
 import {ICircomVerifier} from '../interfaces/ICircomVerifier.sol';
 import {IGuardianRegistry} from '../interfaces/IGuardianRegistry.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /**
  * @title Smart contract demo for Galactica zkKYC requirements
  * @dev This contract is requires the user to 1. hold a valid zkKYC, 2. be above a certain age, and 3. be a citizen of a non-sanctioned country
  * @author Galactica Network
  */
-contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier {
+contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier, Fallback {
     ICircomVerifier public verifier;
     IZkCertificateRegistry public KYCRegistry;
     // list of sanctioned countries. Each entry is a poseidon hash of the Alpha-3 country code as field element so we can compare it with the public input of the circom proof.

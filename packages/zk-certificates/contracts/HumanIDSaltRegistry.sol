@@ -3,6 +3,7 @@ pragma solidity ^0.8.7;
 pragma abicoder v2;
 
 import {GuardianRegistry} from './GuardianRegistry.sol';
+import {Fallback} from './helpers/Fallback.sol';
 
 struct SaltLockingZkCert {
     uint256 zkCertId;
@@ -23,7 +24,7 @@ struct UserData {
  * @author Galactica dev team
  * @notice Registry to limit a user to one salt to achieve a unique and single dApp specific humanID.
  */
-contract HumanIDSaltRegistry {
+contract HumanIDSaltRegistry is Fallback {
     GuardianRegistry public guardianRegistry;
     address public zkCertRegistry;
 

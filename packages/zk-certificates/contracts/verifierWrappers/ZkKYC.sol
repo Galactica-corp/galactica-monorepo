@@ -6,10 +6,11 @@ import '../interfaces/IZkKYCVerifier.sol';
 import '../interfaces/IZkCertificateRegistry.sol';
 import '../interfaces/IGalacticaInstitution.sol';
 import '../interfaces/IGuardianRegistry.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of ZkKYC record existence
-contract ZkKYC is Ownable {
+contract ZkKYC is Ownable, Fallback {
     IZkKYCVerifier public verifier;
     IZkCertificateRegistry public KYCRegistry;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;

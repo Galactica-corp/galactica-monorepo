@@ -3,11 +3,12 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IVerificationSBT.sol';
+import {Fallback} from './helpers/Fallback.sol';
 
 /**
  * @title CompliantERC20 is an ERC20 token that can only be transferred to accounts holding Galactica VerificationSBTs according to the compliance requirements.
  */
-contract CompliantERC20 is ERC20, Ownable {
+contract CompliantERC20 is ERC20, Ownable, Fallback {
     // The compliance requirements are defined by a list of dApps.
     // Recipients must have received a VerificationSBT from each of these dApps to be compliant.
     IVerificationSBT[] public complianceSBTs;

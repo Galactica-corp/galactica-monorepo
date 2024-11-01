@@ -15,6 +15,7 @@ import {IGuardianRegistry} from './interfaces/IGuardianRegistry.sol';
 import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
 
 import {Ownable} from './Ownable.sol';
+import {Fallback} from './helpers/Fallback.sol';
 
 /**
  * @title ZkCertificateRegistry
@@ -25,7 +26,8 @@ import {Ownable} from './Ownable.sol';
 contract ZkCertificateRegistry is
     Initializable,
     IZkCertificateRegistry,
-    Ownable
+    Ownable,
+    Fallback
 {
     // NOTE: The order of instantiation MUST stay the same across upgrades
     // add new variables to the bottom of the list and decrement the __gap
