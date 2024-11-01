@@ -16,6 +16,8 @@ interface ITwitterZkCertificateVerifier is IVerifierWrapper {
 
     function INDEX_VERIFICATION_EXPIRATION() external view returns (uint8);
 
+    function INDEX_DAPP_ID() external view returns (uint8);
+
     function INDEX_ROOT() external view returns (uint8);
 
     function INDEX_CURRENT_TIME() external view returns (uint8);
