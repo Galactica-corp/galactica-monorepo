@@ -5,7 +5,6 @@ import {ITwitterZkCertificateVerifier} from '../interfaces/ITwitterZkCertificate
 import {TwitterRequirementsDemoDApp} from './TwitterRequirementsDemoDApp.sol';
 
 /**
- * @title NonUSProverDApp
  * @author Galactica dev team
  * @notice A DApp to prove that twitter account has more than certain followers count
  */
