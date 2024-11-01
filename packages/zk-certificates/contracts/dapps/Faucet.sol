@@ -9,11 +9,12 @@ import '../interfaces/IVerificationSBT.sol';
 import {VerificationSBT} from '../SBT_related/VerificationSBT.sol';
 import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
 import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /**
  * @title Faucet: distributes Gala to users on testnet
  */
-contract Faucet is AccessControl, IVerificationSBTIssuer {
+contract Faucet is AccessControl, IVerificationSBTIssuer, Fallback {
     uint256 public immutable epochDuration;
     uint256 public immutable epochStartTime;
     uint256 public immutable amountPerEpoch;

@@ -5,11 +5,12 @@ import '@openzeppelin/contracts/access/AccessControl.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import '../interfaces/IZkKYCVerifier.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /**
  * @title AirdropGateway: manages airdrops for the Galactica
  */
-contract AirdropGateway is AccessControl {
+contract AirdropGateway is AccessControl, Fallback {
     // roles for access control
     bytes32 public constant CLIENT_ROLE = keccak256('CLIENT_ROLE');
 

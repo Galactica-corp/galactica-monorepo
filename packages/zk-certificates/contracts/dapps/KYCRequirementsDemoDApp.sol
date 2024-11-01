@@ -4,6 +4,7 @@ import {VerificationSBT} from '../SBT_related/VerificationSBT.sol';
 import {IAgeCitizenshipKYCVerifier} from '../interfaces/IAgeCitizenshipKYCVerifier.sol';
 import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
 import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /**
  * @title KYCRequirementsDemoDApp
@@ -13,7 +14,7 @@ import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
  *  The requirements of the ZKP (i.e. age, citizenship, etc.) are defined in the verifierWrapper.
  *  This demo DApp does not include fraud investigation features.
  */
-contract KYCRequirementsDemoDApp is IVerificationSBTIssuer {
+contract KYCRequirementsDemoDApp is IVerificationSBTIssuer, Fallback {
     IVerificationSBT public sbt;
     IAgeCitizenshipKYCVerifier public verifierWrapper;
 

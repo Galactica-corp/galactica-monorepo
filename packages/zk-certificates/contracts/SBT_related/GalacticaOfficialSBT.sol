@@ -4,12 +4,13 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import {Fallback} from '../helpers/Fallback.sol';
 
 /**
  * @title GalacticaOfficialSBT: ERC721 NFT with URI storage for metadata used for governance in Discord
  * @dev ERC721 contains logic for NFT storage and metadata.
  */
-contract GalacticaOfficialSBT is ERC721, AccessControl {
+contract GalacticaOfficialSBT is ERC721, AccessControl, Fallback {
     // roles for access control
     bytes32 public constant ISSUER_ROLE = keccak256("ISSUER_ROLE");
 

@@ -4,10 +4,11 @@ pragma solidity ^0.8.0;
 import '../Ownable.sol';
 import '../interfaces/ITwitterZkCertificateVerifier.sol';
 import '../interfaces/IZkCertificateRegistry.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of twitter being verified
-contract TwitterVerificationProof is Ownable {
+contract TwitterVerificationProof is Ownable, Fallback {
     ITwitterZkCertificateVerifier public verifier;
     IZkCertificateRegistry public registry;
     uint256 public constant timeDifferenceTolerance = 30 * 60; // the maximal difference between the onchain time and public input current time

@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import './Ownable.sol';
 import './interfaces/IGuardianRegistry.sol';
+import {Fallback} from './helpers/Fallback.sol';
 
 /**
  * @title GuardianInfo struct containing data about a guardian's registration
@@ -27,7 +28,7 @@ struct GuardianIssuer {
 
 /// @author Galactica dev team
 /// @title Smart contract storing whitelist of GNET guardians, for example KYC provider guardians
-contract GuardianRegistry is Ownable, IGuardianRegistry {
+contract GuardianRegistry is Ownable, IGuardianRegistry, Fallback {
     // a short description to describe which type of zkCertificate is managed by Guardians in this Registry
 
     string public description;

@@ -4,6 +4,7 @@ import {VerificationSBT} from '../SBT_related/VerificationSBT.sol';
 import {IZkKYCVerifier} from '../interfaces/IZkKYCVerifier.sol';
 import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
 import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /**
  * @title BasicKYCExampleDApp
@@ -12,7 +13,7 @@ import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
  *  Registration can be repeated when the previous Verification SBT expired.
  *  The requirements of the ZKP (i.e. age, citizenship, etc.) are defined in the verifierWrapper.
  */
-contract BasicKYCExampleDApp is IVerificationSBTIssuer {
+contract BasicKYCExampleDApp is IVerificationSBTIssuer, Fallback {
     IVerificationSBT public sbt;
     IZkKYCVerifier public verifierWrapper;
 

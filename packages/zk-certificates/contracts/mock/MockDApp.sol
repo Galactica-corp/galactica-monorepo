@@ -5,6 +5,7 @@ import '../SBT_related/VerificationSBT.sol';
 import '../interfaces/IAgeCitizenshipKYCVerifier.sol';
 import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
 import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
+import {Fallback} from '../helpers/Fallback.sol';
 
 /// @author Galactica dev team
 //For testing purpose we will create a mock dApp that airdrops 2 types tokens (100 each) for user
@@ -12,7 +13,7 @@ import {IVerificationSBTIssuer} from '../interfaces/IVerificationSBTIssuer.sol';
 //There are two things that we will test
 //1. After the first airdrop claim the SC will mint a verification SBT for that user
 //2. With the verification SBT user won't need to supply the zk proof
-contract MockDApp is IVerificationSBTIssuer {
+contract MockDApp is IVerificationSBTIssuer, Fallback {
     // mappings to see if certain humanID has received the token airdrop
     // in real DApp this should be a merkle root so that we can aggregate data across different humanID in a zk way
     // but here for simplicity I use normal mapping
