@@ -10,18 +10,18 @@ async function main() {
   // parameters
   const zkKYCRecordRegistry = '0x68272A56A0e9b095E5606fDD8b6c297702C0dfe5';
   const nonUSSBT = {
-    uri: 'ipfs://Qmeurn8qiGQF5CacFD4QnnHGMqTb4oNrDVJWC1SH3RaaU8',
-    name: 'KYC Non-US Verification SBT',
+    uri: 'ipfs://Qmc7fCZDftWvgsPuW2kVALEdUWWWTq9oKTP3vUXpct6mgP',
+    name: 'KYC Non-US Verification',
     symbol: 'NONUS',
   };
   const nonSanctionedSBT = {
-    uri: 'ipfs://Qmeu9GcAhTDkafd4RRqx22NkboerSiNdoXsjwoWPCBnAK8',
-    name: 'KYC Non-sanctioned citizenship Verification SBT',
+    uri: 'ipfs://QmcxfT4459adX7PX9j4D5AsSpe2o3ZtDN9YU9VHNzinowH',
+    name: 'KYC Non-sanctioned citizenship Verification',
     symbol: 'NONSAN',
   };
   const age18SBT = {
-    uri: 'ipfs://QmcS1oxPNs59cM3zuYP3uQbu95JoegnCZ3wHnBHyS9YPUS',
-    name: 'KYC 18+ Verification SBT',
+    uri: 'ipfs://QmYiRsyQ3iEEVg7LUKS6E77pUbTnBoUHAXMG434bBu2Lp1',
+    name: 'KYC 18+ Verification',
     symbol: 'KYC18',
   };
 
