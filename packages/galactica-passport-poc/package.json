@@ -1,6 +1,6 @@
 {
   "name": "galactica-passport-poc",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "license": "(MIT-0 OR Apache-2.0)",
   "scripts": {
