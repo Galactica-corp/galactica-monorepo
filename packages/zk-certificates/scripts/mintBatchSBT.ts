@@ -31,9 +31,7 @@ async function main() {
 
   for (const user of data) {
     const userAddress = user.wallet;
-    console.log(
-      `Giving ${userAddress} an NFT`,
-    );
+    console.log(`Giving ${userAddress} an NFT`);
     dataArray.push(userAddress);
   }
 
@@ -51,7 +49,8 @@ async function main() {
     const tx = await SBTInstance.batchMint(batch);
     const receipt = await tx.wait();
     console.log(
-      `receipt ${receipt.transactionHash
+      `receipt ${
+        receipt.transactionHash
       }, gas used ${receipt.gasUsed.toString()}`,
     );
   }

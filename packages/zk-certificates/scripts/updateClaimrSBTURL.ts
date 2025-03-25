@@ -9,7 +9,6 @@ async function main() {
   const newURL =
     'https://quicknode.quicknode-ipfs.com/ipfs/QmZSduuEbvNuEFdsZhmTZ3ZZ1Fhu2CzGjQcgKhimMTgVCz';
 
-
   const [deployer] = await ethers.getSigners();
 
   console.log(

@@ -1,8 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { ethers, network } from 'hardhat';
-import fs from 'fs';
-import path from 'path';
 import csv from 'csvtojson';
+import { ethers, network } from 'hardhat';
+import path from 'path';
 
 import { deploySC } from '../lib/hardhatHelpers';
 
@@ -28,14 +27,20 @@ async function main() {
       // Assuming the CSV columns are named "uri", "nftName", and "nftSymbol"
       const uri = row.metadata;
       const nftName = row['SBT Name'];
-      const nftSymbol = row['Ticker'];
-      console.log(`Deploying SBT for NFT: ${nftName} (${nftSymbol}) with URI: ${uri}`);
+      const nftSymbol = row.Ticker;
+      console.log(
+        `Deploying SBT for NFT: ${nftName} (${nftSymbol}) with URI: ${uri}`,
+      );
 
-      const sbt = await deploySC('claimrSignedSBT', true, {}, [nftName, nftSymbol, uri, signee]);
+      const sbt = await deploySC('claimrSignedSBT', true, {}, [
+        nftName,
+        nftSymbol,
+        uri,
+        signee,
+      ]);
       console.log(`${nftName} deployed at ${sbt.address}`);
     }
     // If CSV data was processed, exit main to prevent further (default) deployment.
-    return;
   }
 }
 
