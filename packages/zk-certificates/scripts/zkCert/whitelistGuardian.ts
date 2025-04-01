@@ -4,7 +4,7 @@ import { ethers } from 'hardhat';
 import {
   whitelistGuardian,
   // whitelistSignerGuardian,
-} from './deploymentSteps/whitelistGuardian';
+} from '../deploy/deploymentSteps/whitelistGuardian';
 import { decompressEddsaPubKey } from '../../lib';
 
 /**

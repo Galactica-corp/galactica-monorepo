@@ -2,9 +2,9 @@
 import { buildEddsa, poseidonContract } from 'circomlibjs';
 import { ethers, network } from 'hardhat';
 
-import { deploySC } from '../lib/hardhatHelpers';
-import { overwriteArtifact } from '../lib/helpers';
-import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
+import { deploySC } from '../../lib/hardhatHelpers';
+import { overwriteArtifact } from '../../lib/helpers';
+import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 
 /**
  * Deploys a contract that everyone can use to submit encrypted Data for on-chain storage.

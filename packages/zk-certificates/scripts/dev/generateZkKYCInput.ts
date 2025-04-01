@@ -3,15 +3,15 @@ import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import { ZkCertStandard } from '../lib';
+import { ZkCertStandard } from '../../lib';
 import {
   createHolderCommitment,
   formatPrivKeyForBabyJub,
   getEddsaKeyFromEthSigner,
-} from '../lib/keyManagement';
-import { MerkleTree } from '../lib/merkleTree';
-import { ZkCertificate } from '../lib/zkCertificate';
-import { getHumanIDProofInput } from '../lib/zkKYC';
+} from '../../lib/keyManagement';
+import { MerkleTree } from '../../lib/merkleTree';
+import { ZkCertificate } from '../../lib/zkCertificate';
+import { getHumanIDProofInput } from '../../lib/zkKYC';
 
 // sample field inputs
 export const fields = {

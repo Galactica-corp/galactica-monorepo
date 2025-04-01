@@ -1,9 +1,9 @@
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
-import { decryptFraudInvestigationData } from '../lib/SBTData';
-import { reconstructShamirSecret } from '../lib/shamirTools';
+import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { decryptFraudInvestigationData } from '../../lib/SBTData';
+import { reconstructShamirSecret } from '../../lib/shamirTools';
 
 /**
  * Example script showing the fraud investigation process with 2 of 3 shamir secret sharing.

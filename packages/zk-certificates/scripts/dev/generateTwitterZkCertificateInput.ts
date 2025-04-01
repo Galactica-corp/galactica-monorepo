@@ -6,14 +6,14 @@ import {
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import twitterExample from '../example/twitterFields.json';
-import { prepareZkCertificateFields } from '../lib';
+import twitterExample from '../../example/twitterFields.json';
+import { prepareZkCertificateFields } from '../../lib';
 import {
   createHolderCommitment,
   getEddsaKeyFromEthSigner,
-} from '../lib/keyManagement';
-import { MerkleTree } from '../lib/merkleTree';
-import { ZkCertificate } from '../lib/zkCertificate';
+} from '../../lib/keyManagement';
+import { MerkleTree } from '../../lib/merkleTree';
+import { ZkCertificate } from '../../lib/zkCertificate';
 
 /**
  * Generates a sample twitter ZkCertificate object with the given fields.

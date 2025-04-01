@@ -2,8 +2,8 @@
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import { fromDecToHex, fromHexToBytes32 } from '../lib/helpers';
-import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
+import { fromDecToHex, fromHexToBytes32 } from '../../lib/helpers';
+import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
 
 /**
  * Script to issue zkCert hashes on-chain.
