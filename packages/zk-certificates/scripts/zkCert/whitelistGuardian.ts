@@ -5,7 +5,7 @@ import {
   whitelistGuardian,
   // whitelistSignerGuardian,
 } from './deploymentSteps/whitelistGuardian';
-import { decompressEddsaPubKey } from '../lib';
+import { decompressEddsaPubKey } from '../../lib';
 
 /**
  * Script for adding a KYC center to the KYC center registry.

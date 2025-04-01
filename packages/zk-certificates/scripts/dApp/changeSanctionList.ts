@@ -2,7 +2,7 @@
 import { buildPoseidon } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import { hashStringToFieldNumber } from '../lib/helpers';
+import { hashStringToFieldNumber } from '../../lib/helpers';
 
 /**
  * Script for changing the sanction list of a verifier.
