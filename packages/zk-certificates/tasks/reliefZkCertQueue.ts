@@ -4,9 +4,15 @@ import { ZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
 import { task, types } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
+
+import {
+  fromDecToHex,
+  fromHexToBytes32,
+  printProgress,
+  sleep,
+} from '../lib/helpers';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { flagStandardMapping } from '../lib/zkCertificate';
-import { fromDecToHex, fromHexToBytes32, printProgress, sleep } from '../lib/helpers';
 
 /**
  * Task for issuing all zkCerts that are stuck in the queue.
@@ -23,7 +29,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     )} to sign the zkCertificate`,
   );
 
-  const zkCertificateType: ZkCertStandard = flagStandardMapping[args.zkCertificateType];
+  const zkCertificateType: ZkCertStandard =
+    flagStandardMapping[args.zkCertificateType];
 
   const recordRegistry = await hre.ethers.getContractAt(
     zkCertificateType === ZkCertStandard.ZkKYC
@@ -47,14 +54,21 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   let nextZkCertIndex = await recordRegistry.currentQueuePointer();
   let nextZkCertHash = await recordRegistry.ZkCertificateQueue(nextZkCertIndex);
 
-  while (nextZkCertHash !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-    console.log(`Issuing queue item ${nextZkCertIndex}, hash: ${nextZkCertHash}`);
+  while (
+    nextZkCertHash !==
+    '0x0000000000000000000000000000000000000000000000000000000000000000'
+  ) {
+    console.log(
+      `Issuing queue item ${nextZkCertIndex}, hash: ${nextZkCertHash}`,
+    );
 
     const chosenLeafIndex = merkleTree.getFreeLeafIndex();
     const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
 
     if (zkCertificateType === ZkCertStandard.ZkKYC) {
-      throw new Error('ZkKYC queue processing not possible without HumanID Salt.');
+      throw new Error(
+        'ZkKYC queue processing not possible without HumanID Salt.',
+      );
       // await recordRegistry.connect(issuer).addZkKYC(
       //   chosenLeafIndex,
       //   nextZkCertHash,
@@ -80,7 +94,10 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     await sleep(3);
 
     // update the local merkle tree so that the next zkCert will get a correct merkle proof again
-    merkleTree.insertLeaves([BigInt(nextZkCertHash).toString()], [chosenLeafIndex]);
+    merkleTree.insertLeaves(
+      [BigInt(nextZkCertHash).toString()],
+      [chosenLeafIndex],
+    );
 
     console.log(
       chalk.green(
@@ -88,18 +105,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       ),
     );
 
-    nextZkCertIndex++;
+    nextZkCertIndex += 1;
     nextZkCertHash = await recordRegistry.ZkCertificateQueue(nextZkCertIndex);
   }
 
   console.log(chalk.green('done'));
 }
 
-
-task(
-  'reliefZkCertQueue',
-  'Task to relieve a zkCertificate queue',
-)
+task('reliefZkCertQueue', 'Task to relieve a zkCertificate queue')
   .addParam(
     'zkCertificateType',
     `type of zkCertificate, default to be kyc. Available options: ${JSON.stringify(
