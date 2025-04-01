@@ -18,7 +18,7 @@ import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleTwitterZkCertificate,
   generateTwitterZkCertificateProofInput,
-} from '../../scripts/generateTwitterZkCertificateInput';
+} from '../../scripts/dev/generateTwitterZkCertificateInput';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { SBTManager } from '../../typechain-types/contracts/SBT_related/SBTManager';
 import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';

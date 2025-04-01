@@ -6,7 +6,7 @@ import type { CircuitTestUtils } from 'hardhat-circom';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZkKYCInput';
+} from '../../scripts/dev/generateZkKYCInput';
 
 describe('zkKYC Circuit Component', () => {
   let circuit: CircuitTestUtils;
