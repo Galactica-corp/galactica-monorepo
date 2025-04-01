@@ -13,6 +13,7 @@ import './tasks/revokeZkCertificate';
 import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
 import './tasks/hashStringToField';
+import './tasks/reliefZkCertQueue';
 
 const config: HardhatUserConfig = {
   mocha: {
