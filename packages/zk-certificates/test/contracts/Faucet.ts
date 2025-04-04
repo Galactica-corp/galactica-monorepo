@@ -15,7 +15,7 @@ import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZkKYCInput';
+} from '../../scripts/dev/generateZkKYCInput';
 import type { Faucet } from '../../typechain-types/contracts/Faucet';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';

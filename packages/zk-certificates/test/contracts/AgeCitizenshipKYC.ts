@@ -17,7 +17,7 @@ import {
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZkKYCInput';
+} from '../../scripts/dev/generateZkKYCInput';
 import type { KYCRequirementsDemoDApp } from '../../typechain-types/contracts/dapps/KYCRequirementsDemoDApp';
 import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';

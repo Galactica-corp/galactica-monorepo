@@ -6,7 +6,7 @@ import type { CircuitTestUtils } from 'hardhat-circom';
 import {
   generateSampleTwitterZkCertificate,
   generateTwitterZkCertificateProofInput,
-} from '../../scripts/generateTwitterZkCertificateInput';
+} from '../../scripts/dev/generateTwitterZkCertificateInput';
 
 describe('twitterFollowersCountProof Circuit Component', () => {
   let circuit: CircuitTestUtils;

@@ -2,8 +2,8 @@ import fs from 'fs';
 import { ethers } from 'hardhat';
 import path from 'path';
 
-import { printProgress } from '../lib/helpers';
-import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
+import { printProgress } from '../../lib/helpers';
+import { buildMerkleTreeFromRegistry } from '../../lib/queryMerkleTree';
 
 /**
  * Script for creating a merkle tree for testing from a list of UTXOs, benchmark version.

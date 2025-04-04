@@ -47,7 +47,7 @@ contract ZkKYCRegistry is ZkCertificateRegistry {
      * @param merkleProof - Merkle proof of the zkCertificate record leaf being free
      * @param idHash - Hash identifying the user. It is supposed to be the poseidon Hash of the name, birthday and citizenship.
      * @param saltHash - Hash of the salt, usually the commitment hash.
-     * @param saltHash - Hash of the salt, usually the commitment hash.
+     * @param expirationTime - Expiration time of the zkKYC.
      */
     function addZkKYC(
         uint256 leafIndex,

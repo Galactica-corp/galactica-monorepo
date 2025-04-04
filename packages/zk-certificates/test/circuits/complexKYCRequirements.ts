@@ -7,7 +7,7 @@ import type { ZkCertificate } from '../../lib';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZkKYCInput';
+} from '../../scripts/dev/generateZkKYCInput';
 
 describe('Age + Citizenship Sanction List + KYC Circuit', () => {
   let circuit: CircuitTestUtils;

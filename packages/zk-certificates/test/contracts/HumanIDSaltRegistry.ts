@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import hre, { ethers } from 'hardhat';
 
 import { getIdHash } from '../../lib/zkKYC';
-import { generateSampleZkKYC } from '../../scripts/generateZkKYCInput';
+import { generateSampleZkKYC } from '../../scripts/dev/generateZkKYCInput';
 import type {
   HumanIDSaltRegistry,
   SaltLockingZkCertStruct,

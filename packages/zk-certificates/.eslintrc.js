@@ -44,11 +44,17 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/verifyProofTest.ts'],
+      files: ['scripts/dApp/verifyProofTest.ts'],
       rules: {
         // accepting naming given by snarkjs
         '@typescript-eslint/naming-convention': 0,
         camelcase: 0,
+      },
+    },
+    {
+      files: ['scripts/*/*.ts'],
+      rules: {
+        'no-restricted-globals': 0, // allow local scripts to use the process global for error handling
       },
     },
     {

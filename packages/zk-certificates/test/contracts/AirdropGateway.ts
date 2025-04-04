@@ -14,7 +14,7 @@ import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
-} from '../../scripts/generateZkKYCInput';
+} from '../../scripts/dev/generateZkKYCInput';
 import type { GuardianRegistry } from '../../typechain-types';
 import type { AirdropGateway } from '../../typechain-types/contracts/dapps/AirdropGateway';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
