@@ -162,20 +162,21 @@ const Index = () => {
         currentMonth: (dateNow.getUTCMonth() + 1).toString(),
         currentDay: dateNow.getUTCDate().toString(),
         ageThreshold: '18',
+        // specific inputs to prove that the holder is not a citizen of a sanctioned country
         countryExclusionList: [],
       };
-      const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
+      const proofInput = await prepareProofInput(addresses.mockDApp, [], ageProofInputs);
 
       const res: any = await generateZKProof({
         input: proofInput,
-        prover: await getProver("provers/exampleMockDApp.json"),
+        prover: await getProver("https://galactica-trusted-setup.s3.eu-central-1.amazonaws.com/ageCitizenshipKYC.0x01cBD5b467bA6C82d9A8BC6523a38Df0D677F817.prover.json"),
         requirements: {
           zkCertStandard: ZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
         },
         userAddress: getUserAddress(),
         description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
-        publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
+        publicInputDescriptions: kycRequirementsDemoDAppPublicInputDescriptions,
         zkInputRequiresPrivKey: true,
       }, defaultSnapOrigin);
       console.log('Response from snap', JSON.stringify(res));

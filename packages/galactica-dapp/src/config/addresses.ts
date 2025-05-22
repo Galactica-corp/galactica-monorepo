@@ -1,5 +1,5 @@
 export const zkKYCRegistry = '0x68272A56A0e9b095E5606fDD8b6c297702C0dfe5';
-export const mockDApp = '0x599cBD89193cab8522AFbd16aEa918138Ee2a3C3';
+export const mockDApp = '0x757609D5e840a43Efd37c70a43e3e68135671833';
 export const kycRequirementsDemoDApp =
   '0x13eca573ffa21c70cc00B43f1AC842c6F53D23f1';
 export const galacticaInstitutions = [
