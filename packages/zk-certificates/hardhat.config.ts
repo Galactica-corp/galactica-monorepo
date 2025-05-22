@@ -44,6 +44,10 @@ const config: HardhatUserConfig = {
       url: 'https://evm-rpc-http-reticulum.galactica.com/',
       accounts: getAccounts(),
     },
+    cassiopeia: {
+      url: 'https://galactica-cassiopeia.g.alchemy.com/public',
+      accounts: getAccounts(),
+    },
     binanceTestnet: {
       url: process.env.BSCTestnetRPCURL ?? 'default',
       accounts: getAccounts(),
@@ -58,6 +62,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       galaAndromeda: 'something', // not needed for now
       reticulum: 'something', // not needed for now
+      cassiopeia: process.env.ALCHEMY_API_KEY ?? '',
       bscTestnet: process.env.BSCScanApiKey ?? '',
       mainnet: process.env.EtherscanApiKey ?? '',
     },
@@ -76,6 +81,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://explorer-reticulum.galactica.com/api',
           browserURL: 'https://explorer-reticulum.galactica.com/',
+        },
+      },
+      {
+        network: 'cassiopeia',
+        chainId: 843843,
+        urls: {
+          apiURL: 'https://galactica-cassiopeia.explorer.alchemy.com/api',
+          browserURL: 'https://galactica-cassiopeia.explorer.alchemy.com/',
         },
       },
     ],
