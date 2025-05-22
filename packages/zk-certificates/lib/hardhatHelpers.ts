@@ -46,7 +46,7 @@ export async function deploySC(
         contractArgs = { contract: name };
       }
 
-      const waitTime = 10;
+      const waitTime = 60;
       console.log(
         `Waiting ${waitTime} seconds before verification to give the explorer time to catch up...`,
       );
