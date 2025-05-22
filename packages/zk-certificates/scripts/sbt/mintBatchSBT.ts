@@ -8,9 +8,10 @@ import { ethers } from 'hardhat';
 async function main() {
   // parameters for test interaction
   const [owner] = await ethers.getSigners();
-  const SBTAddress = '0x64F6801457cb102E013a521Ae2929ae26565a564';
+  const SBTAddress = '0x661A648830740DF27C6Bae82d710936032aF64D5';
 
-  const dataPath = './data/andromedaTest.csv';
+  const dataPath = `/home/${process.env.USER}/Downloads/${SBTAddress}.csv`;
+  console.log('dataPath', dataPath);
   let data;
 
   await csv({ delimiter: ',' })
@@ -30,15 +31,7 @@ async function main() {
 
   for (const user of data) {
     const userAddress = user.wallet;
-    const { symbol } = user;
-    const { name } = user;
-    const uri = user['metadata uri'];
-
-    console.log(
-      `Giving ${userAddress} an NFT with symbol ${symbol} and name ${name}`,
-    );
-    console.log(`metadata uri is ${uri}`);
-
+    console.log(`Giving ${userAddress} an NFT`);
     dataArray.push(userAddress);
   }
 
