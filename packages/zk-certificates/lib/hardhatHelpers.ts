@@ -46,6 +46,12 @@ export async function deploySC(
         contractArgs = { contract: name };
       }
 
+      const waitTime = 10;
+      console.log(
+        `Waiting ${waitTime} seconds before verification to give the explorer time to catch up...`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, waitTime * 1000));
+
       await run('verify:verify', {
         address: contract.address,
         constructorArguments: constructorArgs,

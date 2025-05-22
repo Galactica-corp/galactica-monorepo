@@ -3,7 +3,7 @@ import type { TokenData } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import type { Contract } from 'ethers';
 
-import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
+import { deploySC, tryVerification } from '../../../lib/hardhatHelpers';
 
 const { log } = console;
 

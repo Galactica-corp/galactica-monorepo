@@ -3,9 +3,9 @@ import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
 import hre from 'hardhat';
 
-import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
-import { overwriteArtifact } from '../../lib/helpers';
-import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { deploySC, tryVerification } from '../../../lib/hardhatHelpers';
+import { overwriteArtifact } from '../../../lib/helpers';
+import { getEddsaKeyFromEthSigner } from '../../../lib/keyManagement';
 
 const { log } = console;
 

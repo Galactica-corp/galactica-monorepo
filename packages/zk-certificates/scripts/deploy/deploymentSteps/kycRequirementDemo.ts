@@ -4,9 +4,9 @@ import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildPoseidon } from 'circomlibjs';
 import { parseEther } from 'ethers/lib/utils';
 
-import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
-import { hashStringToFieldNumber } from '../../lib/helpers';
-import type { Poseidon } from '../../lib/poseidon';
+import { deploySC, tryVerification } from '../../../lib/hardhatHelpers';
+import { hashStringToFieldNumber } from '../../../lib/helpers';
+import type { Poseidon } from '../../../lib/poseidon';
 
 const { log } = console;
 

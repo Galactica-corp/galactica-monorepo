@@ -3,7 +3,7 @@ import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { getEddsaKeyFromEthSigner } from '../../../lib/keyManagement';
 
 /**
  * Whitelists a guardian in the guardian registry.
