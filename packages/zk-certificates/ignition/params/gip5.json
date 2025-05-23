@@ -1,0 +1,8 @@
+{
+  "GuardianRegistryModule": {
+    "description": "ExchangeData Guardian Registry"
+  },
+  "ZkCertRegistryModule": {
+    "description": "ExchangeData ZkCertificate Registry"
+  }
+}
