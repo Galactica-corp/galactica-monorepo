@@ -21,6 +21,8 @@ import {
 } from '../lib/registryTools';
 import { flagStandardMapping, ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
+import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
+import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
 
 /**
  * Script for reissuing a zkCertificate with current time stamp and adding a new merkle proof for it.
@@ -82,12 +84,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const providerEdDSAKey = await getEddsaKeyFromEthSigner(issuer);
   newZkCertificate.signWithProvider(providerEdDSAKey);
 
-  const recordRegistry = await hre.ethers.getContractAt(
+  const recordRegistry = (await hre.ethers.getContractAt(
     zkCertificateType === ZkCertStandard.ZkKYC
       ? 'ZkKYCRegistry'
       : 'ZkCertificateRegistry',
     args.registryAddress,
-  );
+  )) as unknown as ZkCertificateRegistry | ZkKYCRegistry;
 
   console.log(
     'Generating merkle proof. This might take a while because it needs to query on-chain data...',
@@ -95,9 +97,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const merkleTreeDepth = await recordRegistry.treeDepth();
   // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
   let merkleTree = await buildMerkleTreeFromRegistry(
-    recordRegistry,
+    recordRegistry as ZkCertificateRegistry,
     hre.ethers.provider,
-    merkleTreeDepth,
+    Number(merkleTreeDepth),
     printProgress,
   );
   const leafHashToRevoke = merkleTree.retrieveLeaf(0, args.index);
@@ -105,13 +107,17 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   console.log('Register zkCertificate to the queue to revoke...');
   await registerZkCertToQueue(leafHashToRevoke, recordRegistry, issuer);
 
-  await waitOnIssuanceQueue(recordRegistry, leafHashToRevoke);
+  await waitOnIssuanceQueue(
+    recordRegistry,
+    leafHashToRevoke,
+    hre.ethers.provider,
+  );
 
   console.log('Rebuild merkle tree after waiting for queue.');
   merkleTree = await buildMerkleTreeFromRegistry(
-    recordRegistry,
+    recordRegistry as ZkCertificateRegistry,
     hre.ethers.provider,
-    merkleTreeDepth,
+    Number(merkleTreeDepth),
     printProgress,
   );
 
@@ -120,7 +126,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   await revokeZkCert(
     leafHashToRevoke,
     args.index,
-    recordRegistry,
+    recordRegistry as ZkCertificateRegistry,
     issuer,
     merkleTree,
   );
@@ -139,16 +145,20 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     issuer,
   );
 
-  await waitOnIssuanceQueue(recordRegistry, newZkCertificate.leafHash);
+  await waitOnIssuanceQueue(
+    recordRegistry,
+    newZkCertificate.leafHash,
+    hre.ethers.provider,
+  );
 
   console.log(
     'Generating merkle proof. This might take a while because it needs to query on-chain data...',
   );
 
   const merkleTree2 = await buildMerkleTreeFromRegistry(
-    recordRegistry,
+    recordRegistry as ZkCertificateRegistry,
     hre.ethers.provider,
-    merkleTreeDepth,
+    Number(merkleTreeDepth),
     printProgress,
   );
 
@@ -158,6 +168,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     recordRegistry,
     issuer,
     merkleTree2,
+    hre.ethers.provider,
   );
   console.log(
     chalk.green(

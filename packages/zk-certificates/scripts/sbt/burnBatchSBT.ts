@@ -11,15 +11,15 @@ async function main() {
   const SBTAddress = '0x0ff7190902556b4038506aA8810360889d0A4902';
 
   const dataPath = './data/Gulding SBTs MERGED - GG Participant.csv';
-  let data;
+  let data: any;
 
   await csv({ delimiter: ',' })
     .fromFile(dataPath)
     .then((jsonObj) => {
-      data = jsonObj;
+      data = jsonObj as any;
     });
 
-  console.log('operating owner:', owner.address);
+  console.log('operating owner:', await owner.getAddress());
 
   const SBTInstance = await ethers.getContractAt(
     'GalacticaTwitterSBT',

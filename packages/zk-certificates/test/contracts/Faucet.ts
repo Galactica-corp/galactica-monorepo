@@ -1,8 +1,8 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { Buffer } from 'buffer';
 import chai from 'chai';
-import type { BigNumber } from 'ethers';
+import type { TransactionResponse } from 'ethers';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
@@ -16,7 +16,7 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/dev/generateZkKYCInput';
-import type { Faucet } from '../../typechain-types/contracts/Faucet';
+import type { Faucet } from '../../typechain-types/contracts/dapps/Faucet';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
 
@@ -33,7 +33,7 @@ describe('AirdropGateway', () => {
   let verificationSBT: VerificationSBT;
   let epochDuration: number;
   let epochStartTime: number;
-  let amountPerEpoch: BigNumber;
+  let amountPerEpoch: bigint;
 
   let deployer: SignerWithAddress;
   let user: SignerWithAddress;
@@ -47,50 +47,48 @@ describe('AirdropGateway', () => {
 
     [deployer, user, user2] = await hre.ethers.getSigners();
 
-    const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
-      'MockGalacticaInstitution',
-      deployer,
-    );
     mockGalacticaInstitutions = [];
     for (let i = 0; i < amountInstitutions; i++) {
       mockGalacticaInstitutions.push(
-        (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution,
+        (await ethers.deployContract(
+          'MockGalacticaInstitution',
+        )) as MockGalacticaInstitution,
       );
     }
 
     // interaction with zkKYC has been tested in AirdropGateway and BasicKYCExampleDAppTest
-    const MockZkKYCFactory = await hre.ethers.getContractFactory('MockZkKYC');
-    const mockZkKYC = await MockZkKYCFactory.deploy();
-    await mockZkKYC.deployed();
+    const mockZkKYC = await ethers.deployContract('MockZkKYC');
+    await mockZkKYC.waitForDeployment();
 
     // set up the faucet
     epochDuration = 100;
-    epochStartTime = (await hre.ethers.provider.getBlock('latest')).timestamp;
-    amountPerEpoch = ethers.utils.parseEther('1');
+    epochStartTime =
+      (await hre.ethers.provider.getBlock('latest'))?.timestamp ?? 0;
+    amountPerEpoch = ethers.parseEther('1');
 
-    const faucetFactory = await ethers.getContractFactory('Faucet', deployer);
-    faucet = (await faucetFactory.deploy(
+    faucet = (await ethers.deployContract('Faucet', [
       deployer.address,
       epochDuration,
       epochStartTime,
       amountPerEpoch,
-      mockZkKYC.address,
+      await mockZkKYC.getAddress(),
       'test URI',
       'VerificationSBT',
       'VerificationSBT',
-    )) as Faucet;
+    ])) as Faucet;
 
-    const verificationSBTFactory = await ethers.getContractFactory(
+    verificationSBT = (await ethers.getContractAt(
       'VerificationSBT',
-      deployer,
-    );
-    verificationSBT = verificationSBTFactory.attach(
       await faucet.sbt(),
-    ) as VerificationSBT;
+    )) as VerificationSBT;
 
     // make zkKYC record for airdropGateway
     zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(zkKYC, 0, faucet.address);
+    sampleInput = await generateZkKYCProofInput(
+      zkKYC,
+      0,
+      await faucet.getAddress(),
+    );
 
     circuitWasmPath = './circuits/build/zkKYC.wasm';
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
@@ -99,8 +97,8 @@ describe('AirdropGateway', () => {
   it('users can claim', async () => {
     // first we send some fund to the contract
     await deployer.sendTransaction({
-      to: faucet.address,
-      value: ethers.utils.parseEther('100'),
+      to: await faucet.getAddress(),
+      value: ethers.parseEther('100'),
     });
 
     const { proof, publicSignals } = await groth16.fullProve(
@@ -112,7 +110,7 @@ describe('AirdropGateway', () => {
     const [piA, piB, piC] = processProof(proof);
 
     const humanID1 = fromHexToBytes32(
-      Buffer.from(ethers.utils.randomBytes(32)).toString('hex'),
+      Buffer.from(ethers.randomBytes(32)).toString('hex'),
     );
 
     const HUMAN_ID_INDEX = 0;
@@ -143,7 +141,7 @@ describe('AirdropGateway', () => {
 
     // check that user has received the fund
     // which is one time amount per Epoch, even though two epochs have past
-    expect(userBalanceAfter).to.be.equal(userBalanceBefore.add(amountPerEpoch));
+    expect(userBalanceAfter).to.be.equal(userBalanceBefore + amountPerEpoch);
     // check that user has minted a valid SBT
     expect(
       await verificationSBT.isVerificationSBTValid(user.address),
@@ -172,9 +170,7 @@ describe('AirdropGateway', () => {
 
     await faucet.claimWithoutSBT(piA, piB, piC, publicInputs);
     const userBalanceAfter3 = await ethers.provider.getBalance(user.address);
-    expect(userBalanceAfter3).to.be.equal(
-      userBalanceAfter2.add(amountPerEpoch),
-    );
+    expect(userBalanceAfter3).to.be.equal(userBalanceAfter2 + amountPerEpoch);
     expect(await faucet.lastEpochClaimed(humanID1)).to.be.equal(3);
 
     // forward one more epoch to test claimWithSBT
@@ -182,17 +178,19 @@ describe('AirdropGateway', () => {
       epochStartTime + epochDuration * 3.5,
     ]);
     await hre.network.provider.send('evm_mine');
-    const tx = await faucet.connect(user).claimWithSBT();
+    const tx = (await faucet
+      .connect(user)
+      .claimWithSBT()) as TransactionResponse;
     await tx.wait();
 
     const txReceipt = await ethers.provider.getTransactionReceipt(tx.hash);
-    const gasCost = txReceipt.cumulativeGasUsed.mul(
-      txReceipt.effectiveGasPrice,
-    );
+    const gasCost =
+      (txReceipt?.cumulativeGasUsed ?? BigInt(0)) *
+      (txReceipt?.gasPrice ?? BigInt(0));
 
     const userBalanceAfter4 = await ethers.provider.getBalance(user.address);
     expect(userBalanceAfter4).to.be.equal(
-      userBalanceAfter3.add(amountPerEpoch).sub(gasCost),
+      userBalanceAfter3 + amountPerEpoch - gasCost,
     );
     expect(await faucet.lastEpochClaimed(humanID1)).to.be.equal(4);
 
@@ -213,9 +211,7 @@ describe('AirdropGateway', () => {
     const user2BalanceBefore = await ethers.provider.getBalance(user2.address);
     await faucet.claimWithoutSBT(piA, piB, piC, publicInputs);
     const user2BalanceAfter = await ethers.provider.getBalance(user2.address);
-    expect(user2BalanceAfter).to.be.equal(
-      user2BalanceBefore.add(amountPerEpoch),
-    );
+    expect(user2BalanceAfter).to.be.equal(user2BalanceBefore + amountPerEpoch);
 
     // check that humanID has been assigned user address
     expect(await faucet.humanIdToAddress(humanID1)).to.be.equal(user2.address);

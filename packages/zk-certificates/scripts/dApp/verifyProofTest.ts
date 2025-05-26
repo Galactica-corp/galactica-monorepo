@@ -49,13 +49,15 @@ async function main() {
   };
   console.log(
     'timestamp',
-    (await ethers.provider.getBlock('latest')).timestamp,
+    (await ethers.provider.getBlock('latest'))?.timestamp,
   );
 
   // wallets
   const [user] = await ethers.getSigners();
-  console.log(`Using account ${user.address} as KYC provider`);
-  console.log(`Account balance: ${(await user.getBalance()).toString()}`);
+  console.log(`Using account ${await user.getAddress()} as KYC provider`);
+  console.log(
+    `Account balance: ${(await ethers.provider.getBalance(user)).toString()}`,
+  );
   console.log();
 
   // get contracts

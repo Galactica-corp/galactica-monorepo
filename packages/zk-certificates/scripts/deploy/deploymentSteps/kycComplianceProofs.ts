@@ -1,7 +1,8 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { TokenData } from '@galactica-net/galactica-types';
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildPoseidon } from 'circomlibjs';
+import { ethers } from 'hardhat';
 
 import { deploySC, tryVerification } from '../../../lib/hardhatHelpers';
 import { hashStringToFieldNumber } from '../../../lib/helpers';
@@ -36,8 +37,12 @@ export async function deployKYCComplianceProofsDApps(
   nonSanctionedJurisdiction: ComplianceContracts;
   adult18Plus: ComplianceContracts;
 }> {
-  log(`Using account ${deployer.address} to deploy contracts`);
-  log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  log(`Using account ${await deployer.getAddress()} to deploy contracts`);
+  log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   const poseidon = (await buildPoseidon()) as Poseidon;
 
@@ -46,8 +51,8 @@ export async function deployKYCComplianceProofsDApps(
 
   log('NonUS:');
   const nonUSWrapper = await deploySC('AgeCitizenshipKYC', true, {}, [
-    deployer.address,
-    zkpVerifier.address,
+    await deployer.getAddress(),
+    await zkpVerifier.getAddress(),
     recordRegistryAddr,
     // sanctioned countries: undefined ("1") + hash of USA + placeholders
     ['1', hashStringToFieldNumber('USA', poseidon)].concat(Array(18).fill('0')),
@@ -60,7 +65,7 @@ export async function deployKYCComplianceProofsDApps(
     true,
     {},
     [
-      nonUSWrapper.address,
+      await nonUSWrapper.getAddress(),
       sbtDataNonUS.uri,
       sbtDataNonUS.name,
       sbtDataNonUS.symbol,
@@ -73,7 +78,7 @@ export async function deployKYCComplianceProofsDApps(
       sbtDataNonUS.uri,
       sbtDataNonUS.name,
       sbtDataNonUS.symbol,
-      nonUSDApp.address,
+      await nonUSDApp.getAddress(),
     ],
     'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
   );
@@ -84,8 +89,8 @@ export async function deployKYCComplianceProofsDApps(
     true,
     {},
     [
-      deployer.address,
-      zkpVerifier.address,
+      await deployer.getAddress(),
+      await zkpVerifier.getAddress(),
       recordRegistryAddr,
       // sanctioned countries: undefined ("1") + hash of sanctioned countries + placeholders
       [
@@ -116,7 +121,7 @@ export async function deployKYCComplianceProofsDApps(
     true,
     {},
     [
-      nonSanctionedJurisdictionWrapper.address,
+      await nonSanctionedJurisdictionWrapper.getAddress(),
       sbtDataNonSanctionedJurisdiction.uri,
       sbtDataNonSanctionedJurisdiction.name,
       sbtDataNonSanctionedJurisdiction.symbol,
@@ -130,15 +135,15 @@ export async function deployKYCComplianceProofsDApps(
       sbtDataNonSanctionedJurisdiction.uri,
       sbtDataNonSanctionedJurisdiction.name,
       sbtDataNonSanctionedJurisdiction.symbol,
-      nonSanctionedJurisdictionDApp.address,
+      await nonSanctionedJurisdictionDApp.getAddress(),
     ],
     'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
   );
 
   log('Adult18Plus:');
   const adult18PlusWrapper = await deploySC('AgeCitizenshipKYC', true, {}, [
-    deployer.address,
-    zkpVerifier.address,
+    await deployer.getAddress(),
+    await zkpVerifier.getAddress(),
     recordRegistryAddr,
     // sanctioned countries: undefined ("1") + hash of USA + placeholders
     ['1'].concat(Array(19).fill('0')),
@@ -151,7 +156,7 @@ export async function deployKYCComplianceProofsDApps(
     true,
     {},
     [
-      adult18PlusWrapper.address,
+      await adult18PlusWrapper.getAddress(),
       sbtDataAdult18Plus.uri,
       sbtDataAdult18Plus.name,
       sbtDataAdult18Plus.symbol,
@@ -164,7 +169,7 @@ export async function deployKYCComplianceProofsDApps(
       sbtDataAdult18Plus.uri,
       sbtDataAdult18Plus.name,
       sbtDataAdult18Plus.symbol,
-      adult18PlusDApp.address,
+      await adult18PlusDApp.getAddress(),
     ],
     'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
   );

@@ -12,6 +12,7 @@ import {
   registerZkCertToQueue,
   waitOnIssuanceQueue,
 } from '../lib/registryTools';
+import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
 
 /**
  * Script for revoking a zkCertificate, issuing it and adding a merkle proof for it.
@@ -38,15 +39,15 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   }
 
   console.log('Revoking zkCertificate...');
-  const recordRegistry = await hre.ethers.getContractAt(
+  const recordRegistry = (await hre.ethers.getContractAt(
     'ZkCertificateRegistry',
     args.registryAddress,
-  );
+  )) as unknown as ZkCertificateRegistry;
 
   console.log('Register zkCertificate to the queue...');
   await registerZkCertToQueue(args.leafHash, recordRegistry, issuer);
 
-  await waitOnIssuanceQueue(recordRegistry, args.leafHash);
+  await waitOnIssuanceQueue(recordRegistry, args.leafHash, hre.ethers.provider);
 
   console.log(
     'Generating merkle tree. This might take a while because it needs to query on-chain data...',
@@ -56,7 +57,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const merkleTree = await buildMerkleTreeFromRegistry(
     recordRegistry,
     hre.ethers.provider,
-    merkleTreeDepth,
+    Number(merkleTreeDepth),
     printProgress,
   );
 

@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
@@ -16,7 +16,7 @@ import {
   generateTwitterZkCertificateProofInput,
 } from '../../scripts/dev/generateTwitterZkCertificateInput';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { TwitterZkCertificate } from '../../typechain-types/contracts/TwitterZkCertificate';
+import type { TwitterZkCertificate } from '../../typechain-types/contracts/verifierWrappers/TwitterZkCertificate';
 import type { TwitterZkCertificateVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterZkCertificateVerifier';
 
 chai.config.includeStack = true;
@@ -43,29 +43,21 @@ describe('zkCertificate SC', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up zkCertificateRegistry, GalacticaInstitution, twitterZkCertificateVerifier, twitterZkCertificate
-    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+    mockZkCertificateRegistry = (await ethers.deployContract(
       'MockZkCertificateRegistry',
-      deployer,
-    );
-    mockZkCertificateRegistry =
-      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+    )) as MockZkCertificateRegistry;
 
-    const twitterZkCertificateVerifierFactory = await ethers.getContractFactory(
+    twitterZkCertificateVerifier = (await ethers.deployContract(
       'TwitterZkCertificateVerifier',
-      deployer,
-    );
-    twitterZkCertificateVerifier =
-      (await twitterZkCertificateVerifierFactory.deploy()) as TwitterZkCertificateVerifier;
+    )) as TwitterZkCertificateVerifier;
 
-    const twitterZkCertificateFactory = await ethers.getContractFactory(
+    twitterZkCertificateContract = (await ethers.deployContract(
       'TwitterZkCertificate',
-      deployer,
-    );
-    twitterZkCertificateContract = (await twitterZkCertificateFactory.deploy(
-      deployer.address,
-      twitterZkCertificateVerifier.address,
-      mockZkCertificateRegistry.address,
-      [],
+      [
+        deployer.address,
+        await twitterZkCertificateVerifier.getAddress(),
+        await mockZkCertificateRegistry.getAddress(),
+      ],
     )) as TwitterZkCertificate;
 
     twitterZkCertificate = await generateSampleTwitterZkCertificate();
@@ -112,9 +104,11 @@ describe('zkCertificate SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+      publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
-      publicSignals[await twitterZkCertificateContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+      ],
       10,
     );
     // set the merkle root to the correct one
@@ -143,9 +137,11 @@ describe('zkCertificate SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+      publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
-      publicSignals[await twitterZkCertificateContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+      ],
       10,
     );
     // set the merkle root to the correct one
@@ -178,9 +174,11 @@ describe('zkCertificate SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+      publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
-      publicSignals[await twitterZkCertificateContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+      ],
       10,
     );
     // set the merkle root to the correct one
@@ -218,7 +216,7 @@ describe('zkCertificate SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+      publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
@@ -247,10 +245,12 @@ describe('zkCertificate SC', () => {
       circuitZkeyPath,
     );
     expect(
-      publicSignals[await twitterZkCertificateContract.INDEX_IS_VALID()],
+      publicSignals[
+        Number(await twitterZkCertificateContract.INDEX_IS_VALID())
+      ],
     ).to.be.equal('0');
     const publicRoot =
-      publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+      publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     // set the merkle root to the correct one
 
     await mockZkCertificateRegistry.setMerkleRoot(
@@ -295,9 +295,11 @@ describe('zkCertificate SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+      publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
-      publicSignals[await twitterZkCertificateContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+      ],
       10,
     );
     // set the merkle root to the correct one
@@ -329,9 +331,11 @@ describe('zkCertificate SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterZkCertificateContract.INDEX_ROOT()];
+      publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
-      publicSignals[await twitterZkCertificateContract.INDEX_CURRENT_TIME()],
+      publicSignals[
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+      ],
       10,
     );
     // set the merkle root to the correct one

@@ -34,13 +34,16 @@ describe('HumanIDSaltRegistry', () => {
       'HumanIDSaltRegistry',
     );
     const humanIDSaltRegistry = (await humanIDSaltRegistryFactory.deploy(
-      guardianRegistry.address,
-      zkKYCRegistryMock.address,
+      await guardianRegistry.getAddress(),
+      await zkKYCRegistryMock.getAddress(),
     )) as HumanIDSaltRegistry;
 
     const zkKYC = await generateSampleZkKYC();
-    zkKYC.expirationDate =
-      (await hre.ethers.provider.getBlock('latest')).timestamp + 1000;
+    const block = await hre.ethers.provider.getBlock('latest');
+    if (!block) {
+      throw new Error('Block not found');
+    }
+    zkKYC.expirationDate = block.timestamp + 1000;
     const exampleSaltLockingZkCert: SaltLockingZkCertStruct = {
       zkCertId: zkKYC.leafHash,
       guardian: guardian.address,
@@ -68,10 +71,10 @@ describe('HumanIDSaltRegistry', () => {
       await loadFixture(deploy);
 
     expect(await humanIDSaltRegistry.guardianRegistry()).to.be.equal(
-      guardianRegistry.address,
+      await guardianRegistry.getAddress(),
     );
     expect(await humanIDSaltRegistry.zkCertRegistry()).to.be.equal(
-      zkKYCRegistryMock.address,
+      await zkKYCRegistryMock.getAddress(),
     );
   });
 

@@ -1,8 +1,8 @@
 /* eslint-disable require-atomic-updates */
 /* eslint-disable jest/no-if */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import type { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
@@ -22,8 +22,8 @@ import {
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { SBTManager } from '../../typechain-types/contracts/SBT_related/SBTManager';
 import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
-import type { TwitterFollowersCountProof } from '../../typechain-types/contracts/TwitterFollowersCountProof';
 import type { TwitterCreationTimeProof } from '../../typechain-types/contracts/verifierWrappers/TwitterCreationTimeProof';
+import type { TwitterFollowersCountProof } from '../../typechain-types/contracts/verifierWrappers/TwitterFollowersCountProof';
 import type { TwitterCreationTimeProofVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterCreationTimeProofVerifier';
 import type { TwitterFollowersCountProofVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterFollowersCountProofVerifier';
 
@@ -42,9 +42,9 @@ describe('SBTManager', () => {
   let mockZkCertificateRegistry: MockZkCertificateRegistry;
   let SBTs: VerificationSBT[];
 
-  let deployer: SignerWithAddress;
-  let user: SignerWithAddress;
-  let randomUser: SignerWithAddress;
+  let deployer: HardhatEthersSigner;
+  let user: HardhatEthersSigner;
+  let randomUser: HardhatEthersSigner;
   let twitterZkCertificates: ZkCertificate[];
   let sampleInputs: any[];
   let circuitWasmPath1: string;
@@ -59,61 +59,40 @@ describe('SBTManager', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
-    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+    mockZkCertificateRegistry = (await ethers.deployContract(
       'MockZkCertificateRegistry',
-      deployer,
-    );
-    mockZkCertificateRegistry =
-      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+    )) as MockZkCertificateRegistry;
 
-    const twitterFollowersCountProofVerifierFactory =
-      await ethers.getContractFactory(
-        'TwitterFollowersCountProofVerifier',
-        deployer,
-      );
-    twitterFollowersCountProofVerifier =
-      (await twitterFollowersCountProofVerifierFactory.deploy()) as TwitterFollowersCountProofVerifier;
+    twitterFollowersCountProofVerifier = (await ethers.deployContract(
+      'TwitterFollowersCountProofVerifier',
+    )) as TwitterFollowersCountProofVerifier;
 
-    const twitterFollowersCountProofFactory = await ethers.getContractFactory(
+    twitterFollowersCountProof = (await ethers.deployContract(
       'TwitterFollowersCountProof',
-      deployer,
-    );
-    twitterFollowersCountProof =
-      (await twitterFollowersCountProofFactory.deploy(
+      [
         deployer.address,
-        twitterFollowersCountProofVerifier.address,
-        mockZkCertificateRegistry.address,
-        [],
-      )) as TwitterFollowersCountProof;
+        await twitterFollowersCountProofVerifier.getAddress(),
+        await mockZkCertificateRegistry.getAddress(),
+      ],
+    )) as TwitterFollowersCountProof;
 
-    const twitterCreationTimeProofVerifierFactory =
-      await ethers.getContractFactory(
-        'TwitterCreationTimeProofVerifier',
-        deployer,
-      );
-    twitterCreationTimeProofVerifier =
-      (await twitterCreationTimeProofVerifierFactory.deploy()) as TwitterCreationTimeProofVerifier;
+    twitterCreationTimeProofVerifier = (await ethers.deployContract(
+      'TwitterCreationTimeProofVerifier',
+    )) as TwitterCreationTimeProofVerifier;
 
-    const twitterCreationTimeProofFactory = await ethers.getContractFactory(
+    twitterCreationTimeProof = (await ethers.deployContract(
       'TwitterCreationTimeProof',
-      deployer,
-    );
-    twitterCreationTimeProof = (await twitterCreationTimeProofFactory.deploy(
-      deployer.address,
-      twitterCreationTimeProofVerifier.address,
-      mockZkCertificateRegistry.address,
-      [],
+      [
+        deployer.address,
+        await twitterCreationTimeProofVerifier.getAddress(),
+        await mockZkCertificateRegistry.getAddress(),
+      ],
     )) as TwitterCreationTimeProof;
 
     // set up airdropGateway and set up the client
-    const SBTManagerFactory = await ethers.getContractFactory(
-      'SBTManager',
-      deployer,
-    );
-
-    SBTManager = (await SBTManagerFactory.deploy(
+    SBTManager = (await ethers.deployContract('SBTManager', [
       deployer.address,
-    )) as SBTManager;
+    ])) as SBTManager;
 
     twitterZkCertificates = [];
     const twitterExample1 = twitterExample;
@@ -182,33 +161,29 @@ describe('SBTManager', () => {
 
     // deploying the SBTs
     SBTs = [];
-    const VerificationSBTFactory = await ethers.getContractFactory(
-      'VerificationSBT',
-      deployer,
-    );
     for (let i = 0; i < 5; i++) {
       SBTs.push(
-        (await VerificationSBTFactory.deploy(
+        (await ethers.deployContract('VerificationSBT', [
           `test_${i}`,
           `test_${i}`,
           `test_${i}`,
-          SBTManager.address,
-        )) as VerificationSBT,
+          await SBTManager.getAddress(),
+        ])) as VerificationSBT,
       );
     }
 
     // set up the verifier wrappers and SBTs addresses in the SBTManager contract
     for (let i = 0; i < 5; i++) {
-      await SBTManager.setSBT(i, SBTs[i].address);
+      await SBTManager.setSBT(i, await SBTs[i].getAddress());
       if (i < 3) {
         await SBTManager.setVerifierWrapper(
           i,
-          twitterFollowersCountProof.address,
+          await twitterFollowersCountProof.getAddress(),
         );
       } else {
         await SBTManager.setVerifierWrapper(
           i,
-          twitterCreationTimeProof.address,
+          await twitterCreationTimeProof.getAddress(),
         );
       }
     }
@@ -216,11 +191,14 @@ describe('SBTManager', () => {
   it('only owner can assign SBTs and verifier wrappers', async () => {
     // random user cannot whitelist
     await expect(
-      SBTManager.connect(randomUser).setSBT(0, SBTs[0].address),
+      SBTManager.connect(randomUser).setSBT(0, await SBTs[0].getAddress()),
     ).to.be.revertedWith('Ownable: caller is not the owner');
 
     await expect(
-      SBTManager.connect(randomUser).setVerifierWrapper(0, SBTs[0].address),
+      SBTManager.connect(randomUser).setVerifierWrapper(
+        0,
+        await SBTs[0].getAddress(),
+      ),
     ).to.be.revertedWith('Ownable: caller is not the owner');
   });
 
@@ -246,15 +224,20 @@ describe('SBTManager', () => {
       let publicRoot, publicTime;
       if (i < 3) {
         publicRoot =
-          publicSignals[await twitterFollowersCountProof.INDEX_ROOT()];
+          publicSignals[Number(await twitterFollowersCountProof.INDEX_ROOT())];
         publicTime = parseInt(
-          publicSignals[await twitterFollowersCountProof.INDEX_CURRENT_TIME()],
+          publicSignals[
+            Number(await twitterFollowersCountProof.INDEX_CURRENT_TIME())
+          ],
           10,
         );
       } else {
-        publicRoot = publicSignals[await twitterCreationTimeProof.INDEX_ROOT()];
+        publicRoot =
+          publicSignals[Number(await twitterCreationTimeProof.INDEX_ROOT())];
         publicTime = parseInt(
-          publicSignals[await twitterCreationTimeProof.INDEX_CURRENT_TIME()],
+          publicSignals[
+            Number(await twitterCreationTimeProof.INDEX_CURRENT_TIME())
+          ],
           10,
         );
       }

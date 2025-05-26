@@ -12,7 +12,7 @@ async function main() {
 
   for (let i = 0; i < amount; i++) {
     const base = basePrefix + i.toString();
-    const hash = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(base));
+    const hash = ethers.keccak256(ethers.getBytes(base));
     const promoCode = hash.toUpperCase().slice(2, 2 + length);
 
     // To prevent frontrunning, we need to do a bit more than putting the verification code on chain.

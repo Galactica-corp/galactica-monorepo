@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { BigNumber } from 'ethers';
+import type { EventLog } from 'ethers';
 import { ethers } from 'hardhat';
 
 import type { IVerificationSBT } from '../typechain-types/contracts/interfaces/IVerificationSBT';
@@ -22,8 +22,11 @@ export async function queryVerificationSBTs(
   const factory = await ethers.getContractFactory('VerificationSBT');
 
   const currentBlock = await ethers.provider.getBlockNumber();
-  const lastBlockTime = (await ethers.provider.getBlock(currentBlock))
-    .timestamp;
+  const block = await ethers.provider.getBlock(currentBlock);
+  if (!block) {
+    throw new Error('Block not found');
+  }
+  const lastBlockTime = block.timestamp;
   const sbtListRes = new Map<
     string,
     IVerificationSBT.VerificationSBTInfoStruct[]
@@ -33,9 +36,9 @@ export async function queryVerificationSBTs(
     const sbtContract = factory.attach(sbtContractAddr);
 
     // go through all logs adding a verification SBT for the user
-    const createStakeLogs = await sbtContract.queryFilter(
+    const createStakeLogs = (await sbtContract.queryFilter(
       sbtContract.filters.VerificationSBTMinted(userAddr, humanID),
-    );
+    )) as EventLog[];
 
     for (const log of createStakeLogs) {
       if (log.args === undefined) {
@@ -45,10 +48,7 @@ export async function queryVerificationSBTs(
       const sbtInfo = await sbtContract.getVerificationSBTInfo(loggedUser);
 
       // check if the SBT is still valid
-      if (
-        filterExpiration &&
-        sbtInfo.expirationTime < BigNumber.from(lastBlockTime)
-      ) {
+      if (filterExpiration && sbtInfo.expirationTime < lastBlockTime) {
         continue;
       }
 

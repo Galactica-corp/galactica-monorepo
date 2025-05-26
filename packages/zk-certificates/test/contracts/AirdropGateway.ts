@@ -1,5 +1,4 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
@@ -10,7 +9,6 @@ import {
   processProof,
   processPublicSignals,
 } from '../../lib/helpers';
-import type { ZkCertificate } from '../../lib/zkCertificate';
 import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
@@ -29,94 +27,66 @@ chai.config.includeStack = true;
 const { expect } = chai;
 
 describe('AirdropGateway', () => {
-  // reset the testing chain so we can perform time related tests
-  /* await hre.network.provider.send('hardhat_reset'); */
-  let airdropGateway: AirdropGateway;
-  let rewardToken: MockToken;
-  let zkKYCContract: ZkKYC;
-  let zkKYCVerifier: ZkKYCVerifier;
-  let mockZkCertificateRegistry: MockZkCertificateRegistry;
-  let mockGalacticaInstitutions: MockGalacticaInstitution[];
-  let GalaSBT: GalacticaOfficialSBT;
-  let GalaSBT2: GalacticaOfficialSBT;
   const amountInstitutions = 3;
 
-  let deployer: SignerWithAddress;
-  let user: SignerWithAddress;
-  let user2: SignerWithAddress;
-  let randomUser: SignerWithAddress;
-  let zkKYC: ZkCertificate;
-  let client: SignerWithAddress;
-  let clientRole: string;
-  let defaultAdminRole: string;
-  let sampleInput: any, circuitWasmPath: string, circuitZkeyPath: string;
-  let sampleInput2: any;
-  let guardianRegistry: GuardianRegistry;
-
-  beforeEach(async () => {
+  /**
+   * Unittest fixture for fast tests.
+   * @returns Fixture with smart contracts and accounts.
+   */
+  async function deployFixture() {
     // reset the testing chain so we can perform time related tests
     await hre.network.provider.send('hardhat_reset');
 
-    [deployer, user, user2, randomUser, client] = await hre.ethers.getSigners();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [deployer, _, user2, randomUser, client] =
+      await hre.ethers.getSigners();
 
     // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
-    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+    const mockZkCertificateRegistry = (await ethers.deployContract(
       'MockZkCertificateRegistry',
-      deployer,
-    );
-    mockZkCertificateRegistry =
-      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+    )) as MockZkCertificateRegistry;
 
-    const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
-      'MockGalacticaInstitution',
-      deployer,
-    );
-    mockGalacticaInstitutions = [];
+    const mockGalacticaInstitutions = [];
     for (let i = 0; i < amountInstitutions; i++) {
       mockGalacticaInstitutions.push(
-        (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution,
+        (await ethers.deployContract(
+          'MockGalacticaInstitution',
+        )) as MockGalacticaInstitution,
       );
     }
 
-    const zkKYCVerifierFactory = await ethers.getContractFactory(
+    const zkKYCVerifier = (await ethers.deployContract(
       'ZkKYCVerifier',
-      deployer,
-    );
-    zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
+    )) as ZkKYCVerifier;
 
-    const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
-    zkKYCContract = (await zkKYCFactory.deploy(
+    const zkKYCContract = (await ethers.deployContract('ZkKYC', [
       deployer.address,
-      zkKYCVerifier.address,
-      mockZkCertificateRegistry.address,
+      await zkKYCVerifier.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
       [],
-    )) as ZkKYC;
+    ])) as ZkKYC;
 
     // set up airdropGateway and set up the client
-    const airdropGatewayFactory = await ethers.getContractFactory(
-      'AirdropGateway',
-      deployer,
-    );
-    airdropGateway = (await airdropGatewayFactory.deploy(
+    const airdropGateway = await ethers.deployContract('AirdropGateway', [
       deployer.address,
-      zkKYCContract.address,
-    )) as AirdropGateway;
-    clientRole = await airdropGateway.CLIENT_ROLE();
-    defaultAdminRole = await airdropGateway.DEFAULT_ADMIN_ROLE();
+      await zkKYCContract.getAddress(),
+    ]);
+    const clientRole = await airdropGateway.CLIENT_ROLE();
+    const defaultAdminRole = await airdropGateway.DEFAULT_ADMIN_ROLE();
 
     // make zkKYC record for airdropGateway
-    zkKYC = await generateSampleZkKYC();
-    sampleInput = await generateZkKYCProofInput(
+    const zkKYC = await generateSampleZkKYC();
+    const sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
-      airdropGateway.address,
+      await airdropGateway.getAddress(),
     );
 
     // the same zkKYC but through a different address
-    sampleInput2 = await generateZkKYCProofInput(
+    const sampleInput2 = await generateZkKYCProofInput(
       zkKYC,
       0,
-      airdropGateway.address,
+      await airdropGateway.getAddress(),
       32,
       null,
       randomUser,
@@ -124,45 +94,42 @@ describe('AirdropGateway', () => {
     );
 
     // get signer object authorized to use the zkKYC record
-    user = await hre.ethers.getImpersonatedSigner(sampleInput.userAddress);
+    const user = await hre.ethers.getImpersonatedSigner(
+      sampleInput.userAddress,
+    );
 
-    circuitWasmPath = './circuits/build/zkKYC.wasm';
-    circuitZkeyPath = './circuits/build/zkKYC.zkey';
+    const circuitWasmPath = './circuits/build/zkKYC.wasm';
+    const circuitZkeyPath = './circuits/build/zkKYC.zkey';
 
     // set up requirement SBT contracts
-    const galacticaOfficialSBTFactory = await ethers.getContractFactory(
-      'GalacticaOfficialSBT',
-      deployer,
-    );
-    GalaSBT = (await galacticaOfficialSBTFactory.deploy(
+    const GalaSBT = (await ethers.deployContract('GalacticaOfficialSBT', [
       deployer.address,
       '',
       deployer.address,
       '',
       '',
-    )) as GalacticaOfficialSBT;
-    GalaSBT2 = (await galacticaOfficialSBTFactory.deploy(
+    ])) as GalacticaOfficialSBT;
+    const GalaSBT2 = (await ethers.deployContract('GalacticaOfficialSBT', [
       deployer.address,
       '',
       deployer.address,
       '',
       '',
-    )) as GalacticaOfficialSBT;
+    ])) as GalacticaOfficialSBT;
 
-    const tokenFactory = await ethers.getContractFactory('MockToken', deployer);
-    rewardToken = (await tokenFactory.deploy(deployer.address)) as MockToken;
+    const rewardToken = (await ethers.deployContract('MockToken', [
+      deployer.address,
+    ])) as MockToken;
 
     // Deploy GuardianRegistry
-    const GuardianRegistryFactory =
-      await ethers.getContractFactory('GuardianRegistry');
-    guardianRegistry = (await GuardianRegistryFactory.deploy(
+    const guardianRegistry = (await ethers.deployContract('GuardianRegistry', [
       'https://example.com/metadata',
-    )) as GuardianRegistry;
-    await guardianRegistry.deployed();
+    ])) as GuardianRegistry;
+    await guardianRegistry.waitForDeployment();
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(
-      guardianRegistry.address,
+      await guardianRegistry.getAddress(),
     );
 
     // Grant guardian role to owner
@@ -172,12 +139,40 @@ describe('AirdropGateway', () => {
       [providerData.ax, providerData.ay],
       'https://example.com/guardian-metadata',
     );
-  });
+
+    return {
+      deployer,
+      user,
+      user2,
+      randomUser,
+      zkKYC,
+      client,
+      clientRole,
+      defaultAdminRole,
+      sampleInput,
+      sampleInput2,
+      guardianRegistry,
+      airdropGateway,
+      rewardToken,
+      zkKYCContract,
+      zkKYCVerifier,
+      mockZkCertificateRegistry,
+      mockGalacticaInstitutions,
+      GalaSBT,
+      GalaSBT2,
+      circuitWasmPath,
+      circuitZkeyPath,
+    };
+  }
 
   it('only owner can whitelist or dewhitelist clients', async () => {
+    const { airdropGateway, randomUser, defaultAdminRole, clientRole, client } =
+      await deployFixture();
     // random user cannot whitelist
     await expect(
-      airdropGateway.connect(randomUser).whitelistClient(client.address),
+      airdropGateway
+        .connect(randomUser)
+        .whitelistClient(await client.getAddress()),
     ).to.be.revertedWith(
       `AccessControl: account ${randomUser.address.toLowerCase()} is missing role ${defaultAdminRole}`,
     );
@@ -187,21 +182,32 @@ describe('AirdropGateway', () => {
     ).to.be.equal(false);
 
     // owner can whitelist
-    await airdropGateway.connect(deployer).whitelistClient(client.address);
+    await airdropGateway.whitelistClient(client.address);
     expect(
       await airdropGateway.hasRole(clientRole, client.address),
     ).to.be.equal(true);
 
     // owner can dewhitelist
-    await airdropGateway.connect(deployer).dewhitelistClient(client.address);
+    await airdropGateway.dewhitelistClient(client.address);
     expect(
       await airdropGateway.hasRole(clientRole, client.address),
     ).to.be.equal(false);
   });
 
   it('only clients can set up new distributions', async () => {
+    const {
+      airdropGateway,
+      clientRole,
+      client,
+      GalaSBT,
+      GalaSBT2,
+      rewardToken,
+    } = await deployFixture();
     // distribution parameters
-    const requiredSBTs = [GalaSBT.address, GalaSBT2.address];
+    const requiredSBTs = [
+      await GalaSBT.getAddress(),
+      await GalaSBT2.getAddress(),
+    ];
     // we test some error cases first
     const registrationStartTime = 100;
     let registrationEndTime = 50;
@@ -214,7 +220,7 @@ describe('AirdropGateway', () => {
         .connect(client)
         .setDistribution(
           requiredSBTs,
-          rewardToken.address,
+          await rewardToken.getAddress(),
           registrationStartTime,
           registrationEndTime,
           claimStartTime,
@@ -225,7 +231,7 @@ describe('AirdropGateway', () => {
     );
 
     // whitelist client
-    await airdropGateway.connect(deployer).whitelistClient(client.address);
+    await airdropGateway.whitelistClient(client.address);
 
     // invalid registration time
     await expect(
@@ -233,7 +239,7 @@ describe('AirdropGateway', () => {
         .connect(client)
         .setDistribution(
           requiredSBTs,
-          rewardToken.address,
+          await rewardToken.getAddress(),
           registrationStartTime,
           registrationEndTime,
           claimStartTime,
@@ -249,7 +255,7 @@ describe('AirdropGateway', () => {
         .connect(client)
         .setDistribution(
           requiredSBTs,
-          rewardToken.address,
+          await rewardToken.getAddress(),
           registrationStartTime,
           registrationEndTime,
           claimStartTime,
@@ -265,7 +271,7 @@ describe('AirdropGateway', () => {
         .connect(client)
         .setDistribution(
           requiredSBTs,
-          rewardToken.address,
+          await rewardToken.getAddress(),
           registrationStartTime,
           registrationEndTime,
           claimStartTime,
@@ -280,7 +286,7 @@ describe('AirdropGateway', () => {
         .connect(client)
         .setDistribution(
           requiredSBTs,
-          rewardToken.address,
+          await rewardToken.getAddress(),
           registrationStartTime,
           registrationEndTime,
           claimStartTime,
@@ -305,7 +311,9 @@ describe('AirdropGateway', () => {
     expect(onchainDistribution.claimStartTime).to.be.equal(claimStartTime);
     expect(onchainDistribution.claimEndTime).to.be.equal(claimEndTime);
     expect(onchainDistribution.clientAddress).to.be.equal(client.address);
-    expect(onchainDistribution.tokenAddress).to.be.equal(rewardToken.address);
+    expect(onchainDistribution.tokenAddress).to.be.equal(
+      await rewardToken.getAddress(),
+    );
     expect(onchainDistribution.distributionAmount).to.be.equal(0);
     expect(onchainDistribution.registeredUserCount).to.be.equal(0);
     expect(onchainDistribution.tokenAmountPerUser).to.be.equal(0);
@@ -313,6 +321,21 @@ describe('AirdropGateway', () => {
   });
 
   it('eligible users can register and claim airdrop', async () => {
+    const {
+      airdropGateway,
+      randomUser,
+      client,
+      user,
+      GalaSBT,
+      GalaSBT2,
+      rewardToken,
+      zkKYCContract,
+      mockZkCertificateRegistry,
+      sampleInput,
+      circuitWasmPath,
+      circuitZkeyPath,
+      sampleInput2,
+    } = await deployFixture();
     // retrieve the block time
     const { proof, publicSignals } = await groth16.fullProve(
       sampleInput,
@@ -324,7 +347,7 @@ describe('AirdropGateway', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
 
-    const publicRoot = publicSignals[await zkKYCContract.INDEX_ROOT()];
+    const publicRoot = publicSignals[Number(await zkKYCContract.INDEX_ROOT())];
 
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
@@ -332,25 +355,28 @@ describe('AirdropGateway', () => {
     );
 
     const publicTime = parseInt(
-      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
+      publicSignals[Number(await zkKYCContract.INDEX_CURRENT_TIME())],
       10,
     );
 
     // distribution parameters
-    const requiredSBTs = [GalaSBT.address, GalaSBT2.address];
+    const requiredSBTs = [
+      await GalaSBT.getAddress(),
+      await GalaSBT2.getAddress(),
+    ];
     const registrationStartTime = publicTime + 100;
     const registrationEndTime = registrationStartTime + 10000;
     const claimStartTime = registrationEndTime + 10000;
     const claimEndTime = claimStartTime + 10000;
 
     // set up the distribution
-    await airdropGateway.connect(deployer).whitelistClient(client.address);
+    await airdropGateway.whitelistClient(client.address);
 
     await airdropGateway
       .connect(client)
       .setDistribution(
         requiredSBTs,
-        rewardToken.address,
+        await rewardToken.getAddress(),
         registrationStartTime,
         registrationEndTime,
         claimStartTime,
@@ -376,13 +402,13 @@ describe('AirdropGateway', () => {
     ).to.be.revertedWith(`user does not have required SBT`);
 
     // we mint the first SBT for the user, but it is not enough
-    await GalaSBT.connect(deployer).mint(user.address);
+    await GalaSBT.mint(user.address);
     await expect(
       airdropGateway.connect(user).register(piA, piB, piC, publicInputs),
     ).to.be.revertedWith(`user does not have required SBT`);
 
     // we mint the second SBT for the user, and it is enough
-    await GalaSBT2.connect(deployer).mint(user.address);
+    await GalaSBT2.mint(user.address);
     await expect(
       airdropGateway.connect(user).register(piA, piB, piC, publicInputs),
     )
@@ -407,7 +433,7 @@ describe('AirdropGateway', () => {
     ).to.be.revertedWith(`user has already registered`);
 
     // we check that parameters are set correctly
-    const humanID = publicInputs2[await zkKYCContract.INDEX_HUMAN_ID()];
+    const humanID = publicInputs2[Number(await zkKYCContract.INDEX_HUMAN_ID())];
     expect(await airdropGateway.registeredUsers(user.address)).to.be.equal(
       true,
     );
@@ -418,27 +444,41 @@ describe('AirdropGateway', () => {
   });
 
   it('check that the distribution calculation is correct', async () => {
+    const {
+      deployer,
+      GalaSBT,
+      GalaSBT2,
+      rewardToken,
+      zkKYCContract,
+      zkKYC,
+      circuitWasmPath,
+      circuitZkeyPath,
+      client,
+      clientRole,
+      user,
+      user2,
+      randomUser,
+    } = await deployFixture();
     // set up a zkKYC contract that always return true
     const MockZkKYCFactory = await hre.ethers.getContractFactory('MockZkKYC');
     const mockZkKYC = await MockZkKYCFactory.deploy();
-    await mockZkKYC.deployed();
+    await mockZkKYC.waitForDeployment();
 
-    const airdropGatewayFactory = await ethers.getContractFactory(
-      'AirdropGateway',
-      deployer,
-    );
-    airdropGateway = (await airdropGatewayFactory.deploy(
+    const airdropGateway = (await ethers.deployContract('AirdropGateway', [
       deployer.address,
-      mockZkKYC.address,
-    )) as AirdropGateway;
+      await mockZkKYC.getAddress(),
+    ])) as AirdropGateway;
 
     // distribution parameters
-    const requiredSBTs = [GalaSBT.address, GalaSBT2.address];
+    const requiredSBTs = [
+      await GalaSBT.getAddress(),
+      await GalaSBT2.getAddress(),
+    ];
 
-    sampleInput = await generateZkKYCProofInput(
+    const sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
-      airdropGateway.address,
+      await airdropGateway.getAddress(),
     );
 
     // retrieve the block time
@@ -452,7 +492,8 @@ describe('AirdropGateway', () => {
 
     const publicInputs = processPublicSignals(publicSignals);
 
-    const userHumanID = publicInputs[await zkKYCContract.INDEX_HUMAN_ID()];
+    const userHumanID =
+      publicInputs[Number(await zkKYCContract.INDEX_HUMAN_ID())];
     // make a different humanID
     let user2HumanID = userHumanID;
     let user3HumanID = userHumanID;
@@ -470,12 +511,12 @@ describe('AirdropGateway', () => {
     }
 
     const publicInputs2 = publicInputs.slice();
-    publicInputs2[await zkKYCContract.INDEX_HUMAN_ID()] = user2HumanID;
+    publicInputs2[Number(await zkKYCContract.INDEX_HUMAN_ID())] = user2HumanID;
     const publicInputs3 = publicInputs.slice();
-    publicInputs3[await zkKYCContract.INDEX_HUMAN_ID()] = user3HumanID;
+    publicInputs3[Number(await zkKYCContract.INDEX_HUMAN_ID())] = user3HumanID;
 
     const publicTime = parseInt(
-      publicSignals[await zkKYCContract.INDEX_CURRENT_TIME()],
+      publicSignals[Number(await zkKYCContract.INDEX_CURRENT_TIME())],
       10,
     );
 
@@ -485,13 +526,13 @@ describe('AirdropGateway', () => {
     const claimEndTime = claimStartTime + 10000;
 
     // set up the distribution
-    await airdropGateway.connect(deployer).whitelistClient(client.address);
+    await airdropGateway.whitelistClient(client.address);
 
     await airdropGateway
       .connect(client)
       .setDistribution(
         requiredSBTs,
-        rewardToken.address,
+        await rewardToken.getAddress(),
         registrationStartTime,
         registrationEndTime,
         claimStartTime,
@@ -499,12 +540,12 @@ describe('AirdropGateway', () => {
       );
 
     // we mint SBTs for both users
-    await GalaSBT.connect(deployer).mint(user.address);
-    await GalaSBT2.connect(deployer).mint(user.address);
-    await GalaSBT.connect(deployer).mint(user2.address);
-    await GalaSBT2.connect(deployer).mint(user2.address);
-    await GalaSBT.connect(deployer).mint(randomUser.address);
-    await GalaSBT2.connect(deployer).mint(randomUser.address);
+    await GalaSBT.mint(user.address);
+    await GalaSBT2.mint(user.address);
+    await GalaSBT.mint(user2.address);
+    await GalaSBT2.mint(user2.address);
+    await GalaSBT.mint(randomUser.address);
+    await GalaSBT2.mint(randomUser.address);
 
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
       registrationStartTime,
@@ -533,29 +574,23 @@ describe('AirdropGateway', () => {
     ).to.be.equal(3);
 
     // client needs to deposit airdrop token
-    const airdropAmount = ethers.utils.parseEther('10');
-    await rewardToken
-      .connect(deployer)
-      .transfer(client.address, airdropAmount.mul(3));
-    await rewardToken
-      .connect(deployer)
-      .approve(airdropGateway.address, airdropAmount);
+    const airdropAmount = ethers.parseEther('10');
+    await rewardToken.transfer(client.address, airdropAmount * BigInt(3));
+    await rewardToken.approve(await airdropGateway.getAddress(), airdropAmount);
     await rewardToken
       .connect(client)
-      .approve(airdropGateway.address, airdropAmount);
+      .approve(await airdropGateway.getAddress(), airdropAmount);
     // check that only client can deposit
-    await expect(
-      airdropGateway.connect(deployer).deposit(airdropAmount),
-    ).to.be.revertedWith(
+    await expect(airdropGateway.deposit(airdropAmount)).to.be.revertedWith(
       `AccessControl: account ${deployer.address.toLowerCase()} is missing role ${clientRole}`,
     );
     await airdropGateway.connect(client).deposit(airdropAmount);
     expect(
       (await airdropGateway.currentDistribution()).distributionAmount,
     ).to.be.equal(airdropAmount);
-    expect(await rewardToken.balanceOf(airdropGateway.address)).to.be.equal(
-      airdropAmount,
-    );
+    expect(
+      await rewardToken.balanceOf(await airdropGateway.getAddress()),
+    ).to.be.equal(airdropAmount);
 
     // we check that users cannot claim ahead of time
     await expect(airdropGateway.connect(user).claim()).to.be.revertedWith(
@@ -568,9 +603,10 @@ describe('AirdropGateway', () => {
     await hre.network.provider.send('evm_mine');
 
     // check that client cannot deposit anymore
-    await rewardToken
-      .connect(client)
-      .approve(airdropGateway.address, airdropAmount);
+    await rewardToken.approve(
+      await airdropGateway.connect(client).getAddress(),
+      airdropAmount,
+    );
     await expect(
       airdropGateway.connect(client).deposit(airdropAmount),
     ).to.be.revertedWith(`claim has already started`);
@@ -581,7 +617,7 @@ describe('AirdropGateway', () => {
     ).to.be.equal(0);
 
     // we let users claim
-    const expectedTokenAmountPerUser = airdropAmount.div(3);
+    const expectedTokenAmountPerUser = airdropAmount / BigInt(3);
     await expect(airdropGateway.connect(user).claim())
       .to.emit(airdropGateway, 'UserClaimed')
       .withArgs(user.address, expectedTokenAmountPerUser);
@@ -604,7 +640,7 @@ describe('AirdropGateway', () => {
       .withArgs(user2.address, expectedTokenAmountPerUser);
     expect(
       (await airdropGateway.currentDistribution()).amountClaimed,
-    ).to.be.equal(expectedTokenAmountPerUser.mul(2));
+    ).to.be.equal(expectedTokenAmountPerUser * BigInt(2));
     expect(await rewardToken.balanceOf(user2.address)).to.be.equal(
       expectedTokenAmountPerUser,
     );
@@ -632,13 +668,9 @@ describe('AirdropGateway', () => {
     const balanceBefore = await rewardToken.balanceOf(client.address);
     await airdropGateway.connect(client).withdrawRemainingToken();
     const balanceAfter = await rewardToken.balanceOf(client.address);
-    const expectedAmountToWithdraw = (
-      await airdropGateway.currentDistribution()
-    ).distributionAmount.sub(
-      (await airdropGateway.currentDistribution()).amountClaimed,
-    );
-    expect(balanceAfter.sub(balanceBefore)).to.be.equal(
-      expectedAmountToWithdraw,
-    );
+    const expectedAmountToWithdraw =
+      (await airdropGateway.currentDistribution()).distributionAmount -
+      (await airdropGateway.currentDistribution()).amountClaimed;
+    expect(balanceAfter - balanceBefore).to.be.equal(expectedAmountToWithdraw);
   });
 });

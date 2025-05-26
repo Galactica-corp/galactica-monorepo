@@ -27,9 +27,11 @@ export async function deploySC(
   } else {
     contract = await factory.deploy(...constructorArgs);
   }
-  await contract.deployed();
+  await contract.waitForDeployment();
 
-  console.log(chalk.green(`${name} deployed to ${contract.address}`));
+  console.log(
+    chalk.green(`${name} deployed to ${await contract.getAddress()}`),
+  );
   console.log('constructorArgs:', JSON.stringify(constructorArgs));
 
   if (verify) {
@@ -53,7 +55,7 @@ export async function deploySC(
       await new Promise((resolve) => setTimeout(resolve, waitTime * 1000));
 
       await run('verify:verify', {
-        address: contract.address,
+        address: await contract.getAddress(),
         constructorArguments: constructorArgs,
         ...contractArgs,
         ...signerOrOptions,

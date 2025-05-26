@@ -10,7 +10,11 @@ async function main() {
 
   const [deployer] = await ethers.getSigners();
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   const claimrSBT = await ethers.getContractAt(
     'claimrSignedSBT',
@@ -19,7 +23,7 @@ async function main() {
 
   // const packed = ethers.utils.solidityPack(['string'], [token]);
   // const messageHash = ethers.utils.keccak256(packed);
-  const messageHash = ethers.utils.arrayify(ethers.utils.id(token));
+  const messageHash = ethers.getBytes(ethers.id(token));
 
   const signature = await deployer.signMessage(messageHash);
 

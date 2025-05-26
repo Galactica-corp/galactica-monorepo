@@ -8,17 +8,23 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log(
-    `Deploying contracts with account ${deployer.address} on network ${network.name}`,
+    `Deploying contracts with account ${await deployer.getAddress()} on network ${
+      network.name
+    }`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   const UserEncryptedDataFactory =
     await ethers.getContractFactory('UserEncryptedData');
   const UserEncryptedDataInstance = await UserEncryptedDataFactory.deploy();
 
   console.log(
-    `The address of the contract is ${UserEncryptedDataInstance.address}`,
+    `The address of the contract is ${await UserEncryptedDataInstance.getAddress()}`,
   );
 }
 

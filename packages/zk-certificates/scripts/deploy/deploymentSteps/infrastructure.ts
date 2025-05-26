@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
-import hre from 'hardhat';
+import hre, { ethers } from 'hardhat';
 
 import { deploySC, tryVerification } from '../../../lib/hardhatHelpers';
 import { overwriteArtifact } from '../../../lib/helpers';
@@ -27,12 +27,16 @@ export async function deployInfrastructure(
   institutionContracts: any[];
   humanIDSaltRegistryAddr: string;
 }> {
-  log(`Using account ${deployer.address} to deploy contracts`);
-  log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  log(`Using account ${await deployer.getAddress()} to deploy contracts`);
+  log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   log(
     `Using institutions ${JSON.stringify(
-      institutions.map((i) => i.address),
+      await Promise.all(institutions.map(async (i) => await i.getAddress())),
     )} for fraud investigation`,
   );
 
@@ -49,10 +53,14 @@ export async function deployInfrastructure(
     true,
     {
       libraries: {
-        PoseidonT3: poseidonT3.address,
+        PoseidonT3: await poseidonT3.getAddress(),
       },
     },
-    [guardianRegistry.address, merkleTreeDepth, 'ZkKYC RecordRegistry'],
+    [
+      await guardianRegistry.getAddress(),
+      merkleTreeDepth,
+      'ZkKYC RecordRegistry',
+    ],
   );
 
   const queueExpirationTime = 60 * 5;
@@ -64,7 +72,7 @@ export async function deployInfrastructure(
   const humanIDSaltRegistryAddr = await recordRegistry.humanIDSaltRegistry();
   await tryVerification(
     humanIDSaltRegistryAddr,
-    [guardianRegistry.address, recordRegistry.address],
+    [await guardianRegistry.getAddress(), await recordRegistry.getAddress()],
     'contracts/HumanIDSaltRegistry.sol:HumanIDSaltRegistry',
   );
 

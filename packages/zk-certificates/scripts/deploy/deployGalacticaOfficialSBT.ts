@@ -10,13 +10,19 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log(
-    `Deploying contracts with account ${deployer.address} on network ${network.name}`,
+    `Deploying contracts with account ${await deployer.getAddress()} on network ${
+      network.name
+    }`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
-  const issuer = deployer.address;
-  const owner = deployer.address;
+  const issuer = await deployer.getAddress();
+  const owner = await deployer.getAddress();
   // type 1
   /* const uri =
     "https://quicknode.quicknode-ipfs.com/ipfs/QmTtA8dxzzcFqB9kaXwNMVVof83UiBJLyyTuMbuHNU2JHB";
@@ -58,7 +64,7 @@ async function main() {
   const GalacticaOfficialSBT = await GalacticaOfficialSBTFactory.deploy(issuer, uri, owner, nftName, nftSymbol);
   await GalacticaOfficialSBT.deployed();
 
-  console.log(`newly deployed SBT has address ${GalacticaOfficialSBT.address}`); */
+  console.log(`newly deployed SBT has address ${await GalacticaOfficialSBT.getAddress()}`); */
 
   await deploySC('GalacticaOfficialSBT', true, {}, [
     issuer,

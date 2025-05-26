@@ -1,7 +1,7 @@
 // import '@nomicfoundation/hardhat-ignition-ethers';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
-import '@nomiclabs/hardhat-ethers';
+import '@nomicfoundation/hardhat-ethers';
 import '@typechain/hardhat';
 import 'hardhat-circom';
 import { Wallet } from 'ethers';
@@ -235,6 +235,10 @@ const config: HardhatUserConfig = {
         input: 'input/ageCitizenshipKYC.json',
       },
     ],
+  },
+  ignition: {
+    // setting required confirmations to 1 because cassiopeia only creates new blocks when there is a transaction
+    requiredConfirmations: 1,
   },
 };
 

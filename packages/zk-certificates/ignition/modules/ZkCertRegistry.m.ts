@@ -2,21 +2,29 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
-import GuardianRegistryModule from './GuardianRegistry.m';
-import PoseidonModule from './Poseidon.m';
 
-const ZkCertRegistryModule = buildModule('ZkCertRegistryModule', (m) => {
-  const { guardianRegistry } = m.useModule(GuardianRegistryModule);
-  const { poseidon } = m.useModule(PoseidonModule);
+import guardianRegistryModule from './GuardianRegistry.m';
+import poseidonModule from './Poseidon.m';
 
-  const merkleDepth = m.getParameter('merkleDepth', 32);
-  const description = m.getParameter('description', 'Test ZkCertificate Registry');
+const ZkCertRegistryModule = buildModule('ZkCertRegistryModule', (module) => {
+  const { guardianRegistry } = module.useModule(guardianRegistryModule);
+  const { poseidon } = module.useModule(poseidonModule);
 
-  const zkCertRegistry = m.contract("ZkCertificateRegistry", [guardianRegistry, merkleDepth, description], {
-    libraries: {
-      PoseidonT3: poseidon,
+  const merkleDepth = module.getParameter('merkleDepth', 32);
+  const description = module.getParameter(
+    'description',
+    'Test ZkCertificate Registry',
+  );
+
+  const zkCertRegistry = module.contract(
+    'ZkCertificateRegistry',
+    [guardianRegistry, merkleDepth, description],
+    {
+      libraries: {
+        PoseidonT3: poseidon,
+      },
     },
-  });
+  );
 
   return { zkCertRegistry };
 });

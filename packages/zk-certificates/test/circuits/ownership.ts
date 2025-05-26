@@ -70,6 +70,7 @@ describe('Ownership Component', () => {
       holderCommitment,
       ZkCertStandard.ZkKYC,
       eddsa,
+      '',
       0,
     );
     const ownershipProof = zkKYC.getOwnershipProofInput(holderEdDSAKey);

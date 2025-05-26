@@ -25,9 +25,9 @@ async function main() {
   ).slice(1, 4);
 
   const institutionShareNumber = new Map();
-  institutionShareNumber.set(institution1.address, 1);
-  institutionShareNumber.set(institution2.address, 2);
-  institutionShareNumber.set(institution3.address, 3);
+  institutionShareNumber.set(await institution1.getAddress(), 1);
+  institutionShareNumber.set(await institution2.getAddress(), 2);
+  institutionShareNumber.set(await institution3.getAddress(), 3);
 
   const verificationSBT = await ethers.getContractAt(
     'VerificationSBT',
@@ -42,7 +42,9 @@ async function main() {
   const shares: string[] = [];
   const eddsa = await buildEddsa();
   for (const inst of [institution1, institution2, institution3]) {
-    const shareNumber = institutionShareNumber.get(inst.address) as number;
+    const shareNumber = institutionShareNumber.get(
+      await inst.getAddress(),
+    ) as number;
     const encryptedMsg = [
       sbtInfo.encryptedData[2 * (shareNumber - 1)],
       sbtInfo.encryptedData[2 * (shareNumber - 1) + 1],
@@ -65,8 +67,8 @@ async function main() {
 
   // only 2 of 3 shares are needed to reconstruct the secret
   const secret = reconstructShamirSecret(eddsa.F, shamirK, [
-    [institutionShareNumber.get(institution1.address), shares[0]],
-    [institutionShareNumber.get(institution2.address), shares[1]],
+    [institutionShareNumber.get(await institution1.getAddress()), shares[0]],
+    [institutionShareNumber.get(await institution2.getAddress()), shares[1]],
   ]);
 
   console.log(``);

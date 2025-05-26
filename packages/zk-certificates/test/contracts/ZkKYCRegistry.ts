@@ -1,6 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
 import hre, { ethers } from 'hardhat';
@@ -50,12 +50,12 @@ describe('ZkKYCRegistry', () => {
       'ZkKYCRegistry',
       {
         libraries: {
-          PoseidonT3: poseidonT3.address,
+          PoseidonT3: await poseidonT3.getAddress(),
         },
       },
     );
     const ZkKYCRegistry = (await ZkKYCRegistryFactory.deploy(
-      GuardianRegistry.address,
+      await GuardianRegistry.getAddress(),
       32,
       'KYC Registry',
     )) as ZkKYCRegistry;
@@ -168,10 +168,6 @@ describe('ZkKYCRegistry', () => {
     const leafHashes = generateRandomBytes32Array(loops);
     const leafIndices = generateRandomNumberArray(loops);
     for (let i = 0; i < loops; i += 1) {
-      console.log(
-        `trying to add leaf hash ${leafHashes[i]} to index ${leafIndices[i]}`,
-      );
-
       // add new zkKYCRecord
       const merkleProof = merkleTree.createProof(leafIndices[i]);
       const merkleProofPath = merkleProof.pathElements.map((value) =>
@@ -283,9 +279,7 @@ describe('ZkKYCRegistry', () => {
       await ZkKYCRegistry.registerToQueue(leafHashes[i]);
     }
 
-    const queueExpirationTime = (
-      await ZkKYCRegistry.queueExpirationTime()
-    ).toNumber();
+    const queueExpirationTime = await ZkKYCRegistry.queueExpirationTime();
 
     // we check that the expiration time is set correctly
     for (let i = 1; i < loops; i += 1) {
@@ -295,9 +289,9 @@ describe('ZkKYCRegistry', () => {
       const expirationTime2 = await ZkKYCRegistry.ZkCertificateHashToQueueTime(
         leafHashes[i],
       );
-      expect(
-        expirationTime2.toNumber() - expirationTime1.toNumber(),
-      ).to.be.equal(queueExpirationTime);
+      expect(Number(expirationTime2) - Number(expirationTime1)).to.be.equal(
+        queueExpirationTime,
+      );
     }
     // we don't intend to add the first (loops - 1) so we need to make a merkle proof without them
     merkleTree.insertLeaves([leafHashes[loops - 1]], [leafIndices[loops - 1]]);
@@ -319,10 +313,12 @@ describe('ZkKYCRegistry', () => {
     ).to.be.revertedWith('ZkCertificateRegistry: zkCertificate is not in turn');
 
     // now we forward the time to make all earlier elements in the queue expire
-    const timestamp = (
-      await ZkKYCRegistry.ZkCertificateHashToQueueTime(leafHashes[loops - 2])
-    ).toNumber();
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [timestamp]);
+    const timestamp = await ZkKYCRegistry.ZkCertificateHashToQueueTime(
+      leafHashes[loops - 2],
+    );
+    await hre.network.provider.send('evm_setNextBlockTimestamp', [
+      Number(timestamp),
+    ]);
     await hre.network.provider.send('evm_mine');
     await ZkKYCRegistry.addZkKYC(
       leafIndices[loops - 1],
@@ -342,11 +338,18 @@ describe('ZkKYCRegistry', () => {
     merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
-    const txBlock = await ethers.provider.getBlock(tx.blockNumber as number);
-    const blocktime = txBlock.timestamp;
+    const { blockNumber } = tx;
+    if (!blockNumber) {
+      throw new Error('Block number is null');
+    }
+    const txBlock = await ethers.provider.getBlock(blockNumber);
+    if (!txBlock) {
+      throw new Error('Block is null');
+    }
+    const blocktime = Number(txBlock.timestamp);
     expect(
       await ZkKYCRegistry.ZkCertificateHashToQueueTime(leafHashes[0]),
-    ).to.be.equal(blocktime + queueExpirationTime);
+    ).to.be.equal(blocktime + Number(queueExpirationTime));
   });
 
   it('should integrate salt registry', async function () {

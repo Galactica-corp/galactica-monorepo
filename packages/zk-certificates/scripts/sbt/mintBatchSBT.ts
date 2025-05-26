@@ -12,7 +12,7 @@ async function main() {
 
   const dataPath = `/home/${process.env.USER}/Downloads/${SBTAddress}.csv`;
   console.log('dataPath', dataPath);
-  let data;
+  let data: any;
 
   await csv({ delimiter: ',' })
     .fromFile(dataPath)
@@ -20,7 +20,7 @@ async function main() {
       data = jsonObj;
     });
 
-  console.log('operating owner:', owner.address);
+  console.log('operating owner:', await owner.getAddress());
 
   const SBTInstance = await ethers.getContractAt(
     'GalacticaOfficialSBT',

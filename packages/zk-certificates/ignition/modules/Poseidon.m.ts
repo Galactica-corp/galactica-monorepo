@@ -3,8 +3,8 @@
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 
-const PoseidonModule = buildModule('PoseidonModule', (m) => {
-  const poseidon = m.contract('PoseidonT3', []);
+const PoseidonModule = buildModule('PoseidonModule', (module) => {
+  const poseidon = module.contract('PoseidonT3', []);
   return { poseidon };
 });
 

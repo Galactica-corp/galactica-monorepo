@@ -1,8 +1,11 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
+import { toBigInt } from 'ethers';
 import hre, { ethers } from 'hardhat';
+
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 describe('GuardianRegistry', () => {
   let deployer: SignerWithAddress;
@@ -21,16 +24,19 @@ describe('GuardianRegistry', () => {
     const description = 'Test Guardian Registry';
     const testGuardian = {
       pubkey: [
-        15406969288470165023871038883559428361347771769942780978458824541644678347676n,
-        20991550033662087418703288468635020238179240540666871457074661834730112436793n,
+        toBigInt(
+          '15406969288470165023871038883559428361347771769942780978458824541644678347676',
+        ),
+        toBigInt(
+          '20991550033662087418703288468635020238179240540666871457074661834730112436793',
+        ),
       ],
       metadata: 'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx',
     };
 
-    const GuardianRegistryFactory =
-      await ethers.getContractFactory('GuardianRegistry');
-    const GuardianRegistry =
-      await GuardianRegistryFactory.connect(deployer).deploy(description);
+    const GuardianRegistry = (await ethers.deployContract('GuardianRegistry', [
+      description,
+    ])) as GuardianRegistry;
 
     return {
       GuardianRegistry,
@@ -54,7 +60,7 @@ describe('GuardianRegistry', () => {
 
     await GuardianRegistry.grantGuardianRole(
       guardian.address,
-      testGuardian.pubkey,
+      [testGuardian.pubkey[0], testGuardian.pubkey[1]],
       testGuardian.metadata,
     );
 
@@ -66,7 +72,7 @@ describe('GuardianRegistry', () => {
     await expect(
       GuardianRegistry.connect(guardian).grantGuardianRole(
         guardian.address,
-        testGuardian.pubkey,
+        [testGuardian.pubkey[0], testGuardian.pubkey[1]],
         testGuardian.metadata,
       ),
     ).to.be.revertedWith('Ownable: caller is not the owner');
@@ -76,7 +82,7 @@ describe('GuardianRegistry', () => {
     const { GuardianRegistry, testGuardian } = await loadFixture(deploy);
     await GuardianRegistry.grantGuardianRole(
       guardian.address,
-      testGuardian.pubkey,
+      [testGuardian.pubkey[0], testGuardian.pubkey[1]],
       testGuardian.metadata,
     );
 
@@ -96,7 +102,7 @@ describe('GuardianRegistry', () => {
 
     await GuardianRegistry.grantGuardianRole(
       guardian.address,
-      testGuardian.pubkey,
+      [testGuardian.pubkey[0], testGuardian.pubkey[1]],
       testGuardian.metadata,
     );
 
@@ -125,7 +131,7 @@ describe('GuardianRegistry', () => {
     for (const account of [guardian, deployer]) {
       await GuardianRegistry.grantGuardianRole(
         account.address,
-        testGuardian.pubkey,
+        [testGuardian.pubkey[0], testGuardian.pubkey[1]],
         testGuardian.metadata,
       );
     }
@@ -156,7 +162,7 @@ describe('GuardianRegistry', () => {
 
     await GuardianRegistry.grantGuardianRole(
       guardian.address,
-      testGuardian.pubkey,
+      [testGuardian.pubkey[0], testGuardian.pubkey[1]],
       testGuardian.metadata,
     );
 
@@ -178,7 +184,7 @@ describe('GuardianRegistry', () => {
     for (const account of [guardian, deployer]) {
       await GuardianRegistry.grantGuardianRole(
         account.address,
-        testGuardian.pubkey,
+        [testGuardian.pubkey[0], testGuardian.pubkey[1]],
         testGuardian.metadata,
       );
     }

@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { utils } from 'ethers';
+import { keccak256, toUtf8Bytes } from 'ethers';
 import { getCurveFromName, Scalar } from 'ffjavascript';
 
 const SEED = 'mimcsponge';
@@ -30,7 +30,7 @@ export class MimcEncrypt {
     if (typeof seed === 'undefined') {
       seed = SEED;
     }
-    const c = utils.keccak256(utils.toUtf8Bytes(`${seed}_iv`));
+    const c = keccak256(toUtf8Bytes(`${seed}_iv`));
     const cn = Scalar.e(c);
     const iv = cn.mod(F.p);
     return iv;
@@ -45,9 +45,9 @@ export class MimcEncrypt {
       nRounds = NROUNDS;
     }
     const cts = new Array(nRounds);
-    let c = utils.keccak256(utils.toUtf8Bytes(SEED));
+    let c = keccak256(toUtf8Bytes(SEED));
     for (let i = 1; i < nRounds; i++) {
-      c = utils.keccak256(c);
+      c = keccak256(c);
 
       cts[i] = F.e(c);
     }

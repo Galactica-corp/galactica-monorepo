@@ -8,10 +8,16 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log(
-    `Deploying contracts with account ${deployer.address} on network ${network.name}`,
+    `Deploying contracts with account ${await deployer.getAddress()} on network ${
+      network.name
+    }`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   const SBTAddress = '0x897717462BC1cb41Ab42A21fF135bEfb193fc26E';
   const SBT = await ethers.getContractAt('GalacticaOfficialSBT', SBTAddress);

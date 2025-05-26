@@ -10,7 +10,7 @@ import {
 } from '@galactica-net/zk-certificates';
 import type { BaseProvider } from '@metamask/providers';
 import { buildPoseidon } from 'circomlibjs';
-import { Contract, providers } from 'ethers';
+import { Contract, BrowserProvider } from 'ethers';
 
 import { fetchWithTimeout } from './utils';
 
@@ -36,7 +36,7 @@ export async function getMerkleProof(
     return zkCert.merkleProof;
   }
 
-  const provider = new providers.Web3Provider(ethereum);
+  const provider = new BrowserProvider(ethereum);
   const registry = new Contract(
     registryAddr,
     ['function merkleRoot() external view returns (bytes32)'],

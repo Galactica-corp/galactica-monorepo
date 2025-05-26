@@ -22,6 +22,8 @@ import {
 } from '../lib/registryTools';
 import { flagStandardMapping, ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
+import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
+import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
 
 /**
  * Script for creating a zkCertificate, issuing it and adding a merkle proof for it.
@@ -101,12 +103,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       ),
     );
   } else {
-    const recordRegistry = await hre.ethers.getContractAt(
+    const recordRegistry = (await hre.ethers.getContractAt(
       zkCertificateType === ZkCertStandard.ZkKYC
         ? 'ZkKYCRegistry'
         : 'ZkCertificateRegistry',
       args.registryAddress,
-    );
+    )) as unknown as ZkCertificateRegistry | ZkKYCRegistry;
 
     if (zkCertificate.zkCertStandard === ZkCertStandard.ZkKYC) {
       console.log(
@@ -114,7 +116,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       );
       const saltCheckOk = await checkZkKYCSaltHashCompatibility(
         zkCertificate,
-        recordRegistry,
+        recordRegistry as ZkKYCRegistry,
         issuer,
         hre.ethers,
       );
@@ -124,7 +126,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
           JSON.stringify(
             await listZkKYCsLockingTheSaltHash(
               zkCertificate,
-              recordRegistry,
+              recordRegistry as ZkKYCRegistry,
               issuer,
               hre.ethers,
             ),
@@ -141,7 +143,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     console.log('Register zkCertificate to the queue...');
     await registerZkCertToQueue(zkCertificate.leafHash, recordRegistry, issuer);
 
-    await waitOnIssuanceQueue(recordRegistry, zkCertificate.leafHash);
+    await waitOnIssuanceQueue(
+      recordRegistry,
+      zkCertificate.leafHash,
+      hre.ethers.provider,
+    );
 
     console.log(
       'Generating merkle proof. This might take a while because it needs to query on-chain data...',
@@ -149,9 +155,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     const merkleTreeDepth = await recordRegistry.treeDepth();
     // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
     const merkleTree = await buildMerkleTreeFromRegistry(
-      recordRegistry,
+      recordRegistry as ZkCertificateRegistry,
       hre.ethers.provider,
-      merkleTreeDepth,
+      Number(merkleTreeDepth),
       printProgress,
     );
 
@@ -161,6 +167,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       recordRegistry,
       issuer,
       merkleTree,
+      hre.ethers.provider,
     );
     console.log(
       chalk.green(

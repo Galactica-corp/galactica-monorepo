@@ -3,12 +3,15 @@
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 
-const GuardianRegistryModule = buildModule('GuardianRegistryModule', (m) => {
-  const description = m.getParameter("description", "Test Guardian");
+const GuardianRegistryModule = buildModule(
+  'GuardianRegistryModule',
+  (module) => {
+    const description = module.getParameter('description', 'Test Guardian');
 
-  const guardianRegistry = m.contract("GuardianRegistry", [description]);
+    const guardianRegistry = module.contract('GuardianRegistry', [description]);
 
-  return { guardianRegistry };
-});
+    return { guardianRegistry };
+  },
+);
 
 export default GuardianRegistryModule;

@@ -7,10 +7,10 @@ import {
   eddsaKeyGenerationMessage,
   eddsaPrimeFieldMod,
 } from '@galactica-net/galactica-types';
+import type { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import createBlakeHash from 'blake-hash';
 import { Buffer } from 'buffer';
 import { buildBabyjub, type Eddsa } from 'circomlibjs';
-import type { Signer } from 'ethers';
 import { Scalar, utils } from 'ffjavascript';
 
 /**
@@ -19,7 +19,7 @@ import { Scalar, utils } from 'ffjavascript';
  * @returns The eddsa private key.
  */
 export async function getEddsaKeyFromEthSigner(
-  signer: Signer,
+  signer: HardhatEthersSigner,
 ): Promise<EddsaPrivateKey> {
   // use signature as entropy input so that the EdDSA key can be derived from the Ethereum private key
   const signature = await signer.signMessage(eddsaKeyGenerationMessage);

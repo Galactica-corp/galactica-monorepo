@@ -67,6 +67,7 @@ describe('Authorization Component', () => {
       holderCommitment,
       ZkCertStandard.ZkKYC,
       eddsa,
+      '',
       0,
     );
     const authorizationProof = zkKYC.getAuthorizationProofInput(
