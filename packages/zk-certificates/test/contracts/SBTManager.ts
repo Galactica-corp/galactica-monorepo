@@ -95,31 +95,31 @@ describe('SBTManager', () => {
     ])) as SBTManager;
 
     twitterZkCertificates = [];
-    const twitterExample1 = twitterExample;
+    const twitterExample1 = JSON.parse(JSON.stringify(twitterExample));
     twitterExample1.followersCount = 110;
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample1),
     );
 
-    const twitterExample2 = twitterExample;
+    const twitterExample2 = JSON.parse(JSON.stringify(twitterExample));
     twitterExample2.followersCount = 1100;
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample2),
     );
 
-    const twitterExample3 = twitterExample;
+    const twitterExample3 = JSON.parse(JSON.stringify(twitterExample));
     twitterExample3.followersCount = 11000;
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample3),
     );
 
-    const twitterExample4 = twitterExample;
+    const twitterExample4 = JSON.parse(JSON.stringify(twitterExample));
     twitterExample4.createdAt = '2018-06-19T17:24:53Z'; // before 2020-01-01
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample4),
     );
 
-    const twitterExample5 = twitterExample;
+    const twitterExample5 = JSON.parse(JSON.stringify(twitterExample));
     twitterExample5.createdAt = '2024-06-19T17:24:53Z'; // after 2024-01-01
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample5),
@@ -227,7 +227,7 @@ describe('SBTManager', () => {
           publicSignals[Number(await twitterFollowersCountProof.INDEX_ROOT())];
         publicTime = parseInt(
           publicSignals[
-            Number(await twitterFollowersCountProof.INDEX_CURRENT_TIME())
+          Number(await twitterFollowersCountProof.INDEX_CURRENT_TIME())
           ],
           10,
         );
@@ -236,7 +236,7 @@ describe('SBTManager', () => {
           publicSignals[Number(await twitterCreationTimeProof.INDEX_ROOT())];
         publicTime = parseInt(
           publicSignals[
-            Number(await twitterCreationTimeProof.INDEX_CURRENT_TIME())
+          Number(await twitterCreationTimeProof.INDEX_CURRENT_TIME())
           ],
           10,
         );
