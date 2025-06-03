@@ -227,7 +227,7 @@ describe('SBTManager', () => {
           publicSignals[Number(await twitterFollowersCountProof.INDEX_ROOT())];
         publicTime = parseInt(
           publicSignals[
-          Number(await twitterFollowersCountProof.INDEX_CURRENT_TIME())
+            Number(await twitterFollowersCountProof.INDEX_CURRENT_TIME())
           ],
           10,
         );
@@ -236,7 +236,7 @@ describe('SBTManager', () => {
           publicSignals[Number(await twitterCreationTimeProof.INDEX_ROOT())];
         publicTime = parseInt(
           publicSignals[
-          Number(await twitterCreationTimeProof.INDEX_CURRENT_TIME())
+            Number(await twitterCreationTimeProof.INDEX_CURRENT_TIME())
           ],
           10,
         );
