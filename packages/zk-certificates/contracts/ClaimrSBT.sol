@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.28;
 import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
@@ -14,7 +14,7 @@ contract claimrSignedSBT is Ownable, ERC721 {
         string memory symbol,
         string memory baseTokenURI_,
         address signee_
-    ) ERC721(name, symbol) Ownable() {
+    ) ERC721(name, symbol) Ownable(msg.sender) {
         _baseTokenURI = baseTokenURI_;
         _signee = signee_;
     }
@@ -92,25 +92,14 @@ contract claimrSignedSBT is Ownable, ERC721 {
     }
 
     function burn(uint256 tokenId) external onlyOwner {
-        _requireMinted(tokenId);
+        _requireOwned(tokenId);
         _burn(tokenId);
     }
 
     /**
      * @dev Transfers are rejected because the ClaimrSBT is soulbound.
      */
-    function transfer(address, uint256) public pure {
-        revert('ClaimrSBT: transfer is not allowed');
-    }
-
-    /**
-     * @dev Transfers are rejected because the ClaimrSBT is soulbound.
-     */
     function transferFrom(address, address, uint256) public pure override {
-        revert('ClaimrSBT: transfer is not allowed');
-    }
-
-    function safeTransferFrom(address, address, uint256) public pure override {
         revert('ClaimrSBT: transfer is not allowed');
     }
 
@@ -126,7 +115,7 @@ contract claimrSignedSBT is Ownable, ERC721 {
     /**
      * @dev Approve are rejected because the ClaimrSBT is soulbound.
      */
-    function approve(address to, uint256 id) public pure override {
+    function approve(address, uint256) public pure override {
         revert('ClaimrSBT: transfer approval is not allowed');
     }
 }

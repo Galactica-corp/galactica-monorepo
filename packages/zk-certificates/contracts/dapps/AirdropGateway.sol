@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.28;
 
 import '@openzeppelin/contracts/access/AccessControl.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
@@ -45,7 +45,7 @@ contract AirdropGateway is AccessControl, Fallback {
     constructor(address owner, address verifierWrapperAddress) {
         verifierWrapper = IZkKYCVerifier(verifierWrapperAddress);
         // set admin, the role that can assign and revoke other roles
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
     }
 
     function whitelistClient(

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.28;
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IVerificationSBT.sol';
@@ -27,25 +27,28 @@ contract CompliantERC20 is ERC20, Ownable, Fallback {
         address _owner,
         uint _initialSupply,
         address[] memory _complianceSBTs
-    ) ERC20(_name, _symbol) Ownable() {
+    ) ERC20(_name, _symbol) Ownable(_owner) {
         _mint(_owner, _initialSupply);
         for (uint i = 0; i < _complianceSBTs.length; i++) {
             complianceSBTs.push(IVerificationSBT(_complianceSBTs[i]));
         }
     }
 
-    function _transfer(
+    function _update(
         address from,
         address to,
         uint256 amount
     ) internal override {
-        for (uint i = 0; i < complianceSBTs.length; i++) {
-            require(
-                complianceSBTs[i].isVerificationSBTValid(to),
-                'CompliantERC20: Recipient does not have required compliance SBTs.'
-            );
+        if (from != address(0) && to != address(0)) {
+            // transfers between accounts need to be compliant
+            for (uint i = 0; i < complianceSBTs.length; i++) {
+                require(
+                    complianceSBTs[i].isVerificationSBTValid(to),
+                    'CompliantERC20: Recipient does not have required compliance SBTs.'
+                );
+            }
         }
-        super._transfer(from, to, amount);
+        super._update(from, to, amount);
     }
 
     /**
