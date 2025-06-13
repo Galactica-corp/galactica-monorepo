@@ -1,4 +1,4 @@
-import BigNumber from 'bignumber.js';
+import { BigNumber } from 'bignumber.js';
 
 // not using the functions from zk-certificates package here to simplify dependencies and work around webpack issue
 

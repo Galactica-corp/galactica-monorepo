@@ -196,14 +196,8 @@ describe('AirdropGateway', () => {
   });
 
   it('only clients can set up new distributions', async () => {
-    const {
-      airdropGateway,
-      clientRole,
-      client,
-      GalaSBT,
-      GalaSBT2,
-      rewardToken,
-    } = await deployFixture();
+    const { airdropGateway, client, GalaSBT, GalaSBT2, rewardToken } =
+      await deployFixture();
     // distribution parameters
     const requiredSBTs = [
       await GalaSBT.getAddress(),
@@ -456,7 +450,6 @@ describe('AirdropGateway', () => {
       circuitWasmPath,
       circuitZkeyPath,
       client,
-      clientRole,
       user,
       user2,
       randomUser,
@@ -583,7 +576,9 @@ describe('AirdropGateway', () => {
       .connect(client)
       .approve(await airdropGateway.getAddress(), airdropAmount);
     // check that only client can deposit
-    await expect(airdropGateway.deposit(airdropAmount)).to.be.revertedWithCustomError(
+    await expect(
+      airdropGateway.deposit(airdropAmount),
+    ).to.be.revertedWithCustomError(
       airdropGateway,
       'AccessControlUnauthorizedAccount',
     );

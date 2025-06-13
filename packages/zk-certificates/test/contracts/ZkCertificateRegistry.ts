@@ -74,10 +74,7 @@ describe('ZkCertificateRegistry', () => {
 
     await expect(
       ZkCertificateRegistry.doubleInit(await GuardianRegistry.getAddress()),
-    ).to.be.revertedWithCustomError(
-      ZkCertificateRegistry,
-      'NotInitializing',
-    );
+    ).to.be.revertedWithCustomError(ZkCertificateRegistry, 'NotInitializing');
   });
 
   it('should initialize values correctly', async () => {

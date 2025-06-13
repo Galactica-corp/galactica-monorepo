@@ -302,7 +302,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     const publicTime = parseInt(
       proof.publicInputs[
-      Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
       ],
       16,
     );
@@ -490,7 +490,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     const publicTime = parseInt(
       proof.publicInputs[
-      Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
       ],
       16,
     );

@@ -129,7 +129,10 @@ async function smartCircuitBuild(
       const contentBefore = fs.readFileSync(verifierPath, 'utf8');
       const contentAfter = contentBefore
         // Make contract names unique so that hardhat does not complain
-        .replace(/contract Groth16Verifier \{/gu, `contract ${verifierName}Verifier {`)
+        .replace(
+          /contract Groth16Verifier \{/gu,
+          `contract ${verifierName}Verifier {`,
+        )
         // Allow dynamic length array as _pubSignals (including spaces to only replace the instance in the verifier function)
         .replace(
           / uint\[[0-9]*\] calldata _pubSignals/gu,
