@@ -302,7 +302,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     const publicTime = parseInt(
       proof.publicInputs[
-        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+      Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
       ],
       16,
     );
@@ -490,14 +490,14 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     const publicTime = parseInt(
       proof.publicInputs[
-        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+      Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
       ],
       16,
     );
 
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
-      publicTime + 10,
+      publicTime + 60,
     ]);
     await hre.network.provider.send('evm_mine');
 

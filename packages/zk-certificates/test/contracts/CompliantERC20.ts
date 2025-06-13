@@ -119,7 +119,10 @@ describe('CompliantERC20', () => {
       token
         .connect(acc.nonCompliantUser)
         .setCompliancyRequirements(newComplianceRequirements),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      token,
+      'OwnableUnauthorizedAccount',
+    );
 
     await token
       .connect(acc.deployer)
