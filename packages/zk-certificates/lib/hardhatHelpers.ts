@@ -27,9 +27,11 @@ export async function deploySC(
   } else {
     contract = await factory.deploy(...constructorArgs);
   }
-  await contract.deployed();
+  await contract.waitForDeployment();
 
-  console.log(chalk.green(`${name} deployed to ${contract.address}`));
+  console.log(
+    chalk.green(`${name} deployed to ${await contract.getAddress()}`),
+  );
   console.log('constructorArgs:', JSON.stringify(constructorArgs));
 
   if (verify) {
@@ -46,8 +48,14 @@ export async function deploySC(
         contractArgs = { contract: name };
       }
 
+      const waitTime = 60;
+      console.log(
+        `Waiting ${waitTime} seconds before verification to give the explorer time to catch up...`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, waitTime * 1000));
+
       await run('verify:verify', {
-        address: contract.address,
+        address: await contract.getAddress(),
         constructorArguments: constructorArgs,
         ...contractArgs,
         ...signerOrOptions,

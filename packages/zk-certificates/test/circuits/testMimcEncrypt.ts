@@ -18,10 +18,10 @@ describe('MiMC Sponge Encryption test', function () {
       mimcjs = await buildMimcSponge();
       field = mimcjs.F;
 
-      xL = field.e(ethers.utils.id('left').toString());
-      xR = field.e(ethers.utils.id('right').toString());
-      key = field.e(ethers.utils.id('key').toString());
-      keyW = field.e(ethers.utils.id('keyW').toString());
+      xL = field.e(ethers.id('left').toString());
+      xR = field.e(ethers.id('right').toString());
+      key = field.e(ethers.id('key').toString());
+      keyW = field.e(ethers.id('keyW').toString());
     });
 
     it('should encrypt and decrypt with same key', async () => {

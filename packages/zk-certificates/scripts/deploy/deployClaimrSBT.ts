@@ -15,10 +15,16 @@ async function main() {
   const signee = '0x333e271244f12351b6056130AEC894EB8AAf05C2';
 
   console.log(
-    `Deploying contracts with account ${deployer.address} on network ${network.name}`,
+    `Deploying contracts with account ${await deployer.getAddress()} on network ${
+      network.name
+    }`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   const csvData = await csv().fromFile(csvPath);
   if (csvData.length > 0) {
@@ -38,7 +44,7 @@ async function main() {
         uri,
         signee,
       ]);
-      console.log(`${nftName} deployed at ${sbt.address}`);
+      console.log(`${nftName} deployed at ${await sbt.getAddress()}`);
     }
     // If CSV data was processed, exit main to prevent further (default) deployment.
   }

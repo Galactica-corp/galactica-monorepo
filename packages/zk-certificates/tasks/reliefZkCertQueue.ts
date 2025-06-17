@@ -2,6 +2,7 @@
 /* Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { ZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
+import type { ContractTransactionResponse } from 'ethers';
 import { task, types } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
@@ -13,6 +14,8 @@ import {
 } from '../lib/helpers';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { flagStandardMapping } from '../lib/zkCertificate';
+import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
+import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
 
 /**
  * Task for issuing all zkCerts that are stuck in the queue.
@@ -32,21 +35,21 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const zkCertificateType: ZkCertStandard =
     flagStandardMapping[args.zkCertificateType];
 
-  const recordRegistry = await hre.ethers.getContractAt(
+  const recordRegistry = (await hre.ethers.getContractAt(
     zkCertificateType === ZkCertStandard.ZkKYC
       ? 'ZkKYCRegistry'
       : 'ZkCertificateRegistry',
     args.registryAddress,
-  );
+  )) as unknown as ZkCertificateRegistry | ZkKYCRegistry;
 
   console.log(
     'Reconstructing the Merkle tree. This might take a while because it needs to query on-chain data...',
   );
   const merkleTreeDepth = await recordRegistry.treeDepth();
   const merkleTree = await buildMerkleTreeFromRegistry(
-    recordRegistry,
+    recordRegistry as ZkCertificateRegistry,
     hre.ethers.provider,
-    merkleTreeDepth,
+    Number(merkleTreeDepth),
     printProgress,
   );
 
@@ -80,14 +83,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       //   zkCert.expirationDate,
       // );
     } else {
-      const tx = await recordRegistry.connect(issuer).addZkCertificate(
+      const tx = (await recordRegistry.connect(issuer).addZkCertificate(
         chosenLeafIndex,
         nextZkCertHash,
         leafEmptyMerkleProof.pathElements.map((value) =>
           fromHexToBytes32(fromDecToHex(value)),
         ),
         { gasLimit: 2200000 },
-      );
+      )) as ContractTransactionResponse;
       await tx.wait();
     }
     // sleep to make sure the local provider keeps up with the changes on chain
@@ -105,7 +108,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       ),
     );
 
-    nextZkCertIndex += 1;
+    nextZkCertIndex += 1n;
     nextZkCertHash = await recordRegistry.ZkCertificateQueue(nextZkCertIndex);
   }
 

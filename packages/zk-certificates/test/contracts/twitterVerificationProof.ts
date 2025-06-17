@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
@@ -16,7 +16,7 @@ import {
   generateTwitterZkCertificateProofInput,
 } from '../../scripts/dev/generateTwitterZkCertificateInput';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { TwitterVerificationProof } from '../../typechain-types/contracts/TwitterVerificationProof';
+import type { TwitterVerificationProof } from '../../typechain-types/contracts/verifierWrappers/TwitterVerificationProof';
 import type { TwitterVerificationProofVerifier } from '../../typechain-types/contracts/zkpVerifiers/TwitterVerificationProofVerifier';
 
 chai.config.includeStack = true;
@@ -43,32 +43,22 @@ describe('twitterVerificationProof SC', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up zkCertificateRegistry, GalacticaInstitution, twitterVerificationProofVerifier, twitterVerificationProof
-    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+    mockZkCertificateRegistry = (await ethers.deployContract(
       'MockZkCertificateRegistry',
-      deployer,
-    );
-    mockZkCertificateRegistry =
-      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+    )) as MockZkCertificateRegistry;
 
-    const twitterVerificationProofVerifierFactory =
-      await ethers.getContractFactory(
-        'TwitterVerificationProofVerifier',
-        deployer,
-      );
-    twitterVerificationProofVerifier =
-      (await twitterVerificationProofVerifierFactory.deploy()) as TwitterVerificationProofVerifier;
+    twitterVerificationProofVerifier = (await ethers.deployContract(
+      'TwitterVerificationProofVerifier',
+    )) as TwitterVerificationProofVerifier;
 
-    const twitterVerificationProofFactory = await ethers.getContractFactory(
+    twitterVerificationProofContract = (await ethers.deployContract(
       'TwitterVerificationProof',
-      deployer,
-    );
-    twitterVerificationProofContract =
-      (await twitterVerificationProofFactory.deploy(
+      [
         deployer.address,
-        twitterVerificationProofVerifier.address,
-        mockZkCertificateRegistry.address,
-        [],
-      )) as TwitterVerificationProof;
+        await twitterVerificationProofVerifier.getAddress(),
+        await mockZkCertificateRegistry.getAddress(),
+      ],
+    )) as TwitterVerificationProof;
 
     twitterZkCertificate = await generateSampleTwitterZkCertificate();
     sampleInput =
@@ -114,10 +104,12 @@ describe('twitterVerificationProof SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+      publicSignals[
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      ];
     const publicTime = parseInt(
       publicSignals[
-        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -147,10 +139,12 @@ describe('twitterVerificationProof SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+      publicSignals[
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      ];
     const publicTime = parseInt(
       publicSignals[
-        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -184,10 +178,12 @@ describe('twitterVerificationProof SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+      publicSignals[
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      ];
     const publicTime = parseInt(
       publicSignals[
-        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -226,7 +222,9 @@ describe('twitterVerificationProof SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+      publicSignals[
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      ];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
@@ -255,10 +253,14 @@ describe('twitterVerificationProof SC', () => {
       circuitZkeyPath,
     );
     expect(
-      publicSignals[await twitterVerificationProofContract.INDEX_IS_VALID()],
+      publicSignals[
+        Number(await twitterVerificationProofContract.INDEX_IS_VALID())
+      ],
     ).to.be.equal('0');
     const publicRoot =
-      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+      publicSignals[
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      ];
     // set the merkle root to the correct one
 
     await mockZkCertificateRegistry.setMerkleRoot(
@@ -303,10 +305,12 @@ describe('twitterVerificationProof SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+      publicSignals[
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      ];
     const publicTime = parseInt(
       publicSignals[
-        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -339,10 +343,12 @@ describe('twitterVerificationProof SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+      publicSignals[
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      ];
     const publicTime = parseInt(
       publicSignals[
-        await twitterVerificationProofContract.INDEX_CURRENT_TIME()
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -390,7 +396,9 @@ describe('twitterVerificationProof SC', () => {
     );
 
     const publicRoot =
-      publicSignals[await twitterVerificationProofContract.INDEX_ROOT()];
+      publicSignals[
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      ];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),

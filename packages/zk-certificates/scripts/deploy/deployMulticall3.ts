@@ -10,14 +10,22 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log(
-    `Deploying contracts with account ${deployer.address} on network ${network.name}`,
+    `Deploying contracts with account ${await deployer.getAddress()} on network ${
+      network.name
+    }`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   const Multicall3 = await deploySC('Multicall3', true, {}, []);
 
-  console.log(`The address of the contract is ${Multicall3.address}`);
+  console.log(
+    `The address of the contract is ${await Multicall3.getAddress()}`,
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -1,9 +1,9 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { getEddsaKeyFromEthSigner } from '../../../lib/keyManagement';
 
 /**
  * Whitelists a guardian in the guardian registry.
@@ -28,7 +28,7 @@ export async function whitelistSignerGuardian(
   await whitelistGuardian(
     authorizer,
     guardianRegistryAddr,
-    guardian.address,
+    await guardian.getAddress(),
     guardianPubKey as [string, string],
     metadataURL,
   );
@@ -49,8 +49,14 @@ export async function whitelistGuardian(
   guardianPubKey: [string, string],
   metadataURL: string,
 ) {
-  console.log(`Using account ${authorizer.address} for controlling whitelist`);
-  console.log(`Account balance: ${(await authorizer.getBalance()).toString()}`);
+  console.log(
+    `Using account ${await authorizer.getAddress()} for controlling whitelist`,
+  );
+  console.log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(authorizer)
+    ).toString()}`,
+  );
   console.log();
 
   console.log(

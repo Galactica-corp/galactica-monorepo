@@ -12,10 +12,16 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log(
-    `Updating claimrSBT with account ${deployer.address} on network ${network.name}`,
+    `Updating claimrSBT with account ${await deployer.getAddress()} on network ${
+      network.name
+    }`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   const claimrSBT = await ethers.getContractAt(
     'claimrSignedSBT',

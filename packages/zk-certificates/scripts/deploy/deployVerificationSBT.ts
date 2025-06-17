@@ -8,16 +8,22 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log(
-    `Deploying contracts with account ${deployer.address} on network ${network.name}`,
+    `Deploying contracts with account ${await deployer.getAddress()} on network ${
+      network.name
+    }`,
   );
 
-  console.log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  console.log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   const VerificationSBTFactory =
     await ethers.getContractFactory('VerificationSBT');
   const uri = 'https://galactica.network/';
   const name = 'Galactica Twitter Creation Time In 2020 Verification SBT';
-  const symbol = 'GTCI2024V';
+  const symbol = 'Test';
   const VerificationSBTInstance = await VerificationSBTFactory.deploy(
     uri,
     name,
@@ -25,7 +31,7 @@ async function main() {
   );
 
   console.log(
-    `The address of the contract is ${VerificationSBTInstance.address}`,
+    `The address of the contract is ${await VerificationSBTInstance.getAddress()}`,
   );
 }
 

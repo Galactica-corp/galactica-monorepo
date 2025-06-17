@@ -79,7 +79,7 @@ export async function generateTwitterZkCertificateProofInput(
   const authorizationProofInput =
     twitterZkCertificate.getAuthorizationProofInput(
       holderEdDSAKey,
-      user.address,
+      await user.getAddress(),
     );
 
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;

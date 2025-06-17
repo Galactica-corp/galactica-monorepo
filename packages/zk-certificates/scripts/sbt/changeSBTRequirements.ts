@@ -16,9 +16,9 @@ async function main() {
 
   // get contract
   const token = (await ethers.getContractAt(
-    'KYCRequirementsDemoDApp',
+    'CompliantERC20',
     tokenAddress,
-  )) as CompliantERC20;
+  )) as unknown as CompliantERC20;
 
   await token.setCompliancyRequirements(newRequirements);
 

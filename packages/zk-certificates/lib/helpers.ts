@@ -3,7 +3,7 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention -- It's a constructor
 import BigNumber from 'bignumber.js';
 import { Buffer } from 'buffer';
-import { utils } from 'ethers';
+import { randomBytes } from 'ethers';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { hashMessage, type Poseidon } from './poseidon';
@@ -78,9 +78,7 @@ export function fromHexToBytes32(hexInput: string): string {
 export function generateRandomBytes32Array(length: number): string[] {
   const result = [];
   for (let i = 0; i < length; i++) {
-    result.push(
-      fromHexToBytes32(Buffer.from(utils.randomBytes(32)).toString('hex')),
-    );
+    result.push(fromHexToBytes32(Buffer.from(randomBytes(32)).toString('hex')));
   }
   return result;
 }
@@ -94,7 +92,7 @@ export function generateRandomNumberArray(length: number): number[] {
   const result = [];
   for (let i = 0; i < length; i++) {
     result.push(
-      Number(fromHexToDec(Buffer.from(utils.randomBytes(2)).toString('hex'))),
+      Number(fromHexToDec(Buffer.from(randomBytes(2)).toString('hex'))),
     );
   }
   return result;

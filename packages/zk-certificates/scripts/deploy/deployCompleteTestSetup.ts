@@ -27,8 +27,12 @@ async function main() {
   );
   const exampleDApp = await deployExampleDApp(
     deployer,
-    infrastructure.recordRegistry.address,
-    infrastructure.institutionContracts.map((contract) => contract.address),
+    await infrastructure.recordRegistry.getAddress(),
+    await Promise.all(
+      infrastructure.institutionContracts.map(
+        async (contract) => await contract.getAddress(),
+      ),
+    ),
     {
       uri: 'ipfs://QmX2EppfoPMNEMqf55CsTHJr1565UheAonDGb9w1bAW96z',
       name: 'Airdrop Example SBT',
@@ -37,7 +41,7 @@ async function main() {
   );
   const repeatableZkKYC = await deployRepeatableZKPTest(
     deployer,
-    infrastructure.recordRegistry.address,
+    await infrastructure.recordRegistry.getAddress(),
     {
       uri: 'ipfs://QmVG5b34f8DHGnPZQwi1GD4NUXEVhh7bTub5SG6MPHvHz6',
       name: 'Repeatable KYC Verification SBT',
@@ -46,7 +50,7 @@ async function main() {
   );
   const basicKYCExample = await deployBasicKYCExampleDApp(
     deployer,
-    repeatableZkKYC.zkKYCSC.address,
+    await repeatableZkKYC.zkKYCSC.getAddress(),
     {
       uri: 'ipfs://QmdYZJP26w8dXHvR9g5Bykw4Ziqvgrst6p9XesZeR1qa2R',
       name: 'KYC Verification SBT',
@@ -56,14 +60,14 @@ async function main() {
 
   await whitelistSignerGuardian(
     deployer,
-    infrastructure.guardianRegistry.address,
+    await infrastructure.guardianRegistry.getAddress(),
     deployer,
     'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx',
   );
 
   const kycRequirementsDemoContracts = await deployKYCRequirementsDemoDApp(
     deployer,
-    infrastructure.recordRegistry.address,
+    await infrastructure.recordRegistry.getAddress(),
     {
       uri: 'ipfs://QmRXjRe3w6ZTbuf1yhanzkEcvyyB9HymkNf4NMQQk5pNpC',
       name: 'Compliance Demo Verification SBT',
@@ -73,7 +77,7 @@ async function main() {
 
   const kycComplianceProofs = await deployKYCComplianceProofsDApps(
     deployer,
-    infrastructure.recordRegistry.address,
+    await infrastructure.recordRegistry.getAddress(),
     {
       uri: 'ipfs://Qmc7fCZDftWvgsPuW2kVALEdUWWWTq9oKTP3vUXpct6mgP',
       name: 'KYC Non-US Verification SBT',
@@ -92,84 +96,94 @@ async function main() {
   );
 
   const deploymentSummary = `Deployment summary:
-PoseidonT3: ${JSON.stringify(infrastructure.poseidonT3.address)}
+PoseidonT3: ${JSON.stringify(await infrastructure.poseidonT3.getAddress())}
 
-KYCGuardianRegistry: ${JSON.stringify(infrastructure.guardianRegistry.address)}
-KYCRecordRegistry: ${JSON.stringify(infrastructure.recordRegistry.address)}
+KYCGuardianRegistry: ${JSON.stringify(
+    await infrastructure.guardianRegistry.getAddress(),
+  )}
+KYCRecordRegistry: ${JSON.stringify(
+    await infrastructure.recordRegistry.getAddress(),
+  )}
 
 MockGalacticaInstitution1: ${JSON.stringify(
-    infrastructure.institutionContracts[0].address,
+    await infrastructure.institutionContracts[0].getAddress(),
   )}
 MockGalacticaInstitution2: ${JSON.stringify(
-    infrastructure.institutionContracts[1].address,
+    await infrastructure.institutionContracts[1].getAddress(),
   )}
 MockGalacticaInstitution3: ${JSON.stringify(
-    infrastructure.institutionContracts[2].address,
+    await infrastructure.institutionContracts[2].getAddress(),
   )}
 
-ZkKYCVerifier: ${JSON.stringify(repeatableZkKYC.zkKYCVerifier.address)}
-ZkKYC: ${JSON.stringify(repeatableZkKYC.zkKYCSC.address)}
+ZkKYCVerifier: ${JSON.stringify(
+    await repeatableZkKYC.zkKYCVerifier.getAddress(),
+  )}
+ZkKYC: ${JSON.stringify(await repeatableZkKYC.zkKYCSC.getAddress())}
 
-BasicKYCExampleDApp: ${JSON.stringify(basicKYCExample.dApp.address)}
+BasicKYCExampleDApp: ${JSON.stringify(await basicKYCExample.dApp.getAddress())}
 BasicKYCExampleDApp-SBT: ${JSON.stringify(basicKYCExample.sbtAddr)}
 
-RepeatableZKPTest: ${JSON.stringify(repeatableZkKYC.repeatableZKPTest.address)}
+RepeatableZKPTest: ${JSON.stringify(
+    await repeatableZkKYC.repeatableZKPTest.getAddress(),
+  )}
 RepeatableZKPTest-SBT: ${JSON.stringify(
     repeatableZkKYC.repeatableZKPTest.sbtAddr,
   )}
 
 
 ExampleAirdrop-ExampleMockDAppVerifier: ${JSON.stringify(
-    exampleDApp.zkpVerifier.address,
+    await exampleDApp.zkpVerifier.getAddress(),
   )}
 ExampleAirdrop-AgeCitizenshipKYC: ${JSON.stringify(
-    exampleDApp.ageCitizenshipKYC.address,
+    await exampleDApp.ageCitizenshipKYC.getAddress(),
   )}
-ExampleAirdrop-MockDApp: ${JSON.stringify(exampleDApp.mockDApp.address)}
+ExampleAirdrop-MockDApp: ${JSON.stringify(
+    await exampleDApp.mockDApp.getAddress(),
+  )}
 ExampleAirdrop-SBT: ${JSON.stringify(exampleDApp.sbtAddr)}
 
 
 KYCRequirementsDemo-DApp: ${JSON.stringify(
-    kycRequirementsDemoContracts.kycRequirementsDemoDApp.address,
+    await kycRequirementsDemoContracts.kycRequirementsDemoDApp.getAddress(),
   )}
 KYCRequirementsDemo-CircomVerifier: ${JSON.stringify(
-    kycRequirementsDemoContracts.zkpVerifier.address,
+    await kycRequirementsDemoContracts.zkpVerifier.getAddress(),
   )}
 KYCRequirementsDemo-AgeCitizenshipKYC: ${JSON.stringify(
-    kycRequirementsDemoContracts.ageCitizenshipKYC.address,
+    await kycRequirementsDemoContracts.ageCitizenshipKYC.getAddress(),
   )}
 KYCRequirementsDemo-CompliantERC20: ${JSON.stringify(
-    kycRequirementsDemoContracts.compliantERC20.address,
+    await kycRequirementsDemoContracts.compliantERC20.getAddress(),
   )}
 KYCRequirementsDemo-SBT: ${JSON.stringify(kycRequirementsDemoContracts.sbtAddr)}
 
 
 KYCComplianceProofs-ZKPVerifier: ${JSON.stringify(
-    kycComplianceProofs.zkpVerifier.address,
+    await kycComplianceProofs.zkpVerifier.getAddress(),
   )}
 KYCComplianceProofs-NonUS-AgeCitizenshipKYC: ${JSON.stringify(
-    kycComplianceProofs.nonUS.ageCitizenshipKYC.address,
+    await kycComplianceProofs.nonUS.ageCitizenshipKYC.getAddress(),
   )}
 KYCComplianceProofs-NonUS-DApp: ${JSON.stringify(
-    kycComplianceProofs.nonUS.dApp.address,
+    await kycComplianceProofs.nonUS.dApp.getAddress(),
   )}
 KYCComplianceProofs-NonUS-SBT: ${JSON.stringify(
     kycComplianceProofs.nonUS.sbtAddr,
   )}
 KYCComplianceProofs-NonSanctionedJurisdiction-AgeCitizenshipKYC: ${JSON.stringify(
-    kycComplianceProofs.nonSanctionedJurisdiction.ageCitizenshipKYC.address,
+    await kycComplianceProofs.nonSanctionedJurisdiction.ageCitizenshipKYC.getAddress(),
   )}
 KYCComplianceProofs-NonSanctionedJurisdiction-DApp: ${JSON.stringify(
-    kycComplianceProofs.nonSanctionedJurisdiction.dApp.address,
+    await kycComplianceProofs.nonSanctionedJurisdiction.dApp.getAddress(),
   )}
 KYCComplianceProofs-NonSanctionedJurisdiction-SBT: ${JSON.stringify(
     kycComplianceProofs.nonSanctionedJurisdiction.sbtAddr,
   )}
 KYCComplianceProofs-Adult18Plus-AgeCitizenshipKYC: ${JSON.stringify(
-    kycComplianceProofs.adult18Plus.ageCitizenshipKYC.address,
+    await kycComplianceProofs.adult18Plus.ageCitizenshipKYC.getAddress(),
   )}
 KYCComplianceProofs-Adult18Plus-DApp: ${JSON.stringify(
-    kycComplianceProofs.adult18Plus.dApp.address,
+    await kycComplianceProofs.adult18Plus.dApp.getAddress(),
   )}
 KYCComplianceProofs-Adult18Plus-SBT: ${JSON.stringify(
     kycComplianceProofs.adult18Plus.sbtAddr,

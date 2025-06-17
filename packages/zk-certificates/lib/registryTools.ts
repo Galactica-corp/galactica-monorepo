@@ -5,14 +5,20 @@ import {
   type MerkleProof,
   type ZkCertRegistration,
 } from '@galactica-net/galactica-types';
-import type { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
-import type { Signer, Contract } from 'ethers';
+import type { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
+import type { HardhatEthersHelpers } from '@nomicfoundation/hardhat-ethers/types';
+import type { Provider } from 'ethers';
 
 import { fromDecToHex, fromHexToBytes32, sleep } from './helpers';
 import type { SparseMerkleTree } from './sparseMerkleTree';
 import type { ZkCertificate } from './zkCertificate';
 import { getIdHash } from './zkKYC';
-import type { SaltLockingZkCertStruct } from '../typechain-types/contracts/HumanIDSaltRegistry';
+import type {
+  HumanIDSaltRegistry,
+  SaltLockingZkCertStruct,
+} from '../typechain-types/contracts/HumanIDSaltRegistry';
+import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
+import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
 
 /**
  * Issues zkCert record on-chain and updates the merkle tree.
@@ -20,13 +26,15 @@ import type { SaltLockingZkCertStruct } from '../typechain-types/contracts/Human
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert (guardian).
  * @param merkleTree - Merkle tree of the registry (passed to not reconstruct it repeatedly).
+ * @param provider - Provider to use for the transaction.
  * @returns MerkleProof of the new leaf in the tree and registration data.
  */
 export async function issueZkCert(
   zkCert: ZkCertificate,
-  recordRegistry: Contract,
-  issuer: Signer,
+  recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
+  issuer: HardhatEthersSigner,
   merkleTree: SparseMerkleTree,
+  provider: Provider,
 ): Promise<{ merkleProof: MerkleProof; registration: ZkCertRegistration }> {
   const leafBytes = fromHexToBytes32(fromDecToHex(zkCert.leafHash));
 
@@ -37,7 +45,7 @@ export async function issueZkCert(
   let tx;
   // if the zkCert is a zkKYC, we need to pass a few more parameters for the salt registry
   if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
-    tx = await recordRegistry.connect(issuer).addZkKYC(
+    tx = await (recordRegistry as ZkKYCRegistry).connect(issuer).addZkKYC(
       chosenLeafIndex,
       leafBytes,
       leafEmptyMerkleProof.pathElements.map((value) =>
@@ -48,19 +56,20 @@ export async function issueZkCert(
       zkCert.expirationDate,
     );
   } else {
-    tx = await recordRegistry.connect(issuer).addZkCertificate(
-      chosenLeafIndex,
-      leafBytes,
-      leafEmptyMerkleProof.pathElements.map((value) =>
-        fromHexToBytes32(fromDecToHex(value)),
-      ),
-    );
+    tx = await (recordRegistry as ZkCertificateRegistry)
+      .connect(issuer)
+      .addZkCertificate(
+        chosenLeafIndex,
+        leafBytes,
+        leafEmptyMerkleProof.pathElements.map((value) =>
+          fromHexToBytes32(fromDecToHex(value)),
+        ),
+      );
   }
 
   await tx.wait();
-  const { provider } = recordRegistry;
   const txReceipt = await provider.getTransactionReceipt(tx.hash);
-  if (txReceipt.status !== 1) {
+  if (txReceipt?.status !== 1) {
     throw Error('Transaction failed');
   }
 
@@ -71,8 +80,8 @@ export async function issueZkCert(
   return {
     merkleProof: leafInsertedMerkleProof,
     registration: {
-      address: recordRegistry.address,
-      chainID: (await recordRegistry.provider.getNetwork()).chainId,
+      address: await recordRegistry.getAddress(),
+      chainID: Number((await provider.getNetwork()).chainId),
       revocable: true,
       leafIndex: chosenLeafIndex,
     },
@@ -90,8 +99,8 @@ export async function issueZkCert(
 export async function revokeZkCert(
   zkCertLeafHash: string,
   leafIndex: number,
-  recordRegistry: Contract,
-  issuer: Signer,
+  recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
+  issuer: HardhatEthersSigner,
   merkleTree: SparseMerkleTree,
 ) {
   if (merkleTree.retrieveLeaf(0, leafIndex) !== zkCertLeafHash) {
@@ -126,8 +135,8 @@ export async function revokeZkCert(
  */
 export async function registerZkCertToQueue(
   zkCertLeafHash: string,
-  recordRegistry: Contract,
-  issuer: Signer,
+  recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
+  issuer: HardhatEthersSigner,
 ) {
   const leafHashAsBytes = fromHexToBytes32(fromDecToHex(zkCertLeafHash));
 
@@ -141,25 +150,28 @@ export async function registerZkCertToQueue(
  * Waits for the queue until a zkCert can be issued.
  * @param recordRegistry - Record registry contract.
  * @param leafHash - Leaf hash of the zkCert.
+ * @param provider - Provider to use for the transaction.
  */
 export async function waitOnIssuanceQueue(
-  recordRegistry: Contract,
+  recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
   leafHash: string,
+  provider: Provider,
 ) {
   const leafHashAsBytes = fromHexToBytes32(fromDecToHex(leafHash));
   const [startTime, expirationTime] =
     await recordRegistry.getTimeParameters(leafHashAsBytes);
 
-  const { provider } = recordRegistry;
   const currentBlock = await provider.getBlockNumber();
-  let lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+  let lastBlockTime = (await provider.getBlock(currentBlock))?.timestamp ?? 0;
 
   console.log(
     `Waiting on zkCert registration queue.\n`,
     `Latest issuance start time: ${new Date(
-      startTime * 1000,
+      Number(startTime) * 1000,
     ).toLocaleString()}\n`,
-    `Expiration time: ${new Date(expirationTime * 1000).toLocaleString()}`,
+    `Expiration time: ${new Date(
+      Number(expirationTime) * 1000,
+    ).toLocaleString()}`,
   );
   let earliestIssueTime = startTime;
   while (lastBlockTime < earliestIssueTime) {
@@ -167,11 +179,13 @@ export async function waitOnIssuanceQueue(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     [earliestIssueTime] =
       await recordRegistry.getTimeParameters(leafHashAsBytes);
-    lastBlockTime = (await provider.getBlock(currentBlock)).timestamp;
+    lastBlockTime = (await provider.getBlock(currentBlock))?.timestamp ?? 0;
     const queueLength =
       (await recordRegistry.ZkCertificateHashToIndexInQueue(leafHashAsBytes)) -
       (await recordRegistry.nextLeafIndex());
-    console.log(`waiting for ${queueLength - 1} other zkCerts in the queue...`);
+    console.log(
+      `waiting for ${Number(queueLength) - 1} other zkCerts in the queue...`,
+    );
   }
   console.log('Start time reached');
 }
@@ -186,8 +200,8 @@ export async function waitOnIssuanceQueue(
  */
 export async function checkZkKYCSaltHashCompatibility(
   zkCert: ZkCertificate,
-  recordRegistry: Contract,
-  issuer: Signer,
+  recordRegistry: ZkKYCRegistry,
+  issuer: HardhatEthersSigner,
   ethers: HardhatEthersHelpers,
 ): Promise<boolean> {
   if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
@@ -196,10 +210,10 @@ export async function checkZkKYCSaltHashCompatibility(
   const idHash = getIdHash(zkCert);
   const saltHash = zkCert.holderCommitment;
 
-  const humanIDSaltRegistry = await ethers.getContractAt(
+  const humanIDSaltRegistry = (await ethers.getContractAt(
     'HumanIDSaltRegistry',
     await recordRegistry.humanIDSaltRegistry(),
-  );
+  )) as unknown as HumanIDSaltRegistry;
 
   const registeredSaltHash = await humanIDSaltRegistry
     .connect(issuer)
@@ -221,8 +235,8 @@ export async function checkZkKYCSaltHashCompatibility(
  */
 export async function listZkKYCsLockingTheSaltHash(
   zkCert: ZkCertificate,
-  recordRegistry: Contract,
-  issuer: Signer,
+  recordRegistry: ZkKYCRegistry,
+  issuer: HardhatEthersSigner,
   ethers: HardhatEthersHelpers,
 ): Promise<SaltLockingZkCertStruct[]> {
   if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
@@ -230,10 +244,10 @@ export async function listZkKYCsLockingTheSaltHash(
   }
   const idHash = getIdHash(zkCert);
 
-  const humanIDSaltRegistry = await ethers.getContractAt(
+  const humanIDSaltRegistry = (await ethers.getContractAt(
     'HumanIDSaltRegistry',
     await recordRegistry.humanIDSaltRegistry(),
-  );
+  )) as unknown as HumanIDSaltRegistry;
 
   return await humanIDSaltRegistry
     .connect(issuer)

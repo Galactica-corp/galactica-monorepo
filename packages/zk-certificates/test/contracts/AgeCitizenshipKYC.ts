@@ -48,63 +48,47 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       hashStringToFieldNumber('USA', poseidon),
     ].concat(Array(17).fill('0'));
 
-    // setup contracts
-    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+    const mockZkCertificateRegistry = (await ethers.deployContract(
       'MockZkCertificateRegistry',
-      deployer,
-    );
-    const mockZkCertificateRegistry =
-      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+    )) as MockZkCertificateRegistry;
 
-    const ageProofZkKYCVerifierFactory = await ethers.getContractFactory(
+    const ageCitizenshipKYCVerifier = (await ethers.deployContract(
       'AgeCitizenshipKYCVerifier',
-      deployer,
-    );
-    const ageCitizenshipKYCVerifier =
-      (await ageProofZkKYCVerifierFactory.deploy()) as AgeCitizenshipKYCVerifier;
+    )) as AgeCitizenshipKYCVerifier;
 
-    const ageProofZkKYCFactory = await ethers.getContractFactory(
+    const ageCitizenshipKYC = (await ethers.deployContract(
       'AgeCitizenshipKYC',
-      deployer,
-    );
-    const ageCitizenshipKYC = (await ageProofZkKYCFactory.deploy(
-      deployer.address,
-      ageCitizenshipKYCVerifier.address,
-      mockZkCertificateRegistry.address,
-      countryExclusionList,
-      [],
-      18,
+      [
+        deployer.address,
+        await ageCitizenshipKYCVerifier.getAddress(),
+        await mockZkCertificateRegistry.getAddress(),
+        countryExclusionList,
+        [],
+        18,
+      ],
     )) as AgeCitizenshipKYC;
-    await ageCitizenshipKYCVerifier.deployed();
+    await ageCitizenshipKYCVerifier.waitForDeployment();
 
-    const mockDAppFactory = await ethers.getContractFactory(
+    const kycRequirementsDemoDApp = (await ethers.deployContract(
       'KYCRequirementsDemoDApp',
-      deployer,
-    );
-    const kycRequirementsDemoDApp = (await mockDAppFactory.deploy(
-      ageCitizenshipKYC.address,
-      'test URI',
-      'VerificationSBT',
-      'VerificationSBT',
+      [
+        await ageCitizenshipKYC.getAddress(),
+        'test URI',
+        'VerificationSBT',
+        'VerificationSBT',
+      ],
     )) as KYCRequirementsDemoDApp;
 
-    const verificationSBTFactory = await ethers.getContractFactory(
+    const verificationSBT = (await ethers.getContractAt(
       'VerificationSBT',
-      deployer,
-    );
-    const verificationSBT = verificationSBTFactory.attach(
       await kycRequirementsDemoDApp.sbt(),
-    ) as VerificationSBT;
+    )) as VerificationSBT;
 
-    const guardianRegistryFactory = await ethers.getContractFactory(
-      'GuardianRegistry',
-      deployer,
-    );
-    const guardianRegistry = (await guardianRegistryFactory.deploy(
+    const guardianRegistry = (await ethers.deployContract('GuardianRegistry', [
       '',
-    )) as GuardianRegistry;
+    ])) as GuardianRegistry;
     await mockZkCertificateRegistry.setGuardianRegistry(
-      guardianRegistry.address,
+      await guardianRegistry.getAddress(),
     );
 
     // default zkKYC
@@ -122,7 +106,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     const sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
-      kycRequirementsDemoDApp.address,
+      await kycRequirementsDemoDApp.getAddress(),
     );
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
@@ -140,14 +124,15 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       circuitWasmPath,
       circuitZkeyPath,
     );
-    const publicRoot = publicSignals[await ageCitizenshipKYC.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[Number(await ageCitizenshipKYC.INDEX_ROOT())];
 
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
       fromHexToBytes32(fromDecToHex(publicRoot)),
     );
     const publicTime = parseInt(
-      publicSignals[await ageCitizenshipKYC.INDEX_CURRENT_TIME()],
+      publicSignals[Number(await ageCitizenshipKYC.INDEX_CURRENT_TIME())],
       10,
     );
 
@@ -273,9 +258,10 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       circuitZkeyPath,
     );
     expect(
-      publicSignals[await sc.ageCitizenshipKYC.INDEX_IS_VALID()],
+      publicSignals[Number(await sc.ageCitizenshipKYC.INDEX_IS_VALID())],
     ).to.be.equal('0');
-    const publicRoot = publicSignals[await sc.ageCitizenshipKYC.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[Number(await sc.ageCitizenshipKYC.INDEX_ROOT())];
     // set the merkle root to the correct one
 
     await sc.mockZkCertificateRegistry.setMerkleRoot(
@@ -296,7 +282,8 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
     const fakeProof = JSON.parse(JSON.stringify(proof)); // deep copy
-    fakeProof.publicInputs[await sc.ageCitizenshipKYC.INDEX_ROOT()] = '0x11';
+    fakeProof.publicInputs[Number(await sc.ageCitizenshipKYC.INDEX_ROOT())] =
+      '0x11';
 
     await expect(
       sc.ageCitizenshipKYC
@@ -314,7 +301,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
     const publicTime = parseInt(
-      proof.publicInputs[await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME()],
+      proof.publicInputs[
+        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+      ],
       16,
     );
     // set time to the public time
@@ -346,8 +335,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
     const fakeProof = JSON.parse(JSON.stringify(proof)); // deep copy
-    fakeProof.publicInputs[await sc.ageCitizenshipKYC.INDEX_CURRENT_YEAR()] =
-      '0x123';
+    fakeProof.publicInputs[
+      Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_YEAR())
+    ] = '0x123';
 
     await expect(
       sc.ageCitizenshipKYC
@@ -389,9 +379,10 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     const [piA, piB, piC] = processProof(proof);
     const publicInputs = processPublicSignals(publicSignals);
 
-    const publicRoot = publicSignals[await sc.ageCitizenshipKYC.INDEX_ROOT()];
+    const publicRoot =
+      publicSignals[Number(await sc.ageCitizenshipKYC.INDEX_ROOT())];
     const publicTime = parseInt(
-      publicSignals[await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME()],
+      publicSignals[Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())],
       10,
     );
     // set the merkle root to the correct one
@@ -490,7 +481,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
     const publicRoot =
-      proof.publicInputs[await sc.ageCitizenshipKYC.INDEX_ROOT()];
+      proof.publicInputs[Number(await sc.ageCitizenshipKYC.INDEX_ROOT())];
 
     // set the merkle root to the correct one
     await sc.mockZkCertificateRegistry.setMerkleRoot(
@@ -498,7 +489,9 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     );
 
     const publicTime = parseInt(
-      proof.publicInputs[await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME()],
+      proof.publicInputs[
+        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+      ],
       16,
     );
 

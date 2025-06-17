@@ -1,12 +1,13 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { TokenData } from '@galactica-net/galactica-types';
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildPoseidon } from 'circomlibjs';
-import { parseEther } from 'ethers/lib/utils';
+import { parseEther } from 'ethers';
+import { ethers } from 'hardhat';
 
-import { deploySC, tryVerification } from '../../lib/hardhatHelpers';
-import { hashStringToFieldNumber } from '../../lib/helpers';
-import type { Poseidon } from '../../lib/poseidon';
+import { deploySC, tryVerification } from '../../../lib/hardhatHelpers';
+import { hashStringToFieldNumber } from '../../../lib/helpers';
+import type { Poseidon } from '../../../lib/poseidon';
 
 const { log } = console;
 
@@ -28,8 +29,12 @@ export async function deployKYCRequirementsDemoDApp(
   compliantERC20: any;
   sbtAddr: string;
 }> {
-  log(`Using account ${deployer.address} to deploy contracts`);
-  log(`Account balance: ${(await deployer.getBalance()).toString()}`);
+  log(`Using account ${await deployer.getAddress()} to deploy contracts`);
+  log(
+    `Account balance: ${(
+      await ethers.provider.getBalance(deployer)
+    ).toString()}`,
+  );
 
   const poseidon = (await buildPoseidon()) as Poseidon;
 
@@ -37,8 +42,8 @@ export async function deployKYCRequirementsDemoDApp(
   const zkpVerifier = await deploySC('AgeCitizenshipKYCVerifier', true);
 
   const ageCitizenshipKYC = await deploySC('AgeCitizenshipKYC', true, {}, [
-    deployer.address,
-    zkpVerifier.address,
+    await deployer.getAddress(),
+    await zkpVerifier.getAddress(),
     recordRegistryAddr,
     // sanctioned countries: undefined ("1") + hash of Iran + hash of USA + placeholders
     [
@@ -55,14 +60,19 @@ export async function deployKYCRequirementsDemoDApp(
     'KYCRequirementsDemoDApp',
     true,
     {},
-    [ageCitizenshipKYC.address, sbtData.uri, sbtData.name, sbtData.symbol],
+    [
+      await ageCitizenshipKYC.getAddress(),
+      sbtData.uri,
+      sbtData.name,
+      sbtData.symbol,
+    ],
   );
   const verificationSBTAddr = await kycRequirementsDemoDApp.sbt();
 
   const compliantERC20 = await deploySC('CompliantERC20', true, {}, [
     'Compliant ERC20',
     'CERC20',
-    deployer.address,
+    await deployer.getAddress(),
     parseEther('1000000'),
     [verificationSBTAddr],
   ]);
@@ -75,7 +85,7 @@ export async function deployKYCRequirementsDemoDApp(
       sbtData.uri,
       sbtData.name,
       sbtData.symbol,
-      kycRequirementsDemoDApp.address,
+      await kycRequirementsDemoDApp.getAddress(),
     ],
     'contracts/SBT_related/VerificationSBT.sol:VerificationSBT',
   );

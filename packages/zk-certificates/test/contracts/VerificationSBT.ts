@@ -1,9 +1,9 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai, { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { buildEddsa } from 'circomlibjs';
-import type { BigNumber } from 'ethers';
+import type { BigNumberish } from 'ethers';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
@@ -22,7 +22,7 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/dev/generateZkKYCInput';
-import type { GuardianRegistry } from '../../typechain-types';
+import type { GuardianRegistry, MockToken } from '../../typechain-types';
 import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
@@ -64,81 +64,62 @@ describe('Verification SBT Smart contract', () => {
     }
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+    mockZkCertificateRegistry = (await ethers.deployContract(
       'MockZkCertificateRegistry',
-      deployer,
-    );
-    mockZkCertificateRegistry =
-      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+    )) as MockZkCertificateRegistry;
 
-    const mockGalacticaInstitutionFactory = await ethers.getContractFactory(
-      'MockGalacticaInstitution',
-      deployer,
-    );
     mockGalacticaInstitutions = [];
     for (let i = 0; i < amountInstitutions; i++) {
       mockGalacticaInstitutions.push(
-        (await mockGalacticaInstitutionFactory.deploy()) as MockGalacticaInstitution,
+        (await ethers.deployContract(
+          'MockGalacticaInstitution',
+        )) as MockGalacticaInstitution,
       );
     }
 
-    const exampleMockDAppVerifierFactory = await ethers.getContractFactory(
+    exampleMockDAppVerifier = (await ethers.deployContract(
       'ExampleMockDAppVerifier',
-      deployer,
-    );
-    exampleMockDAppVerifier =
-      (await exampleMockDAppVerifierFactory.deploy()) as ExampleMockDAppVerifier;
+    )) as ExampleMockDAppVerifier;
 
-    const ageCitizenshipKYCFactory = await ethers.getContractFactory(
-      'AgeCitizenshipKYC',
-      deployer,
-    );
-    ageProofZkKYC = (await ageCitizenshipKYCFactory.deploy(
+    ageProofZkKYC = (await ethers.deployContract('AgeCitizenshipKYC', [
       deployer.address,
-      exampleMockDAppVerifier.address,
-      mockZkCertificateRegistry.address,
+      await exampleMockDAppVerifier.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
       [],
-      mockGalacticaInstitutions.map((inst) => inst.address),
+      await Promise.all(
+        mockGalacticaInstitutions.map(async (inst) => inst.getAddress()),
+      ),
       0,
-    )) as AgeCitizenshipKYC;
+    ])) as AgeCitizenshipKYC;
 
-    const verificationSBTFactory = await ethers.getContractFactory(
-      'VerificationSBT',
-      deployer,
-    );
-
-    const mockDAppFactory = await ethers.getContractFactory(
-      'MockDApp',
-      deployer,
-    );
-    mockDApp = (await mockDAppFactory.deploy(
-      ageProofZkKYC.address,
+    mockDApp = (await ethers.deployContract('MockDApp', [
+      await ageProofZkKYC.getAddress(),
       'https://example.com/metadata',
       'VerificationSBT',
       'VerificationSBT',
-    )) as MockDApp;
+    ])) as MockDApp;
 
-    verificationSBT = verificationSBTFactory
-      .attach(await mockDApp.sbt())
-      .connect(deployer) as VerificationSBT;
+    verificationSBT = (await ethers.getContractAt(
+      'VerificationSBT',
+      await mockDApp.sbt(),
+    )) as VerificationSBT;
 
-    const mockTokenFactory = await ethers.getContractFactory(
-      'MockToken',
-      deployer,
-    );
+    token1 = (await ethers.deployContract('MockToken', [
+      await mockDApp.getAddress(),
+    ])) as MockToken;
+    token2 = (await ethers.deployContract('MockToken', [
+      await mockDApp.getAddress(),
+    ])) as MockToken;
 
-    token1 = await mockTokenFactory.deploy(mockDApp.address);
-    token2 = await mockTokenFactory.deploy(mockDApp.address);
-
-    await mockDApp.setToken1(token1.address);
-    await mockDApp.setToken2(token2.address);
+    await mockDApp.setToken1(await token1.getAddress());
+    await mockDApp.setToken2(await token2.getAddress());
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
     sampleInput = await generateZkKYCProofInput(
       zkKYC,
       amountInstitutions,
-      mockDApp.address,
+      await mockDApp.getAddress(),
     );
     const today = new Date(Date.now());
     sampleInput.currentYear = today.getUTCFullYear();
@@ -164,11 +145,11 @@ describe('Verification SBT Smart contract', () => {
     guardianRegistry = (await GuardianRegistryFactory.deploy(
       'https://example.com/metadata',
     )) as GuardianRegistry;
-    await guardianRegistry.deployed();
+    await guardianRegistry.waitForDeployment();
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(
-      guardianRegistry.address,
+      await guardianRegistry.getAddress(),
     );
 
     // Approve the provider's public key
@@ -186,7 +167,7 @@ describe('Verification SBT Smart contract', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicRoot = publicSignals[Number(await ageProofZkKYC.INDEX_ROOT())];
 
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
@@ -194,16 +175,17 @@ describe('Verification SBT Smart contract', () => {
     );
 
     const publicTime = parseInt(
-      publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
+      publicSignals[Number(await ageProofZkKYC.INDEX_CURRENT_TIME())],
       10,
     );
 
     // set the galactica institution pub key
     // set the institution pub keys
-    const startIndex: number =
-      await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS();
+    const startIndex: number = Number(
+      await ageProofZkKYC.START_INDEX_INVESTIGATION_INSTITUTIONS(),
+    );
     for (let i = 0; i < amountInstitutions; i++) {
-      const galacticaInstitutionPubKey: [BigNumber, BigNumber] = [
+      const galacticaInstitutionPubKey: [BigNumberish, BigNumberish] = [
         publicSignals[startIndex + 2 * i],
         publicSignals[startIndex + 2 * i + 1],
       ];
@@ -219,7 +201,7 @@ describe('Verification SBT Smart contract', () => {
     const [piA, piB, piC] = processProof(proof);
 
     const publicInputs = processPublicSignals(publicSignals);
-    const humanID = publicInputs[await ageProofZkKYC.INDEX_HUMAN_ID()];
+    const humanID = publicInputs[Number(await ageProofZkKYC.INDEX_HUMAN_ID())];
 
     const previousUserBalance = await verificationSBT.balanceOf(user.address);
 
@@ -236,12 +218,14 @@ describe('Verification SBT Smart contract', () => {
       );
 
     expect(await verificationSBT.balanceOf(user.address)).to.be.equal(
-      previousUserBalance.add(1),
+      previousUserBalance + BigInt(1),
     );
     expect(await verificationSBT.tokenIdToOwner(tokenId)).to.be.equal(
       user.address,
     );
-    expect(await verificationSBT.issuingDApp()).to.be.equal(mockDApp.address);
+    expect(await verificationSBT.issuingDApp()).to.be.equal(
+      await mockDApp.getAddress(),
+    );
 
     // check that the verification SBT is created
     expect(
@@ -257,7 +241,7 @@ describe('Verification SBT Smart contract', () => {
       user.address,
     );
     expect(verificationSBTInfo.verifierWrapper).to.be.equal(
-      ageProofZkKYC.address,
+      await ageProofZkKYC.getAddress(),
     );
 
     // check that the verificationSBT can be used to receive the second token without proof
@@ -310,16 +294,25 @@ describe('Verification SBT Smart contract', () => {
     ).to.be.equal(zkKYC.leafHash);
     // check that the verification SBT can be found by the frontend
     const loggedSBTs = await queryVerificationSBTs(
-      [verificationSBT.address],
+      [await verificationSBT.getAddress()],
       user.address,
     );
-    expect(loggedSBTs.has(verificationSBT.address)).to.be.true;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    expect(loggedSBTs.get(verificationSBT.address)!.length).to.be.equal(1);
+    expect(loggedSBTs.has(await verificationSBT.getAddress())).to.be.true;
+    const address = await verificationSBT.getAddress();
+    if (!address) {
+      throw new Error('VerificationSBT address is undefined');
+    }
+    const loggedSBTsAddress = loggedSBTs.get(address);
+    if (!loggedSBTsAddress) {
+      throw new Error('VerificationSBT address is not found');
+    }
+    expect(loggedSBTsAddress.length).to.be.equal(1);
 
     // wait for SBT expiration
     const expirationTime = parseInt(
-      publicSignals[await ageProofZkKYC.INDEX_VERIFICATION_EXPIRATION()],
+      publicSignals[
+        Number(await ageProofZkKYC.INDEX_VERIFICATION_EXPIRATION())
+      ],
       10,
     );
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
@@ -349,9 +342,9 @@ describe('Verification SBT Smart contract', () => {
     // change the proof to make it incorrect
     proof.pi_a[0] = `${JSON.stringify(proof.pi_a[0])}1`;
 
-    const publicRoot = publicSignals[await ageProofZkKYC.INDEX_ROOT()];
+    const publicRoot = publicSignals[Number(await ageProofZkKYC.INDEX_ROOT())];
     const publicTime = parseInt(
-      publicSignals[await ageProofZkKYC.INDEX_CURRENT_TIME()],
+      publicSignals[Number(await ageProofZkKYC.INDEX_CURRENT_TIME())],
       10,
     );
     // set the merkle root to the correct one

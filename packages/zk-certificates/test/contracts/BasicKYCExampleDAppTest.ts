@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import hre, { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
@@ -19,7 +19,7 @@ import type { BasicKYCExampleDApp } from '../../typechain-types/contracts/dapps/
 import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
-import type { ZkKYC } from '../../typechain-types/contracts/ZkKYC';
+import type { ZkKYC } from '../../typechain-types/contracts/verifierWrappers/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
 
 chai.config.includeStack = true;
@@ -48,55 +48,42 @@ describe('BasicKYCExampleDApp', () => {
     [deployer, user] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    const mockZkCertificateRegistryFactory = await ethers.getContractFactory(
+    mockZkCertificateRegistry = (await ethers.deployContract(
       'MockZkCertificateRegistry',
-      deployer,
-    );
-    mockZkCertificateRegistry =
-      (await mockZkCertificateRegistryFactory.deploy()) as MockZkCertificateRegistry;
+    )) as MockZkCertificateRegistry;
 
-    const zkKYCVerifierFactory = await ethers.getContractFactory(
+    zkKYCVerifier = (await ethers.deployContract(
       'ZkKYCVerifier',
-      deployer,
-    );
-    zkKYCVerifier = (await zkKYCVerifierFactory.deploy()) as ZkKYCVerifier;
+    )) as ZkKYCVerifier;
 
-    const zkKYCFactory = await ethers.getContractFactory('ZkKYC', deployer);
-    zkKycSC = (await zkKYCFactory.deploy(
+    zkKycSC = (await ethers.deployContract('ZkKYC', [
       deployer.address,
-      zkKYCVerifier.address,
-      mockZkCertificateRegistry.address,
+      await zkKYCVerifier.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
       [],
-    )) as ZkKYC;
-    await zkKYCVerifier.deployed();
+    ])) as ZkKYC;
+    await zkKycSC.waitForDeployment();
 
-    const repeatableZKPTestFactory = await ethers.getContractFactory(
-      'BasicKYCExampleDApp',
-      deployer,
-    );
-    basicExampleDApp = (await repeatableZKPTestFactory.deploy(
-      zkKycSC.address,
+    basicExampleDApp = (await ethers.deployContract('BasicKYCExampleDApp', [
+      await zkKycSC.getAddress(),
       'test URI',
       'VerificationSBT',
       'VerificationSBT',
-    )) as BasicKYCExampleDApp;
+    ])) as BasicKYCExampleDApp;
 
-    const verificationSBTFactory = await ethers.getContractFactory(
+    verificationSBT = (await ethers.getContractAt(
       'VerificationSBT',
-      deployer,
-    );
-    verificationSBT = verificationSBTFactory.attach(
       await basicExampleDApp.sbt(),
-    ) as VerificationSBT;
+    )) as VerificationSBT;
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
     sampleInput = await generateZkKYCProofInput(
       zkKYC,
       0,
-      basicExampleDApp.address,
+      await basicExampleDApp.getAddress(),
     );
-    sampleInput.dAppAddress = basicExampleDApp.address;
+    sampleInput.dAppAddress = await basicExampleDApp.getAddress();
 
     // advance time a bit to set it later in the test
     sampleInput.currentTime += 100;
@@ -108,16 +95,14 @@ describe('BasicKYCExampleDApp', () => {
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
 
     // Deploy GuardianRegistry
-    const GuardianRegistryFactory =
-      await ethers.getContractFactory('GuardianRegistry');
-    guardianRegistry = (await GuardianRegistryFactory.deploy(
+    guardianRegistry = (await ethers.deployContract('GuardianRegistry', [
       'https://example.com/metadata',
-    )) as GuardianRegistry;
-    await guardianRegistry.deployed();
+    ])) as GuardianRegistry;
+    await guardianRegistry.waitForDeployment();
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(
-      guardianRegistry.address,
+      await guardianRegistry.getAddress(),
     );
 
     // Approve the provider's public key
@@ -135,9 +120,9 @@ describe('BasicKYCExampleDApp', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await zkKycSC.INDEX_ROOT()];
+    const publicRoot = publicSignals[Number(await zkKycSC.INDEX_ROOT())];
     const publicTime = parseInt(
-      publicSignals[await zkKycSC.INDEX_CURRENT_TIME()],
+      publicSignals[Number(await zkKycSC.INDEX_CURRENT_TIME())],
       10,
     );
     // set the merkle root to the correct one
@@ -169,7 +154,7 @@ describe('BasicKYCExampleDApp', () => {
     // wait until verification SBT expires to renew it
     const sbt = await verificationSBT.getVerificationSBTInfo(user.address);
     const laterProofInput = { ...sampleInput };
-    const expirationTime: number = sbt.expirationTime.toNumber();
+    const expirationTime: number = Number(sbt.expirationTime);
     laterProofInput.currentTime = expirationTime + 1;
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
       laterProofInput.currentTime,
@@ -201,7 +186,7 @@ describe('BasicKYCExampleDApp', () => {
       circuitZkeyPath,
     );
 
-    const publicRoot = publicSignals[await zkKycSC.INDEX_ROOT()];
+    const publicRoot = publicSignals[Number(await zkKycSC.INDEX_ROOT())];
     // set the merkle root to the correct one
 
     await mockZkCertificateRegistry.setMerkleRoot(

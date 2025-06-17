@@ -15,7 +15,7 @@ async function main() {
   const [deployer] = await ethers.getSigners();
   const centerRegistryAddr = '0x1263E38AFb0449932F1aa0e108a009d895190Ee6';
   const metadataURL = 'ipfs://QmTdHoVA9gLA1Mk6Csfd2SxMkEdbuSu7xK8dDxUdFVCunx';
-  console.log(`guardian address is ${deployer.address}`);
+  console.log(`guardian address is ${await deployer.getAddress()}`);
   // await whitelistSignerGuardian(deployer, centerRegistryAddr, deployer, metadataURL);
 
   const compressedPubKey =
