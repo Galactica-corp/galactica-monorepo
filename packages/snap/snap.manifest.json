@@ -7,7 +7,7 @@
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
   "source": {
-    "shasum": "wvTHJSZ9OenVQFVJRvHH0Iyh4tSkPo+tdmPA2b/lhGo=",
+    "shasum": "6QvYFT1O7B9ZzMuilTPVeJqgkAuBYW6qMx7qSwFVUXI=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -31,5 +31,6 @@
     "snap_manageState": {},
     "snap_getEntropy": {}
   },
+  "platformVersion": "4.4.2",
   "manifestVersion": "0.1"
 }
