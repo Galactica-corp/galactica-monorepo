@@ -53,7 +53,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const zkCertificateType = flagStandardMapping[args.zkCertificateType];
   if (zkCertificateType === undefined) {
     throw new Error(
-      `ZkCertStandard type ${args.zkCertificateType
+      `ZkCertStandard type ${
+        args.zkCertificateType
       } is unsupported, available options: ${JSON.stringify(
         Object.keys(flagStandardMapping),
       )}`,
@@ -126,7 +127,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
         hre.ethers,
       );
       if (!saltCheckOk) {
-        console.log("A previous salt hash has been found. Checking if it can be reset...");
+        console.log(
+          'A previous salt hash has been found. Checking if it can be reset...',
+        );
         const lockingZkKYCs = await listZkKYCsLockingTheSaltHash(
           zkCertificate,
           recordRegistry as ZkKYCRegistry,
@@ -136,18 +139,21 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
         if (lockingZkKYCs.length > 0) {
           console.error(
             'The following zkKYCs are locking the salt hash of the zkCert:',
-            JSON.stringify(
-              lockingZkKYCs,
-              null,
-              2,
-            ),
+            JSON.stringify(lockingZkKYCs, null, 2),
           );
           throw new Error(
             'The zkCertificate cannot be issued because the salt hash is not compatible with the registered one',
           );
         } else {
-          console.log("No zkKYCs are locking the salt hash of the zkCert. Resetting the salt hash.");
-          await resetSaltHash(zkCertificate, recordRegistry as ZkKYCRegistry, issuer, hre.ethers);
+          console.log(
+            'No zkKYCs are locking the salt hash of the zkCert. Resetting the salt hash.',
+          );
+          await resetSaltHash(
+            zkCertificate,
+            recordRegistry as ZkKYCRegistry,
+            issuer,
+            hre.ethers,
+          );
         }
       }
     }
