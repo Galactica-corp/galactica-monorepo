@@ -29,7 +29,16 @@ jobs:
         with:
           path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
           key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn install --immutable
+      - name: Clean install
+        run: |
+          rm -rf node_modules
+          rm yarn.lock
+          yarn install
+      - name: Validate node_modules/hardhat-circom
+        run: |
+          ls -la packages/zk-certificates/node_modules/hardhat-circom/
+          cat packages/zk-certificates/node_modules/hardhat-circom/package.json
+          grep -r -A 20 "hardhat-circom@https://github.com/Galactica-corp/hardhat-circom.git#commit=4f567f4514def8a7c2ba4b39d800bcac7eea56ed"
       - name: cache ptau file trusted setup for testing
         # using this action because the file is too large to be commited to the repo
         id: ptau-cache
