@@ -69,7 +69,7 @@
     "download": "^8.0.0",
     "eslint": "^8.57.1",
     "hardhat": "^2.24.2",
-    "hardhat-circom": "git+ssh://git@github.com:Galactica-corp/hardhat-circom.git",
+    "hardhat-circom": "git+https://github.com/Galactica-corp/hardhat-circom.git",
     "hardhat-gas-reporter": "^2.3.0",
     "solidity-coverage": "^0.8.16",
     "ts-node": "^10.9.2",

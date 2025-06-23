@@ -4232,7 +4232,7 @@ __metadata:
     ethers: ^6.14.3
     ffjavascript: ^0.3.1
     hardhat: ^2.24.2
-    hardhat-circom: "git+ssh://git@github.com:Galactica-corp/hardhat-circom.git"
+    hardhat-circom: "git+https://github.com/Galactica-corp/hardhat-circom.git"
     hardhat-gas-reporter: ^2.3.0
     keccak256: ^1.0.6
     snarkjs: ^0.7.5
@@ -17082,9 +17082,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat-circom@git+ssh://git@github.com:Galactica-corp/hardhat-circom.git":
+"hardhat-circom@git+https://github.com/Galactica-corp/hardhat-circom.git":
   version: 3.3.2
-  resolution: "hardhat-circom@git+ssh://git@github.com:Galactica-corp/hardhat-circom.git#commit=4f567f4514def8a7c2ba4b39d800bcac7eea56ed"
+  resolution: "hardhat-circom@https://github.com/Galactica-corp/hardhat-circom.git#commit=4f567f4514def8a7c2ba4b39d800bcac7eea56ed"
   dependencies:
     "@phated/unionfs": ^4.5.0
     bl: ^6.0.0
