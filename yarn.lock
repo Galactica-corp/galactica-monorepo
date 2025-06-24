@@ -4232,7 +4232,7 @@ __metadata:
     ethers: ^6.14.3
     ffjavascript: ^0.3.1
     hardhat: ^2.24.2
-    hardhat-circom: "git+https://github.com/Galactica-corp/hardhat-circom.git"
+    hardhat-circom: "git+https://github.com/Galactica-corp/hardhat-circom.git#dd6ffd249cb174e504e3cbfb127503c6ef9155cc"
     hardhat-gas-reporter: ^2.3.0
     keccak256: ^1.0.6
     snarkjs: ^0.7.5
@@ -17082,9 +17082,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hardhat-circom@git+https://github.com/Galactica-corp/hardhat-circom.git":
+"hardhat-circom@git+https://github.com/Galactica-corp/hardhat-circom.git#dd6ffd249cb174e504e3cbfb127503c6ef9155cc":
   version: 3.3.2
-  resolution: "hardhat-circom@https://github.com/Galactica-corp/hardhat-circom.git#commit=4f567f4514def8a7c2ba4b39d800bcac7eea56ed"
+  resolution: "hardhat-circom@https://github.com/Galactica-corp/hardhat-circom.git#commit=dd6ffd249cb174e504e3cbfb127503c6ef9155cc"
   dependencies:
     "@phated/unionfs": ^4.5.0
     bl: ^6.0.0
@@ -17101,7 +17101,7 @@ __metadata:
     undici: ^5.12.0
   peerDependencies:
     hardhat: ^2.0.0
-  checksum: 98f66fc884bbdedc3d0fb7d79906cc047705e4bca68b01786a4fba0316fd8c3a7e1730a608485d83f26cc2656e29b3ee5ff0a4b145e7ec9432d121b2060490db
+  checksum: f60c79a6e1289aac64c71e1a637da9b720483d6323f2fd468e77bc09c0646cee6a4fe944405539e52c4b8e4047a4186e7aa8d250fb37157b192bc3692bf9faea
   languageName: node
   linkType: hard
 
