@@ -120,3 +120,24 @@ yarn npm publish
 ```
 
 Create a new release version on GitHub [here](https://github.com/Galactica-corp/zkKYC/releases/new).
+
+## ZK Ceremony
+ZK circuits written in this repo need to go through a phase 2 trusted ceremony before usage in production.
+You can use the p0tion and DefinitelySetup instance hosted by Galactica.
+The ceremony can be created by the coordinator using the `phase2cli` tool.
+Contributions are possible through the `phase2cli` tool on the command line or on the DefinitelySetup front-end.
+
+Ceremony results can be downloaded and integrated in this repo using the following command. You can lookup the `<CEREMONY-ID>` on DefinitelySetup or through `phase2cli list`
+```shell
+yarn hardhat integrateCeremonyResults --ceremony-id <CEREMONY-ID>
+```
+
+Now you can run tests and deploy the verifier contracts.
+
+Note that the smartCircuitBuild used by `yarn build` and `yarn test` will overwrite the ceremony results if it detects newer or modified circom code. So better run it before.
+
+To make the prover available to the snap, you still need to run
+```shell
+cd ../snap
+yarn proofPrep <CIRCUIT_NAME>
+```
