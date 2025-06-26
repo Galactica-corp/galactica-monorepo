@@ -29,7 +29,8 @@ jobs:
         with:
           path: ${{ steps.yarn-cache-dir.outputs.YARN_CACHE_DIR }}
           key: yarn-cache-${{ runner.os }}-${{ steps.yarn-version.outputs.YARN_VERSION }}-${{ hashFiles('yarn.lock') }}
-      - run: yarn install --immutable
+      - name: Clean install
+        run: yarn install --immutable
       - name: cache ptau file trusted setup for testing
         # using this action because the file is too large to be commited to the repo
         id: ptau-cache

@@ -18,12 +18,18 @@ import {
   issueZkCert,
   listZkKYCsLockingTheSaltHash,
   registerZkCertToQueue,
+  resetSaltHash,
   waitOnIssuanceQueue,
 } from '../lib/registryTools';
 import { flagStandardMapping, ZkCertificate } from '../lib/zkCertificate';
 import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
 import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
+
+// Tell JSON how to serialize BigInts
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 /**
  * Script for creating a zkCertificate, issuing it and adding a merkle proof for it.
@@ -121,22 +127,34 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
         hre.ethers,
       );
       if (!saltCheckOk) {
-        console.error(
-          'The following zkKYCs are locking the salt hash of the zkCert:',
-          JSON.stringify(
-            await listZkKYCsLockingTheSaltHash(
-              zkCertificate,
-              recordRegistry as ZkKYCRegistry,
-              issuer,
-              hre.ethers,
-            ),
-            null,
-            2,
-          ),
+        console.log(
+          'A previous salt hash has been found. Checking if it can be reset...',
         );
-        throw new Error(
-          'The zkCertificate cannot be issued because the salt hash is not compatible with the registered one',
+        const lockingZkKYCs = await listZkKYCsLockingTheSaltHash(
+          zkCertificate,
+          recordRegistry as ZkKYCRegistry,
+          issuer,
+          hre.ethers,
         );
+        if (lockingZkKYCs.length > 0) {
+          console.error(
+            'The following zkKYCs are locking the salt hash of the zkCert:',
+            JSON.stringify(lockingZkKYCs, null, 2),
+          );
+          throw new Error(
+            'The zkCertificate cannot be issued because the salt hash is not compatible with the registered one',
+          );
+        } else {
+          console.log(
+            'No zkKYCs are locking the salt hash of the zkCert. Resetting the salt hash.',
+          );
+          await resetSaltHash(
+            zkCertificate,
+            recordRegistry as ZkKYCRegistry,
+            issuer,
+            hre.ethers,
+          );
+        }
       }
     }
 

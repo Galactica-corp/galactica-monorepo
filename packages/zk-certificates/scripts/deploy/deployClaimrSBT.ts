@@ -10,7 +10,7 @@ import { deploySC } from '../../lib/hardhatHelpers';
  */
 async function main() {
   const [deployer] = await ethers.getSigners();
-  const csvPath = path.join(__dirname, '../data/MintList.csv');
+  const csvPath = path.join(__dirname, '../../data/GraphMintList.csv');
   console.log('Reading csv from ', csvPath);
   const signee = '0x333e271244f12351b6056130AEC894EB8AAf05C2';
 

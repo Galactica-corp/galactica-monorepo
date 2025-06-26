@@ -49,7 +49,6 @@ export const testHolder = {
   encryptionPrivKey: testEntropyEncrypt.slice(2),
   encryptionPubKey: getEncryptionPublicKey(testEntropyEncrypt.slice(2)),
 };
-
 export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
   input: {
     // most values do not matter because they are checked on-chain only
@@ -68,7 +67,7 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
   },
   requirements: {
     zkCertStandard: ZkCertStandard.ZkKYC,
-    registryAddress: '0x49FEc8ddf15a9731EfeD88b35685a45e5Fa95eFE',
+    registryAddress: '0x0276a85D8B63f0e66081c9749fdfB1547C2672Ed',
   },
   prover,
   userAddress: testAddress,

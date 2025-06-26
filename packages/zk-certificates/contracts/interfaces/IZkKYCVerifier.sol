@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.28;
 
-import "./IVerifierWrapper.sol";
+import './IVerifierWrapper.sol';
 
 /// @author Galactica dev team
 interface IZkKYCVerifier is IVerifierWrapper {
@@ -12,7 +12,7 @@ interface IZkKYCVerifier is IVerifierWrapper {
         uint[] memory input
     ) external view returns (bool);
 
-        function verifyProof2(
+    function verifyProof2(
         uint[2] memory a,
         uint[2][2] memory b,
         uint[2] memory c,

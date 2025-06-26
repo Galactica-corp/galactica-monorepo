@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.7;
+pragma solidity 0.8.28;
 pragma abicoder v2;
 
 // OpenZeppelin v4
@@ -63,7 +63,7 @@ contract ZkCertificateRegistry is
 
     // a mapping to store which Guardian manages which ZkCertificate
     mapping(bytes32 => address) public ZkCertificateToGuardian;
-    uint256 public queueExpirationTime = 60 * 60; // Guardian has at least one hour to add ZkCertificate after registration to the queue
+    uint256 public queueExpirationTime = 2 * 60; // Guardian has at 2 minutes to add ZkCertificate after registration to the queue (by default)
     bytes32[] public ZkCertificateQueue;
     uint256 public currentQueuePointer;
     mapping(bytes32 => uint) public ZkCertificateHashToIndexInQueue;

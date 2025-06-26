@@ -1301,6 +1301,10 @@ describe('Test rpc handler function', function () {
     it('should delete zkCert successfully (unambiguous filter)', async function (this: Mocha.Context) {
       this.timeout(4000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
+      expect(
+        zkCert.expirationDate,
+        'This test assumes that the test zkCerts have different expiration dates. Please regenerate one of them with a different expiration date.',
+      ).to.not.be.eq(zkCert2.expirationDate);
 
       const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.DeleteZkCert, {

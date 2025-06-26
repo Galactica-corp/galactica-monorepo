@@ -497,7 +497,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [
-      publicTime + 10,
+      publicTime + 60,
     ]);
     await hre.network.provider.send('evm_mine');
 

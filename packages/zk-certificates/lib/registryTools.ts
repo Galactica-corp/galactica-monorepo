@@ -253,3 +253,29 @@ export async function listZkKYCsLockingTheSaltHash(
     .connect(issuer)
     .getSaltLockingZkCerts(idHash);
 }
+
+/**
+ * Resets the salt hash of a user.
+ * @param zkCert - New ZkCertificate to be issued.
+ * @param recordRegistry - Record registry contract.
+ * @param issuer - Issuer of the zkCert.
+ * @param ethers - Ethers library from hre.
+ */
+export async function resetSaltHash(
+  zkCert: ZkCertificate,
+  recordRegistry: ZkKYCRegistry,
+  issuer: HardhatEthersSigner,
+  ethers: HardhatEthersHelpers,
+) {
+  if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
+    throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
+  }
+  const idHash = getIdHash(zkCert);
+
+  const humanIDSaltRegistry = (await ethers.getContractAt(
+    'HumanIDSaltRegistry',
+    await recordRegistry.humanIDSaltRegistry(),
+  )) as unknown as HumanIDSaltRegistry;
+
+  await humanIDSaltRegistry.connect(issuer).resetSalt(idHash);
+}

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.28;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import '@openzeppelin/contracts/access/AccessControl.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 import {Fallback} from '../helpers/Fallback.sol';
 
 /**
@@ -12,7 +12,7 @@ import {Fallback} from '../helpers/Fallback.sol';
  */
 contract GalacticaOfficialSBT is ERC721, AccessControl, Fallback {
     // roles for access control
-    bytes32 public constant ISSUER_ROLE = keccak256("ISSUER_ROLE");
+    bytes32 public constant ISSUER_ROLE = keccak256('ISSUER_ROLE');
 
     // base URI for NFTs
     string private baseURI;
@@ -25,9 +25,9 @@ contract GalacticaOfficialSBT is ERC721, AccessControl, Fallback {
         string memory nftSymbol
     ) ERC721(nftName, nftSymbol) {
         // set admin, the role that can assign and revoke other roles
-        _setupRole(DEFAULT_ADMIN_ROLE, owner);
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
         // only addresses assigned to this role will be able to mint and burn NFTs
-        _setupRole(ISSUER_ROLE, issuer);
+        _grantRole(ISSUER_ROLE, issuer);
 
         baseURI = uri;
     }
@@ -115,7 +115,7 @@ contract GalacticaOfficialSBT is ERC721, AccessControl, Fallback {
     function tokenURI(
         uint256 tokenId
     ) public view virtual override returns (string memory) {
-        _requireMinted(tokenId);
+        _requireOwned(tokenId);
         // concatinate base URI with holder address
         // address will be lower case and not have checksum encoding
         return baseURI;
@@ -132,19 +132,35 @@ contract GalacticaOfficialSBT is ERC721, AccessControl, Fallback {
     /**
      * @dev Transfers are rejected because the GalacticaTwitterSBT is soulbound.
      */
-    function _transfer(address, address, uint256) internal pure override {
-        revert("GalacticaTwitterSBT: transfer is not allowed");
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal override returns (address) {
+        if (to != address(0) && _ownerOf(tokenId) != address(0)) {
+            revert('GalacticaTwitterSBT: transfer is not allowed');
+        }
+        return super._update(to, tokenId, auth);
     }
 
     /**
      * @dev Approve are rejected because the GalacticaTwitterSBT is soulbound.
      */
-    function _approve(address to, uint256 id) internal override {
+    function _approve(
+        address to,
+        uint256 id,
+        address auth,
+        bool emitEvent
+    ) internal override {
         if (to == address(0)) {
             // ok to approve zero address as done by the ERC721 implementation on burning
-            super._approve(to, id);
+            super._approve(to, id, auth, emitEvent);
         } else {
-            revert("GalacticaTwitterSBT: transfer approval is not allowed");
+            revert('GalacticaTwitterSBT: transfer approval is not allowed');
         }
+    }
+
+    function _setApprovalForAll(address, address, bool) internal pure override {
+        revert('GalacticaTwitterSBT: transfer approval is not allowed');
     }
 }

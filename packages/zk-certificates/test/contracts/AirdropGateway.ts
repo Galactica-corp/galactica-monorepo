@@ -166,15 +166,16 @@ describe('AirdropGateway', () => {
   }
 
   it('only owner can whitelist or dewhitelist clients', async () => {
-    const { airdropGateway, randomUser, defaultAdminRole, clientRole, client } =
+    const { airdropGateway, randomUser, clientRole, client } =
       await deployFixture();
     // random user cannot whitelist
     await expect(
       airdropGateway
         .connect(randomUser)
         .whitelistClient(await client.getAddress()),
-    ).to.be.revertedWith(
-      `AccessControl: account ${randomUser.address.toLowerCase()} is missing role ${defaultAdminRole}`,
+    ).to.be.revertedWithCustomError(
+      airdropGateway,
+      'AccessControlUnauthorizedAccount',
     );
 
     expect(
@@ -195,14 +196,8 @@ describe('AirdropGateway', () => {
   });
 
   it('only clients can set up new distributions', async () => {
-    const {
-      airdropGateway,
-      clientRole,
-      client,
-      GalaSBT,
-      GalaSBT2,
-      rewardToken,
-    } = await deployFixture();
+    const { airdropGateway, client, GalaSBT, GalaSBT2, rewardToken } =
+      await deployFixture();
     // distribution parameters
     const requiredSBTs = [
       await GalaSBT.getAddress(),
@@ -226,8 +221,9 @@ describe('AirdropGateway', () => {
           claimStartTime,
           claimEndTime,
         ),
-    ).to.be.revertedWith(
-      `AccessControl: account ${client.address.toLowerCase()} is missing role ${clientRole}`,
+    ).to.be.revertedWithCustomError(
+      airdropGateway,
+      'AccessControlUnauthorizedAccount',
     );
 
     // whitelist client
@@ -454,7 +450,6 @@ describe('AirdropGateway', () => {
       circuitWasmPath,
       circuitZkeyPath,
       client,
-      clientRole,
       user,
       user2,
       randomUser,
@@ -581,8 +576,11 @@ describe('AirdropGateway', () => {
       .connect(client)
       .approve(await airdropGateway.getAddress(), airdropAmount);
     // check that only client can deposit
-    await expect(airdropGateway.deposit(airdropAmount)).to.be.revertedWith(
-      `AccessControl: account ${deployer.address.toLowerCase()} is missing role ${clientRole}`,
+    await expect(
+      airdropGateway.deposit(airdropAmount),
+    ).to.be.revertedWithCustomError(
+      airdropGateway,
+      'AccessControlUnauthorizedAccount',
     );
     await airdropGateway.connect(client).deposit(airdropAmount);
     expect(

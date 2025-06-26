@@ -61,12 +61,7 @@ contract TwitterRequirementsDemoDApp is IVerificationSBTIssuer {
             verifierWrapper.INDEX_VERIFICATION_EXPIRATION()
         ];
 
-        bytes32[] memory noEncryptedData;
-        sbt.mintVerificationSBT(
-            msg.sender,
-            verifierWrapper,
-            expirationTime
-        );
+        sbt.mintVerificationSBT(msg.sender, verifierWrapper, expirationTime);
     }
 
     /**

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.0;
+pragma solidity 0.8.28;
+
 /**
  * @dev Contract module which provides a basic access control mechanism, where
  * there is an account (an owner) that can be granted exclusive access to
@@ -14,12 +15,15 @@ contract Ownable {
     address public owner;
     address public newOwner;
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
 
     /**
      * @dev Initializes the contract setting the initial owner.
      */
-    constructor (address _owner) {
+    constructor(address _owner) {
         owner = _owner;
         emit OwnershipTransferred(address(0), _owner);
     }
@@ -28,7 +32,7 @@ contract Ownable {
      * @dev Throws if called by any account other than the owner.
      */
     modifier onlyOwner() {
-        require(msg.sender == owner, "Ownable: caller is not the owner");
+        require(msg.sender == owner, 'Ownable: caller is not the owner');
         _;
     }
 
@@ -45,7 +49,10 @@ contract Ownable {
     }
 
     function setNewOwner(address _newOwner) public onlyOwner {
-        require(_newOwner != address(0), "Ownable: new owner cannot be the zero address");
+        require(
+            _newOwner != address(0),
+            'Ownable: new owner cannot be the zero address'
+        );
         newOwner = _newOwner;
     }
 
@@ -54,7 +61,7 @@ contract Ownable {
      * Can only be called by the current owner.
      */
     function transferOwnership() public {
-        require(msg.sender == newOwner, "Ownable: caller must be new owner");
+        require(msg.sender == newOwner, 'Ownable: caller must be new owner');
         emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
     }
