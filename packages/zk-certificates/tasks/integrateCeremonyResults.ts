@@ -72,6 +72,9 @@ async function integrateCeremonyResults(
       continue; // skip this circuit, apparently it is not included in the ceremony
     }
 
+    // Copy the zkey file to the build folder so that tools, such as proofPrep, can use it
+    fs.copyFileSync(zkeyTargetPath, path.join(proverTargetFolder, `${circuitName}.zkey`));
+
     // Generate Solidity verifier using snarkjs
     const verifierName = camelcase(circuitName, {
       pascalCase: true,
