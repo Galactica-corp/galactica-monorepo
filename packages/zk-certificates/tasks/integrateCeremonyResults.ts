@@ -6,6 +6,7 @@ import { task, types } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { TASK_CIRCOM_TEMPLATE } from 'hardhat-circom';
 import path from 'path';
+import { zKey } from "snarkjs";
 
 import { postProcessSolidityVerifier } from './verifierPostProcessing';
 
@@ -86,17 +87,29 @@ async function integrateCeremonyResults(
       `${verifierName}Verifier.sol`,
     );
 
+    const zKeyFastFile = {
+      type: 'mem',
+      name: circuitName,
+      data: fs.readFileSync(zkeyTargetPath),
+    };
+
     try {
       console.log(`Generating Solidity verifier for ${circuitName} ...`);
-      const zKeyFastFile = {
-        type: 'mem',
-        name: circuitName,
-        data: fs.readFileSync(zkeyTargetPath),
-      };
       await hre.run(TASK_CIRCOM_TEMPLATE, { zkeys: [zKeyFastFile] });
       console.log(`Generated Solidity verifier at ${solVerifierPath}`);
     } catch (error) {
       console.error(`Failed to generate Solidity verifier for ${circuitName}`);
+      throw error;
+    }
+
+    const vkeyJsonPath = path.join(proverTargetFolder, `${circuitName}.vkey.json`);
+    try {
+      console.log(`Generating vkey.json for ${circuitName} ...`);
+      const zKeyContent = await zKey.exportVerificationKey(zKeyFastFile);
+      fs.writeFileSync(vkeyJsonPath, JSON.stringify(zKeyContent));
+      console.log(`Generated ${vkeyJsonPath}`);
+    } catch (error) {
+      console.error(`Failed to generate vkey.json for ${circuitName}`);
       throw error;
     }
 
