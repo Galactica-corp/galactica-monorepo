@@ -19,7 +19,7 @@ export class SBT {
     public userPubKey: string[2],
     public humanID: string,
     public providerPubKey: string[2],
-  ) { } // eslint-disable-line no-empty-function
+  ) {} // eslint-disable-line no-empty-function
 }
 
 /**
@@ -95,7 +95,11 @@ export async function showVerificationSBTs(
   const sbts = [];
   for (const sbtContractAddr of sbtIssuingContracts) {
     try {
-      const dAppContract = new ethers.Contract(sbtContractAddr, IVerificationSBTIssuer.abi, signer);
+      const dAppContract = new ethers.Contract(
+        sbtContractAddr,
+        IVerificationSBTIssuer.abi,
+        signer,
+      );
       const sbtContract = await dAppContract.sbt();
       const sbt = await queryVerificationSBT(
         await sbtContract,
@@ -106,7 +110,10 @@ export async function showVerificationSBTs(
         sbts.push(sbt);
       }
     } catch (error) {
-      console.log(`Could not query SBTs for an address ${sbtContractAddr}`, error);
+      console.log(
+        `Could not query SBTs for an address ${sbtContractAddr}`,
+        error,
+      );
     }
   }
   const guardianNameMap = await getGuardianNameMap(

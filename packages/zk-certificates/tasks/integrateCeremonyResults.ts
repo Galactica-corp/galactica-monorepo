@@ -6,7 +6,7 @@ import { task, types } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { TASK_CIRCOM_TEMPLATE } from 'hardhat-circom';
 import path from 'path';
-import { zKey } from "snarkjs";
+import { zKey } from 'snarkjs';
 
 import { postProcessSolidityVerifier } from './verifierPostProcessing';
 
@@ -74,7 +74,10 @@ async function integrateCeremonyResults(
     }
 
     // Copy the zkey file to the build folder so that tools, such as proofPrep, can use it
-    fs.copyFileSync(zkeyTargetPath, path.join(proverTargetFolder, `${circuitName}.zkey`));
+    fs.copyFileSync(
+      zkeyTargetPath,
+      path.join(proverTargetFolder, `${circuitName}.zkey`),
+    );
 
     // Generate Solidity verifier using snarkjs
     const verifierName = camelcase(circuitName, {
@@ -102,7 +105,10 @@ async function integrateCeremonyResults(
       throw error;
     }
 
-    const vkeyJsonPath = path.join(proverTargetFolder, `${circuitName}.vkey.json`);
+    const vkeyJsonPath = path.join(
+      proverTargetFolder,
+      `${circuitName}.vkey.json`,
+    );
     try {
       console.log(`Generating vkey.json for ${circuitName} ...`);
       const zKeyContent = await zKey.exportVerificationKey(zKeyFastFile);
