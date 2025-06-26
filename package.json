@@ -22,7 +22,7 @@
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "NODE_OPTIONS='--max-old-space-size=8192'; eslint . --cache --ext js,ts",
     "lint:fix": "yarn lint:eslint --fix && yarn lint:misc --write",
-    "lint:misc": "prettier '**/*.json' '**/*.md' '!**/CHANGELOG.md' '!test/**' '**/*.yml' --ignore-path .gitignore",
+    "lint:misc": "prettier '**/*.json' '**/*.md' '!**/CHANGELOG.md' '!test/**' '**/*.yml'",
     "start": "yarn workspaces foreach --parallel --interlaced --verbose run start",
     "start:snap": "turbo run start --filter=snap-beta...",
     "test": "yarn workspaces foreach -vp run test"

@@ -92,19 +92,28 @@ export async function showVerificationSBTs(
   // @ts-expect-error https://github.com/metamask/providers/issues/200
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
-  const sbtContracts = sbtIssuingContracts.map(
-    async (addr) =>
-      await new ethers.Contract(addr, IVerificationSBTIssuer.abi, signer).sbt(),
-  );
   const sbts = [];
-  for (const sbtContract of sbtContracts) {
-    const sbt = await queryVerificationSBT(
-      await sbtContract,
-      provider,
-      await signer.getAddress(),
-    );
-    if (sbt) {
-      sbts.push(sbt);
+  for (const sbtContractAddr of sbtIssuingContracts) {
+    try {
+      const dAppContract = new ethers.Contract(
+        sbtContractAddr,
+        IVerificationSBTIssuer.abi,
+        signer,
+      );
+      const sbtContract = await dAppContract.sbt();
+      const sbt = await queryVerificationSBT(
+        await sbtContract,
+        provider,
+        await signer.getAddress(),
+      );
+      if (sbt) {
+        sbts.push(sbt);
+      }
+    } catch (error) {
+      console.log(
+        `Could not query SBTs for an address ${sbtContractAddr}`,
+        error,
+      );
     }
   }
   const guardianNameMap = await getGuardianNameMap(

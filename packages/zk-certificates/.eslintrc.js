@@ -7,7 +7,7 @@ module.exports = {
   },
 
   rules: {
-    '@typescript-eslint/no-parameter-properties': 'off'
+    '@typescript-eslint/no-parameter-properties': 'off',
   },
 
   overrides: [
@@ -78,5 +78,5 @@ module.exports = {
     },
   ],
 
-  ignorePatterns: ['.eslintrc.js', 'artifacts/', 'cache/', 'circuits/build/', 'contracts/.prettierrc.js'],
+  ignorePatterns: ['.eslintrc.js', 'cache/', 'circuits/build/', 'contracts/.prettierrc.js', '/flat/', '/ignition/deployments/', 'issuedZKCertificates/', 'merkleProofs/'],
 };

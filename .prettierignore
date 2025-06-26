@@ -1,0 +1,3 @@
+packages/zk-certificates/ignition/deployments
+packages/zk-certificates/issuedZKCertificates
+packages/zk-certificates/merkleProofs

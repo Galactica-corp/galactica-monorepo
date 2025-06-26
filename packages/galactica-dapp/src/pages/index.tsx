@@ -510,7 +510,7 @@ const Index = () => {
             description: formatVerificationSBTs(state.verificationSbts, state.guardianNameMap),
             button: (
               <GeneralButton
-                onClick={showVerificationSBTs}
+                onClick={async () => await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry)}
                 disabled={false}
                 text="Query"
               />
