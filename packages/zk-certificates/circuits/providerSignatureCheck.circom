@@ -4,10 +4,9 @@ pragma circom 2.1.4;
 include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 
-/*
-  Circuit verifying that provider signature is correctly submitted
-
-*/
+/**
+ * Circuit verifying that provider signature is valid.
+ */
 template ProviderSignatureCheck(){
 
     signal input contentHash;

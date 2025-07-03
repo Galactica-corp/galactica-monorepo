@@ -9,8 +9,14 @@ include "./authorization.circom";
 include "./ownership.circom";
 include "./providerSignatureCheck.circom";
 
-/**
- * Circuit to check that, given twitter accounts infos we calculate the corresponding leaf hash
+/** 
+ * Circuit for Twitter certificate proofs. It checks that:
+ * 1. the user is authorized to use the proof
+ * 2. the user is the owner of the pubkey behind the holder commitment
+ * 3. the user's data matches the zkCert hash
+ * 4. the provider signed the zkCert
+ * 5. the merkle proof is valid showing that the zkCert hash is in the merkle tree
+ * 6. the zkCert has not expired yet
  *
  * @param levels - number of levels of the merkle tree.
  * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
@@ -43,7 +49,7 @@ template TwitterZkCertificate(levels, maxExpirationLengthDays){
 
     signal input currentTime;
 
-    // verify that proof creator indeed owns the pubkey behind the holdercommitment
+    // verify that proof creator indeed owns the pubkey behind the holder-commitment
     // public key of the signer
     signal input ax;
     signal input ay;

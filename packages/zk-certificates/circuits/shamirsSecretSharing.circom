@@ -5,16 +5,16 @@ include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "polynomial.circom";
 
-/*
-    Circuit to generate Shamir's Secret Sharing shares.
-    It takes a scecret and splits it into n fragments, of which k are needed to reconstruct the secret.
-
-    https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing
-
-    Parameters:
-    n: number of shares to generate
-    k: number of shares needed to reconstruct the secret
-*/
+/**
+ * Circuit to generate Shamir's Secret Sharing shares.
+ * It takes a scecret and splits it into n fragments, of which k are needed to reconstruct the secret.
+ *
+ * https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing
+ *
+ * Parameters:
+ *   n: number of shares to generate
+ *   k: number of shares needed to reconstruct the secret
+ */
 template ShamirsSecretSharing(n, k) {
     // the secret to be shared
     signal input secret;

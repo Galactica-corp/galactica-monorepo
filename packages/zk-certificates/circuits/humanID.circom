@@ -3,14 +3,14 @@ pragma circom 2.1.4;
 
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 
-/*
-  Circuit calculating the dApp specific human ID. 
-  It can be used by applications that want to limit the amount of interactions per human, e.g., for voting or IDO allocation.
-
-  Calculated by hashing KYC fields uniquely identifying a human together with the dApp address for preventing cross reference with other dApps.
-  As good practise, the dApp can also use multiple IDs for preventing cross reference between different use cases.
-  For example one dApp address per topic to vote on or one dApp address per IDO pool.
-*/
+/**
+ * Circuit calculating the dApp specific human ID.
+ * It can be used by applications that want to limit the amount of interactions per human, e.g., for voting or IDO allocation.
+ *
+ * Calculated by hashing KYC fields uniquely identifying a human together with the dApp address for preventing cross reference with other dApps.
+ * As good practise, the dApp can also use multiple IDs for preventing cross reference between different use cases.
+ * For example one dApp address per topic to vote on or one dApp address per IDO pool.
+ */
 template HumanID(){
     signal input surname;
     signal input forename;

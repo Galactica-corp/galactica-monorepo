@@ -5,13 +5,13 @@ include "privToPubKey.circom";
 include "ecdh.circom";
 include "mimcEncrypt.circom";
 
-/*
-  Circuit proving that a message is correctly encrypted so that the receiver can read it. 
-  It is based on public private keypairs and the ECDH key exchange protocol
-  (symmetric encryption key derived from sender's private key and receiver's public key = the other way around).
-
-  In Galactica's zkKYC, this is used to proof that the KYC holder provides encrypted information for eventual fraud investigation.
-*/
+/**
+ * Circuit proving that a message is correctly encrypted so that the receiver can read it.
+ * It is based on public private keypairs and the ECDH key exchange protocol
+ * (symmetric encryption key derived from sender's private key and receiver's public key = the other way around).
+ *
+ * In Galactica's zkKYC, this is used to proof that the KYC holder provides encrypted information for eventual fraud investigation.
+ */
 template EncryptionProof(){
     signal input senderPrivKey;
     signal input receiverPubKey[2]; //should be public input

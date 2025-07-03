@@ -5,11 +5,10 @@ include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 
-/*
-  Circuit verifying that the onchain message sender is authorized to use the zkKYC record.
-  He proves this fact by providing his address signed by the account hidden behind the holder commitment of the zkKYC rcord.
-
-*/
+/**
+ * Circuit verifying that the onchain message sender is authorized to use the zkKYC record.
+ * He proves this fact by providing his address signed by the account hidden behind the holder commitment of the zkKYC record.
+ */
 template Authorization(){
 
     // message to be signed, this will be a public input so the SC can compare it with the onchain message sender

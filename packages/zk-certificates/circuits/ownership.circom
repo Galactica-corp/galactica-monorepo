@@ -5,14 +5,14 @@ include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 
-/*
-  Circuit verifying the ownership of a zkCertificate with a signature in the holder commitment.
-
-  It is important to combine this circuit with some kind of receiver signature to prevent replay attacks.
-  For efficient computation in zkSNARKs, it uses the EdDSA signature scheme
-  (https://iden3-docs.readthedocs.io/en/latest/iden3_repos/research/publications/zkproof-standards-workshop-2/ed-dsa/ed-dsa.html)
-  with the Poseidon hash function (https://www.poseidon-hash.info/).
-*/
+/**
+ * Circuit verifying the ownership of a zkCertificate with a signature in the holder commitment.
+ *
+ * It is important to combine this circuit with some kind of receiver signature to prevent replay attacks.
+ * For efficient computation in zkSNARKs, it uses the EdDSA signature scheme
+ * (https://iden3-docs.readthedocs.io/en/latest/iden3_repos/research/publications/zkproof-standards-workshop-2/ed-dsa/ed-dsa.html)
+ * with the Poseidon hash function (https://www.poseidon-hash.info/).
+ */
 template Ownership(){
     // holderCommitment = poseidon(eddsa(poseidon(pubkey)))  // fixing the owner address while hiding it from the provider
     signal input holderCommitment;

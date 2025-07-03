@@ -6,7 +6,7 @@ include "./ageProof.circom";
 include "./zkKYC.circom";
 
 /**
- * Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
+ * Circuit combining the zkKYC and ageProof circuits.
  *
  * @param levels - number of levels of the merkle tree.
  * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for

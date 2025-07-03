@@ -4,9 +4,9 @@ pragma circom 2.1.4;
 
 include "../../../node_modules/circomlib/circuits/comparators.circom";
 
-/*
-Circuit checks that user corresponding to certain zkKYC record has reached age threshold
-*/
+/**
+ * Circuit checks that user corresponding to certain zkKYC record has reached age threshold
+ */
 template AgeProof(){
     // age info from 
     signal input yearOfBirth;

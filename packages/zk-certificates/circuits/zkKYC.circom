@@ -13,7 +13,15 @@ include "./providerSignatureCheck.circom";
 include "./shamirsSecretSharing.circom";
 
 /**
- * Circuit to check that, given zkKYC infos we calculate the corresponding leaf hash
+ * Circuit for ZK KYC proofs. It checks that:
+ * 1. the user is authorized to use the proof
+ * 2. the user is the owner of the pubkey behind the holder commitment
+ * 3. the user's data matches the zkCert hash
+ * 4. the provider signed the zkCert
+ * 5. the merkle proof is valid showing that the zkCert hash is in the merkle tree
+ * 6. the zkCert has not expired yet
+ * 7. calculates the humanID for the user and dApp combination
+ * 8. (optional) using shamir's secret sharing for enabling the Galactica investigation module
  *
  * @param levels - number of levels of the merkle tree.
  * @param maxExpirationLengthDays - maximum number of days that a verificationSBT can be valid for
