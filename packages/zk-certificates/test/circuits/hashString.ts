@@ -10,17 +10,17 @@ import { hashMessage } from '../../lib/poseidon';
 
 use(chaiAsPromised);
 
-describe('Poseidon Sponge Circuit', () => {
+describe('Hash String Using Poseidon Sponge Circuit', () => {
   let circuit: CircuitTestUtils;
 
   const sampleInput = JSON.parse(
-    readFileSync('./circuits/input/poseidonSponge.json', 'utf8'),
+    readFileSync('./circuits/input/hashString.json', 'utf8'),
   );
 
   const sanityCheck = true;
 
   before(async () => {
-    circuit = await hre.circuitTest.setup('poseidonSponge');
+    circuit = await hre.circuitTest.setup('hashString');
   });
 
   it('produces a witness with valid constraints', async () => {

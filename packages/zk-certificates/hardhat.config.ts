@@ -212,9 +212,9 @@ const config: HardhatUserConfig = {
         input: 'input/twitterZkCertificate.json',
       },
       {
-        name: 'poseidonSponge',
-        circuit: 'mains/poseidonSponge.main.circom',
-        input: 'input/poseidonSponge.json',
+        name: 'hashString',
+        circuit: 'mains/hashString.main.circom',
+        input: 'input/hashString.json',
       },
       {
         name: 'twitterCreationTimeProof',

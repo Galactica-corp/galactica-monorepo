@@ -16,7 +16,7 @@ template Polynomial(k, n) {
 
     // Calculate the polynomial by adding up terms
     // We can reduce the number of multiplication by a factor of 2 if we calculate the polynomial from the other side,
-    // i.e. f(x) = a_0 + a_1x + a_2x^2 + a_3x^3 = a_0 + x(a_1 + x(a_2 + xa_3))
+    // i.e. f(x) = a_0 + a_1*x + a_2*x^2 + a_3*x^3 = a_0 + x(a_1 + x(a_2 + x*a_3))
     signal summingUp[n][k+1];
     for (var pointIndex = 0; pointIndex < n; pointIndex++) {
         summingUp[pointIndex][0] <== coef[k-1];
