@@ -3,7 +3,7 @@
  * Main difference to merkle trees on Ethereum is that they use the poseidon hash, which is more zk friendly.
  */
 
-pragma circom 2.1.4;
+pragma circom 2.2.2;
 
 include "../../../node_modules/circomlib/circuits/bitify.circom";
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
