@@ -4,14 +4,13 @@ import { ethers, network } from 'hardhat';
 import { deploySC } from '../../lib/hardhatHelpers';
 
 /**
- * Deploys a contract that everyone can use to submit encrypted Data for on-chain storage.
+ * Deploys the Multicall3 library.
  */
 async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log(
-    `Deploying contracts with account ${await deployer.getAddress()} on network ${
-      network.name
+    `Deploying contracts with account ${await deployer.getAddress()} on network ${network.name
     }`,
   );
 

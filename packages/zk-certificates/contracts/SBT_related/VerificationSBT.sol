@@ -7,7 +7,7 @@ import {IERC721} from '@openzeppelin/contracts/token/ERC721/extensions/IERC721Me
 import {Fallback} from '../helpers/Fallback.sol';
 
 /// @author Galactica dev team
-/// @title A global smart contract that store verification SBTs, minted by dApp for users submitting zk proofs
+/// @title Soul-bound NFTs representing passed ZK proof verification, minted by dApps for accounts submitting the proof.
 contract VerificationSBT is IVerificationSBT, Fallback {
     // mapping to store verification SBT
     mapping(uint256 => VerificationSBTInfo) public sbtData;
