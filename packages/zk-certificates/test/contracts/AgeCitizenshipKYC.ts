@@ -175,10 +175,16 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     // random user cannot change the addresses
     await expect(
       sc.ageCitizenshipKYC.connect(acc.user).setVerifier(acc.user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      sc.ageCitizenshipKYC,
+      'OwnableUnauthorizedAccount',
+    );
     await expect(
       sc.ageCitizenshipKYC.connect(acc.user).setKYCRegistry(acc.user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      sc.ageCitizenshipKYC,
+      'OwnableUnauthorizedAccount',
+    );
 
     // owner can change addresses
     await sc.ageCitizenshipKYC
@@ -302,7 +308,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     const publicTime = parseInt(
       proof.publicInputs[
-        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+      Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
       ],
       16,
     );
@@ -465,7 +471,10 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     await expect(
       sc.ageCitizenshipKYC.connect(acc.user).setAgeThreshold(12),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      sc.ageCitizenshipKYC,
+      'OwnableUnauthorizedAccount',
+    );
 
     await sc.ageCitizenshipKYC.connect(acc.deployer).setAgeThreshold(21);
     expect(await sc.ageCitizenshipKYC.ageThreshold()).to.equal(21);
@@ -490,7 +499,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     const publicTime = parseInt(
       proof.publicInputs[
-        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+      Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
       ],
       16,
     );

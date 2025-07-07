@@ -80,12 +80,18 @@ describe('zkCertificate followers count proof', () => {
       twitterFollowersCountThresholdContract
         .connect(user)
         .setVerifier(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      twitterFollowersCountThresholdContract,
+      'OwnableUnauthorizedAccount',
+    );
     await expect(
       twitterFollowersCountThresholdContract
         .connect(user)
         .setRegistry(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      twitterFollowersCountThresholdContract,
+      'OwnableUnauthorizedAccount',
+    );
 
     // owner can change addresses
     await twitterFollowersCountThresholdContract
@@ -112,13 +118,13 @@ describe('zkCertificate followers count proof', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
+      Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(
-          await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
-        )
+      Number(
+        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
+      )
       ],
       10,
     );
@@ -149,13 +155,13 @@ describe('zkCertificate followers count proof', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
+      Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(
-          await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
-        )
+      Number(
+        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
+      )
       ],
       10,
     );
@@ -190,13 +196,13 @@ describe('zkCertificate followers count proof', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
+      Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(
-          await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
-        )
+      Number(
+        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
+      )
       ],
       10,
     );
@@ -236,7 +242,7 @@ describe('zkCertificate followers count proof', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
+      Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
       ];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
@@ -267,12 +273,12 @@ describe('zkCertificate followers count proof', () => {
     );
     expect(
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_IS_VALID())
+      Number(await twitterFollowersCountThresholdContract.INDEX_IS_VALID())
       ],
     ).to.be.equal('0');
     const publicRoot =
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
+      Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
       ];
     // set the merkle root to the correct one
 
@@ -319,13 +325,13 @@ describe('zkCertificate followers count proof', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
+      Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(
-          await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
-        )
+      Number(
+        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
+      )
       ],
       10,
     );
@@ -359,13 +365,13 @@ describe('zkCertificate followers count proof', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
+      Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(
-          await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
-        )
+      Number(
+        await twitterFollowersCountThresholdContract.INDEX_CURRENT_TIME(),
+      )
       ],
       10,
     );
@@ -402,12 +408,12 @@ describe('zkCertificate followers count proof', () => {
     );
     expect(
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_IS_VALID())
+      Number(await twitterFollowersCountThresholdContract.INDEX_IS_VALID())
       ],
     ).to.be.equal('0');
     const publicRoot =
       publicSignals[
-        Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
+      Number(await twitterFollowersCountThresholdContract.INDEX_ROOT())
       ];
     // set the merkle root to the correct one
 
