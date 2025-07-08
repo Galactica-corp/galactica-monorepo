@@ -10,7 +10,8 @@ async function main() {
   const [deployer] = await ethers.getSigners();
 
   console.log(
-    `Deploying contracts with account ${await deployer.getAddress()} on network ${network.name
+    `Deploying contracts with account ${await deployer.getAddress()} on network ${
+      network.name
     }`,
   );
 

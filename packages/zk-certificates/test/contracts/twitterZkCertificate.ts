@@ -113,7 +113,7 @@ describe('zkCertificate SC', () => {
       publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -146,7 +146,7 @@ describe('zkCertificate SC', () => {
       publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -183,7 +183,7 @@ describe('zkCertificate SC', () => {
       publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -252,7 +252,7 @@ describe('zkCertificate SC', () => {
     );
     expect(
       publicSignals[
-      Number(await twitterZkCertificateContract.INDEX_IS_VALID())
+        Number(await twitterZkCertificateContract.INDEX_IS_VALID())
       ],
     ).to.be.equal('0');
     const publicRoot =
@@ -304,7 +304,7 @@ describe('zkCertificate SC', () => {
       publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -340,7 +340,7 @@ describe('zkCertificate SC', () => {
       publicSignals[Number(await twitterZkCertificateContract.INDEX_ROOT())];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
+        Number(await twitterZkCertificateContract.INDEX_CURRENT_TIME())
       ],
       10,
     );

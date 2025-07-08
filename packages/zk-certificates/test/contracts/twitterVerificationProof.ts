@@ -111,11 +111,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_ROOT())
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -146,11 +146,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_ROOT())
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -185,11 +185,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_ROOT())
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -229,7 +229,7 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_ROOT())
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
@@ -260,12 +260,12 @@ describe('twitterVerificationProof SC', () => {
     );
     expect(
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_IS_VALID())
+        Number(await twitterVerificationProofContract.INDEX_IS_VALID())
       ],
     ).to.be.equal('0');
     const publicRoot =
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_ROOT())
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     // set the merkle root to the correct one
 
@@ -312,11 +312,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_ROOT())
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -350,11 +350,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_ROOT())
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -403,7 +403,7 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-      Number(await twitterVerificationProofContract.INDEX_ROOT())
+        Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
