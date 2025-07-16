@@ -1,9 +1,10 @@
-import { FunctionComponent, ReactNode, useContext } from 'react';
+import type { FunctionComponent, ReactNode } from 'react';
+import { useContext } from 'react';
 import styled from 'styled-components';
-import { Footer, Header } from '../../galactica-dapp/src/components';
 
-import { GlobalStyle } from '../../galactica-dapp/src/config/theme';
 import { ToggleThemeContext } from './Root';
+import { Footer, Header } from '../../galactica-dapp/src/components';
+import { GlobalStyle } from '../../galactica-dapp/src/config/theme';
 
 const Wrapper = styled.div`
   display: flex;

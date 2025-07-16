@@ -1,5 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // SPDX-License-Identifier: BUSL-1.1
-import type { HolderCommitmentData } from '@galactica-net/galactica-types';
+import type {
+  EncryptedZkCert,
+  HolderCommitmentData,
+} from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
   ImportZkCertParams,
@@ -15,11 +19,19 @@ import {
   RpcResponseMsg,
   GenericError,
   URLUpdateError,
+  ZkCertStandard,
 } from '@galactica-net/snap-api';
+import {
+  UserInputEventType,
+  type OnHomePageHandler,
+  type OnUserInputHandler,
+} from '@metamask/snaps-sdk';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
+import { base64ToBytes, bytesToString } from '@metamask/utils';
 import { basicURLParse } from 'whatwg-url';
 
+import { StartPage } from './components/start-page';
 import {
   checkEncryptedZkCertFormat,
   decryptZkCert,
@@ -595,4 +607,133 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   // forward to common function shared with unit tests
   // passing global objects object from snap environment
   return await processRpcRequest({ origin, request }, snap, ethereum);
+};
+
+/**
+ * Handle incoming user events coming from the MetaMask clients open interfaces.
+ * @param params - The event parameters.
+ * @param params.id - The Snap interface ID where the event was fired.
+ * @param params.event - The event object containing the event type, name and value.
+ * @see https://docs.metamask.io/snaps/reference/exports/#onuserinput
+ */
+export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
+  const state = await getState(snap);
+
+  if (
+    event.type === UserInputEventType.FileUploadEvent &&
+    event.file !== null
+  ) {
+    try {
+      const encryptedZkCert: EncryptedZkCert = JSON.parse(
+        bytesToString(base64ToBytes(event.file.contents)),
+      );
+      checkEncryptedZkCertFormat(encryptedZkCert);
+
+      const holder = getHolder(encryptedZkCert.holderCommitment, state.holders);
+
+      const zkCert = decryptZkCert(encryptedZkCert, holder.encryptionPrivKey);
+      const searchedZkCert = state.zkCerts.find(
+        (candidate) =>
+          candidate.leafHash === zkCert.leafHash &&
+          candidate.registration.address === zkCert.registration.address &&
+          candidate.zkCertStandard === zkCert.zkCertStandard,
+      );
+      if (searchedZkCert) {
+        throw new Error('This zkCert has already been imported');
+      }
+
+      state.zkCerts.push(zkCert);
+      await saveState(snap, state);
+      await snap.request({
+        // @ts-ignore
+        method: 'snap_updateInterface',
+        // @ts-ignore
+        params: {
+          id,
+          ui: (
+            <StartPage
+              activeTab={zkCert.zkCertStandard}
+              zkCerts={state.zkCerts}
+              holders={state.holders.map(
+                ({ holderCommitment }) => holderCommitment,
+              )}
+            />
+          ),
+        },
+      });
+      // eslint-disable-next-line id-length
+    } catch (e) {
+      const error = (e as Error).message;
+      await snap.request({
+        // @ts-ignore
+        method: 'snap_updateInterface',
+        // @ts-ignore
+        params: {
+          id,
+          ui: (
+            <StartPage
+              error={error}
+              activeTab={ZkCertStandard.ZkKYC}
+              zkCerts={state.zkCerts}
+              holders={state.holders.map(
+                ({ holderCommitment }) => holderCommitment,
+              )}
+            />
+          ),
+        },
+      });
+    }
+  }
+
+  if (event.type === UserInputEventType.ButtonClickEvent) {
+    let activeTab = ZkCertStandard.Exchange;
+
+    if (event.name?.includes(ZkCertStandard.ZkKYC)) {
+      activeTab = ZkCertStandard.ZkKYC;
+    }
+
+    if (event.name?.includes(ZkCertStandard.Twitter)) {
+      activeTab = ZkCertStandard.Twitter;
+    }
+
+    if (event.name?.includes('delete-cert-id')) {
+      const leafHash = event.name.replace('delete-cert-id-', '');
+      const newCerts = state.zkCerts.filter(
+        (cert) => cert.leafHash !== leafHash,
+      );
+      state.zkCerts = newCerts;
+      await saveState(snap, state);
+    }
+
+    await snap.request({
+      // @ts-ignore
+      method: 'snap_updateInterface',
+      // @ts-ignore
+      params: {
+        id,
+        ui: (
+          <StartPage
+            activeTab={activeTab}
+            zkCerts={state.zkCerts}
+            holders={state.holders.map(
+              ({ holderCommitment }) => holderCommitment,
+            )}
+          />
+        ),
+      },
+    });
+  }
+};
+
+export const onHomePage: OnHomePageHandler = async () => {
+  const state = await getState(snap);
+  return {
+    content: (
+      <StartPage
+        activeTab={ZkCertStandard.ZkKYC}
+        zkCerts={state.zkCerts}
+        holders={state.holders.map(({ holderCommitment }) => holderCommitment)}
+      />
+    ),
+  };
 };
