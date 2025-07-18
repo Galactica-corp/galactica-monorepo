@@ -47,4 +47,8 @@ RPC functions specific to the Galactica Snap can be found in the [JSON RPC API](
 
 You can also take a look at the example front-end DApp located in [packages/galactica-dapp](../galactica-dapp/).
 
-If you want to publish beta versions, those need to go to another NPM package so that users can continue to use the stable version in the meantime. Therefore, you can find beta versions here: `npm:@galactica-net/snap-beta`
+To publish the snap on NPM, you can run
+```shell
+yarn npm login
+yarn npm publish
+```
