@@ -75,10 +75,16 @@ describe('twitterVerificationProof SC', () => {
     // random user cannot change the addresses
     await expect(
       twitterVerificationProofContract.connect(user).setVerifier(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      twitterVerificationProofContract,
+      'OwnableUnauthorizedAccount',
+    );
     await expect(
       twitterVerificationProofContract.connect(user).setRegistry(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      twitterVerificationProofContract,
+      'OwnableUnauthorizedAccount',
+    );
 
     // owner can change addresses
     await twitterVerificationProofContract

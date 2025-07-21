@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.28;
 
-import './Ownable.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IGuardianRegistry.sol';
 import {Fallback} from './helpers/Fallback.sol';
 

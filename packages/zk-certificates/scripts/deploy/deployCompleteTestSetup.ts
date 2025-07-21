@@ -152,9 +152,6 @@ KYCRequirementsDemo-CircomVerifier: ${JSON.stringify(
 KYCRequirementsDemo-AgeCitizenshipKYC: ${JSON.stringify(
     await kycRequirementsDemoContracts.ageCitizenshipKYC.getAddress(),
   )}
-KYCRequirementsDemo-CompliantERC20: ${JSON.stringify(
-    await kycRequirementsDemoContracts.compliantERC20.getAddress(),
-  )}
 KYCRequirementsDemo-SBT: ${JSON.stringify(kycRequirementsDemoContracts.sbtAddr)}
 
 

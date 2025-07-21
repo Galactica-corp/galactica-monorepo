@@ -8,6 +8,7 @@ import {BasicKYCExampleDApp} from './BasicKYCExampleDApp.sol';
  * @title NonUSProverDApp
  * @author Galactica dev team
  * @notice A DApp to proof that users are not US citizens using zkKYC.
+ * @dev This file is giving the smart contract an understandable name in the block explorer. The actual logic happens in the BasicKYCExampleDApp.sol and the verifierWrapper.sol.
  */
 contract NonUSProverDApp is BasicKYCExampleDApp {
     constructor(

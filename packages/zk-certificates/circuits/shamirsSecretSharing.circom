@@ -1,20 +1,20 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-pragma circom 2.1.4;
+pragma circom 2.2.2;
 
 include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 include "polynomial.circom";
 
-/*
-    Circuit to generate Shamir's Secret Sharing shares.
-    It takes a scecret and splits it into n fragments, of which k are needed to reconstruct the secret.
-
-    https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing
-
-    Parameters:
-    n: number of shares to generate
-    k: number of shares needed to reconstruct the secret
-*/
+/**
+ * Circuit to generate Shamir's Secret Sharing shares.
+ * It takes a scecret and splits it into n fragments, of which k are needed to reconstruct the secret.
+ *
+ * https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing
+ *
+ * Parameters:
+ *   n: number of shares to generate
+ *   k: number of shares needed to reconstruct the secret
+ */
 template ShamirsSecretSharing(n, k) {
     // the secret to be shared
     signal input secret;

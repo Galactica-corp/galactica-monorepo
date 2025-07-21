@@ -75,10 +75,16 @@ describe('zkCertificate SC', () => {
     // random user cannot change the addresses
     await expect(
       twitterZkCertificateContract.connect(user).setVerifier(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      twitterZkCertificateContract,
+      'OwnableUnauthorizedAccount',
+    );
     await expect(
       twitterZkCertificateContract.connect(user).setRegistry(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      twitterZkCertificateContract,
+      'OwnableUnauthorizedAccount',
+    );
 
     // owner can change addresses
     await twitterZkCertificateContract
