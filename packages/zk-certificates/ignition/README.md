@@ -57,6 +57,45 @@ The deployment system has been refactored from traditional Hardhat scripts to us
 - Orchestrates deployment of all components
 - Currently uses individual modules above
 
+### Utility Modules
+
+#### 8. Multicall3.m.ts (**✅ Successfully tested**)
+- Deploys the Multicall3 library for batched contract calls
+- Simple standalone module with no dependencies
+
+#### 9. UserEncryptedData.m.ts (**✅ Successfully tested**)
+- Deploys contract for on-chain encrypted data storage
+- Simple standalone module with no dependencies
+
+### SBT Modules
+
+#### 10. GalacticaOfficialSBT.m.ts (**✅ Successfully tested**)
+- Deploys Galactica official SBT contracts
+- Configurable issuer, owner, URI, name, and symbol via parameters
+
+#### 11. ClaimrSBT.m.ts
+- Deploys Claimr signed SBT contracts
+- Configurable signee address and SBT metadata
+
+### Social Verification Modules
+
+#### 12. TwitterProofs.m.ts
+- Deploys Twitter verification proofs infrastructure
+- **❌ Needs verifier contracts** (requires circom build)
+- Includes both creation time and followers count verification
+
+### Compliance Modules
+
+#### 13. KYCRequirementsDemo.m.ts
+- Deploys KYC requirements demo DApp
+- **❌ Needs verifier contracts** (requires circom build)
+- Includes sanctioned countries configuration
+
+#### 14. KYCComplianceProofs.m.ts
+- Deploys comprehensive KYC compliance verification system
+- **❌ Needs verifier contracts** (requires circom build)
+- Includes NonUS, NonSanctioned, and Age18+ verifications
+
 ## Parameter Files
 
 Parameter files in `ignition/params/` allow customization of deployments:
@@ -64,6 +103,11 @@ Parameter files in `ignition/params/` allow customization of deployments:
 - `infrastructure.json` - Core infrastructure parameters
 - `basic-kyc-example.json` - BasicKYC example parameters  
 - `complete-test-setup.json` - Full deployment parameters
+- `galactica-official-sbt.json` - Galactica official SBT parameters
+- `claimr-sbt.json` - Claimr signed SBT parameters
+- `twitter-proofs.json` - Twitter verification parameters
+- `kyc-requirements-demo.json` - KYC demo parameters
+- `kyc-compliance-proofs.json` - KYC compliance verification parameters
 
 ### Parameter Structure
 ```json
@@ -94,6 +138,19 @@ yarn hardhat ignition deploy ignition/modules/Infrastructure.m.ts --parameters i
 
 # Deploy BasicKYC example
 yarn hardhat ignition deploy ignition/modules/BasicKYCExample.m.ts --parameters ignition/params/basic-kyc-example.json
+
+# Deploy utility contracts
+yarn hardhat ignition deploy ignition/modules/Multicall3.m.ts
+yarn hardhat ignition deploy ignition/modules/UserEncryptedData.m.ts
+
+# Deploy SBT contracts
+yarn hardhat ignition deploy ignition/modules/GalacticaOfficialSBT.m.ts --parameters ignition/params/galactica-official-sbt.json
+yarn hardhat ignition deploy ignition/modules/ClaimrSBT.m.ts --parameters ignition/params/claimr-sbt.json
+
+# Deploy verification systems (requires circom setup)
+yarn hardhat ignition deploy ignition/modules/TwitterProofs.m.ts --parameters ignition/params/twitter-proofs.json
+yarn hardhat ignition deploy ignition/modules/KYCRequirementsDemo.m.ts --parameters ignition/params/kyc-requirements-demo.json
+yarn hardhat ignition deploy ignition/modules/KYCComplianceProofs.m.ts --parameters ignition/params/kyc-compliance-proofs.json
 ```
 
 ### Deploy to Specific Networks
@@ -124,6 +181,13 @@ The following old deployment scripts have been migrated:
 | `scripts/deploy/deploymentSteps/basicKYCExampleDApp.ts` | `BasicKYCExample.m.ts` | ✅ Complete |
 | `scripts/deploy/deploymentSteps/exampleDApp.ts` | `ExampleDApp.m.ts` | 🔄 In Progress |
 | `scripts/deploy/deployCompleteTestSetup.ts` | `CompleteTestSetup.m.ts` | 🔄 In Progress |
+| `scripts/deploy/deployMulticall3.ts` | `Multicall3.m.ts` | ✅ Complete |
+| `scripts/deploy/deployUserEncryptedDataSC.ts` | `UserEncryptedData.m.ts` | ✅ Complete |
+| `scripts/deploy/deployGalacticaOfficialSBT.ts` | `GalacticaOfficialSBT.m.ts` | ✅ Complete |
+| `scripts/deploy/deployClaimrSBT.ts` | `ClaimrSBT.m.ts` | ✅ Complete |
+| `scripts/deploy/deployTwitterProofs.ts` | `TwitterProofs.m.ts` | ✅ Complete |
+| `scripts/deploy/deployKYCRequirementsDemo.ts` | `KYCRequirementsDemo.m.ts` | ✅ Complete |
+| `scripts/deploy/deployKYCComplianceProofs.ts` | `KYCComplianceProofs.m.ts` | ✅ Complete |
 
 ## Key Improvements
 
@@ -151,6 +215,9 @@ The following old deployment scripts have been migrated:
 
 ✅ **Infrastructure Module**: Deployed successfully with all components  
 ✅ **BasicKYCExample Module**: Complete deployment with SBT functionality  
+✅ **Multicall3 Module**: Successfully deployed utility library
+✅ **UserEncryptedData Module**: Successfully deployed data storage contract
+✅ **GalacticaOfficialSBT Module**: Successfully deployed with configurable parameters
 ✅ **Poseidon Preparation**: Artifact generation working  
 ✅ **Parameter Validation**: All constructor parameters validated  
 ✅ **Guardian Role Setup**: Institution accounts configured as guardians  

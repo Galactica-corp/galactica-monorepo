@@ -1,0 +1,8 @@
+{
+  "KYCRequirementsDemoModule": {
+    "recordRegistryAddr": "0x68272A56A0e9b095E5606fDD8b6c297702C0dfe5",
+    "sbtUri": "ipfs://QmRXjRe3w6ZTbuf1yhanzkEcvyyB9HymkNf4NMQQk5pNpC",
+    "sbtName": "Compliance Demo Verification SBT",
+    "sbtSymbol": "COMP"
+  }
+}

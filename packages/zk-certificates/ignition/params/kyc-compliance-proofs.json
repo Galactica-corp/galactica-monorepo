@@ -1,0 +1,14 @@
+{
+  "KYCComplianceProofsModule": {
+    "recordRegistryAddr": "0x68272A56A0e9b095E5606fDD8b6c297702C0dfe5",
+    "nonUSUri": "ipfs://Qmc7fCZDftWvgsPuW2kVALEdUWWWTq9oKTP3vUXpct6mgP",
+    "nonUSName": "KYC Non-US Verification",
+    "nonUSSymbol": "NONUS",
+    "nonSanctionedUri": "ipfs://QmcxfT4459adX7PX9j4D5AsSpe2o3ZtDN9YU9VHNzinowH",
+    "nonSanctionedName": "KYC Non-sanctioned citizenship Verification",
+    "nonSanctionedSymbol": "NONSAN",
+    "age18Uri": "ipfs://QmYiRsyQ3iEEVg7LUKS6E77pUbTnBoUHAXMG434bBu2Lp1",
+    "age18Name": "KYC 18+ Verification",
+    "age18Symbol": "KYC18"
+  }
+}
