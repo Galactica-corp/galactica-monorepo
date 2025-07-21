@@ -7,6 +7,8 @@ import { task } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
+import { postProcessSolidityVerifier } from './verifierPostProcessing';
+
 /**
  * Script (re)building circom circuits when needed.
  * @param args - Task arguments.
@@ -126,29 +128,7 @@ async function smartCircuitBuild(
       );
       await hre.run('circom', { circuit: circuit.name });
 
-      const contentBefore = fs.readFileSync(verifierPath, 'utf8');
-      const contentAfter = contentBefore
-        // Make contract names unique so that hardhat does not complain
-        .replace(
-          /contract Groth16Verifier \{/gu,
-          `contract ${verifierName}Verifier {`,
-        )
-        // Allow dynamic length array as _pubSignals (including spaces to only replace the instance in the verifier function)
-        .replace(
-          / uint\[[0-9]*\] calldata _pubSignals/gu,
-          ` uint[] calldata _pubSignals`,
-        )
-        // Adjust the now variable length array _pubSignals correctly
-        .replace(
-          /calldataload\(add\(_pubSignals/gu,
-          `calldataload(add(_pubSignals.offset`,
-        )
-        .replace(
-          / checkPairing\(_pA, _pB, _pC, _pubSignals/gu,
-          ` checkPairing(_pA, _pB, _pC, _pubSignals.offset`,
-        );
-
-      fs.writeFileSync(verifierPath, contentAfter, 'utf8');
+      postProcessSolidityVerifier(verifierPath, verifierName);
 
       // Write JSON of build config for that circuit to detect changes
       const buildConfig = {

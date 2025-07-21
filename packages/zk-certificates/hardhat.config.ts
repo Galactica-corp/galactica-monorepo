@@ -14,6 +14,7 @@ import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
 import './tasks/hashStringToField';
 import './tasks/reliefZkCertQueue';
+import './tasks/integrateCeremonyResults';
 
 const config: HardhatUserConfig = {
   mocha: {
