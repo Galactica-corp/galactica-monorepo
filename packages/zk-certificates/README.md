@@ -142,5 +142,5 @@ To make the prover available to the snap, you still need to run
 
 ```shell
 cd ../snap
-yarn proofPrep <CIRCUIT_NAME>
+yarn proofPrep  --circuitName <CIRCUIT_NAME>
 ```
