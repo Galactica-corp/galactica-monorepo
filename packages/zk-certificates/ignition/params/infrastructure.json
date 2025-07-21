@@ -1,0 +1,10 @@
+{
+  "GuardianRegistryModule": {
+    "description": "ZkKYC GuardianRegistry"
+  },
+  "InfrastructureModule": {
+    "merkleDepth": 32,
+    "queueExpirationTime": 300,
+    "description": "ZkKYC RecordRegistry"
+  }
+}

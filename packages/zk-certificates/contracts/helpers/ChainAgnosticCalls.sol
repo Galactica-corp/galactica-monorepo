@@ -19,7 +19,7 @@ contract ChainAgnosticCalls {
      * @dev On Arbitrum, we need to use the ArbSys contract to get the block number of the L2 instead of the L1.
      * @return blockNumber The block number
      */
-    function getBlockNumber() public view returns (uint256 blockNumber) {
+    function getBlockNumber() public view virtual returns (uint256 blockNumber) {
         if (
             block.chainid == 42161 || // Arbitrum One
             block.chainid == 421614 || // Arbitrum Nova

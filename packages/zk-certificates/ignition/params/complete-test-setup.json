@@ -1,0 +1,29 @@
+{
+  "GuardianRegistryModule": {
+    "description": "ZkKYC GuardianRegistry"
+  },
+  "InfrastructureModule": {
+    "merkleDepth": 32,
+    "queueExpirationTime": 300,
+    "description": "ZkKYC RecordRegistry"
+  },
+  "RepeatableZKPTestModule": {
+    "sbtUri": "ipfs://QmVG5b34f8DHGnPZQwi1GD4NUXEVhh7bTub5SG6MPHvHz6",
+    "sbtName": "Repeatable KYC Verification SBT",
+    "sbtSymbol": "KYCREP"
+  },
+  "BasicKYCExampleModule": {
+    "sbtUri": "ipfs://QmdYZJP26w8dXHvR9g5Bykw4Ziqvgrst6p9XesZeR1qa2R",
+    "sbtName": "KYC Verification SBT",
+    "sbtSymbol": "KYCOK"
+  },
+  "ExampleDAppModule": {
+    "sbtUri": "ipfs://QmX2EppfoPMNEMqf55CsTHJr1565UheAonDGb9w1bAW96z",
+    "sbtName": "Airdrop Example SBT",
+    "sbtSymbol": "KYCDROP",
+    "ageThreshold": 0
+  },
+  "CompleteTestSetupModule": {
+    "guardianMetadata": "ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx"
+  }
+}
