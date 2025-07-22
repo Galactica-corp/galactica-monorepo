@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Certificate Telegram",
+  "description": "Certificate content for Telegram account verification data.",
+  "type": "object",
+  "properties": {
+    "activeDaysCount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The number of days the account has been active."
+    },
+    "contactWithAtLeast10MessagesCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The number of contacts with at least 10 messages."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The timestamp when the account was created. Must be less than the current time."
+    },
+    "meanMonthlyMessageCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The average number of messages sent per month."
+    }
+  },
+  "required": [
+    "activeDaysCount",
+    "createdAt"
+  ]
+}

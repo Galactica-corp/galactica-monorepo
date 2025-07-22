@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Certificate CEX",
+  "description": "Certificate content for verification of trading on a centralized exchange.",
+  "type": "object",
+  "properties": {
+    "totalSwapVolume": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The total volume of swap transactions on the centralized exchange."
+    },
+    "swapVolumeYear": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The volume of swap transactions over the past year."
+    },
+    "swapVolumeHalfYear": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The volume of swap transactions over the past half year (6 months)."
+    }
+  },
+  "required": [
+    "totalSwapVolume"
+  ]
+}

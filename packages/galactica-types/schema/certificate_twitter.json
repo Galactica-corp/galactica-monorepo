@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Certificate Twitter",
+  "description": "Certificate content for X/Twitter account verification data.",
+  "type": "object",
+  "properties": {
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The timestamp when the account was created. Must be less than the current time."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "description": "The numeric ID of the Twitter account."
+    },
+    "followersCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The number of followers the account has."
+    },
+    "followingCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The number of accounts the user is following."
+    },
+    "listedCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The number of lists the account is a member of."
+    },
+    "tweetCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The number of tweets the account has posted."
+    },
+    "username": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 15,
+      "description": "The username of the Twitter account."
+    },
+    "verified": {
+      "type": "boolean",
+      "description": "Whether the account is verified."
+    }
+  },
+  "required": [
+    "createdAt",
+    "id",
+    "username"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Certificate DEX",
+  "description": "Certificate content for verification of trading on a decentralized exchange.",
+  "type": "object",
+  "properties": {
+    "address": {
+      "type": "string",
+      "format": "ethereum-address",
+      "description": "The Ethereum address of the decentralized exchange."
+    },
+    "totalSwapVolume": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The total volume of swap transactions on the decentralized exchange."
+    },
+    "swapVolumeYear": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The volume of swap transactions over the past year."
+    },
+    "swapVolumeHalfYear": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The volume of swap transactions over the past half year (6 months)."
+    }
+  },
+  "required": [
+    "address",
+    "totalSwapVolume"
+  ]
+}

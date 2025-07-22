@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Certificate KYC",
+  "description": "Certificate content for Know Your Customer (KYC) verification data containing various fields required for identity verification and validation.",
+  "type": "object",
+  "properties": {
+    "surname": {
+      "type": "string",
+      "description": "The surname (last name) of the individual."
+    },
+    "forename": {
+      "type": "string",
+      "description": "The forename (first name) of the individual."
+    },
+    "middlename": {
+      "type": "string",
+      "description": "The middle name of the individual."
+    },
+    "yearOfBirth": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535,
+      "description": "The year of birth of the individual."
+    },
+    "monthOfBirth": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 12,
+      "description": "The month of birth of the individual (1-12)."
+    },
+    "dayOfBirth": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 31,
+      "description": "The day of birth of the individual (1-31)."
+    },
+    "citizenship": {
+      "type": "string",
+      "format": "iso3166_1_alpha3",
+      "description": "The citizenship of the individual as an ISO 3166-1 alpha-3 country code."
+    },
+    "verificationLevel": {
+      "type": "number",
+      "enum": [
+        0,
+        1,
+        2
+      ],
+      "description": "The level of KYC verification achieved."
+    },
+    "streetAndNumber": {
+      "type": "string",
+      "description": "The street name and house number of the individual's address."
+    },
+    "postcode": {
+      "type": "string",
+      "description": "The postal code of the individual's address."
+    },
+    "town": {
+      "type": "string",
+      "description": "The town or city of the individual's address."
+    },
+    "region": {
+      "type": "string",
+      "format": "iso3166_2",
+      "description": "The region of the individual's address as an ISO 3166-2 code."
+    },
+    "country": {
+      "type": "string",
+      "format": "iso3166_1_alpha3",
+      "description": "The country of the individual's address as an ISO 3166-1 alpha-3 country code."
+    }
+  },
+  "required": [
+    "surname",
+    "forename",
+    "yearOfBirth",
+    "monthOfBirth",
+    "dayOfBirth",
+    "citizenship",
+    "country"
+  ]
+}
