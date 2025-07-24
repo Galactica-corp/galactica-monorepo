@@ -3,8 +3,8 @@
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 
-import guardianRegistryModule from './GuardianRegistry.m';
-import poseidonModule from './Poseidon.m';
+import guardianRegistryModule from '../GuardianRegistry.m';
+import poseidonModule from '../Poseidon.m';
 
 const ZkCertRegistryModule = buildModule('ZkCertRegistryModule', (module) => {
   const { guardianRegistry } = module.useModule(guardianRegistryModule);
