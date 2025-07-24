@@ -12,7 +12,7 @@ import type { BaseProvider } from '@metamask/providers';
 import { buildPoseidon } from 'circomlibjs';
 import { Contract, BrowserProvider } from 'ethers';
 
-import { fetchWithTimeout } from './utils';
+import { fetchWithTimeout, switchChain } from './utils';
 
 const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 
@@ -36,6 +36,7 @@ export async function getMerkleProof(
     return zkCert.merkleProof;
   }
 
+  await switchChain(zkCert.registration.chainID, ethereum);
   const provider = new BrowserProvider(ethereum);
   const registry = new Contract(
     registryAddr,
@@ -64,13 +65,17 @@ export async function getMerkleProof(
     zkCert.merkleProof.leafIndex = (zkCert.merkleProof as any).index;
   }
 
+  // console.log('snap debug', (await provider.getNetwork()).chainId);
+  // console.log('snap getting merkle proof', JSON.stringify(zkCert.registration), registryAddr);
   if (
     fromHexToDec(await registry.merkleRoot()) ===
     getMerkleRootFromProof(zkCert.merkleProof, poseidon)
   ) {
     // The merkle root is the same as the one in the zkCert, so we can just use the old one
+    // console.log("done same root");
     return zkCert.merkleProof;
   }
+  // console.log("done different root");
 
   // Because the registry is revocable, the merkle tree has probably changed since last time the zkCert was issued/used.
   // Therefore, we need to fetch the merkle proof from the node or regenerate the tree to calculate it.
