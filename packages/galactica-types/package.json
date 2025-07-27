@@ -18,10 +18,14 @@
     "build": "tsc",
     "debug": "eslint --print-config .eslintrc.js | grep -i sourceType",
     "start": "tsc --watch",
-    "test": "echo \"No test specified\""
+    "test": "echo \"No test specified\"",
+    "validate-schema": "sh -c 'for f in schema/*.json; do yarn ajv compile -s \"$f\" --spec=draft2020; done'"
   },
   "dependencies": {
     "@types/circomlibjs": "^0.1.6",
+    "ajv": "^8.17.1",
+    "ajv-cli": "^5.0.0",
+    "ajv-formats": "^3.0.1",
     "buffer": "^6.0.3"
   },
   "devDependencies": {
