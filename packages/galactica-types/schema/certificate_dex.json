@@ -25,8 +25,5 @@
       "description": "The volume of swap transactions over the past half year (6 months)."
     }
   },
-  "required": [
-    "address",
-    "totalSwapVolume"
-  ]
+  "required": ["address", "totalSwapVolume"]
 }

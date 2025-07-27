@@ -45,9 +45,5 @@
       "description": "Whether the account is verified."
     }
   },
-  "required": [
-    "createdAt",
-    "id",
-    "username"
-  ]
+  "required": ["createdAt", "id", "username"]
 }

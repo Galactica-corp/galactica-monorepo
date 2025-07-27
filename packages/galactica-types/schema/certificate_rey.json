@@ -31,8 +31,5 @@
       "description": "The faction identifier for REY."
     }
   },
-  "required": [
-    "xID",
-    "xUsername"
-  ]
+  "required": ["xID", "xUsername"]
 }
