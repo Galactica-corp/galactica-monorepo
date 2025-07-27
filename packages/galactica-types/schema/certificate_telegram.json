@@ -7,8 +7,7 @@
     "activeDaysCount": {
       "type": "integer",
       "minimum": 1,
-      "description": "The number of days the account has been active.",
-      "units": "days"
+      "description": "The number of days the account has been active."
     },
     "contactWithAtLeast10MessagesCount": {
       "type": "integer",
