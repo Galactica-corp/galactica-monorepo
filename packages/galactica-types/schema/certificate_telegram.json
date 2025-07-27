@@ -7,7 +7,8 @@
     "activeDaysCount": {
       "type": "integer",
       "minimum": 1,
-      "description": "The number of days the account has been active."
+      "description": "The number of days the account has been active.",
+      "units": "days"
     },
     "contactWithAtLeast10MessagesCount": {
       "type": "integer",
@@ -25,5 +26,8 @@
       "description": "The average number of messages sent per month."
     }
   },
-  "required": ["activeDaysCount", "createdAt"]
+  "required": [
+    "activeDaysCount",
+    "createdAt"
+  ]
 }

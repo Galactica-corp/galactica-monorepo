@@ -7,23 +7,30 @@
     "address": {
       "type": "string",
       "format": "ethereum-address",
-      "description": "The Ethereum address of the decentralized exchange."
+      "description": "The Ethereum address of the decentralized exchange.",
+      "units": "USD"
     },
     "totalSwapVolume": {
       "type": "string",
       "format": "decimal",
-      "description": "The total volume of swap transactions on the decentralized exchange."
+      "description": "The total volume of swap transactions on the decentralized exchange.",
+      "units": "USD"
     },
     "swapVolumeYear": {
       "type": "string",
       "format": "decimal",
-      "description": "The volume of swap transactions over the past year."
+      "description": "The volume of swap transactions over the past year.",
+      "units": "USD"
     },
     "swapVolumeHalfYear": {
       "type": "string",
       "format": "decimal",
-      "description": "The volume of swap transactions over the past half year (6 months)."
+      "description": "The volume of swap transactions over the past half year (6 months).",
+      "units": "USD"
     }
   },
-  "required": ["address", "totalSwapVolume"]
+  "required": [
+    "address",
+    "totalSwapVolume"
+  ]
 }

@@ -7,18 +7,23 @@
     "totalSwapVolume": {
       "type": "string",
       "format": "decimal",
-      "description": "The total volume of swap transactions on the centralized exchange."
+      "description": "The total volume of swap transactions on the centralized exchange.",
+      "units": "USD"
     },
     "swapVolumeYear": {
       "type": "string",
       "format": "decimal",
-      "description": "The volume of swap transactions over the past year."
+      "description": "The volume of swap transactions over the past year.",
+      "units": "USD"
     },
     "swapVolumeHalfYear": {
       "type": "string",
       "format": "decimal",
-      "description": "The volume of swap transactions over the past half year (6 months)."
+      "description": "The volume of swap transactions over the past half year (6 months).",
+      "units": "USD"
     }
   },
-  "required": ["totalSwapVolume"]
+  "required": [
+    "totalSwapVolume"
+  ]
 }
