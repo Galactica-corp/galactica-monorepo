@@ -18,18 +18,24 @@
     "reyScoreAll": {
       "type": "integer",
       "minimum": 0,
-      "description": "The overall REY score."
+      "description": "The overall REY score.",
+      "default": 0
     },
     "reyScoreGalactica": {
       "type": "integer",
       "minimum": 0,
-      "description": "The REY score specific to Galactica."
+      "description": "The REY score specific to Galactica.",
+      "default": 0
     },
     "reyFaction": {
       "type": "integer",
       "minimum": 0,
-      "description": "The faction identifier for REY."
+      "description": "The faction identifier for REY.",
+      "default": 0
     }
   },
-  "required": ["xID", "xUsername"]
+  "required": [
+    "xID",
+    "xUsername"
+  ]
 }

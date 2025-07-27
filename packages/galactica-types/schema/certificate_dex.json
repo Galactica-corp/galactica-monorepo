@@ -20,13 +20,15 @@
       "type": "string",
       "format": "decimal",
       "description": "The volume of swap transactions over the past year.",
-      "units": "USD"
+      "units": "USD",
+      "default": "0"
     },
     "swapVolumeHalfYear": {
       "type": "string",
       "format": "decimal",
       "description": "The volume of swap transactions over the past half year (6 months).",
-      "units": "USD"
+      "units": "USD",
+      "default": "0"
     }
   },
   "required": [

@@ -17,22 +17,26 @@
     "followersCount": {
       "type": "integer",
       "minimum": 0,
-      "description": "The number of followers the account has."
+      "description": "The number of followers the account has.",
+      "default": 0
     },
     "followingCount": {
       "type": "integer",
       "minimum": 0,
-      "description": "The number of accounts the user is following."
+      "description": "The number of accounts the user is following.",
+      "default": 0
     },
     "listedCount": {
       "type": "integer",
       "minimum": 0,
-      "description": "The number of lists the account is a member of."
+      "description": "The number of lists the account is a member of.",
+      "default": 0
     },
     "tweetCount": {
       "type": "integer",
       "minimum": 0,
-      "description": "The number of tweets the account has posted."
+      "description": "The number of tweets the account has posted.",
+      "default": 0
     },
     "username": {
       "type": "string",
@@ -42,8 +46,13 @@
     },
     "verified": {
       "type": "boolean",
-      "description": "Whether the account is verified."
+      "description": "Whether the account is verified.",
+      "default": false
     }
   },
-  "required": ["createdAt", "id", "username"]
+  "required": [
+    "createdAt",
+    "id",
+    "username"
+  ]
 }

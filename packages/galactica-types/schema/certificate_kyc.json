@@ -14,7 +14,8 @@
     },
     "middlename": {
       "type": "string",
-      "description": "The middle name of the individual."
+      "description": "The middle name of the individual.",
+      "default": ""
     },
     "yearOfBirth": {
       "type": "integer",
@@ -41,25 +42,34 @@
     },
     "verificationLevel": {
       "type": "number",
-      "enum": [0, 1, 2],
-      "description": "The level of KYC verification achieved."
+      "enum": [
+        0,
+        1,
+        2
+      ],
+      "description": "The level of KYC verification achieved.",
+      "default": 0
     },
     "streetAndNumber": {
       "type": "string",
-      "description": "The street name and house number of the individual's address."
+      "description": "The street name and house number of the individual's address.",
+      "default": ""
     },
     "postcode": {
       "type": "string",
-      "description": "The postal code of the individual's address."
+      "description": "The postal code of the individual's address.",
+      "default": ""
     },
     "town": {
       "type": "string",
-      "description": "The town or city of the individual's address."
+      "description": "The town or city of the individual's address.",
+      "default": ""
     },
     "region": {
       "type": "string",
       "format": "iso3166_2",
-      "description": "The region of the individual's address as an ISO 3166-2 code."
+      "description": "The region of the individual's address as an ISO 3166-2 code.",
+      "default": ""
     },
     "country": {
       "type": "string",

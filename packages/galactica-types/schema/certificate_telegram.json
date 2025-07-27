@@ -13,7 +13,8 @@
     "contactWithAtLeast10MessagesCount": {
       "type": "integer",
       "minimum": 0,
-      "description": "The number of contacts with at least 10 messages."
+      "description": "The number of contacts with at least 10 messages.",
+      "default": 0
     },
     "createdAt": {
       "type": "string",
@@ -23,7 +24,8 @@
     "meanMonthlyMessageCount": {
       "type": "integer",
       "minimum": 0,
-      "description": "The average number of messages sent per month."
+      "description": "The average number of messages sent per month.",
+      "default": 0
     }
   },
   "required": [
