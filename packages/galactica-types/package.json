@@ -19,7 +19,7 @@
     "debug": "eslint --print-config .eslintrc.js | grep -i sourceType",
     "start": "tsc --watch",
     "test": "echo \"No test specified\"",
-    "validate-schema": "sh -c 'for f in schema/*.json; do yarn ajv compile -s \"$f\" --spec=draft2020; done'"
+    "validate-schema": "sh -c 'for f in schema/*.json; do yarn ajv compile -s \"$f\" --spec=draft2020 -c ajv-formats; done'"
   },
   "dependencies": {
     "@types/circomlibjs": "^0.1.6",
