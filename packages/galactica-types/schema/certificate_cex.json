@@ -22,7 +22,5 @@
       "default": "0"
     }
   },
-  "required": [
-    "totalSwapVolume"
-  ]
+  "required": ["totalSwapVolume"]
 }

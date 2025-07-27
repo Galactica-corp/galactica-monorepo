@@ -27,8 +27,5 @@
       "default": "0"
     }
   },
-  "required": [
-    "address",
-    "totalSwapVolume"
-  ]
+  "required": ["address", "totalSwapVolume"]
 }

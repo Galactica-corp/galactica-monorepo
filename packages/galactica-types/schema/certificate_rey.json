@@ -34,8 +34,5 @@
       "default": 0
     }
   },
-  "required": [
-    "xID",
-    "xUsername"
-  ]
+  "required": ["xID", "xUsername"]
 }

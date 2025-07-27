@@ -5,6 +5,7 @@ Repository for Galactica Network's TypeScript type definitions for consistent us
 For example, these types are used for zkCertificates and the Galactica ZK Vault Snap and it's front-end API.
 
 ## Validate JSON Schema for ZK Certificates
+
 ```shell
 yarn validate-schema
 ```
