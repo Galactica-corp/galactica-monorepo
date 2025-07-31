@@ -5,3 +5,4 @@ export * from './merkleProof';
 export * from './tokenData';
 export * from './zkCert';
 export * from './zkCertStandard';
+export * from './zkCertContent';

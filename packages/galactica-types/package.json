@@ -15,7 +15,8 @@
     "/dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "generate-types": "json2ts -i schema/ > ./src/zkCertContent.ts",
+    "build": "yarn generate-types && tsc",
     "debug": "eslint --print-config .eslintrc.js | grep -i sourceType",
     "start": "tsc --watch",
     "test": "echo \"No test specified\"",
@@ -29,6 +30,7 @@
     "buffer": "^6.0.3"
   },
   "devDependencies": {
+    "json-schema-to-typescript": "^15.0.4",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.5"
   },
