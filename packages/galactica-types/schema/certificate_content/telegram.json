@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Certificate Telegram",
+  "title": "Telegram Certificate Content",
   "description": "Certificate content for Telegram account verification data.",
   "type": "object",
   "properties": {

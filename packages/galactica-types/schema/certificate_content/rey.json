@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Certificate REY",
+  "title": "REY Certificate Content",
   "description": "Certificate content for REY verification data.",
   "type": "object",
   "properties": {
@@ -35,5 +35,8 @@
     }
   },
   "additionalProperties": false,
-  "required": ["xID", "xUsername"]
+  "required": [
+    "xID",
+    "xUsername"
+  ]
 }

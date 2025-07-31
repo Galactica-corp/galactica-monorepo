@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Certificate Simple JSON",
+  "title": "Simple JSON Certificate Content",
   "description": "Certificate content for arbitrary string key-value data.",
   "type": "object",
   "additionalProperties": {

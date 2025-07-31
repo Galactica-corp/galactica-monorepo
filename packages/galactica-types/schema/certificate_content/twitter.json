@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Certificate Twitter",
+  "title": "Twitter Certificate Content",
   "description": "Certificate content for X/Twitter account verification data.",
   "type": "object",
   "properties": {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Certificate DEX",
+  "title": "DEX Certificate Content",
   "description": "Certificate content for verification of trading on a decentralized exchange.",
   "type": "object",
   "properties": {

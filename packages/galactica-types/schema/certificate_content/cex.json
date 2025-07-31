@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Certificate CEX",
+  "title": "CEX Certificate Content",
   "description": "Certificate content for verification of trading on a centralized exchange.",
   "type": "object",
   "properties": {
