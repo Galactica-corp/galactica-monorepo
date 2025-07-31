@@ -1,5 +1,6 @@
 import type { MerkleProof } from './merkleProof';
-import type { ZkCertStandard, ZkKYCContent } from './zkCertStandard';
+import type { ZkCertStandard } from './zkCertStandard';
+import type { KYCCertificateContent } from './zkCertContent';
 
 // / Data required for ZK ownership proofs
 export type OwnershipProofInput = {
@@ -57,7 +58,7 @@ export type ZkCertData = {
   zkCertStandard: ZkCertStandard;
   randomSalt: string;
   expirationDate: number;
-  content: ZkKYCContent | Record<string, any>;
+  content: KYCCertificateContent;
   providerData: ProviderData;
   contentHash: string;
   leafHash: string;

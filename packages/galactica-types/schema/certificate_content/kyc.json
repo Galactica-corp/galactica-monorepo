@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Certificate KYC",
+  "title": "KYC Certificate Content",
   "description": "Certificate content for Know Your Customer (KYC) verification data containing various fields required for identity verification and validation.",
   "type": "object",
   "properties": {

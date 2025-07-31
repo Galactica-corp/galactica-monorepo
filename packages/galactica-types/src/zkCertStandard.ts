@@ -1,5 +1,12 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
+import kycSchema from '../schema/certificate_content/kyc.json';
+import twitterSchema from '../schema/certificate_content/twitter.json';
+import reySchema from '../schema/certificate_content/rey.json';
+import cexSchema from '../schema/certificate_content/cex.json';
+import dexSchema from '../schema/certificate_content/dex.json';
+import telegramSchema from '../schema/certificate_content/telegram.json';
+
 /**
  * Enum for zkCert standards
  */
@@ -8,31 +15,10 @@ export enum ZkCertStandard {
   ArbitraryData = 'gip2',
   Twitter = 'gip3',
   Rey = 'gip4',
-  Exchange = 'gip5',
+  DEX = 'gip5',
+  CEX = 'gip6',
+  Telegram = 'gip7',
 }
-
-/**
- * Data specifically contained in zkKYC
- */
-export type ZkKYCContent = {
-  surname: string;
-  forename: string;
-  middlename: string;
-
-  yearOfBirth: string;
-  monthOfBirth: string;
-  dayOfBirth: string;
-
-  citizenship: string;
-
-  verificationLevel: string;
-
-  streetAndNumber: string;
-  postcode: string;
-  town: string;
-  region: string;
-  country: string;
-};
 
 /**
  * Ordered list of fields common to all zkCerts.
@@ -50,34 +36,35 @@ export const zkCertCommonFields = [
 ];
 
 /**
- * Ordered list of fields contained specifically in the zkKYC.
- * It does not include fields that are common to all zkCerts.
+ * Get the fields of a ZK certificate content object in the order it is used for hashing.
  */
-export const zkKYCContentFields: (keyof ZkKYCContent)[] = [
-  'citizenship',
-  'country',
-  'dayOfBirth',
-  'forename',
-  'middlename',
-  'monthOfBirth',
-  'postcode',
-  'region',
-  'streetAndNumber',
-  'surname',
-  'town',
-  'verificationLevel',
-  'yearOfBirth',
-];
+export function getContentFields(contentType: ZkCertStandard): string[] {
+  let schema: any;
+  switch (contentType) {
+    case ZkCertStandard.ZkKYC:
+      schema = kycSchema;
+      break;
+    case ZkCertStandard.Twitter:
+      schema = twitterSchema;
+      break;
+    case ZkCertStandard.Rey:
+      schema = reySchema;
+      break;
+    case ZkCertStandard.CEX:
+      schema = cexSchema;
+      break;
+    case ZkCertStandard.DEX:
+      schema = dexSchema;
+      break;
+    case ZkCertStandard.Telegram:
+      schema = telegramSchema;
+      break;
+    default:
+      throw new Error(`Unknown zkCert standard: ${contentType}`);
+  }
 
-/**
- * List of fields in zkKYC that are optional. They are still included in a zkKYC, but can be empty.
- */
-export const zkKYCOptionalContent: (keyof ZkKYCContent)[] = [
-  'postcode',
-  'region',
-  'streetAndNumber',
-  'town',
-];
+  return Object.keys(schema.properties).sort();
+}
 
 /**
  * Ordered list of fields determining the DApp specific Human ID.
@@ -108,72 +95,3 @@ export const personIDFieldOrder = [
   'surname',
   'yearOfBirth',
 ];
-
-/**
- * Data specifically contained in twitterZkCertificate
- */
-export type TwitterZkCertificateContent = {
-  createdAt: number;
-  id: string;
-  followersCount: number;
-  followingCount: number;
-  listedCount: number;
-  tweetCount: number;
-  username: string;
-  verified: boolean;
-};
-
-/**
- * Ordered list of fields contained specifically in the twitterZkCertificate.
- * It does not include fields that are common to all zkCerts.
- */
-export const twitterZkCertificateContentFields: (keyof TwitterZkCertificateContent)[] =
-  [
-    'createdAt',
-    'followersCount',
-    'followingCount',
-    'id',
-    'listedCount',
-    'tweetCount',
-    'username',
-    'verified',
-  ];
-
-// disabled eslint rule for naming convention because the field names are defined by the standard
-/* eslint-disable @typescript-eslint/naming-convention */
-/**
- * Data specifically contained in reyZkCertificate
- */
-export type ReyZkCertificateContent = {
-  x_id: string;
-  x_username: string;
-  rey_score_all: number;
-  rey_score_galactica: number;
-  rey_faction: number;
-};
-/* eslint-enable @typescript-eslint/naming-convention */
-
-/**
- * Ordered list of fields contained specifically in the reyZkCertificate.
- * It does not include fields that are common to all zkCerts.
- */
-export const reyZkCertificateContentFields: (keyof ReyZkCertificateContent)[] =
-  ['rey_faction', 'rey_score_all', 'rey_score_galactica', 'x_id', 'x_username'];
-
-/**
- * Data specifically contained in DEX/CEX Certificates.
- * The numerical values are defined as strings so they can fit into the field even if they exceed the JS number range.
- */
-export type ExchangeZkCertificateContent = {
-  address: string;
-  totalSwapVolume: string;
-  swapVolumeYear: string;
-  swapVolumeHalfYear: string;
-};
-
-/**
- * Ordered list of fields contained specifically in the DEX/CEX Certificates.
- * It does not include fields that are common to all zkCerts.
- */
-export const exchangeZkCertificateContentFields: (keyof ExchangeZkCertificateContent)[] =
-  ['address', 'swapVolumeHalfYear', 'swapVolumeYear', 'totalSwapVolume'];
