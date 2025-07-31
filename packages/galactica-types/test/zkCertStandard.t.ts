@@ -1,8 +1,6 @@
 import { expect } from 'chai';
-import {
-  ZkCertStandard,
-  getContentFields,
-} from '../src/zkCertStandard';
+
+import { ZkCertStandard, getContentFields } from '../src/zkCertStandard';
 
 describe('ZkCertStandard', () => {
   describe('getContentFields', () => {

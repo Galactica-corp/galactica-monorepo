@@ -27,9 +27,6 @@
       "default": 0
     }
   },
-  "required": [
-    "activeDaysCount",
-    "createdAt"
-  ],
+  "required": ["activeDaysCount", "createdAt"],
   "additionalProperties": false
 }

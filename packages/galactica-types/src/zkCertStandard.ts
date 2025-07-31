@@ -1,11 +1,11 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
-import kycSchema from '../schema/certificate_content/kyc.json';
-import twitterSchema from '../schema/certificate_content/twitter.json';
-import reySchema from '../schema/certificate_content/rey.json';
 import cexSchema from '../schema/certificate_content/cex.json';
 import dexSchema from '../schema/certificate_content/dex.json';
+import kycSchema from '../schema/certificate_content/kyc.json';
+import reySchema from '../schema/certificate_content/rey.json';
 import telegramSchema from '../schema/certificate_content/telegram.json';
+import twitterSchema from '../schema/certificate_content/twitter.json';
 
 /**
  * Enum for zkCert standards
@@ -37,6 +37,8 @@ export const zkCertCommonFields = [
 
 /**
  * Get the fields of a ZK certificate content object in the order it is used for hashing.
+ * @param contentType - The type of zkCert standard to get the fields for.
+ * @returns The fields of the zkCert content object in the order they are used for hashing.
  */
 export function getContentFields(contentType: ZkCertStandard): string[] {
   let schema: any;

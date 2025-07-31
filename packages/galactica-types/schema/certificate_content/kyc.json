@@ -42,11 +42,7 @@
     },
     "verificationLevel": {
       "type": "number",
-      "enum": [
-        0,
-        1,
-        2
-      ],
+      "enum": [0, 1, 2],
       "description": "The level of KYC verification achieved.",
       "default": 0
     },

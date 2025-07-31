@@ -35,8 +35,5 @@
     }
   },
   "additionalProperties": false,
-  "required": [
-    "xID",
-    "xUsername"
-  ]
+  "required": ["xID", "xUsername"]
 }

@@ -1,6 +1,6 @@
 import type { MerkleProof } from './merkleProof';
-import type { ZkCertStandard } from './zkCertStandard';
 import type { KYCCertificateContent } from './zkCertContent';
+import type { ZkCertStandard } from './zkCertStandard';
 
 // / Data required for ZK ownership proofs
 export type OwnershipProofInput = {
