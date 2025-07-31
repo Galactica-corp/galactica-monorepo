@@ -34,5 +34,6 @@
       "default": 0
     }
   },
+  "additionalProperties": false,
   "required": ["xID", "xUsername"]
 }
