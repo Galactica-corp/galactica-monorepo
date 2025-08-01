@@ -4219,6 +4219,7 @@ __metadata:
   resolution: "@galactica-net/zk-certificates@workspace:packages/zk-certificates"
   dependencies:
     "@galactica-net/galactica-types": "workspace:^"
+    "@js-temporal/polyfill": ^0.5.1
     "@metamask/eth-sig-util": ^7.0.3
     "@nomicfoundation/hardhat-chai-matchers": ^2.0.9
     "@nomicfoundation/hardhat-ethers": ^3.0.9
@@ -4235,6 +4236,9 @@ __metadata:
     "@types/circomlibjs": ^0.1.6
     "@types/download": ^8.0.5
     "@types/mocha": ^9.1.1
+    ajv: ^8.17.1
+    ajv-cli: ^5.0.0
+    ajv-formats: ^3.0.1
     bignumber.js: ^9.3.0
     blake-hash: ^2.0.0
     buffer: ^6.0.3
@@ -4767,6 +4771,15 @@ __metadata:
     "@jridgewell/resolve-uri": ^3.1.0
     "@jridgewell/sourcemap-codec": ^1.4.14
   checksum: 9d3c40d225e139987b50c48988f8717a54a8c994d8a948ee42e1412e08988761d0754d7d10b803061cc3aebf35f92a5dbbab493bd0e1a9ef9e89a2130e83ba34
+  languageName: node
+  linkType: hard
+
+"@js-temporal/polyfill@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "@js-temporal/polyfill@npm:0.5.1"
+  dependencies:
+    jsbi: ^4.3.0
+  checksum: f87127500d4532034d74836160bc013d02989dfe4f67f9264aeca6b2bb1eaed66e1bdb80e37e6e1c647d698726d317459ff13d8b2aa25b107af24c06590e8bd0
   languageName: node
   linkType: hard
 
@@ -19029,6 +19042,13 @@ __metadata:
   bin:
     js-yaml: bin/js-yaml.js
   checksum: c7830dfd456c3ef2c6e355cc5a92e6700ceafa1d14bba54497b34a99f0376cecbb3e9ac14d3e5849b426d5a5140709a66237a8c991c675431271c4ce5504151a
+  languageName: node
+  linkType: hard
+
+"jsbi@npm:^4.3.0":
+  version: 4.3.2
+  resolution: "jsbi@npm:4.3.2"
+  checksum: 58e06ea3328c1f455ab92219254b4ac09257fee2b611f4af73c0a6606022bbf2f5b9bf1f6f713eda3c943a842454e8ee0948b0525362cb0182e54e851e8d67c4
   languageName: node
   linkType: hard
 

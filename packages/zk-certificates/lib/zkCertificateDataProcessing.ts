@@ -1,12 +1,12 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
-  exchangeZkCertificateContentFields,
-  reyZkCertificateContentFields,
-  twitterZkCertificateContentFields,
+  getContentFields,
   ZkCertStandard,
-  zkKYCContentFields,
+  FieldElement,
+  isValidFieldElement,
 } from '@galactica-net/galactica-types';
 import type { Eddsa } from 'circomlibjs';
+import { Temporal } from '@js-temporal/polyfill';
 
 import { hashStringToFieldNumber } from './helpers';
 
@@ -14,75 +14,100 @@ import { hashStringToFieldNumber } from './helpers';
  * Function preparing the fields for  ZkCertificate depending on its types.
  * It hashes all string fields to be representable in zk circuits.
  * @param eddsa - Eddsa object from circomlibjs.
- * @param zkCertificateData - Input KYC data to be verified and hashed if necessary.
- * @param zkCertificateType - Type of ZkCert, default to be zkKYC.
- * @returns Prepared ZkCertificate data.
+ * @param contentData - Input certificate data to be verified and hashed if necessary.
+ * @param contentSchema - JSON Schema of the content containing information about the fields and how to provide them to the zk circuit.
+ * @returns Object with the ZkCert content how it can be passed to the ZK circuit.
  * @throws Error if any of the required fields is missing.
  */
-export function prepareZkCertificateFields(
+export function prepareContentForCircuit(
   eddsa: Eddsa,
-  zkCertificateData: any,
-  zkCertificateType: ZkCertStandard = ZkCertStandard.ZkKYC,
-): Record<string, any> {
-  // verify that all the fields are present
-  const exceptions = ['holderCommitment'];
-  let stringFieldsForHashing: string[] = [];
-  let dateFields: string[] = [];
-  let zkCertificateContentFields: string[] = [];
-  if (zkCertificateType === ZkCertStandard.ZkKYC) {
-    stringFieldsForHashing = [
-      // TODO: standardize the definition of fields and which of those are hashed and read it from the standard instead of hardcoding it here
-      'surname',
-      'forename',
-      'middlename',
-      'streetAndNumber',
-      'postcode',
-      'town',
-      'region',
-      'country',
-      'citizenship',
-    ];
-    zkCertificateContentFields = zkKYCContentFields;
-  } else if (zkCertificateType === ZkCertStandard.Twitter) {
-    stringFieldsForHashing = ['username'];
-    zkCertificateContentFields = twitterZkCertificateContentFields;
-    dateFields = ['createdAt'];
-  } else if (zkCertificateType === ZkCertStandard.Rey) {
-    stringFieldsForHashing = ['x_username'];
-    zkCertificateContentFields = reyZkCertificateContentFields;
-  } else if (zkCertificateType === ZkCertStandard.Exchange) {
-    zkCertificateContentFields = exchangeZkCertificateContentFields;
-  } else if (zkCertificateType === ZkCertStandard.ArbitraryData) {
-    zkCertificateContentFields = Object.keys(zkCertificateData);
-    stringFieldsForHashing = zkCertificateContentFields.filter(
-      (value) => typeof zkCertificateData[value] === 'string',
-    );
+  contentData: any,
+  contentSchema: any,
+): Record<string, FieldElement> {
+  const contentFields: Record<string, FieldElement> = {};
+
+  let zkCertificateContentFields = Object.keys(contentSchema.properties);
+
+  for (const field of zkCertificateContentFields) {
+    let resValue: FieldElement;
+    const sourceData = contentData[field];
+
+    if (typeof sourceData === 'number' || typeof sourceData === 'bigint' || typeof sourceData === 'boolean') {
+      // we might be able to take the data 1 to 1 as field element
+      const { valid, error } = isValidFieldElement(sourceData);
+      if (!valid) {
+        throw new Error(`${field}: ${sourceData} is not a valid field element: ${error}`);
+      }
+      resValue = sourceData;
+    } else if (typeof sourceData === 'string') {
+      // the meaning of the string depends on the format.
+      switch (contentSchema.format) {
+        // going through built-in formats found in https://json-schema.org/understanding-json-schema/reference/type#format
+        case 'date-time':
+          resValue = dateStringToUnixTimestamp(sourceData);
+          break;
+        case 'time':
+          // pass the number of seconds since midnight
+          // sourceData is expected to be a string in "HH:MM:SS" or "HH:MM" format
+          const [hours, minutes, seconds] = sourceData.split(':').map(Number);
+          resValue = (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
+          break;
+        case 'date':
+          // pass it as unix timestamp
+          resValue = dateStringToUnixTimestamp(sourceData + 'T00:00:00Z');
+          break;
+        case 'duration':
+          const t = Temporal.Duration.from(sourceData);
+          resValue = t.total({ unit: 'seconds' });
+          break;
+
+        // formats that are passed as hashed string to the circuit
+        // we hash the string to a field element to be able to use it efficiently in the circuit for comparisons and further hashing.
+        // this can be extended in the future to decide when to pass the string as char array to the circuit. This is less efficient, but allows use cases, such as proving that a name starts with a certain character.
+        case 'string':
+        case 'email':
+        case 'idn-email':
+        case 'hostname':
+        case 'ipv4':
+        case 'ipv6':
+        case 'uuid':
+        case 'uri':
+        case 'uri-reference':
+        case 'iri':
+        case 'iri-reference':
+        case 'regex':
+        case 'iso3166_1_alpha3': // country code
+        case 'iso3166_2': // region code
+        case undefined:
+          // no format specified, so we assume it is a string that is not meant for something else, such as a name or address
+          resValue = hashStringToFieldNumber(sourceData, eddsa.poseidon);
+          break;
+
+        // Galactica specific formats
+        case 'field-element': // can be passed as is
+        case 'ethereum-address': // can be passed as is because it is a hex string
+        case 'decimal':
+          const { valid, error } = isValidFieldElement(sourceData);
+          if (!valid) {
+            throw new Error(`${field}: ${sourceData} is not a valid field element: ${error}`);
+          }
+          resValue = sourceData;
+          break;
+        default:
+          throw new Error(`No conversion for string format ${contentSchema.format} to a ZK field element implemented. Required for field ${field}: ${sourceData}`);
+      }
+
+    } else if (typeof sourceData === 'object') {
+      // We can extend this in the future to support the new circom 2 feature https://docs.circom.io/circom-language/buses/
+      throw new Error(`Nested objects are not supported yet for conversion to ZK field elements. Required for field ${field}: ${sourceData}`);
+    } else {
+      throw new Error(`No conversion from JS type: ${typeof sourceData} to a ZK field element implemented. Required for field ${field}: ${sourceData}`);
+    }
+
+    contentFields[field] = resValue;
   }
 
-  const zkCertificateFields: Record<string, any> = {};
-  for (const field of zkCertificateContentFields.filter(
-    (content) => !exceptions.includes(content),
-  )) {
-    if (zkCertificateData[field] === undefined) {
-      throw new Error(
-        `Field ${field} missing in zkCertificate data of type ${zkCertificateType}`,
-      );
-    }
-    if (stringFieldsForHashing.includes(field)) {
-      // hashing string data so that it fits into the field used by the circuit
-      zkCertificateFields[field] = hashStringToFieldNumber(
-        zkCertificateData[field],
-        eddsa.poseidon,
-      );
-    } else if (dateFields.includes(field)) {
-      zkCertificateFields[field] = dateStringToUnixTimestamp(
-        zkCertificateData[field],
-      );
-    } else {
-      zkCertificateFields[field] = zkCertificateData[field];
-    }
-  }
-  return zkCertificateFields;
+  return contentFields;
 }
 
 /**
@@ -107,19 +132,27 @@ export function dateStringToUnixTimestamp(date: string): number {
 /**
  * Hashes the content of a ZkCertificate into the contentHash of the ZkCertificate.
  * @param eddsa - Eddsa object from circomlibjs.
- * @param content - Content of the zkCertificate to hash.
+ * @param contentData - Content of the zkCertificate to hash.
+ * @param contentSchema - JSON Schema of the content containing information about the fields and how to provide them to the zk circuit.
  * @returns Hashed content of the ZkCertificate.
  */
 export function hashZkCertificateContent(
   eddsa: Eddsa,
-  content: Record<string, any>,
+  contentData: any,
+  contentSchema: any,
 ): string {
+  const contentFields = prepareContentForCircuit(eddsa, contentData, contentSchema);
+
   return eddsa.F.toObject(
     eddsa.poseidon(
       // sort the fields alphabetically to ensure the same order as in the circuit
-      Object.keys(content)
+      Object.keys(contentFields)
         .sort()
-        .map((field) => content[field]),
+        .map((field) => {
+          const value = contentFields[field];
+          // Convert boolean to number for poseidon compatibility
+          return typeof value === 'boolean' ? (value ? 1 : 0) : value;
+        }),
       undefined,
       1,
     ),

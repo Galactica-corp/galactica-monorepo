@@ -1,11 +1,6 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
-import cexSchema from '../schema/certificate_content/cex.json';
-import dexSchema from '../schema/certificate_content/dex.json';
-import kycSchema from '../schema/certificate_content/kyc.json';
-import reySchema from '../schema/certificate_content/rey.json';
-import telegramSchema from '../schema/certificate_content/telegram.json';
-import twitterSchema from '../schema/certificate_content/twitter.json';
+import { contentSchemas } from './schemas';
 
 import { KYCCertificateContent, TwitterCertificateContent, REYCertificateContent, DEXCertificateContent, CEXCertificateContent, TelegramCertificateContent } from './zkCertContent';
 
@@ -54,22 +49,22 @@ export function getContentFields(contentType: ZkCertStandard): string[] {
   let schema: any;
   switch (contentType) {
     case ZkCertStandard.ZkKYC:
-      schema = kycSchema;
+      schema = contentSchemas.kyc;
       break;
     case ZkCertStandard.Twitter:
-      schema = twitterSchema;
+      schema = contentSchemas.twitter;
       break;
     case ZkCertStandard.Rey:
-      schema = reySchema;
+      schema = contentSchemas.rey;
       break;
     case ZkCertStandard.CEX:
-      schema = cexSchema;
+      schema = contentSchemas.cex;
       break;
     case ZkCertStandard.DEX:
-      schema = dexSchema;
+      schema = contentSchemas.dex;
       break;
     case ZkCertStandard.Telegram:
-      schema = telegramSchema;
+      schema = contentSchemas.telegram;
       break;
     default:
       throw new Error(`Unknown zkCert standard: ${contentType}`);
@@ -81,7 +76,21 @@ export function getContentFields(contentType: ZkCertStandard): string[] {
 export function getContentSchema(contentType: ZkCertStandard): any {
   switch (contentType) {
     case ZkCertStandard.ZkKYC:
-      return kycSchema;
+      return contentSchemas.kyc;
+    case ZkCertStandard.Twitter:
+      return contentSchemas.twitter;
+    case ZkCertStandard.Rey:
+      return contentSchemas.rey;
+    case ZkCertStandard.DEX:
+      return contentSchemas.dex;
+    case ZkCertStandard.CEX:
+      return contentSchemas.cex;
+    case ZkCertStandard.Telegram:
+      return contentSchemas.telegram;
+    case ZkCertStandard.ArbitraryData:
+      return contentSchemas.simpleJson;
+    default:
+      throw new Error(`Unknown zkCert standard: ${contentType}`);
   }
 }
 

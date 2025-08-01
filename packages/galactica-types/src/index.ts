@@ -7,3 +7,4 @@ export * from './zkCert';
 export * from './zkCertStandard';
 export * from './zkCertContent';
 export * from './fieldElement';
+export * from './schemas';

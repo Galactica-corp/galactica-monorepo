@@ -9,6 +9,7 @@ import type {
   ZkCertData,
   ZkCertRegistration,
   EddsaPrivateKey,
+  AnyZkCertContent,
 } from '@galactica-net/galactica-types';
 import {
   ZkCertStandard,
@@ -44,7 +45,8 @@ export class ZkCertificate implements ZkCertData {
 
   public expirationDate: number;
 
-  public content: Record<string, any>;
+  public content: AnyZkCertContent;
+  public contentSchema: any;
 
   public providerData: ProviderData;
 
@@ -55,7 +57,8 @@ export class ZkCertificate implements ZkCertData {
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
    * @param expirationDate - Expiration date of the zkCert.
-   * @param content - ZkCertificate parameters, can be set later.
+   * @param contentSchema - JSON Schema of the content containing information about the fields and how to provide them to the zk circuit.
+   * @param content - ZkCertificate content, this is the data being attested to.
    * @param providerData - Provider data, can be set later.
    */
   constructor(
@@ -64,7 +67,8 @@ export class ZkCertificate implements ZkCertData {
     eddsa: Eddsa,
     randomSalt: string,
     expirationDate: number,
-    content: Record<string, any> = {}, // standardize field definitions
+    contentSchema: any,
+    content: AnyZkCertContent,
     providerData: ProviderData = {
       ax: '0',
       ay: '0',
@@ -81,11 +85,12 @@ export class ZkCertificate implements ZkCertData {
     this.randomSalt = randomSalt;
     this.expirationDate = expirationDate;
     this.content = content;
+    this.contentSchema = contentSchema;
     this.providerData = providerData;
   }
 
   get contentHash(): string {
-    return hashZkCertificateContent(this.eddsa, this.content);
+    return hashZkCertificateContent(this.eddsa, this.content, this.contentSchema);
   }
 
   get leafHash(): string {
@@ -118,7 +123,7 @@ export class ZkCertificate implements ZkCertData {
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
 
-  public setContent(content: Record<string, any>) {
+  public setContent(content: AnyZkCertContent) {
     this.content = content;
   }
 
@@ -324,5 +329,7 @@ export const flagStandardMapping: Record<string, ZkCertStandard> = {
   data: ZkCertStandard.ArbitraryData,
   twitter: ZkCertStandard.Twitter,
   rey: ZkCertStandard.Rey,
-  exchange: ZkCertStandard.Exchange,
+  cex: ZkCertStandard.CEX,
+  dex: ZkCertStandard.DEX,
+  telegram: ZkCertStandard.Telegram,
 };
