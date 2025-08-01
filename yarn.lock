@@ -4125,11 +4125,15 @@ __metadata:
   resolution: "@galactica-net/galactica-types@workspace:packages/galactica-types"
   dependencies:
     "@types/circomlibjs": ^0.1.6
+    "@types/mocha": ^10.0.10
     ajv: ^8.17.1
     ajv-cli: ^5.0.0
     ajv-formats: ^3.0.1
     buffer: ^6.0.3
+    chai: ^4.5.0
+    chai-as-promised: ^7.1.2
     json-schema-to-typescript: ^15.0.4
+    mocha: ^10.2.0
     ts-node: ^10.9.2
     typescript: ^4.9.5
   languageName: unknown

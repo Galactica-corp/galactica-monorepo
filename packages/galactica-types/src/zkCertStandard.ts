@@ -7,6 +7,8 @@ import reySchema from '../schema/certificate_content/rey.json';
 import telegramSchema from '../schema/certificate_content/telegram.json';
 import twitterSchema from '../schema/certificate_content/twitter.json';
 
+import { KYCCertificateContent, TwitterCertificateContent, REYCertificateContent, DEXCertificateContent, CEXCertificateContent, TelegramCertificateContent } from './zkCertContent';
+
 /**
  * Enum for zkCert standards
  */
@@ -19,6 +21,14 @@ export enum ZkCertStandard {
   CEX = 'gip6',
   Telegram = 'gip7',
 }
+
+export type AnyZkCertContent =
+  | KYCCertificateContent
+  | TwitterCertificateContent
+  | REYCertificateContent
+  | DEXCertificateContent
+  | CEXCertificateContent
+  | TelegramCertificateContent;
 
 /**
  * Ordered list of fields common to all zkCerts.
@@ -66,6 +76,13 @@ export function getContentFields(contentType: ZkCertStandard): string[] {
   }
 
   return Object.keys(schema.properties).sort();
+}
+
+export function getContentSchema(contentType: ZkCertStandard): any {
+  switch (contentType) {
+    case ZkCertStandard.ZkKYC:
+      return kycSchema;
+  }
 }
 
 /**
