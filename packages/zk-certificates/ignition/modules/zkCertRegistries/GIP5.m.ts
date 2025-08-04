@@ -5,8 +5,8 @@ import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 
 import poseidonModule from '../Poseidon.m';
 
-const Gip2ZkCertRegistryModule = buildModule(
-  'Gip2ZkCertRegistryModule',
+const Gip5ZkCertRegistryModule = buildModule(
+  'Gip5ZkCertRegistryModule',
   (module) => {
     const { poseidon } = module.useModule(poseidonModule);
 
@@ -39,4 +39,4 @@ const Gip2ZkCertRegistryModule = buildModule(
   },
 );
 
-export default Gip2ZkCertRegistryModule;
+export default Gip5ZkCertRegistryModule;

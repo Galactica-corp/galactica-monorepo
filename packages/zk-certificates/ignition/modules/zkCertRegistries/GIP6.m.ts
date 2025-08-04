@@ -5,14 +5,14 @@ import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 
 import poseidonModule from '../Poseidon.m';
 
-const Gip4ZkCertRegistryModule = buildModule(
-  'Gip4ZkCertRegistryModule',
+const Gip6ZkCertRegistryModule = buildModule(
+  'Gip6ZkCertRegistryModule',
   (module) => {
     const { poseidon } = module.useModule(poseidonModule);
 
     const guardianRegistryDescription = module.getParameter(
       'guardianRegistryDescription',
-      'Rey Guardian Registry',
+      'ExchangeData Guardian Registry',
     );
 
     const guardianRegistry = module.contract('GuardianRegistry', [
@@ -22,7 +22,7 @@ const Gip4ZkCertRegistryModule = buildModule(
     const merkleDepth = module.getParameter('merkleDepth', 32);
     const zkCertRegistryDescription = module.getParameter(
       'zkCertRegistryDescription',
-      'Rey ZkCertificate Registry',
+      'ExchangeData ZkCertificate Registry',
     );
 
     const zkCertRegistry = module.contract(
@@ -39,4 +39,4 @@ const Gip4ZkCertRegistryModule = buildModule(
   },
 );
 
-export default Gip4ZkCertRegistryModule;
+export default Gip6ZkCertRegistryModule;
