@@ -68,7 +68,9 @@ const KYCComplianceProofsModule = buildModule(
       [nonUSWrapper, nonUSSBTData.uri, nonUSSBTData.name, nonUSSBTData.symbol],
     );
     const nonUSSBTAddr = module.staticCall(nonUSDApp, 'sbt', []);
-    const nonUSSBT = module.contractAt('VerificationSBT', nonUSSBTAddr);
+    const nonUSSBT = module.contractAt('VerificationSBT', nonUSSBTAddr, {
+      id: 'NonUSSBT',
+    });
 
     // NonSanctionedJurisdiction verification setup
     const sanctionedCountriesHashes = [
@@ -110,6 +112,7 @@ const KYCComplianceProofsModule = buildModule(
     const nonSanctionedSBT = module.contractAt(
       'VerificationSBT',
       nonSanctionedSBTAddr,
+      { id: 'NonSanctionedSBT' },
     );
 
     // Adult18Plus verification setup
@@ -140,6 +143,7 @@ const KYCComplianceProofsModule = buildModule(
     const adult18PlusSBT = module.contractAt(
       'VerificationSBT',
       adult18PlusSBTAddr,
+      { id: 'Adult18PlusSBT' },
     );
 
     return {
