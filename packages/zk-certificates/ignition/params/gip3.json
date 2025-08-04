@@ -1,8 +1,0 @@
-{
-  "GuardianRegistryModule": {
-    "description": "Twitter Guardian Registry"
-  },
-  "ZkCertRegistryModule": {
-    "description": "Twitter ZkCertificate Registry"
-  }
-}

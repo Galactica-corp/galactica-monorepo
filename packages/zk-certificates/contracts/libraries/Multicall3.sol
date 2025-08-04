@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.28;
 
+import {ChainAgnosticCalls} from '../helpers/ChainAgnosticCalls.sol';
+
 /// @title Multicall3
 /// @notice Aggregate results from multiple function calls
 /// @dev Multicall & Multicall2 backwards-compatible
@@ -10,7 +12,7 @@ pragma solidity 0.8.28;
 /// @author Nick Johnson <arachnid@notdot.net>
 /// @author Andreas Bigger <andreas@nascent.xyz>
 /// @author Matt Solomon <matt@mattsolomon.dev>
-contract Multicall3 {
+contract Multicall3 is ChainAgnosticCalls {
     struct Call {
         address target;
         bytes callData;
@@ -41,7 +43,7 @@ contract Multicall3 {
     function aggregate(
         Call[] calldata calls
     ) public payable returns (uint256 blockNumber, bytes[] memory returnData) {
-        blockNumber = block.number;
+        blockNumber = getBlockNumber();
         uint256 length = calls.length;
         returnData = new bytes[](length);
         Call calldata call;
@@ -100,8 +102,8 @@ contract Multicall3 {
             Result[] memory returnData
         )
     {
-        blockNumber = block.number;
-        blockHash = blockhash(block.number);
+        blockNumber = getBlockNumber();
+        blockHash = blockhash(blockNumber);
         returnData = tryAggregate(requireSuccess, calls);
     }
 
@@ -243,8 +245,13 @@ contract Multicall3 {
     }
 
     /// @notice Returns the block number
-    function getBlockNumber() public view returns (uint256 blockNumber) {
-        blockNumber = block.number;
+    function getBlockNumber()
+        public
+        view
+        override
+        returns (uint256 blockNumber)
+    {
+        blockNumber = super.getBlockNumber();
     }
 
     /// @notice Returns the block coinbase
@@ -283,7 +290,7 @@ contract Multicall3 {
     /// @notice Returns the block hash of the last block
     function getLastBlockHash() public view returns (bytes32 blockHash) {
         unchecked {
-            blockHash = blockhash(block.number - 1);
+            blockHash = blockhash(getBlockNumber() - 1);
         }
     }
 

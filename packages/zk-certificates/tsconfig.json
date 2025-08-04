@@ -18,6 +18,7 @@
     "./types/*",
     "./scripts/**/*.ts",
     "./tasks/*",
+    "./ignition/**/*",
     // "./test/contracts/*",
     // "./test/circuits/*",
     "./test/lib/*",

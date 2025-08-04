@@ -1,8 +1,0 @@
-{
-  "GuardianRegistryModule": {
-    "description": "Arbitrary Data Guardian Registry"
-  },
-  "ZkCertRegistryModule": {
-    "description": "Arbitrary Data ZkCertificate Registry"
-  }
-}
