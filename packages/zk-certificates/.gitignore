@@ -39,6 +39,8 @@ merkleProofs/**/*.json
 # and files with deployed smart contract addresses
 deployments
 !ignition/deployments
+ignition/deployments/chain-31337
+ignition/deployments/*/build-info
 
 # external data
 data
