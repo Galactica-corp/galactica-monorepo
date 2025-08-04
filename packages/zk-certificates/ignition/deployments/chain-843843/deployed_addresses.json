@@ -1,0 +1,21 @@
+{
+  "ExampleDAppModule#AgeCitizenshipKYCVerifier": "0x360e7Ae34887b552278b636AF92DF21721cfdE22",
+  "ExampleDAppModule#DeployMockToken1": "0x099722C92e96197163Af48B8C4854d06A0D43Dcf",
+  "ExampleDAppModule#DeployMockToken2": "0x8fe60Cc868Db37A625b988A4f02ae178dAB89A06",
+  "GuardianRegistryModule#GuardianRegistry": "0x466bF1463F380C903CA69C2FeEF419824D8eA4d7",
+  "InfrastructureModule#Institution1": "0xDDf7813E3549872FADa22B1b151A6D604F13eDB3",
+  "InfrastructureModule#Institution2": "0x96b7b29a0E646693a6696468AEfB0BD2BCeba8BD",
+  "InfrastructureModule#Institution3": "0xa52af85a8aE0296D7Bc9B300202a6bEBD96B4E3f",
+  "PoseidonModule#PoseidonT3": "0x4b7d37D0274b8840B324687901e5C26b0806A9d8",
+  "RepeatableZKPTestModule#ZkKYCVerifier": "0x9D0c5e8aa073E5cf325e4C280b55cF431Bdc3ab0",
+  "InfrastructureModule#ZkKYCRegistry": "0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE",
+  "InfrastructureModule#HumanIDSaltRegistry": "0xDf9CD430d4f6566aEBA05B0A232506fED67E6a2F",
+  "ExampleDAppModule#AgeCitizenshipKYC": "0xD5A4Fc7d665BAf5Ad29328f4d1aa95085B7179e9",
+  "RepeatableZKPTestModule#ZkKYC": "0xaa1a9FB5aee53D8a2ED5aEbA574b8E62E5b28A1A",
+  "ExampleDAppModule#MockDApp": "0xE0523201F9147dc9490742302Ac3bc316bB5A8ec",
+  "RepeatableZKPTestModule#RepeatableZKPTest": "0x31bF187756721De1eD2FD88EBCDDECF79B2902a6",
+  "ExampleDAppModule#VerificationSBT": "0xEac4ec82A5e8E602CBFc61b4804dAf58F9A3EA06",
+  "RepeatableZKPTestModule#VerificationSBT": "0x138b012745eDA5e49df8ca3af5Eb685AB47EAaC8",
+  "BasicKYCExampleModule#BasicKYCExampleDApp": "0xe8d4b08900A7DeeB25D4254Bc4Dafacf41e04B1A",
+  "BasicKYCExampleModule#VerificationSBT": "0xdaE7B9F25e7F1ed2D875E93d1831582EeceBEDcc"
+}
