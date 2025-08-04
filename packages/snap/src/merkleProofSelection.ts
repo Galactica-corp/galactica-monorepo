@@ -12,7 +12,7 @@ import type { BaseProvider } from '@metamask/providers';
 import { buildPoseidon } from 'circomlibjs';
 import { Contract, BrowserProvider } from 'ethers';
 
-import { fetchWithTimeout } from './utils';
+import { fetchWithTimeout, switchChain } from './utils';
 
 const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 
@@ -36,6 +36,7 @@ export async function getMerkleProof(
     return zkCert.merkleProof;
   }
 
+  await switchChain(zkCert.registration.chainID, ethereum);
   const provider = new BrowserProvider(ethereum);
   const registry = new Contract(
     registryAddr,
