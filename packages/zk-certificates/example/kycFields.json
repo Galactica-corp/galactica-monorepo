@@ -1,7 +1,6 @@
 {
   "surname": "Doe",
   "forename": "John",
-  "middlename": "",
   "yearOfBirth": 1989,
   "monthOfBirth": 5,
   "dayOfBirth": 28,
@@ -9,7 +8,6 @@
   "streetAndNumber": "Bergstrasse 2",
   "postcode": "9490",
   "town": "Vaduz",
-  "region": "",
   "country": "LIE",
   "citizenship": "SWE"
 }

@@ -24,6 +24,7 @@ import { Scalar } from 'ffjavascript';
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
 import { hashZkCertificateContent } from './zkCertificateDataProcessing';
+import Ajv from 'ajv/dist/2020';
 
 /**
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.

@@ -1,10 +1,10 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { AnyZkCertContent, CEXCertificateContent, DEXCertificateContent, KYCCertificateContent, REYCertificateContent, TelegramCertificateContent, TwitterCertificateContent, ZkCertStandard, contentSchemas } from '@galactica-net/galactica-types';
-import Ajv from 'ajv';
 import { expect } from 'chai';
 import type { Eddsa } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
 import { ZkCertificate } from '../../lib';
+import { parseContentJson } from '@galactica-net/galactica-types';
 
 import kycExample from '../../example/kycFields.json';
 import kycMinimalExample from '../../example/kycFieldsMinimal.json';
@@ -25,14 +25,6 @@ describe('ZkCertificate', () => {
     eddsa = await buildEddsa();
   });
 
-  function validateContent<ContentType>(content: any, schema: any) {
-    const ajv = new Ajv();
-    ajv.addSchema(schema);
-    const validate = ajv.compile<ContentType>(schema);
-    const valid = validate(content);
-    expect(valid).to.be.true;
-  }
-
   describe('ZkKYC', () => {
     it('should generate zkKYC from example', async () => {
       const zkKYC = new ZkCertificate(
@@ -51,11 +43,11 @@ describe('ZkCertificate', () => {
     });
 
     it('example should be compatible with the schema', async () => {
-      validateContent<KYCCertificateContent>(kycExample, contentSchemas.kyc);
+      parseContentJson<KYCCertificateContent>(kycExample, contentSchemas.kyc);
     });
 
     it('minimal example should be valid', async () => {
-      validateContent<KYCCertificateContent>(kycMinimalExample, contentSchemas.kyc);
+      parseContentJson<KYCCertificateContent>(kycMinimalExample, contentSchemas.kyc);
     });
   });
 
@@ -104,7 +96,7 @@ describe('ZkCertificate', () => {
     });
 
     it('example should be compatible with the schema', async () => {
-      validateContent<TwitterCertificateContent>(twitterExample, contentSchemas.twitter);
+      const content = parseContentJson<TwitterCertificateContent>(twitterExample, contentSchemas.twitter);
     });
   });
 
@@ -126,31 +118,37 @@ describe('ZkCertificate', () => {
     });
 
     it('example should be compatible with the schema', async () => {
-      validateContent<REYCertificateContent>(reyExample, contentSchemas.rey);
+      parseContentJson<REYCertificateContent>(reyExample, contentSchemas.rey);
     });
   });
 
   describe('Telegram', () => {
     it('example should be compatible with the schema', async () => {
-      validateContent<TelegramCertificateContent>(telegramExample, contentSchemas.telegram);
+      parseContentJson<TelegramCertificateContent>(telegramExample, contentSchemas.telegram);
     });
   });
 
   describe('DEX', () => {
     it('example should be compatible with the schema', async () => {
-      validateContent<DEXCertificateContent>(dexExample, contentSchemas.dex);
+      parseContentJson<DEXCertificateContent>(dexExample, contentSchemas.dex);
     });
   });
 
   describe('CEX', () => {
     it('example should be compatible with the schema', async () => {
-      validateContent<CEXCertificateContent>(cexExample, contentSchemas.cex);
+      parseContentJson<CEXCertificateContent>(cexExample, contentSchemas.cex);
     });
   });
 
   describe('Simple JSON', () => {
     it('example should be compatible with the schema', async () => {
-      validateContent<AnyZkCertContent>(simpleJsonExample, contentSchemas.simpleJson);
+      parseContentJson<AnyZkCertContent>(simpleJsonExample, contentSchemas.simpleJson);
+    });
+  });
+
+  describe('Content Parsing', () => {
+    it('should throw an error if the content does not fit to the schema', async () => {
+      expect(() => parseContentJson<KYCCertificateContent>(kycExample, contentSchemas.twitter)).to.throw();
     });
   });
 });
