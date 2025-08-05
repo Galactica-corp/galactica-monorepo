@@ -3,9 +3,11 @@ import type { HumanIDProofInput } from '@galactica-net/galactica-types';
 import {
   humanIDFieldOrder,
   personIDFieldOrder,
-  ZkCertStandard,
+  getContentSchema,
+  ZkCertStandard
 } from '@galactica-net/galactica-types';
 import type { ZkCertificate } from './zkCertificate';
+import { prepareContentForCircuit } from './zkCertificateDataProcessing';
 
 /**
  * Calculate dApp specific human ID from zkKYC and dApp address.
@@ -51,10 +53,12 @@ export function getIdHash(zkKYC: ZkCertificate): string {
     throw new Error('zkKYC: can not get IdHash from non-ZkKYC certificate');
   }
 
+  const content = prepareContentForCircuit(zkKYC.eddsa, zkKYC.content, getContentSchema(ZkCertStandard.ZkKYC));
+
   return zkKYC.poseidon.F.toObject(
     zkKYC.poseidon(
       // fill needed fields from zkKYC with dAppAddress added at the correct place
-      personIDFieldOrder.map((field) => (zkKYC.content as Record<string, any>)[field]),
+      personIDFieldOrder.map((field) => (content as Record<string, any>)[field]),
       undefined,
       1,
     ),

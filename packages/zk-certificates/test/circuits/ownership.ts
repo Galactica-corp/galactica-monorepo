@@ -12,6 +12,8 @@ import {
   getEddsaKeyFromEthSigner,
 } from '../../lib/keyManagement';
 import { ZkCertificate } from '../../lib/zkCertificate';
+import kycExample from '../../example/kycFields.json';
+import { getContentSchema, KYCCertificateContent } from '@galactica-net/galactica-types';
 
 use(chaiAsPromised);
 
@@ -72,6 +74,8 @@ describe('Ownership Component', () => {
       eddsa,
       '',
       0,
+      getContentSchema(ZkCertStandard.ZkKYC),
+      kycExample as KYCCertificateContent,
     );
     const ownershipProof = zkKYC.getOwnershipProofInput(holderEdDSAKey);
 

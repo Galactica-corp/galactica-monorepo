@@ -89,7 +89,6 @@ export function prepareContentForCircuit(
         case 'ethereum-address': // can be passed as is because it is a hex string
         case 'decimal':
           const { valid, error } = isValidFieldElement(sourceData);
-          console.log(`processing decimal ${field}: ${sourceData}`);
           if (!valid) {
             throw new Error(`${field}: ${sourceData} is not a valid field element: ${error}`);
           }

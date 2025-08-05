@@ -111,11 +111,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -146,11 +146,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -185,11 +185,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -229,7 +229,7 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(
@@ -260,12 +260,12 @@ describe('twitterVerificationProof SC', () => {
     );
     expect(
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_IS_VALID())
+      Number(await twitterVerificationProofContract.INDEX_IS_VALID())
       ],
     ).to.be.equal('0');
     const publicRoot =
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     // set the merkle root to the correct one
 
@@ -312,11 +312,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -350,11 +350,11 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     const publicTime = parseInt(
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
+      Number(await twitterVerificationProofContract.INDEX_CURRENT_TIME())
       ],
       10,
     );
@@ -381,13 +381,13 @@ describe('twitterVerificationProof SC', () => {
   it('unverified twitter account returns incorrect proof', async () => {
     const fields = {
       id: '23742384',
-      createdAt: '1726128494',
+      createdAt: '2024-06-19T17:24:53Z',
       followersCount: 85,
       followingCount: 28,
       listedCount: 10,
       tweetCount: 22,
       username: 'test',
-      verified: 0,
+      verified: false,
     };
 
     const twitterZkCertificateUnverified =
@@ -403,7 +403,7 @@ describe('twitterVerificationProof SC', () => {
 
     const publicRoot =
       publicSignals[
-        Number(await twitterVerificationProofContract.INDEX_ROOT())
+      Number(await twitterVerificationProofContract.INDEX_ROOT())
       ];
     // set the merkle root to the correct one
     await mockZkCertificateRegistry.setMerkleRoot(

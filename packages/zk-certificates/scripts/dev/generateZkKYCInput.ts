@@ -3,7 +3,7 @@ import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers'
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
-import { ZkCertStandard } from '../../lib';
+import { ZkCertStandard, prepareContentForCircuit } from '../../lib';
 import {
   createHolderCommitment,
   formatPrivKeyForBabyJub,
@@ -12,23 +12,8 @@ import {
 import { MerkleTree } from '../../lib/merkleTree';
 import { ZkCertificate } from '../../lib/zkCertificate';
 import { getHumanIDProofInput } from '../../lib/zkKYC';
-
-// sample field inputs
-export const fields = {
-  surname: '23742384',
-  forename: '23234234',
-  middlename: '12233937',
-  yearOfBirth: 1982,
-  monthOfBirth: 5,
-  dayOfBirth: 28,
-  verificationLevel: '1',
-  streetAndNumber: '23423453234234',
-  postcode: '23423453234234',
-  town: '23423453234234',
-  region: '23423453234234',
-  country: '23423453234234',
-  citizenship: '23423453234234',
-};
+import { getContentSchema, KYCCertificateContent } from '@galactica-net/galactica-types';
+import kycExample from '../../example/kycFields.json';
 
 /**
  * Generates a sample ZkKYC object with the given fields.
@@ -51,10 +36,9 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
     eddsa,
     '1773',
     1769736098,
+    getContentSchema(ZkCertStandard.ZkKYC),
+    kycExample as KYCCertificateContent,
   );
-
-  // set the fields in zkKYC object
-  zkKYC.setContent(fields);
 
   // some default provider private key
   // providerData needs to be created before leafHash computation
@@ -119,7 +103,7 @@ export async function generateZkKYCProofInput(
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
   // construct the zkKYC inputs
-  const zkKYCInput: any = { ...fields };
+  const zkKYCInput: any = prepareContentForCircuit(eddsa, zkKYC.content, getContentSchema(ZkCertStandard.ZkKYC));
 
   zkKYCInput.providerAx = zkKYC.providerData.ax;
   zkKYCInput.providerAy = zkKYC.providerData.ay;
