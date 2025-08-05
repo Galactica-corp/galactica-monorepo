@@ -151,6 +151,7 @@ describe('Test rpc handler function', function () {
     ethereumProvider.rpcStubs.eth_call.resolves(
       fromDecToHex(getMerkleRootFromProof(zkCert.merkleProof, poseidon), true),
     );
+    ethereumProvider.rpcStubs.wallet_switchEthereumChain.resolves();
 
     // setting up merkle proof service for testing
     fetchMock.get(
@@ -823,6 +824,31 @@ describe('Test rpc handler function', function () {
       expect(fetchMock.calls()).to.be.empty;
 
       await verifyProof(result);
+    });
+
+    it('should select the right chain before fetching merkle proof', async function (this: Mocha.Context) {
+      this.timeout(25000);
+      snapProvider.rpcStubs.snap_dialog.resolves(true);
+      snapProvider.rpcStubs.snap_manageState
+        .withArgs({ operation: 'get' })
+        .resolves({
+          holders: [testHolder],
+          zkCerts: [zkCert],
+        });
+
+      await processRpcRequest(
+        buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
+        snapProvider,
+        ethereumProvider,
+      );
+
+      expect(ethereumProvider.rpcStubs.wallet_switchEthereumChain).to.have.been
+        .calledOnce;
+      expect(
+        ethereumProvider.rpcStubs.wallet_switchEthereumChain,
+      ).to.have.been.calledWith({
+        chainId: `0x${zkCert.registration.chainID.toString(16)}`,
+      });
     });
   });
 
