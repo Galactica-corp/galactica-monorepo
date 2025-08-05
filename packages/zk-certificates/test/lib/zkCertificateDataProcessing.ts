@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { ZkCertStandard } from '@galactica-net/galactica-types';
+import { getContentSchema, ZkCertStandard, parseContentJson } from '@galactica-net/galactica-types';
 import { expect } from 'chai';
 import type { Eddsa } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
@@ -9,7 +9,7 @@ import kycExample from '../../example/kycFields.json';
 import reyExample from '../../example/reyFields.json';
 import twitterExample from '../../example/twitterFields.json';
 import {
-  prepareZkCertificateFields,
+  prepareContentForCircuit,
   dateStringToUnixTimestamp,
 } from '../../lib/zkCertificateDataProcessing';
 
@@ -22,10 +22,10 @@ describe('ZK Certificate Data Processing', () => {
 
   describe('Examples', () => {
     it('should process kyc example', async () => {
-      const processed = prepareZkCertificateFields(
+      const processed = prepareContentForCircuit(
         eddsa,
-        kycExample,
-        ZkCertStandard.ZkKYC,
+        parseContentJson(kycExample, getContentSchema(ZkCertStandard.ZkKYC)),
+        getContentSchema(ZkCertStandard.ZkKYC),
       );
 
       // check that all string fields have been hashed by checking that all remaining strings are numbers
@@ -37,10 +37,10 @@ describe('ZK Certificate Data Processing', () => {
     });
 
     it('should process twitter example', async () => {
-      const processed = prepareZkCertificateFields(
+      const processed = prepareContentForCircuit(
         eddsa,
-        twitterExample,
-        ZkCertStandard.Twitter,
+        parseContentJson(twitterExample, getContentSchema(ZkCertStandard.Twitter)),
+        getContentSchema(ZkCertStandard.Twitter),
       );
 
       expect(processed.username).to.match(/^[0-9]+$/u);
@@ -48,20 +48,20 @@ describe('ZK Certificate Data Processing', () => {
     });
 
     it('should process rey example', async () => {
-      const processed = prepareZkCertificateFields(
+      const processed = prepareContentForCircuit(
         eddsa,
-        reyExample,
-        ZkCertStandard.Rey,
+        parseContentJson(reyExample, getContentSchema(ZkCertStandard.Rey)),
+        getContentSchema(ZkCertStandard.Rey),
       );
 
-      expect(processed.x_username).to.match(/^[0-9]+$/u);
+      expect(processed.xUsername).to.match(/^[0-9]+$/u);
     });
 
     it('should process arbitrary data example', async () => {
-      const processed = prepareZkCertificateFields(
+      const processed = prepareContentForCircuit(
         eddsa,
-        dataExample,
-        ZkCertStandard.ArbitraryData,
+        parseContentJson(dataExample, getContentSchema(ZkCertStandard.ArbitraryData)),
+        getContentSchema(ZkCertStandard.ArbitraryData),
       );
 
       expect(processed.type).to.match(/^[0-9]+$/u);

@@ -3,7 +3,5 @@
   "title": "Simple JSON Certificate Content",
   "description": "Certificate content for arbitrary string key-value data.",
   "type": "object",
-  "additionalProperties": {
-    "type": "string"
-  }
+  "additionalProperties": {}
 }

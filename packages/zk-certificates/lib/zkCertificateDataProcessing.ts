@@ -26,7 +26,7 @@ export function prepareContentForCircuit(
 ): Record<string, FieldElement> {
   const contentFields: Record<string, FieldElement> = {};
 
-  let zkCertificateContentFields = Object.keys(contentSchema.properties);
+  let zkCertificateContentFields = Object.keys(contentSchema.properties || contentData /* use keys of content directly if no properties are defined in the schema (gip2) */);
 
   for (const field of zkCertificateContentFields) {
     let resValue: FieldElement;
@@ -41,7 +41,8 @@ export function prepareContentForCircuit(
       resValue = sourceData;
     } else if (typeof sourceData === 'string') {
       // the meaning of the string depends on the format.
-      switch (contentSchema.properties[field].format) {
+      const format = contentSchema.properties?.[field]?.format;
+      switch (format) {
         // going through built-in formats found in https://json-schema.org/understanding-json-schema/reference/type#format
         case 'date-time':
           resValue = dateStringToUnixTimestamp(sourceData);
