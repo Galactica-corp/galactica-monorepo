@@ -4,22 +4,23 @@ import path from 'path';
 
 import { printProgress } from '../../lib/helpers';
 import { buildMerkleTreeFromRegistry } from '../../lib/queryMerkleTree';
+import { ZkCertificateRegistry } from '../../typechain-types/contracts/ZkCertificateRegistry';
 
 /**
  * Script for creating a merkle tree for testing from a list of UTXOs, benchmark version.
  */
 async function main() {
   // input
-  const registryAddress = '0x49FEc8ddf15a9731EfeD88b35685a45e5Fa95eFE';
+  const registryAddress = '0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE';
   const leavesToProve = [
-    '1308179671240528936391414005825751669522278571022431835427338852808248413183',
+    '6981810429802296585701394890552897013958081400319643330577058257399344841317',
   ];
   const merkleDepth = 32;
 
   const registry = await ethers.getContractAt(
     'ZkCertificateRegistry',
     registryAddress,
-  );
+  ) as unknown as ZkCertificateRegistry;
 
   // build merkle tree
   const merkleTree = await buildMerkleTreeFromRegistry(
