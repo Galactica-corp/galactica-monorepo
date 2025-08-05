@@ -12,6 +12,7 @@ import type { ZkCertificate } from '@galactica-net/zk-certificates';
 import {
   formatPrivKeyForBabyJub,
   getMerkleRootFromProof,
+  prepareContentForCircuit,
 } from '@galactica-net/zk-certificates';
 import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
@@ -86,13 +87,13 @@ export const generateZkCertProof = async (
     holder.eddsaKey,
     params.userAddress,
   );
-  const poseidon = await buildPoseidon();
-  const merkleRoot = getMerkleRootFromProof(merkleProof, poseidon);
+  const eddsa = await buildEddsa();
+  const merkleRoot = getMerkleRootFromProof(merkleProof, eddsa.poseidon);
 
   const inputs: any = {
     ...params.input,
 
-    ...zkCert.content,
+    ...prepareContentForCircuit(eddsa, zkCert.content, zkCert.contentSchema),
     randomSalt: zkCert.randomSalt,
     expirationDate: zkCert.expirationDate,
 
@@ -118,7 +119,6 @@ export const generateZkCertProof = async (
     // Generate private key for sending encrypted messages to institutions
     // It should be different if the ZKP is sent from another address
     // Therefore generating it from the private holder eddsa key and the user address
-    const eddsa = await buildEddsa();
     const encryptionHashBase = eddsa.poseidon.F.toObject(
       eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
     ).toString();

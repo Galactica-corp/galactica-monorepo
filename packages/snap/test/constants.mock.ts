@@ -67,7 +67,7 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
   },
   requirements: {
     zkCertStandard: ZkCertStandard.ZkKYC,
-    registryAddress: '0x0276a85D8B63f0e66081c9749fdfB1547C2672Ed',
+    registryAddress: '0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE',
   },
   prover,
   userAddress: testAddress,

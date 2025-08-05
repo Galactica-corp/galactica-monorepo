@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+import { getContentSchema } from '@galactica-net/galactica-types';
 import type {
   ZkCertRegistered,
   ZkCertSelectionParams,
@@ -35,7 +36,7 @@ export function filterZkCerts(
         value.providerData.ax === filter?.providerAx) &&
       (filter?.registryAddress === undefined ||
         value.registration.address.toLowerCase() ===
-          filter?.registryAddress.toLowerCase()) &&
+        filter?.registryAddress.toLowerCase()) &&
       (filter?.chainID === undefined ||
         value.registration.chainID === filter?.chainID)
     );
@@ -139,6 +140,7 @@ export async function selectZkCert(
     eddsa,
     selected.randomSalt,
     selected.expirationDate,
+    getContentSchema(selected.zkCertStandard),
     selected.content,
     selected.providerData,
   );
