@@ -41,7 +41,7 @@ export function prepareContentForCircuit(
       resValue = sourceData;
     } else if (typeof sourceData === 'string') {
       // the meaning of the string depends on the format.
-      switch (contentSchema.format) {
+      switch (contentSchema.properties[field].format) {
         // going through built-in formats found in https://json-schema.org/understanding-json-schema/reference/type#format
         case 'date-time':
           resValue = dateStringToUnixTimestamp(sourceData);
@@ -88,6 +88,7 @@ export function prepareContentForCircuit(
         case 'ethereum-address': // can be passed as is because it is a hex string
         case 'decimal':
           const { valid, error } = isValidFieldElement(sourceData);
+          console.log(`processing decimal ${field}: ${sourceData}`);
           if (!valid) {
             throw new Error(`${field}: ${sourceData} is not a valid field element: ${error}`);
           }
@@ -100,6 +101,8 @@ export function prepareContentForCircuit(
     } else if (typeof sourceData === 'object') {
       // We can extend this in the future to support the new circom 2 feature https://docs.circom.io/circom-language/buses/
       throw new Error(`Nested objects are not supported yet for conversion to ZK field elements. Required for field ${field}: ${sourceData}`);
+    } else if (sourceData === undefined) {
+      throw new Error(`Required field ${field} is undefined. Run it through 'parseContentJson' first to set default values from the schema.`);
     } else {
       throw new Error(`No conversion from JS type: ${typeof sourceData} to a ZK field element implemented. Required for field ${field}: ${sourceData}`);
     }

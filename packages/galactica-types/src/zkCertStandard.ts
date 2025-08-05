@@ -144,11 +144,22 @@ export function parseContentJson<ContentType>(inputData: any, schema: any): Cont
   const validate = ajv.compile<ContentType>(schema);
   // Unfortunately, ajv only provides the validate function for JSON schema. With JDT it would have a parser too.
   const valid = validate(inputData);
-  console.log(valid, ajv.errorsText());
   if (!valid) {
     throw new Error(`Content does not fit to schema because of: ${ajv.errorsText()}, content: ${JSON.stringify(inputData)}, schema: ${JSON.stringify(schema)}`);
   }
-  return inputData as unknown as ContentType;
+
+  // Set default values for optional fields that are not provided
+  let res = JSON.parse(JSON.stringify(inputData)); // deep copy to not modify the original object
+  for (const field of Object.keys(schema.properties)) {
+    if ((inputData as Record<string, any>)[field] === undefined && !schema.required?.includes(field)) {
+      if (schema.properties[field].default === undefined) {
+        throw new Error(`Optional field ${field} is undefined and no default value is provided.`);
+      }
+      (res as Record<string, any>)[field] = schema.properties[field].default;
+    }
+  }
+
+  return res as unknown as ContentType;
 }
 
 

@@ -68,33 +68,6 @@ describe('ZkCertificate', () => {
       );
     });
 
-    it('should handle boolean and 0/1 content the same', async () => {
-      let booleanContent = JSON.parse(JSON.stringify(twitterExample));
-      booleanContent.verified = true;
-      const certBoolean = new ZkCertificate(
-        testHolderCommitment,
-        ZkCertStandard.Twitter,
-        eddsa,
-        testRandomSalt,
-        testExpirationDate,
-        contentSchemas.twitter,
-        booleanContent,
-      );
-      let intContent = JSON.parse(JSON.stringify(twitterExample));
-      intContent.verified = 1;
-      const certInt = new ZkCertificate(
-        testHolderCommitment,
-        ZkCertStandard.Twitter,
-        eddsa,
-        testRandomSalt,
-        testExpirationDate,
-        contentSchemas.twitter,
-        intContent,
-      );
-
-      expect(certBoolean.contentHash).to.equal(certInt.contentHash);
-    });
-
     it('example should be compatible with the schema', async () => {
       const content = parseContentJson<TwitterCertificateContent>(twitterExample, contentSchemas.twitter);
     });
