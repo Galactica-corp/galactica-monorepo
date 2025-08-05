@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type { EddsaPrivateKey } from '@galactica-net/galactica-types';
+import type { EddsaPrivateKey, KYCCertificateContent } from '@galactica-net/galactica-types';
 import type {
   ZkCertRegistered,
   ZkCertStorageHashes,
@@ -47,7 +47,8 @@ export function getZkCertStorageOverview(
       expirationDate: zkCert.expirationDate,
     };
     if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
-      disclosureData.verificationLevel = zkCert.content.verificationLevel;
+      const content = zkCert.content as KYCCertificateContent;
+      disclosureData.verificationLevel = content.verificationLevel;
     }
     sharedZkCerts[zkCert.zkCertStandard].push(disclosureData);
   }
@@ -71,9 +72,9 @@ export function getZkCertStorageHashes(
     }
     storageHashes[zkCert.zkCertStandard] = keccak256(
       (storageHashes[zkCert.zkCertStandard] as string) +
-        zkCert.leafHash +
-        zkCert.registration.address +
-        zkCert.registration.chainID,
+      zkCert.leafHash +
+      zkCert.registration.address +
+      zkCert.registration.chainID,
     );
   }
   return storageHashes;

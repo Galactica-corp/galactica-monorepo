@@ -171,9 +171,9 @@ export function parseContentJson<ContentType>(
   const res = JSON.parse(JSON.stringify(inputData)); // deep copy to not modify the original object
   for (const field of Object.keys(
     schema.properties ||
-      {
-        /* for handling simpleJson that does not have predefined properties*/
-      },
+    {
+      /* for handling simpleJson that does not have predefined properties*/
+    },
   )) {
     if (
       (inputData as Record<string, any>)[field] === undefined &&
@@ -189,6 +189,25 @@ export function parseContentJson<ContentType>(
   }
 
   return res as unknown as ContentType;
+}
+
+/**
+ * Dump a content object to a JSON object.
+ * @param content - The content object to dump.
+ * @param schema - The schema to use for dumping.
+ * @returns The dumped content object.
+ */
+export function dumpContentJson(content: AnyZkCertContent, schema: any): any {
+  // Because some content fields are optional and have default values that do not match the format,
+  // for example default "" for region in ISO 3166-2, we need to remove those before exporting to keep the exported content consistent with the schema.
+
+  let res: any = JSON.parse(JSON.stringify(content));
+  for (const field of Object.keys(schema.properties || {})) {
+    if (!schema.required?.includes(field) && res[field] === schema.properties[field].default) {
+      delete res[field];
+    }
+  }
+  return res;
 }
 
 /**

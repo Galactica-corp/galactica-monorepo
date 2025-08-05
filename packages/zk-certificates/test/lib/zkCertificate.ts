@@ -169,4 +169,21 @@ describe('ZkCertificate', () => {
       ).to.throw();
     });
   });
+
+  describe('Exporting', () => {
+    it('should preserve missing content fields', async () => {
+      const zkKYC = new ZkCertificate(
+        testHolderCommitment,
+        ZkCertStandard.ZkKYC,
+        eddsa,
+        testRandomSalt,
+        testExpirationDate,
+        contentSchemas.kyc,
+        kycExample as KYCCertificateContent,
+      );
+
+      const exported = zkKYC.exportRaw();
+      expect(exported.content).to.deep.equal(kycExample);
+    });
+  });
 });

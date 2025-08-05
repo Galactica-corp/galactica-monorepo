@@ -16,6 +16,7 @@ import {
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
   parseContentJson,
+  dumpContentJson,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
 import type { Eddsa, Point, Poseidon } from 'circomlibjs';
@@ -175,7 +176,7 @@ export class ZkCertificate implements ZkCertData {
       leafHash: this.leafHash,
       did: this.did,
       zkCertStandard: this.zkCertStandard,
-      content: this.content,
+      content: dumpContentJson(this.content, this.contentSchema),
       contentHash: this.contentHash,
       providerData: this.providerData,
       randomSalt: this.randomSalt,
