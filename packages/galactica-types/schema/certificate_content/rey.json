@@ -7,6 +7,7 @@
     "xID": {
       "type": "string",
       "pattern": "^[0-9]+$",
+      "format": "decimal",
       "description": "The numeric ID of the user on X (Twitter)."
     },
     "xUsername": {
@@ -35,5 +36,8 @@
     }
   },
   "additionalProperties": false,
-  "required": ["xID", "xUsername"]
+  "required": [
+    "xID",
+    "xUsername"
+  ]
 }
