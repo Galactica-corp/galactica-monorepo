@@ -1,8 +1,11 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+import type { KYCCertificateContent } from '@galactica-net/galactica-types';
+import { getContentSchema } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
+import kycExample from '../../example/kycFields.json';
 import { ZkCertStandard, prepareContentForCircuit } from '../../lib';
 import {
   createHolderCommitment,
@@ -12,8 +15,6 @@ import {
 import { MerkleTree } from '../../lib/merkleTree';
 import { ZkCertificate } from '../../lib/zkCertificate';
 import { getHumanIDProofInput } from '../../lib/zkKYC';
-import { getContentSchema, KYCCertificateContent } from '@galactica-net/galactica-types';
-import kycExample from '../../example/kycFields.json';
 
 /**
  * Generates a sample ZkKYC object with the given fields.
@@ -103,7 +104,11 @@ export async function generateZkKYCProofInput(
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
   // construct the zkKYC inputs
-  const zkKYCInput: any = prepareContentForCircuit(eddsa, zkKYC.content, getContentSchema(ZkCertStandard.ZkKYC));
+  const zkKYCInput: any = prepareContentForCircuit(
+    eddsa,
+    zkKYC.content,
+    getContentSchema(ZkCertStandard.ZkKYC),
+  );
 
   zkKYCInput.providerAx = zkKYC.providerData.ax;
   zkKYCInput.providerAy = zkKYC.providerData.ay;

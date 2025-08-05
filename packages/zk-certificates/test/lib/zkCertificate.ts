@@ -1,19 +1,31 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { AnyZkCertContent, CEXCertificateContent, DEXCertificateContent, KYCCertificateContent, REYCertificateContent, TelegramCertificateContent, TwitterCertificateContent, ZkCertStandard, contentSchemas } from '@galactica-net/galactica-types';
+import type {
+  AnyZkCertContent,
+  CEXCertificateContent,
+  DEXCertificateContent,
+  KYCCertificateContent,
+  REYCertificateContent,
+  TelegramCertificateContent,
+  TwitterCertificateContent,
+} from '@galactica-net/galactica-types';
+import {
+  ZkCertStandard,
+  contentSchemas,
+  parseContentJson,
+} from '@galactica-net/galactica-types';
 import { expect } from 'chai';
 import type { Eddsa } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
-import { ZkCertificate } from '../../lib';
-import { parseContentJson } from '@galactica-net/galactica-types';
 
+import cexExample from '../../example/cexFields.json';
+import dexExample from '../../example/dexFields.json';
 import kycExample from '../../example/kycFields.json';
 import kycMinimalExample from '../../example/kycFieldsMinimal.json';
 import reyExample from '../../example/reyFields.json';
-import twitterExample from '../../example/twitterFields.json';
-import telegramExample from '../../example/telegramFields.json';
-import dexExample from '../../example/dexFields.json';
-import cexExample from '../../example/cexFields.json';
 import simpleJsonExample from '../../example/simpleJsonFields.json';
+import telegramExample from '../../example/telegramFields.json';
+import twitterExample from '../../example/twitterFields.json';
+import { ZkCertificate } from '../../lib';
 
 describe('ZkCertificate', () => {
   let eddsa: Eddsa;
@@ -43,11 +55,18 @@ describe('ZkCertificate', () => {
     });
 
     it('example should be compatible with the schema', async () => {
-      parseContentJson<KYCCertificateContent>(kycExample, contentSchemas.kyc);
+      expect(() =>
+        parseContentJson<KYCCertificateContent>(kycExample, contentSchemas.kyc),
+      ).to.not.throw();
     });
 
     it('minimal example should be valid', async () => {
-      parseContentJson<KYCCertificateContent>(kycMinimalExample, contentSchemas.kyc);
+      expect(() =>
+        parseContentJson<KYCCertificateContent>(
+          kycMinimalExample,
+          contentSchemas.kyc,
+        ),
+      ).to.not.throw();
     });
   });
 
@@ -69,7 +88,12 @@ describe('ZkCertificate', () => {
     });
 
     it('example should be compatible with the schema', async () => {
-      const content = parseContentJson<TwitterCertificateContent>(twitterExample, contentSchemas.twitter);
+      expect(() =>
+        parseContentJson<TwitterCertificateContent>(
+          twitterExample,
+          contentSchemas.twitter,
+        ),
+      ).to.not.throw();
     });
   });
 
@@ -91,37 +115,58 @@ describe('ZkCertificate', () => {
     });
 
     it('example should be compatible with the schema', async () => {
-      parseContentJson<REYCertificateContent>(reyExample, contentSchemas.rey);
+      expect(() =>
+        parseContentJson<REYCertificateContent>(reyExample, contentSchemas.rey),
+      ).to.not.throw();
     });
   });
 
   describe('Telegram', () => {
     it('example should be compatible with the schema', async () => {
-      parseContentJson<TelegramCertificateContent>(telegramExample, contentSchemas.telegram);
+      expect(() =>
+        parseContentJson<TelegramCertificateContent>(
+          telegramExample,
+          contentSchemas.telegram,
+        ),
+      ).to.not.throw();
     });
   });
 
   describe('DEX', () => {
     it('example should be compatible with the schema', async () => {
-      parseContentJson<DEXCertificateContent>(dexExample, contentSchemas.dex);
+      expect(() =>
+        parseContentJson<DEXCertificateContent>(dexExample, contentSchemas.dex),
+      ).to.not.throw();
     });
   });
 
   describe('CEX', () => {
     it('example should be compatible with the schema', async () => {
-      parseContentJson<CEXCertificateContent>(cexExample, contentSchemas.cex);
+      expect(() =>
+        parseContentJson<CEXCertificateContent>(cexExample, contentSchemas.cex),
+      ).to.not.throw();
     });
   });
 
   describe('Simple JSON', () => {
     it('example should be compatible with the schema', async () => {
-      parseContentJson<AnyZkCertContent>(simpleJsonExample, contentSchemas.simpleJson);
+      expect(() =>
+        parseContentJson<AnyZkCertContent>(
+          simpleJsonExample,
+          contentSchemas.simpleJson,
+        ),
+      ).to.not.throw();
     });
   });
 
   describe('Content Parsing', () => {
     it('should throw an error if the content does not fit to the schema', async () => {
-      expect(() => parseContentJson<KYCCertificateContent>(kycExample, contentSchemas.twitter)).to.throw();
+      expect(() =>
+        parseContentJson<KYCCertificateContent>(
+          kycExample,
+          contentSchemas.twitter,
+        ),
+      ).to.throw();
     });
   });
 });

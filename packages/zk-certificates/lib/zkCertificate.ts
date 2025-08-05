@@ -47,6 +47,7 @@ export class ZkCertificate implements ZkCertData {
   public expirationDate: number;
 
   public content: AnyZkCertContent;
+
   public contentSchema: any;
 
   public providerData: ProviderData;
@@ -91,7 +92,11 @@ export class ZkCertificate implements ZkCertData {
   }
 
   get contentHash(): string {
-    return hashZkCertificateContent(this.eddsa, this.content, this.contentSchema);
+    return hashZkCertificateContent(
+      this.eddsa,
+      this.content,
+      this.contentSchema,
+    );
   }
 
   get leafHash(): string {

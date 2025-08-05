@@ -1,6 +1,9 @@
 /* eslint-disable prefer-const */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { getContentSchema, ZkCertStandard } from '@galactica-net/galactica-types';
+import {
+  getContentSchema,
+  ZkCertStandard,
+} from '@galactica-net/galactica-types';
 import chalk from 'chalk';
 import { buildEddsa } from 'circomlibjs';
 import fs from 'fs';
@@ -52,7 +55,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const zkCertificateType = flagStandardMapping[args.zkCertificateType];
   if (zkCertificateType === undefined) {
     throw new Error(
-      `ZkCertStandard type ${args.zkCertificateType
+      `ZkCertStandard type ${
+        args.zkCertificateType
       } is unsupported, available options: ${JSON.stringify(
         Object.keys(flagStandardMapping),
       )}`,

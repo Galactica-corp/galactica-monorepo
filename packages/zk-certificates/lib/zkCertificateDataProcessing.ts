@@ -1,12 +1,8 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import {
-  getContentFields,
-  ZkCertStandard,
-  FieldElement,
-  isValidFieldElement,
-} from '@galactica-net/galactica-types';
-import type { Eddsa } from 'circomlibjs';
+import type { FieldElement } from '@galactica-net/galactica-types';
+import { isValidFieldElement } from '@galactica-net/galactica-types';
 import { Temporal } from '@js-temporal/polyfill';
+import type { Eddsa } from 'circomlibjs';
 
 import { hashStringToFieldNumber } from './helpers';
 
@@ -26,22 +22,32 @@ export function prepareContentForCircuit(
 ): Record<string, FieldElement> {
   const contentFields: Record<string, FieldElement> = {};
 
-  let zkCertificateContentFields = Object.keys(contentSchema.properties || contentData /* use keys of content directly if no properties are defined in the schema (gip2) */);
+  const zkCertificateContentFields = Object.keys(
+    contentSchema.properties ||
+      contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
+  );
 
   for (const field of zkCertificateContentFields) {
     let resValue: FieldElement;
     const sourceData = contentData[field];
 
-    if (typeof sourceData === 'number' || typeof sourceData === 'bigint' || typeof sourceData === 'boolean') {
+    if (
+      typeof sourceData === 'number' ||
+      typeof sourceData === 'bigint' ||
+      typeof sourceData === 'boolean'
+    ) {
       // we might be able to take the data 1 to 1 as field element
       const { valid, error } = isValidFieldElement(sourceData);
       if (!valid) {
-        throw new Error(`${field}: ${sourceData} is not a valid field element: ${error}`);
+        throw new Error(
+          `${field}: ${sourceData} is not a valid field element: ${error}`,
+        );
       }
       resValue = sourceData;
     } else if (typeof sourceData === 'string') {
       // the meaning of the string depends on the format.
       const format = contentSchema.properties?.[field]?.format;
+      const { valid, error } = isValidFieldElement(sourceData);
       switch (format) {
         // going through built-in formats found in https://json-schema.org/understanding-json-schema/reference/type#format
         case 'date-time':
@@ -50,16 +56,18 @@ export function prepareContentForCircuit(
         case 'time':
           // pass the number of seconds since midnight
           // sourceData is expected to be a string in "HH:MM:SS" or "HH:MM" format
+          // eslint-disable-next-line no-case-declarations
           const [hours, minutes, seconds] = sourceData.split(':').map(Number);
           resValue = (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
           break;
         case 'date':
           // pass it as unix timestamp
-          resValue = dateStringToUnixTimestamp(sourceData + 'T00:00:00Z');
+          resValue = dateStringToUnixTimestamp(`${sourceData}T00:00:00Z`);
           break;
         case 'duration':
-          const t = Temporal.Duration.from(sourceData);
-          resValue = t.total({ unit: 'seconds' });
+          resValue = Temporal.Duration.from(sourceData).total({
+            unit: 'seconds',
+          });
           break;
 
         // formats that are passed as hashed string to the circuit
@@ -88,23 +96,31 @@ export function prepareContentForCircuit(
         case 'field-element': // can be passed as is
         case 'ethereum-address': // can be passed as is because it is a hex string
         case 'decimal':
-          const { valid, error } = isValidFieldElement(sourceData);
           if (!valid) {
-            throw new Error(`${field}: ${sourceData} is not a valid field element: ${error}`);
+            throw new Error(
+              `${field}: ${sourceData} is not a valid field element: ${error}`,
+            );
           }
           resValue = sourceData;
           break;
         default:
-          throw new Error(`No conversion for string format ${contentSchema.format} to a ZK field element implemented. Required for field ${field}: ${sourceData}`);
+          throw new Error(
+            `No conversion for string format ${contentSchema.format} to a ZK field element implemented. Required for field ${field}: ${sourceData}`,
+          );
       }
-
     } else if (typeof sourceData === 'object') {
       // We can extend this in the future to support the new circom 2 feature https://docs.circom.io/circom-language/buses/
-      throw new Error(`Nested objects are not supported yet for conversion to ZK field elements. Required for field ${field}: ${sourceData}`);
+      throw new Error(
+        `Nested objects are not supported yet for conversion to ZK field elements. Required for field ${field}: ${sourceData}`,
+      );
     } else if (sourceData === undefined) {
-      throw new Error(`Required field ${field} is undefined. Run it through 'parseContentJson' first to set default values from the schema.`);
+      throw new Error(
+        `Required field ${field} is undefined. Run it through 'parseContentJson' first to set default values from the schema.`,
+      );
     } else {
-      throw new Error(`No conversion from JS type: ${typeof sourceData} to a ZK field element implemented. Required for field ${field}: ${sourceData}`);
+      throw new Error(
+        `No conversion from JS type: ${typeof sourceData} to a ZK field element implemented. Required for field ${field}: ${sourceData}`,
+      );
     }
 
     contentFields[field] = resValue;
@@ -144,7 +160,11 @@ export function hashZkCertificateContent(
   contentData: any,
   contentSchema: any,
 ): string {
-  const contentFields = prepareContentForCircuit(eddsa, contentData, contentSchema);
+  const contentFields = prepareContentForCircuit(
+    eddsa,
+    contentData,
+    contentSchema,
+  );
 
   return eddsa.F.toObject(
     eddsa.poseidon(
@@ -154,7 +174,10 @@ export function hashZkCertificateContent(
         .map((field) => {
           const value = contentFields[field];
           // Convert boolean to number for poseidon compatibility
-          return typeof value === 'boolean' ? (value ? 1 : 0) : value;
+          if (typeof value === 'boolean') {
+            return value ? 1 : 0;
+          }
+          return value;
         }),
       undefined,
       1,

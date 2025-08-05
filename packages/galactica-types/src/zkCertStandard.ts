@@ -1,10 +1,18 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
-import { contentSchemas } from './schemas';
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import Ajv from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 
-import { KYCCertificateContent, TwitterCertificateContent, REYCertificateContent, DEXCertificateContent, CEXCertificateContent, TelegramCertificateContent } from './zkCertContent';
+import { contentSchemas } from './schemas';
+import type {
+  KYCCertificateContent,
+  TwitterCertificateContent,
+  REYCertificateContent,
+  DEXCertificateContent,
+  CEXCertificateContent,
+  TelegramCertificateContent,
+} from './zkCertContent';
 
 /**
  * Enum for zkCert standards
@@ -75,6 +83,11 @@ export function getContentFields(contentType: ZkCertStandard): string[] {
   return Object.keys(schema.properties).sort();
 }
 
+/**
+ * Get the schema for a zkCert standard.
+ * @param contentType - The type of zkCert standard to get the schema for.
+ * @returns The schema for the zkCert standard.
+ */
 export function getContentSchema(contentType: ZkCertStandard): any {
   switch (contentType) {
     case ZkCertStandard.ZkKYC:
@@ -92,7 +105,9 @@ export function getContentSchema(contentType: ZkCertStandard): any {
     case ZkCertStandard.ArbitraryData:
       return contentSchemas.simpleJson;
     default:
-      throw new Error(`Unknown zkCert standard: ${contentType}`);
+      throw new Error(
+        `Unknown zkCert standard: ${JSON.stringify(contentType)}`,
+      );
   }
 }
 
@@ -126,14 +141,16 @@ export const personIDFieldOrder = [
   'yearOfBirth',
 ];
 
-
 /**
  * Parse a JSON object to a content object of a certain type. This does not convert any data types, it only validates the input data against the schema.
  * @param inputData - The JSON object to parse.
  * @param schema - The schema to use for parsing.
  * @returns The parsed content object.
  */
-export function parseContentJson<ContentType>(inputData: any, schema: any): ContentType {
+export function parseContentJson<ContentType>(
+  inputData: any,
+  schema: any,
+): ContentType {
   const ajv = new Ajv({
     strictSchema: false,
     allErrors: true,
@@ -145,15 +162,27 @@ export function parseContentJson<ContentType>(inputData: any, schema: any): Cont
   // Unfortunately, ajv only provides the validate function for JSON schema. With JDT it would have a parser too.
   const valid = validate(inputData);
   if (!valid) {
-    throw new Error(`Content does not fit to schema because of: ${ajv.errorsText()}, content: ${JSON.stringify(inputData)}, schema: ${JSON.stringify(schema)}`);
+    throw new Error(
+      `Content does not fit to schema because of: ${ajv.errorsText()}, content: ${JSON.stringify(inputData)}, schema: ${JSON.stringify(schema)}`,
+    );
   }
 
   // Set default values for optional fields that are not provided
-  let res = JSON.parse(JSON.stringify(inputData)); // deep copy to not modify the original object
-  for (const field of Object.keys(schema.properties || {/*for handling simpleJson that does not have predefined properties*/ })) {
-    if ((inputData as Record<string, any>)[field] === undefined && !schema.required?.includes(field)) {
+  const res = JSON.parse(JSON.stringify(inputData)); // deep copy to not modify the original object
+  for (const field of Object.keys(
+    schema.properties ||
+      {
+        /* for handling simpleJson that does not have predefined properties*/
+      },
+  )) {
+    if (
+      (inputData as Record<string, any>)[field] === undefined &&
+      !schema.required?.includes(field)
+    ) {
       if (schema.properties[field].default === undefined) {
-        throw new Error(`Optional field ${field} is undefined and no default value is provided.`);
+        throw new Error(
+          `Optional field ${field} is undefined and no default value is provided.`,
+        );
       }
       (res as Record<string, any>)[field] = schema.properties[field].default;
     }
@@ -162,15 +191,14 @@ export function parseContentJson<ContentType>(inputData: any, schema: any): Cont
   return res as unknown as ContentType;
 }
 
-
 /**
  * Add custom formats used in the zkCert standards to an Ajv instance.
  * @param ajv - The Ajv instance to add the formats to.
  */
 export function addAJVFormats(ajv: Ajv) {
   addFormats(ajv);
-  ajv.addFormat('decimal', /^\d+$/);
-  ajv.addFormat('ethereum-address', /^0x[a-fA-F0-9]{40}$/);
-  ajv.addFormat('iso3166_1_alpha3', /^[A-Z]{3}$/);
-  ajv.addFormat('iso3166_2', /^[A-Z]{2}-[A-Z0-9]{1,3}$/);
+  ajv.addFormat('decimal', /^\d+$/u);
+  ajv.addFormat('ethereum-address', /^0x[a-fA-F0-9]{40}$/u);
+  ajv.addFormat('iso3166_1_alpha3', /^[A-Z]{3}$/u);
+  ajv.addFormat('iso3166_2', /^[A-Z]{2}-[A-Z0-9]{1,3}$/u);
 }

@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
   getContentSchema,
-  ZkCertStandard
+  ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
@@ -78,7 +78,11 @@ export async function generateTwitterZkCertificateProofInput(
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
   // construct the twitterZkCertificate inputs
-  const twitterZkCertificateInput: any = prepareContentForCircuit(eddsa, twitterZkCertificate.content, getContentSchema(ZkCertStandard.Twitter));
+  const twitterZkCertificateInput: any = prepareContentForCircuit(
+    eddsa,
+    twitterZkCertificate.content,
+    getContentSchema(ZkCertStandard.Twitter),
+  );
 
   twitterZkCertificateInput.providerAx = twitterZkCertificate.providerData.ax;
   twitterZkCertificateInput.providerAy = twitterZkCertificate.providerData.ay;
