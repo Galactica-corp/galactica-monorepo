@@ -1,4 +1,7 @@
-import { getContentSchema, ZkCertStandard } from '@galactica-net/galactica-types';
+import {
+  getContentSchema,
+  ZkCertStandard,
+} from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
   ProverData,
@@ -10,12 +13,12 @@ import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import hash from 'object-hash';
 
+import zkCert from '../../../test/zkCert.json';
+import zkCert2 from '../../../test/zkCert2.json';
 import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
 import exclusionProver from '../../galactica-dapp/public/provers/exclusion3.json';
 import exclusionInput from '../../zk-certificates/circuits/input/exclusion3.json';
 import type { RpcArgs, ZkCertStorage } from '../src/types';
-import zkCert from '../../../test/zkCert.json';
-import zkCert2 from '../../../test/zkCert2.json';
 
 // Tell JSON how to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {

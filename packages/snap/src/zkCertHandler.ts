@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { getContentSchema, parseContentJson, type EddsaPrivateKey, type KYCCertificateContent, type ProviderData, type ZkCertRegistration } from '@galactica-net/galactica-types';
-import type { AnySchema } from 'ajv/dist/2020';
+import {
+  getContentSchema,
+  parseContentJson,
+  type EddsaPrivateKey,
+  type KYCCertificateContent,
+  type ProviderData,
+  type ZkCertRegistration,
+} from '@galactica-net/galactica-types';
 import type {
   ZkCertRegistered,
   ZkCertStorageHashes,
@@ -10,6 +16,7 @@ import {
   createHolderCommitment,
   ZkCertStandard,
 } from '@galactica-net/zk-certificates';
+import type { AnySchema } from 'ajv/dist/2020';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
 
@@ -73,9 +80,9 @@ export function getZkCertStorageHashes(
     }
     storageHashes[zkCert.zkCertStandard] = keccak256(
       (storageHashes[zkCert.zkCertStandard] as string) +
-      zkCert.leafHash +
-      zkCert.registration.address +
-      zkCert.registration.chainID,
+        zkCert.leafHash +
+        zkCert.registration.address +
+        zkCert.registration.chainID,
     );
   }
   return storageHashes;
@@ -88,7 +95,10 @@ export function getZkCertStorageHashes(
  * @throws If the format is not correct.
  * @returns The parsed zkCert with registration data.
  */
-export function parseZkCert(zkCert: Record<string, unknown>, schema: AnySchema) {
+export function parseZkCert(
+  zkCert: Record<string, unknown>,
+  schema: AnySchema,
+) {
   if (!zkCert) {
     throw new ImportZkCertError({
       name: 'FormatError',
@@ -175,7 +185,10 @@ export function parseZkCert(zkCert: Record<string, unknown>, schema: AnySchema) 
  * @param customSchema - The custom schema for the zkCert.
  * @returns The schema for the zkCert.
  */
-export function choseSchema(zkCertStandard: ZkCertStandard, customSchema?: AnySchema) {
+export function choseSchema(
+  zkCertStandard: ZkCertStandard,
+  customSchema?: AnySchema,
+) {
   if (customSchema) {
     return customSchema;
   }

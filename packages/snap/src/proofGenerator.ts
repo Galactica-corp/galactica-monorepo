@@ -16,7 +16,7 @@ import {
 } from '@galactica-net/zk-certificates';
 import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
-import { buildEddsa, buildPoseidon } from 'circomlibjs';
+import { buildEddsa } from 'circomlibjs';
 import { buildBls12381, buildBn128 } from 'ffjavascript';
 import hash from 'object-hash';
 import { groth16 } from 'snarkjs';

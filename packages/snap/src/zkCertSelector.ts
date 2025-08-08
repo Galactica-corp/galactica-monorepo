@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 import { getContentSchema } from '@galactica-net/galactica-types';
-import type {
-  ZkCertRegistered,
-  ZkCertSelectionParams,
-} from '@galactica-net/snap-api';
+import type { ZkCertSelectionParams } from '@galactica-net/snap-api';
 import { RpcResponseErr } from '@galactica-net/snap-api';
 import { ZkCertificate } from '@galactica-net/zk-certificates';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
 import { divider, heading, panel, text } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
-import { ZkCertStorage } from './types';
+
+import type { ZkCertStorage } from './types';
 
 /**
  * Filters ZkCerts according to selection parameters.
@@ -37,7 +35,7 @@ export function filterZkCerts(
         value.zkCert.providerData.ax === filter?.providerAx) &&
       (filter?.registryAddress === undefined ||
         value.zkCert.registration.address.toLowerCase() ===
-        filter?.registryAddress.toLowerCase()) &&
+          filter?.registryAddress.toLowerCase()) &&
       (filter?.chainID === undefined ||
         value.zkCert.registration.chainID === filter?.chainID)
     );
@@ -142,7 +140,7 @@ export async function selectZkCert(
     selected.zkCert.randomSalt,
     selected.zkCert.expirationDate,
     selected.schema || getContentSchema(selected.zkCert.zkCertStandard),
-    selected.zkCert.content,
+    selected.zkCert.content as unknown as Record<string, unknown>,
     selected.zkCert.providerData,
   );
 

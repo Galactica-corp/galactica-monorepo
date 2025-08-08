@@ -158,13 +158,15 @@ describe('Test rpc handler function', function () {
 
     // setting up merkle proof service for testing
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
+        zkCert.registration.address
       }/${zkCert.leafHash}`,
       merkleProofToServiceResponse(zkCert.merkleProof),
       { overwriteRoutes: true },
     );
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert2.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
+        zkCert2.registration.address
       }/${zkCert2.leafHash}`,
       merkleProofToServiceResponse(zkCert2.merkleProof),
       { overwriteRoutes: true },
@@ -303,7 +305,9 @@ describe('Test rpc handler function', function () {
               ),
             },
           ],
-          zkCerts: [{ zkCert: zkKYC, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
+          zkCerts: [
+            { zkCert: zkKYC, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+          ],
           merkleServiceURL: '',
         },
       });
@@ -494,7 +498,12 @@ describe('Test rpc handler function', function () {
         operation: 'update',
         newState: {
           holders: [testHolder],
-          zkCerts: [{ zkCert: renewedZkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
+          zkCerts: [
+            {
+              zkCert: renewedZkCert,
+              schema: getContentSchema(ZkCertStandard.ZkKYC),
+            },
+          ],
           merkleServiceURL: '',
         },
       });
@@ -520,7 +529,9 @@ describe('Test rpc handler function', function () {
       );
 
       const failingCallPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert: encryptedUnknownZkCert }),
+        buildRPCRequest(RpcMethods.ImportZkCert, {
+          encryptedZkCert: encryptedUnknownZkCert,
+        }),
         snapProvider,
         ethereumProvider,
       );
@@ -561,7 +572,12 @@ describe('Test rpc handler function', function () {
         operation: 'update',
         newState: {
           holders: [testHolder],
-          zkCerts: [{ zkCert: unknownZkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
+          zkCerts: [
+            {
+              zkCert: unknownZkCert,
+              schema: getContentSchema(ZkCertStandard.ZkKYC),
+            },
+          ],
           merkleServiceURL: '',
         },
       });
@@ -700,7 +716,8 @@ describe('Test rpc handler function', function () {
     it('should handle failures fetching merkle proof update', async function (this: Mocha.Context) {
       this.timeout(25000);
       fetchMock.get(
-        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
+        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
+          zkCert.registration.address
         }/${zkCert.leafHash}`,
         404,
         { overwriteRoutes: true },
@@ -713,7 +730,12 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves({
           holders: [testHolder],
-          zkCerts: [{ zkCert: outdatedZkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
+          zkCerts: [
+            {
+              zkCert: outdatedZkCert,
+              schema: getContentSchema(ZkCertStandard.ZkKYC),
+            },
+          ],
         });
 
       const callPromise = processRpcRequest(
@@ -739,7 +761,12 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves({
           holders: [testHolder],
-          zkCerts: [{ zkCert: outdatedZkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
+          zkCerts: [
+            {
+              zkCert: outdatedZkCert,
+              schema: getContentSchema(ZkCertStandard.ZkKYC),
+            },
+          ],
         });
 
       const result = (await processRpcRequest(
@@ -875,7 +902,12 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves({
           holders: [testHolder],
-          zkCerts: [{ zkCert: unknownZkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
+          zkCerts: [
+            {
+              zkCert: unknownZkCert,
+              schema: getContentSchema(ZkCertStandard.ZkKYC),
+            },
+          ],
         });
 
       const result = (await processRpcRequest(
@@ -990,8 +1022,11 @@ describe('Test rpc handler function', function () {
         .resolves({
           holders: [testHolder],
           zkCerts: [
-            { zkCert: zkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) },
-            { zkCert: zkCert2OnOtherChain, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+            { zkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+            {
+              zkCert: zkCert2OnOtherChain,
+              schema: getContentSchema(ZkCertStandard.ZkKYC),
+            },
           ],
         });
       snapProvider.rpcStubs.snap_dialog
@@ -1216,7 +1251,12 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves({
           holders: [testHolder],
-          zkCerts: [{ zkCert: unknownZkCert, schema: getContentSchema(ZkCertStandard.Rey) }],
+          zkCerts: [
+            {
+              zkCert: unknownZkCert,
+              schema: getContentSchema(ZkCertStandard.Rey),
+            },
+          ],
         });
 
       const params: ZkCertSelectionParams = {
@@ -1270,7 +1310,10 @@ describe('Test rpc handler function', function () {
       );
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
-      expect(result).to.be.deep.eq([zkCertStorage.zkCert.leafHash, zkCertStorage2.zkCert.leafHash]);
+      expect(result).to.be.deep.eq([
+        zkCertStorage.zkCert.leafHash,
+        zkCertStorage2.zkCert.leafHash,
+      ]);
     });
   });
 
@@ -1361,7 +1404,10 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [
-            { zkCert: expectedUpdatedZkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+            {
+              zkCert: expectedUpdatedZkCert,
+              schema: getContentSchema(ZkCertStandard.ZkKYC),
+            },
             { zkCert: zkCert2, schema: getContentSchema(ZkCertStandard.ZkKYC) },
           ],
           merkleServiceURL: '',
@@ -1417,7 +1463,9 @@ describe('Test rpc handler function', function () {
         operation: 'update',
         newState: {
           holders: [testHolder],
-          zkCerts: [{ zkCert: zkCert2, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
+          zkCerts: [
+            { zkCert: zkCert2, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+          ],
           merkleServiceURL: '',
         },
       });
@@ -1444,7 +1492,7 @@ describe('Test rpc handler function', function () {
         operation: 'update',
         newState: {
           holders: [testHolder],
-          zkCerts: [{ zkCert: zkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
+          zkCerts: [{ zkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
           merkleServiceURL: '',
         },
       });

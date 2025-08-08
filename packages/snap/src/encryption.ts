@@ -6,15 +6,13 @@ import type {
   ZkCertRegistered,
 } from '@galactica-net/snap-api';
 import { ImportZkCertError } from '@galactica-net/snap-api';
+import { padZkCertForEncryption } from '@galactica-net/zk-certificates';
 import {
   decryptSafely,
   encryptSafely,
   getEncryptionPublicKey,
 } from '@metamask/eth-sig-util';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
-import { padZkCertForEncryption } from '@galactica-net/zk-certificates';
-
-import { parseZkCert } from './zkCertHandler';
 
 /**
  * Create a new encryption key pair for the holder. It is used to encrypt personal details in ZK certificates, for example on the way from guardian to the holder.

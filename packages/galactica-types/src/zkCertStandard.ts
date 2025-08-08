@@ -1,7 +1,8 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
+import type { AnySchema } from 'ajv/dist/2020';
 // eslint-disable-next-line @typescript-eslint/naming-convention
-import Ajv, { AnySchema } from 'ajv/dist/2020';
+import Ajv from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 
 import { contentSchemas } from './schemas';
@@ -172,10 +173,7 @@ export function parseContentJson<ContentType>(
   const schemaProperties = (schema as any).properties || {};
   const requiredList = (schema as any).required || [];
   for (const field of Object.keys(schemaProperties)) {
-    if (
-      (inputData as Record<string, unknown>)[field] === undefined &&
-      !requiredList.includes(field)
-    ) {
+    if (inputData[field] === undefined && !requiredList.includes(field)) {
       if (schemaProperties[field].default === undefined) {
         throw new Error(
           `Optional field ${field} is undefined and no default value is provided.`,
@@ -198,9 +196,12 @@ export function dumpContentJson(content: AnyZkCertContent, schema: any): any {
   // Because some content fields are optional and have default values that do not match the format,
   // for example default "" for region in ISO 3166-2, we need to remove those before exporting to keep the exported content consistent with the schema.
 
-  let res: any = JSON.parse(JSON.stringify(content));
+  const res: any = JSON.parse(JSON.stringify(content));
   for (const field of Object.keys(schema.properties || {})) {
-    if (!schema.required?.includes(field) && res[field] === schema.properties[field].default) {
+    if (
+      !schema.required?.includes(field) &&
+      res[field] === schema.properties[field].default
+    ) {
       delete res[field];
     }
   }
