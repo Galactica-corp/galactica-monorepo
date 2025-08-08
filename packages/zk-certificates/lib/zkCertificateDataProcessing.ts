@@ -1,5 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { FieldElement } from '@galactica-net/galactica-types';
+import type { FieldElement, ZkCertRegistered, EncryptedZkCert } from '@galactica-net/galactica-types';
 import { isValidFieldElement } from '@galactica-net/galactica-types';
 import { Temporal } from '@js-temporal/polyfill';
 import type { Eddsa } from 'circomlibjs';
@@ -24,7 +24,7 @@ export function prepareContentForCircuit(
 
   const zkCertificateContentFields = Object.keys(
     contentSchema.properties ||
-      contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
+    contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
   );
 
   for (const field of zkCertificateContentFields) {
@@ -183,4 +183,29 @@ export function hashZkCertificateContent(
       1,
     ),
   ).toString();
+}
+
+/**
+ * Workaround for a bug in the encryption library. With certain data sizes, the encryption fails to pad the data correctly. So we additionally inflate the data to make sure it is padded correctly.
+ * @param encryptionPubKey - Public key of the holder used for encryption.
+ * @param merkleProof - Merkle proof to attach to the zkCert (optional).
+ * @param registration - Registration data to attach to the zkCert (optional).
+ * @returns Encrypted zkCert.
+ */
+export function padZkCertForEncryption(
+  data: ZkCertRegistered,
+): ZkCertRegistered {
+  const dataWithPadding = {
+    data: data,
+    padding: '',
+  };
+  const dataLength = Buffer.byteLength(JSON.stringify(dataWithPadding), 'utf-8');
+  const DEFAULT_PADDING_LENGTH = 2 ** 11;
+  const NACL_EXTRA_BYTES = 16;
+  const modVal = dataLength % DEFAULT_PADDING_LENGTH;
+  const padLength = DEFAULT_PADDING_LENGTH - modVal - NACL_EXTRA_BYTES
+  if (padLength < 0) {
+    data.paddingIssueWorkaround = '0'.repeat(NACL_EXTRA_BYTES);
+  }
+  return data;
 }

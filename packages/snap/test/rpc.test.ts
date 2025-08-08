@@ -1042,7 +1042,7 @@ describe('Test rpc handler function', function () {
       expect(snapProvider.rpcStubs.snap_dialog).to.not.have.been.called;
     });
 
-    it.only('should not change on updating the merkle proof', async function () {
+    it('should not change on updating the merkle proof', async function () {
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
         .resolves({
@@ -1103,7 +1103,7 @@ describe('Test rpc handler function', function () {
       );
     });
 
-    it.only('should provide zkCert on approval', async function (this: Mocha.Context) {
+    it('should provide zkCert on approval', async function (this: Mocha.Context) {
       this.timeout(5000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState

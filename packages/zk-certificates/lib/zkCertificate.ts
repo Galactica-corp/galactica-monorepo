@@ -25,7 +25,7 @@ import { Scalar } from 'ffjavascript';
 
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
-import { hashZkCertificateContent } from './zkCertificateDataProcessing';
+import { hashZkCertificateContent, padZkCertForEncryption } from './zkCertificateDataProcessing';
 
 /**
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
@@ -153,6 +153,7 @@ export class ZkCertificate implements ZkCertData {
     if (registration) {
       dataToExport.registration = registration;
     }
+    padZkCertForEncryption(dataToExport);
 
     const encryptedData = encryptSafely({
       publicKey: encryptionPubKey,
