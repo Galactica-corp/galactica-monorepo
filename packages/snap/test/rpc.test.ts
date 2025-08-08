@@ -1304,7 +1304,7 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves({
           holders: [testHolder],
-          zkCerts: [zkCert],
+          zkCerts: [zkCertStorage],
         });
 
       const updateParams: MerkleProofUpdateRequestParams = {
@@ -1334,7 +1334,7 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves({
           holders: [testHolder],
-          zkCerts: [zkCert, zkCert2],
+          zkCerts: [zkCertStorage, zkCertStorage2],
         });
 
       const updateParams: MerkleProofUpdateRequestParams = {
@@ -1360,7 +1360,10 @@ describe('Test rpc handler function', function () {
         operation: 'update',
         newState: {
           holders: [testHolder],
-          zkCerts: [expectedUpdatedZkCert, zkCert2],
+          zkCerts: [
+            { zkCert: expectedUpdatedZkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+            { zkCert: zkCert2, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+          ],
           merkleServiceURL: '',
         },
       });
@@ -1374,7 +1377,7 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves({
           holders: [testHolder],
-          zkCerts: [zkCert, zkCert2],
+          zkCerts: [zkCertStorage, zkCertStorage2],
         });
     });
 
@@ -1414,7 +1417,7 @@ describe('Test rpc handler function', function () {
         operation: 'update',
         newState: {
           holders: [testHolder],
-          zkCerts: [zkCert2],
+          zkCerts: [{ zkCert: zkCert2, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
           merkleServiceURL: '',
         },
       });
@@ -1441,7 +1444,7 @@ describe('Test rpc handler function', function () {
         operation: 'update',
         newState: {
           holders: [testHolder],
-          zkCerts: [zkCert],
+          zkCerts: [{ zkCert: zkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
           merkleServiceURL: '',
         },
       });
@@ -1553,7 +1556,7 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves({
           holders: [testHolder],
-          zkCerts: [zkCert2],
+          zkCerts: [zkCertStorage2],
         });
 
       const params: ZkCertSelectionParams = {
