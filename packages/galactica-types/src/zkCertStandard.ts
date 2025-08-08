@@ -148,8 +148,8 @@ export const personIDFieldOrder = [
  * @returns The parsed content object.
  */
 export function parseContentJson<ContentType>(
-  inputData: any,
-  schema: any,
+  inputData: Record<string, unknown>,
+  schema: Record<string, unknown>,
 ): ContentType {
   const ajv = new Ajv({
     strictSchema: false,
@@ -169,22 +169,19 @@ export function parseContentJson<ContentType>(
 
   // Set default values for optional fields that are not provided
   const res = JSON.parse(JSON.stringify(inputData)); // deep copy to not modify the original object
-  for (const field of Object.keys(
-    schema.properties ||
-    {
-      /* for handling simpleJson that does not have predefined properties*/
-    },
-  )) {
+  const schemaProperties = (schema as any).properties || {};
+  for (const field of Object.keys(schemaProperties)) {
     if (
-      (inputData as Record<string, any>)[field] === undefined &&
+      (inputData as Record<string, unknown>)[field] === undefined &&
+      Array.isArray(schema.required) &&
       !schema.required?.includes(field)
     ) {
-      if (schema.properties[field].default === undefined) {
+      if (schemaProperties[field].default === undefined) {
         throw new Error(
           `Optional field ${field} is undefined and no default value is provided.`,
         );
       }
-      (res as Record<string, any>)[field] = schema.properties[field].default;
+      (res as Record<string, unknown>)[field] = schemaProperties[field].default;
     }
   }
 
