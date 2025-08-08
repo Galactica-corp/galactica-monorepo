@@ -5,7 +5,7 @@ import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import type { Json, SnapsGlobalObject } from '@metamask/snaps-types';
 
 import { createEncryptionKeyPair } from './encryption';
-import type { HolderData, StorageState } from './types';
+import type { HolderData, StorageState, ZkCertStorage } from './types';
 import { calculateHolderCommitment } from './zkCertHandler';
 
 /**
@@ -49,7 +49,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
         encryptionPubKey: holder.encryptionPubKey,
         encryptionPrivKey: holder.encryptionPrivKey,
       })),
-      zkCerts: stateRecord.zkCerts?.valueOf() as ZkCertRegistered[],
+      zkCerts: stateRecord.zkCerts?.valueOf() as ZkCertStorage[],
     };
     if (
       stateRecord.merkleServiceURL !== undefined &&

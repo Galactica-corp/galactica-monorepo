@@ -71,7 +71,7 @@ export class ZkCertificate implements ZkCertData {
     randomSalt: string,
     expirationDate: number,
     contentSchema: any,
-    content: AnyZkCertContent,
+    content: Record<string, unknown>,
     providerData: ProviderData = {
       ax: '0',
       ay: '0',
@@ -130,7 +130,7 @@ export class ZkCertificate implements ZkCertData {
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
 
-  public setContent(content: AnyZkCertContent) {
+  public setContent(content: Record<string, unknown>) {
     this.content = parseContentJson(content, this.contentSchema);
   }
 

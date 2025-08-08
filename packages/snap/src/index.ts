@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type { HolderCommitmentData } from '@galactica-net/galactica-types';
+import { getContentSchema, parseContentJson, type HolderCommitmentData } from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
   ImportZkCertParams,
@@ -15,6 +15,8 @@ import {
   RpcResponseMsg,
   GenericError,
   URLUpdateError,
+  ZkCertStandard,
+  ImportZkCertError,
 } from '@galactica-net/snap-api';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
@@ -22,7 +24,7 @@ import { basicURLParse } from 'whatwg-url';
 
 import {
   checkEncryptedZkCertFormat,
-  decryptZkCert,
+  decryptMessageToObject,
   encryptZkCert,
 } from './encryption';
 import { getMerkleProof } from './merkleProofSelection';
@@ -36,10 +38,13 @@ import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
 import { stripURLProtocol } from './utils';
 import {
+  choseSchema,
   getZkCertStorageHashes,
   getZkCertStorageOverview,
+  parseZkCert,
 } from './zkCertHandler';
 import { selectZkCert, filterZkCerts } from './zkCertSelector';
+import type { AnySchema } from 'ajv/dist/2020';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
@@ -75,7 +80,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       });
       holder = getHolder(zkCert.holderCommitment, state.holders);
 
-      const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts);
+      const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts.map((zkCert) => zkCert.zkCert));
 
       const merkleProof = await getMerkleProof(
         searchedZkCert,
@@ -168,13 +173,15 @@ export const processRpcRequest: SnapRpcProcessor = async (
         state.holders,
       );
 
-      const zkCert = decryptZkCert(
+      const decrypted = decryptMessageToObject(
         importParams.encryptedZkCert,
         holder.encryptionPrivKey,
       );
+      const schema = choseSchema(decrypted.zkCertStandard as ZkCertStandard, importParams.customSchema as unknown as AnySchema);
+      const zkCert = parseZkCert(decrypted, schema);
 
       // prevent uploading the same zkCert again (it is fine on different registries though)
-      const searchedZkCert = state.zkCerts.find(
+      const searchedZkCert = state.zkCerts.map((zkCert) => zkCert.zkCert).find(
         (candidate) =>
           candidate.leafHash === zkCert.leafHash &&
           candidate.registration.address === zkCert.registration.address &&
@@ -215,7 +222,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       // check if the imported zkCert is a renewal of an existing one
-      const oldVersion = state.zkCerts.find(
+      const oldVersion = state.zkCerts.map((zkCert) => zkCert.zkCert).find(
         (candidate) =>
           candidate.holderCommitment === zkCert.holderCommitment &&
           candidate.merkleProof.leafIndex === zkCert.merkleProof.leafIndex &&
@@ -237,16 +244,19 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
         if (confirmRenewal) {
           state.zkCerts = state.zkCerts.filter(
-            (candidate) => candidate.leafHash !== oldVersion.leafHash,
+            (candidate) => candidate.zkCert.leafHash !== oldVersion.leafHash,
           );
         }
       }
 
-      state.zkCerts.push(zkCert);
+      state.zkCerts.push({
+        zkCert,
+        schema,
+      });
       await saveState(snap, state);
 
       if (importParams.listZkCerts === true) {
-        return getZkCertStorageOverview(state.zkCerts);
+        return getZkCertStorageOverview(state.zkCerts.map((zkCert) => zkCert.zkCert));
       }
       response = { message: RpcResponseMsg.ZkCertImported };
       return response;
@@ -284,7 +294,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       );
       const zkCertStorageData = getZkCert(
         zkCertForExport.leafHash,
-        state.zkCerts,
+        state.zkCerts.map((zkCert) => zkCert.zkCert),
       );
       const encryptedZkCert = encryptZkCert(
         zkCertStorageData,
@@ -358,13 +368,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
       }
       const filteredCerts = filterZkCerts(state.zkCerts, listParams);
-      return getZkCertStorageOverview(filteredCerts);
+      return getZkCertStorageOverview(filteredCerts.map((zkCert) => zkCert.zkCert));
     }
 
     case RpcMethods.GetZkCertStorageHashes: {
       // This method only returns a single hash of the storage state. It can be used to detect changes, for example if the user imported another zkCert in the meantime.
       // Because it does not leak any personal or tracking data, we do not ask for confirmation.
-      return getZkCertStorageHashes(state.zkCerts, origin);
+      return getZkCertStorageHashes(state.zkCerts.map((zkCert) => zkCert.zkCert), origin);
     }
 
     case RpcMethods.GetZkCertHash: {
@@ -392,7 +402,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
       }
 
-      return state.zkCerts.map((zkCert) => zkCert.leafHash);
+      return state.zkCerts.map((zkCert) => zkCert.zkCert.leafHash);
     }
 
     // To preserve privacy by not using the same merkle proof every time, the merkle proof can be updated.
@@ -423,7 +433,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       for (const update of merkleUpdateParams.updates) {
         let foundZkCert = false;
-        for (const zkCert of state.zkCerts) {
+        for (const zkCert of state.zkCerts.map((zkCert) => zkCert.zkCert)) {
           if (
             zkCert.leafHash === update.proof.leaf &&
             zkCert.registration.address === update.registryAddr
@@ -475,7 +485,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       state.zkCerts = state.zkCerts.filter(
-        (zkCert) => zkCert.leafHash !== zkCertToDelete.leafHash,
+        (zkCert) => zkCert.zkCert.leafHash !== zkCertToDelete.leafHash,
       );
       await saveState(snap, state);
 

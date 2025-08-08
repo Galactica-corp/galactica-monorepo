@@ -5,15 +5,17 @@ import type { EncryptedZkCert } from './types';
 import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
 
-type ImportErrorName = 'HolderMissing' | 'FormatError';
+type ImportErrorName = 'HolderMissing' | 'FormatError' | 'MissingSchema';
 
-export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> {}
+export class ImportZkCertError extends GalacticaErrorBase<ImportErrorName> { }
 
 export type ImportZkCertParams = {
   // The encrypted zkCert to be imported (ZkCertRegistered encrypted with @metamask/eth-sig-util)
   encryptedZkCert: EncryptedZkCert;
   // Should the snap return the list of zkCerts after import (to have 1 less confirmation)
   listZkCerts?: boolean;
+  // Custom JSON schema for the zkCert content, if it is not one of the standard schemas in the galactica-types package
+  customSchema?: string;
 };
 
 /**

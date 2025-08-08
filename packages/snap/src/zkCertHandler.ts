@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type { EddsaPrivateKey, KYCCertificateContent } from '@galactica-net/galactica-types';
+import { getContentSchema, parseContentJson, type EddsaPrivateKey, type KYCCertificateContent, type ProviderData, type ZkCertRegistration } from '@galactica-net/galactica-types';
+import type { AnySchema } from 'ajv/dist/2020';
 import type {
   ZkCertRegistered,
   ZkCertStorageHashes,
@@ -83,9 +84,11 @@ export function getZkCertStorageHashes(
 /**
  * Checks if an imported ZkCert has the right format.
  * @param zkCert - The zkCert to check.
+ * @param schema - The custom schema for the zkCert.
  * @throws If the format is not correct.
+ * @returns The parsed zkCert with registration data.
  */
-export function checkZkCert(zkCert: ZkCertRegistered) {
+export function parseZkCert(zkCert: Record<string, unknown>, schema: AnySchema) {
   if (!zkCert) {
     throw new ImportZkCertError({
       name: 'FormatError',
@@ -102,6 +105,7 @@ export function checkZkCert(zkCert: ZkCertRegistered) {
       message: `The decrypted zkCert is invalid. It is missing the filed ${field}.`,
     });
   }
+  // check all the fields that are required for a zkCert
   if (!zkCert.leafHash) {
     complainMissingField('leafHash');
   }
@@ -111,19 +115,20 @@ export function checkZkCert(zkCert: ZkCertRegistered) {
   if (!zkCert.providerData) {
     complainMissingField('providerData');
   }
-  if (!zkCert.providerData.ax) {
+  const providerData = zkCert.providerData as ProviderData;
+  if (!providerData.ax) {
     complainMissingField('providerData.ax');
   }
-  if (!zkCert.providerData.ay) {
+  if (!providerData.ay) {
     complainMissingField('providerData.ay');
   }
-  if (!zkCert.providerData.r8x) {
+  if (!providerData.r8x) {
     complainMissingField('providerData.r8x');
   }
-  if (!zkCert.providerData.r8y) {
+  if (!providerData.r8y) {
     complainMissingField('providerData.r8y');
   }
-  if (!zkCert.providerData.s) {
+  if (!providerData.s) {
     complainMissingField('providerData.s');
   }
   if (!zkCert.holderCommitment) {
@@ -141,13 +146,44 @@ export function checkZkCert(zkCert: ZkCertRegistered) {
   if (!zkCert.registration) {
     complainMissingField('registration');
   }
-  if (!zkCert.registration.address) {
+  const registration = zkCert.registration as ZkCertRegistration;
+  if (!registration.address) {
     complainMissingField('registration.address');
   }
-  if (zkCert.registration.revocable === undefined) {
+  if (registration.revocable === undefined) {
     complainMissingField('registration.revocable');
   }
-  if (zkCert.registration.leafIndex === undefined) {
+  if (registration.leafIndex === undefined) {
     complainMissingField('registration.leafIndex');
   }
+
+  try {
+    parseContentJson(zkCert.content as Record<string, unknown>, schema);
+  } catch (error) {
+    throw new ImportZkCertError({
+      name: 'FormatError',
+      message: `The decrypted zkCert is invalid. The content does not fit to the schema: ${error.message}.`,
+    });
+  }
+
+  return zkCert as unknown as ZkCertRegistered;
+}
+
+/**
+ * Chose the schema for a zkCert. If no custom schema is provided, the standard schema is used.
+ * @param zkCertStandard - The standard of the zkCert.
+ * @param customSchema - The custom schema for the zkCert.
+ * @returns The schema for the zkCert.
+ */
+export function choseSchema(zkCertStandard: ZkCertStandard, customSchema?: AnySchema) {
+  if (customSchema) {
+    return customSchema;
+  }
+  if (!Object.values(ZkCertStandard).includes(zkCertStandard)) {
+    throw new ImportZkCertError({
+      name: 'MissingSchema',
+      message: `Can not import zkCert with unknown standard ${zkCertStandard} without an attached JSON schema.`,
+    });
+  }
+  return getContentSchema(zkCertStandard);
 }

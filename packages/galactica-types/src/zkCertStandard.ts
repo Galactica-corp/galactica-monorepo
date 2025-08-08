@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-import Ajv from 'ajv/dist/2020';
+import Ajv, { AnySchema } from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 
 import { contentSchemas } from './schemas';
@@ -88,7 +88,7 @@ export function getContentFields(contentType: ZkCertStandard): string[] {
  * @param contentType - The type of zkCert standard to get the schema for.
  * @returns The schema for the zkCert standard.
  */
-export function getContentSchema(contentType: ZkCertStandard): any {
+export function getContentSchema(contentType: ZkCertStandard): AnySchema {
   switch (contentType) {
     case ZkCertStandard.ZkKYC:
       return contentSchemas.kyc;
@@ -149,7 +149,7 @@ export const personIDFieldOrder = [
  */
 export function parseContentJson<ContentType>(
   inputData: Record<string, unknown>,
-  schema: Record<string, unknown>,
+  schema: AnySchema,
 ): ContentType {
   const ajv = new Ajv({
     strictSchema: false,
@@ -170,11 +170,11 @@ export function parseContentJson<ContentType>(
   // Set default values for optional fields that are not provided
   const res = JSON.parse(JSON.stringify(inputData)); // deep copy to not modify the original object
   const schemaProperties = (schema as any).properties || {};
+  const requiredList = (schema as any).required || [];
   for (const field of Object.keys(schemaProperties)) {
     if (
       (inputData as Record<string, unknown>)[field] === undefined &&
-      Array.isArray(schema.required) &&
-      !schema.required?.includes(field)
+      !requiredList.includes(field)
     ) {
       if (schemaProperties[field].default === undefined) {
         throw new Error(
