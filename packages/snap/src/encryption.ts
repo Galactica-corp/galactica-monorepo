@@ -48,6 +48,21 @@ export function encryptZkCert(
   pubKey: string,
   holderCommitment: string,
 ): EncryptedZkCert {
+  // Workaround for a bug in the encryption library. With certain data sizes, the encryption fails to pad the data correctly.
+  // So we additionally inflate the data to make sure it is padded correctly.
+  const dataWithPadding = {
+    data: zkCert,
+    padding: '',
+  };
+  const dataLength = Buffer.byteLength(JSON.stringify(dataWithPadding), 'utf-8');
+  const DEFAULT_PADDING_LENGTH = 2 ** 11;
+  const NACL_EXTRA_BYTES = 16;
+  const modVal = dataLength % DEFAULT_PADDING_LENGTH;
+  const padLength = DEFAULT_PADDING_LENGTH - modVal - NACL_EXTRA_BYTES
+  if (padLength < 0) {
+    zkCert.paddingIssueWorkaround = '0'.repeat(NACL_EXTRA_BYTES);
+  }
+
   const encryptedZkCert = encryptSafely({
     publicKey: pubKey,
     data: zkCert,

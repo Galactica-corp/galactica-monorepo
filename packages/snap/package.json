@@ -46,7 +46,7 @@
     "@metamask/eslint-config-jest": "^12.1.0",
     "@metamask/eslint-config-nodejs": "^12.1.0",
     "@metamask/eslint-config-typescript": "^12.1.0",
-    "@metamask/eth-sig-util": "^7.0.3",
+    "@metamask/eth-sig-util": "^8.2.0",
     "@metamask/providers": "^13.1.0",
     "@metamask/rpc-methods": "^3.0.0",
     "@metamask/snaps-cli": "^6.7.0",
