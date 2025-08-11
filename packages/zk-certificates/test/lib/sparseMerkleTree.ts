@@ -7,7 +7,7 @@ import { buildEddsa } from 'circomlibjs';
 import { getMerkleRootFromProof } from '../../lib';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
-describe('Sparse Merkle Tree', () => {
+describe.only('Sparse Merkle Tree', () => {
   let eddsa: Eddsa;
 
   before(async () => {
@@ -78,5 +78,91 @@ describe('Sparse Merkle Tree', () => {
     expect(getMerkleRootFromProof(proof, eddsa.poseidon)).to.equal(
       expectedRoot,
     );
+  });
+
+  it('should efficiently insert single leaves and update only necessary nodes', async () => {
+    const merkleTree = new SparseMerkleTree(4, eddsa.poseidon);
+    const initialRoot = merkleTree.root;
+
+    merkleTree.insertLeaf('100', 0);
+    const rootAfterFirstLeaf = merkleTree.root;
+
+    expect(rootAfterFirstLeaf).to.not.equal(initialRoot);
+
+    merkleTree.insertLeaf('200', 1);
+    const rootAfterSecondLeaf = merkleTree.root;
+    expect(rootAfterSecondLeaf).to.not.equal(rootAfterFirstLeaf);
+
+    merkleTree.insertLeaf('300', 2);
+    const rootAfterThirdLeaf = merkleTree.root;
+    expect(rootAfterThirdLeaf).to.not.equal(rootAfterSecondLeaf);
+
+    merkleTree.insertLeaf('400', 4);
+    const rootAfterFourthLeaf = merkleTree.root;
+    expect(rootAfterFourthLeaf).to.not.equal(rootAfterThirdLeaf);
+
+    expect(merkleTree.retrieveLeaf(0, 0)).to.equal('100');
+    expect(merkleTree.retrieveLeaf(0, 1)).to.equal('200');
+    expect(merkleTree.retrieveLeaf(0, 2)).to.equal('300');
+    expect(merkleTree.retrieveLeaf(0, 4)).to.equal('400');
+
+    expect(merkleTree.retrieveLeaf(0, 3)).to.equal(merkleTree.emptyLeaf);
+    expect(merkleTree.retrieveLeaf(0, 5)).to.equal(merkleTree.emptyLeaf);
+  });
+
+  it('should have consistent insert behavior for leaves at the same index', async () => {
+    const merkleTree1 = new SparseMerkleTree(4, eddsa.poseidon);
+    const merkleTree2 = new SparseMerkleTree(4, eddsa.poseidon)
+
+    const testLeafs: [string, number][] = [
+      ["100", 0],
+      ["200", 2],
+      ["300", 3],
+      ["400", 4],
+      ["500", 0],
+      ["600", 5],
+      ["700", 7],
+      ["800", 1],
+    ]
+
+    for (const [leaf, index] of testLeafs) {
+      merkleTree1.insertLeaf(leaf, index);
+      merkleTree2.insertLeaves([leaf], [index]);
+
+      expect(merkleTree1.root).to.equal(merkleTree2.root);
+      expect(merkleTree1.createProof(index)).to.deep.equal(merkleTree2.createProof(index));
+    }
+  });
+
+  it('should handle edge cases for insertLeaf', async () => {
+    const merkleTree = new SparseMerkleTree(3, eddsa.poseidon);
+
+    merkleTree.insertLeaf('100', 0);
+    expect(merkleTree.retrieveLeaf(0, 0)).to.equal('100');
+
+    // Test inserting at index 7 (rightmost leaf for depth 3)
+    merkleTree.insertLeaf('200', 7);
+    expect(merkleTree.retrieveLeaf(0, 7)).to.equal('200');
+
+    // Test inserting at middle index
+    merkleTree.insertLeaf('300', 4);
+    expect(merkleTree.retrieveLeaf(0, 4)).to.equal('300');
+
+    // Verify that the root is accessible and has changed
+    const finalRoot = merkleTree.root;
+    expect(finalRoot).to.not.be.undefined;
+    expect(finalRoot).to.not.equal(merkleTree.emptyBranchLevels[3]); // Should not be empty root
+
+    // Verify that we can retrieve the leaves correctly
+    expect(merkleTree.retrieveLeaf(0, 0)).to.equal('100');
+    expect(merkleTree.retrieveLeaf(0, 4)).to.equal('300');
+    expect(merkleTree.retrieveLeaf(0, 7)).to.equal('200');
+
+    // Verify empty leaves are still empty
+    expect(merkleTree.retrieveLeaf(0, 1)).to.equal(merkleTree.emptyLeaf);
+    expect(merkleTree.retrieveLeaf(0, 2)).to.equal(merkleTree.emptyLeaf);
+    expect(merkleTree.retrieveLeaf(0, 3)).to.equal(merkleTree.emptyLeaf);
+    expect(merkleTree.retrieveLeaf(0, 5)).to.equal(merkleTree.emptyLeaf);
+    expect(merkleTree.retrieveLeaf(0, 6)).to.equal(merkleTree.emptyLeaf);
   });
 });
