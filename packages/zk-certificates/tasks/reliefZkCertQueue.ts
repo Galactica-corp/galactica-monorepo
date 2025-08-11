@@ -2,7 +2,6 @@
 /* Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { ZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
-import type { ContractTransactionResponse } from 'ethers';
 import { task, types } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
@@ -10,12 +9,14 @@ import {
   fromDecToHex,
   fromHexToBytes32,
   printProgress,
-  sleep,
 } from '../lib/helpers';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import { flagStandardMapping } from '../lib/zkCertificate';
 import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
+import type { GuardianRegistry } from '../typechain-types/contracts/GuardianRegistry';
 import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
+import type { OwnableBatcher } from '../typechain-types/contracts/OwnableBatcher';
+import { randomInt } from 'crypto';
 
 /**
  * Task for issuing all zkCerts that are stuck in the queue.
@@ -56,60 +57,92 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // iterate over the queue until all zkCerts are issued
   let nextZkCertIndex = await recordRegistry.currentQueuePointer();
   let nextZkCertHash = await recordRegistry.ZkCertificateQueue(nextZkCertIndex);
+  let batcher = await hre.ethers.getContractAt('OwnableBatcher', args.batcherAddress) as unknown as OwnableBatcher;
+
+  let fakeIDHashForSalt = randomInt(1000000, 100000000);
+
+  // whitelist the batcher as guardian address
+  const guardianRegistryAddress = await recordRegistry._GuardianRegistry();
+  const guardianRegistry = await hre.ethers.getContractAt('GuardianRegistry', guardianRegistryAddress) as unknown as GuardianRegistry;
+  if (!(await guardianRegistry.isWhitelisted(args.batcherAddress))) {
+    // whitelist the batcher as guardian address
+    await guardianRegistry.connect(issuer).addIssuerAccount(args.batcherAddress);
+  }
+
+  type Call = {
+    target: string;
+    callData: string;
+  };
+
+  const BATCH_SIZE = 16;
 
   while (
     nextZkCertHash !==
     '0x0000000000000000000000000000000000000000000000000000000000000000'
   ) {
+    // collect hashes for the next batch
     console.log(
-      `Issuing queue item ${nextZkCertIndex}, hash: ${nextZkCertHash}`,
+      `Collecting queue item ${nextZkCertIndex} to ${nextZkCertIndex + BigInt(BATCH_SIZE)}`,
     );
-
-    const chosenLeafIndex = merkleTree.getFreeLeafIndex();
-    const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
-
-    if (zkCertificateType === ZkCertStandard.ZkKYC) {
-      throw new Error(
-        'ZkKYC queue processing not possible without HumanID Salt.',
-      );
-      // await recordRegistry.connect(issuer).addZkKYC(
-      //   chosenLeafIndex,
-      //   nextZkCertHash,
-      //   leafEmptyMerkleProof.pathElements.map((value) =>
-      //     fromHexToBytes32(fromDecToHex(value)),
-      //   ),
-      //   getIdHash(zkCert),
-      //   zkCert.holderCommitment,
-      //   zkCert.expirationDate,
-      // );
-    } else {
-      const tx = (await recordRegistry.connect(issuer).addZkCertificate(
-        chosenLeafIndex,
-        nextZkCertHash,
-        leafEmptyMerkleProof.pathElements.map((value) =>
-          fromHexToBytes32(fromDecToHex(value)),
-        ),
-        { gasLimit: 2200000 },
-      )) as ContractTransactionResponse;
-      await tx.wait();
+    const batchPromises: Promise<string>[] = [];
+    for (let i = 0; i < BATCH_SIZE; i++) {
+      batchPromises.push(recordRegistry.ZkCertificateQueue(nextZkCertIndex + BigInt(i)));
     }
-    // sleep to make sure the local provider keeps up with the changes on chain
-    await sleep(3);
+    const zkCertHashes = await Promise.all(batchPromises);
 
-    // update the local merkle tree so that the next zkCert will get a correct merkle proof again
-    merkleTree.insertLeaves(
-      [BigInt(nextZkCertHash).toString()],
-      [chosenLeafIndex],
-    );
 
-    console.log(
-      chalk.green(
-        `Issued the zkCertificate certificate ${nextZkCertHash} on chain at index ${chosenLeafIndex}`,
-      ),
-    );
+    // collect merkle proofs and calls for the batch
+    let callData: Call[] = [];
+    for (let i = 0; i < BATCH_SIZE; i++) {
+      const chosenLeafIndex = merkleTree.getFreeLeafIndex();
+      const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
 
-    nextZkCertIndex += 1n;
-    nextZkCertHash = await recordRegistry.ZkCertificateQueue(nextZkCertIndex);
+      if (zkCertificateType === ZkCertStandard.ZkKYC) {
+        callData.push({
+          target: args.registryAddress,
+          callData:
+            (recordRegistry as ZkKYCRegistry).interface.encodeFunctionData('addZkKYC', [
+              chosenLeafIndex,
+              zkCertHashes[i],
+              leafEmptyMerkleProof.pathElements.map((value) =>
+                fromHexToBytes32(fromDecToHex(value)),
+              ),
+              fakeIDHashForSalt,
+              fakeIDHashForSalt,
+              0,
+            ]),
+        });
+      } else {
+        callData.push({
+          target: args.registryAddress,
+          callData: recordRegistry.interface.encodeFunctionData('addZkCertificate', [
+            chosenLeafIndex,
+            zkCertHashes[i],
+            leafEmptyMerkleProof.pathElements.map((value) =>
+              fromHexToBytes32(fromDecToHex(value)),
+            ),
+          ]),
+        });
+      }
+
+      // update the local merkle tree so that the next zkCert will get a correct merkle proof again
+      merkleTree.insertLeaf(BigInt(zkCertHashes[i]).toString(), chosenLeafIndex);
+    }
+
+    // execute the calls
+    const tx = await batcher.batchCalls(callData, {
+      gasLimit: 40000000,
+    });
+    // make sure the local provider keeps up with the changes on chain
+    await tx.wait();
+
+    nextZkCertIndex += BigInt(BATCH_SIZE);
+    try {
+      nextZkCertHash = await recordRegistry.ZkCertificateQueue(nextZkCertIndex);
+    } catch (error) {
+      console.log(chalk.red('Error getting next zkCert hash'));
+      break;
+    }
   }
 
   console.log(chalk.green('done'));
@@ -128,6 +161,13 @@ task('reliefZkCertQueue', 'Task to relieve a zkCertificate queue')
   .addParam(
     'registryAddress',
     'The smart contract address where zkCertificates are registered',
+    undefined,
+    types.string,
+    false,
+  )
+  .addParam(
+    'batcherAddress',
+    'The smart contract address where the batcher is deployed',
     undefined,
     types.string,
     false,
