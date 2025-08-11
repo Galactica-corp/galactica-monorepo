@@ -55,9 +55,7 @@ export function isValidFieldElement(value: FieldElement): {
   if (typeof processedValue === 'number') {
     // Check for special numbers that can't be converted to BigInt
     if (
-      Number.isNaN(processedValue) ||
-      !Number.isFinite(processedValue) ||
-      !Number.isInteger(processedValue)
+!Number.isInteger(processedValue)
     ) {
       return {
         valid: false,
