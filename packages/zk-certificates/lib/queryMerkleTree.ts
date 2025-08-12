@@ -1,9 +1,21 @@
-/* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+/* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR ANY PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { buildPoseidon } from 'circomlibjs';
 import type { Provider } from 'ethers';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { SparseMerkleTree } from './sparseMerkleTree';
 import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
+
+/**
+ * Cache structure for storing leaf log results
+ */
+export type LeafLogCache = {
+  chainId: number;
+  registryAddress: string;
+  lastBlockConsidered: number;
+  leafLogResults: LeafLogResult[];
+};
 
 /**
  * Query the on-chain Merkle tree leaves needed as input for the Merkle tree
@@ -17,6 +29,68 @@ export type LeafLogResult = {
   leafHash: string;
   index: bigint;
 };
+
+/**
+ * Get the cache file path for a specific chain and registry
+ * @param chainId - The chain ID
+ * @param registryAddress - The registry contract address
+ * @returns The cache file path
+ */
+function getCacheFilePath(chainId: number, registryAddress: string): string {
+  const dataDir = path.join(__dirname, '..', 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  return path.join(dataDir, `leafLogs_chain${chainId}_${registryAddress.toLowerCase()}.json`);
+}
+
+/**
+ * Load cached leaf logs if available
+ * @param chainId - The chain ID
+ * @param registryAddress - The registry contract address
+ * @returns The cached data or null if not available
+ */
+function loadCachedLeafLogs(chainId: number, registryAddress: string): LeafLogCache | null {
+  try {
+    const cacheFilePath = getCacheFilePath(chainId, registryAddress);
+    if (fs.existsSync(cacheFilePath)) {
+      const cachedData = JSON.parse(fs.readFileSync(cacheFilePath, 'utf8'));
+      return cachedData as LeafLogCache;
+    }
+  } catch (error) {
+    console.warn('Failed to load cached leaf logs:', error);
+  }
+  return null;
+}
+
+/**
+ * Save leaf logs to cache
+ * @param chainId - The chain ID
+ * @param registryAddress - The registry contract address
+ * @param lastBlockConsidered - The last block that was considered
+ * @param leafLogResults - The leaf log results to cache
+ */
+function saveCachedLeafLogs(
+  chainId: number,
+  registryAddress: string,
+  lastBlockConsidered: number,
+  leafLogResults: LeafLogResult[],
+): void {
+  try {
+    const cacheFilePath = getCacheFilePath(chainId, registryAddress);
+    const cacheData: LeafLogCache = {
+      chainId,
+      registryAddress,
+      lastBlockConsidered,
+      leafLogResults,
+    };
+    fs.writeFileSync(cacheFilePath, JSON.stringify(cacheData, null, 2));
+    console.log(`Cached leaf logs saved to ${cacheFilePath}`);
+  } catch (error) {
+    console.warn('Failed to save cached leaf logs:', error);
+  }
+}
+
 /**
  * Get Merkle tree leaves by reading blockchain log.
  * @param provider - Ethers provider.
@@ -32,22 +106,41 @@ export async function queryOnChainLeaves(
   onProgress?: (percent: string) => void,
 ): Promise<LeafLogResult[]> {
   const currentBlock = await provider.getBlockNumber();
+  const chainId = Number(await provider.getNetwork().then(net => net.chainId));
+  const registryAddress = await registry.getAddress();
+
+  // Try to load cached data
+  const cachedData = loadCachedLeafLogs(chainId, registryAddress);
+  let startBlock = firstBlock;
+  let res: LeafLogResult[] = [];
+
+  if (cachedData && cachedData.lastBlockConsidered < currentBlock) {
+    console.log(`Using cached leaf logs from block ${firstBlock} to ${cachedData.lastBlockConsidered}`);
+    res = [...cachedData.leafLogResults];
+    startBlock = cachedData.lastBlockConsidered + 1;
+    console.log(`Querying additional logs from block ${startBlock} to ${currentBlock}`);
+  } else if (cachedData && cachedData.lastBlockConsidered >= currentBlock) {
+    console.log(`Using cached leaf logs (up to date): ${cachedData.leafLogResults.length} leaves`);
+    return cachedData.leafLogResults;
+  } else {
+    console.log(`No cache found, querying all logs from block ${firstBlock} to ${currentBlock}`);
+  }
+
   const resAdded: LeafLogResult[] = [];
   const resRevoked: LeafLogResult[] = [];
-  const res: LeafLogResult[] = [];
 
   const maxBlockInterval = 10000;
   console.log(
-    `Getting Merkle tree leaves by reading blockchain log from ${firstBlock} to ${currentBlock}`,
+    `Getting Merkle tree leaves by reading blockchain log from ${startBlock} to ${currentBlock}`,
   );
 
   // get logs in batches of 10000 blocks because of rpc call size limit
-  for (let i = firstBlock; i < currentBlock; i += maxBlockInterval) {
+  for (let i = startBlock; i < currentBlock; i += maxBlockInterval) {
     const maxBlock = Math.min(i + maxBlockInterval, currentBlock);
     if (onProgress) {
       onProgress(
         `${Math.round(
-          ((maxBlock - firstBlock) / (currentBlock - firstBlock)) * 100,
+          ((maxBlock - startBlock) / (currentBlock - startBlock)) * 100,
         )}`,
       );
     }
@@ -94,7 +187,12 @@ export async function queryOnChainLeaves(
     }
   }
 
-  for (const logResult of resAdded) {
+  // Merge cached results with new additions first
+  const allAddedLeaves = [...res, ...resAdded];
+
+  // Process all leaves (cached + new) and check for revocations
+  const finalResults: LeafLogResult[] = [];
+  for (const logResult of allAddedLeaves) {
     let leafRevoked = false;
     // looping through the revocation log to see if the zkKYC record has been revoked
     for (const logResult2 of resRevoked) {
@@ -109,19 +207,24 @@ export async function queryOnChainLeaves(
       }
     }
     if (!leafRevoked) {
-      res.push(logResult);
+      finalResults.push(logResult);
     }
   }
+
   if (resRevoked.length > 0) {
     throw Error(
       `invalid merkle tree reconstruction: zkKYC record ${resRevoked[0].leafHash} at index ${resRevoked[0].index} has been revoked but not added`,
     );
   }
+
+  // Save updated cache
+  saveCachedLeafLogs(chainId, registryAddress, currentBlock, finalResults);
+
   if (onProgress) {
     onProgress(`100`);
   }
   console.log(``);
-  return res;
+  return finalResults;
 }
 
 /**
@@ -139,8 +242,7 @@ export async function buildMerkleTreeFromRegistry(
   onProgress?: (percent: string) => void,
 ): Promise<SparseMerkleTree> {
   // Not using on-chain record because `block.number` works differently on L2.
-  // const firstBlock = Number(await recordRegistry.initBlockHeight());
-  const firstBlock = 0;
+  const firstBlock = Number(await recordRegistry.initBlockHeight());
 
   const leafLogResults = await queryOnChainLeaves(
     provider,
