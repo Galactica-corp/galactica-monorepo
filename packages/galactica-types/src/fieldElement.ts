@@ -27,9 +27,10 @@ export function isValidFieldElement(value: FieldElement): {valid: true} | {valid
 
   let processedValue: FieldElement = value;
   if (typeof processedValue === 'string') {
+    processedValue = processedValue.trim();
     // Check if the string is a valid integer representation (decimal or hex)
     // Accepts decimal digits, or 0x/0X hex notation
-    if (!/^\s*(0[xX][0-9a-fA-F]+|\d+)\s*$/u.test(processedValue)) {
+    if (!/^(0[xX][0-9a-fA-F]+|\d+)$/u.test(processedValue)) {
       return {
         valid: false,
         error: `String field element is not a valid positive integer (decimal or hex): ${processedValue}`,
@@ -52,7 +53,7 @@ export function isValidFieldElement(value: FieldElement): {valid: true} | {valid
   if (typeof processedValue === 'number') {
     // Check for special numbers that can't be converted to BigInt
     if (
-!Number.isInteger(processedValue)
+      !Number.isInteger(processedValue)
     ) {
       return {
         valid: false,
