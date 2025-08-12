@@ -153,7 +153,7 @@ export function parseContentJson<ContentType>(
   schema: AnySchema,
 ): ContentType {
   const ajv = new Ajv({
-    strictSchema: false,
+    strictSchema: true,
     allErrors: true,
     verbose: true,
   });
