@@ -2,7 +2,7 @@
 import { ethers } from 'hardhat';
 
 import { decompressEddsaPubKey } from '../../lib';
-import { GuardianRegistry } from '../../typechain-types';
+import type { GuardianRegistry } from '../../typechain-types';
 
 /**
  * Script for adding a KYC center to the KYC center registry.
@@ -10,14 +10,22 @@ import { GuardianRegistry } from '../../typechain-types';
 async function main() {
   // parameters
   const centerRegistryAddr = '0x466bF1463F380C903CA69C2FeEF419824D8eA4d7';
-  const metadataURL = 'https://bafybeigkjmb3aeqbfdcqwlbirhbbylce3b5rjttdp2fefnjjuwet5glpxe.ipfs.dweb.link';
+  const metadataURL =
+    'https://bafybeigkjmb3aeqbfdcqwlbirhbbylce3b5rjttdp2fefnjjuwet5glpxe.ipfs.dweb.link';
 
   const guardianAddress = '0x43532C0b134E2173c08b386AA17ec8E8e0ecadd0';
   const compressedPubKey =
     '1c896106914117927552a77aef0a771af8376435adc3fd51f819d34fbfda93a1';
   const pubKey = await decompressEddsaPubKey(compressedPubKey);
-  const guardianRegistry = await ethers.getContractAt('GuardianRegistry', centerRegistryAddr) as unknown as GuardianRegistry;
-  const tx = await guardianRegistry.grantGuardianRole(guardianAddress, pubKey, metadataURL);
+  const guardianRegistry = (await ethers.getContractAt(
+    'GuardianRegistry',
+    centerRegistryAddr,
+  )) as unknown as GuardianRegistry;
+  const tx = await guardianRegistry.grantGuardianRole(
+    guardianAddress,
+    pubKey,
+    metadataURL,
+  );
   await tx.wait();
   console.log('Guardian whitelisted, tx hash:', tx.hash);
 }

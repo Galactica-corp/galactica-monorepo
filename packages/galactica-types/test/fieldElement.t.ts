@@ -84,7 +84,9 @@ describe('FieldElement', () => {
         ];
 
         invalidTypes.forEach((value) => {
-          expect(() => parseFieldElement(value as any)).to.throw('Invalid field element type');
+          expect(() => parseFieldElement(value as any)).to.throw(
+            'Invalid field element type',
+          );
         });
       });
 
@@ -103,7 +105,9 @@ describe('FieldElement', () => {
         ];
 
         invalidStrings.forEach((value) => {
-          expect(() => parseFieldElement(value)).to.throw('String field element is not a valid positive integer');
+          expect(() => parseFieldElement(value)).to.throw(
+            'String field element is not a valid positive integer',
+          );
         });
       });
 
@@ -115,7 +119,9 @@ describe('FieldElement', () => {
         ];
 
         tooLargeStrings.forEach((value) => {
-          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
+          expect(() => parseFieldElement(value)).to.throw(
+            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
+          );
         });
       });
 
@@ -123,7 +129,9 @@ describe('FieldElement', () => {
         const negativeValues = [-1, -123, -1n];
 
         negativeValues.forEach((value) => {
-          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
+          expect(() => parseFieldElement(value)).to.throw(
+            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
+          );
         });
       });
 
@@ -131,7 +139,9 @@ describe('FieldElement', () => {
         const negativeValues = ['-1', '-123', '-0x123'];
 
         negativeValues.forEach((value) => {
-          expect(() => parseFieldElement(value)).to.throw('String field element is not a valid positive integer');
+          expect(() => parseFieldElement(value)).to.throw(
+            'String field element is not a valid positive integer',
+          );
         });
       });
 
@@ -145,7 +155,9 @@ describe('FieldElement', () => {
         ];
 
         tooLargeValues.forEach((value) => {
-          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
+          expect(() => parseFieldElement(value)).to.throw(
+            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
+          );
         });
       });
 
@@ -153,7 +165,9 @@ describe('FieldElement', () => {
         const floatingPointValues = [1.5, 2.7, 0.1, -1.5];
 
         floatingPointValues.forEach((value) => {
-          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
+          expect(() => parseFieldElement(value)).to.throw(
+            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
+          );
         });
       });
 
@@ -161,7 +175,9 @@ describe('FieldElement', () => {
         const specialNumbers = [NaN, Infinity, -Infinity];
 
         specialNumbers.forEach((value) => {
-          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
+          expect(() => parseFieldElement(value)).to.throw(
+            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
+          );
         });
       });
     });
