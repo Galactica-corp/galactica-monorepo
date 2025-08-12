@@ -12,10 +12,7 @@ export type FieldElement = string | number | boolean | bigint;
  * @param value - The value to check.
  * @returns An object with the validity of the field element and an error message if it is not valid.
  */
-export function isValidFieldElement(value: FieldElement): {
-  valid: boolean;
-  error?: string;
-} {
+export function isValidFieldElement(value: FieldElement): {valid: true} | {valid: false, error: string} {
   if (
     typeof value !== 'string' &&
     typeof value !== 'number' &&
