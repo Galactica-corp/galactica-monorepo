@@ -35,7 +35,8 @@ import {
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
  * Specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac .
  */
-export class ZkCertificate implements ZkCertData {
+export class ZkCertificate<Content = AnyZkCertContent>
+  implements ZkCertData<Content> {
   // Field of the curve used by Poseidon
   public poseidon: Poseidon;
 
@@ -51,7 +52,7 @@ export class ZkCertificate implements ZkCertData {
 
   public expirationDate: number;
 
-  public content: AnyZkCertContent;
+  public content: Content;
 
   public contentSchema: AnySchema;
 
@@ -91,7 +92,7 @@ export class ZkCertificate implements ZkCertData {
     this.eddsa = eddsa;
     this.randomSalt = randomSalt;
     this.expirationDate = expirationDate;
-    this.content = parseContentJson(content, contentSchema);
+    this.content = parseContentJson<Content>(content, contentSchema);
     this.contentSchema = contentSchema;
     this.providerData = providerData;
   }
@@ -135,7 +136,7 @@ export class ZkCertificate implements ZkCertData {
   }
 
   public setContent(content: Record<string, JSONValue>) {
-    this.content = parseContentJson(content, this.contentSchema);
+    this.content = parseContentJson<Content>(content, this.contentSchema);
   }
 
   /**
@@ -175,7 +176,7 @@ export class ZkCertificate implements ZkCertData {
    * Export the unencrypted zkCert as object containing only the fields relevant for import in a wallet.
    * @returns ZkCertData object.
    */
-  public exportRaw(): ZkCertData {
+  public exportRaw(): ZkCertData<Content> {
     const doc = {
       holderCommitment: this.holderCommitment,
       leafHash: this.leafHash,
