@@ -14,47 +14,46 @@ export type FieldElement = string | number | boolean | bigint;
  * @throws An error if the field element is not valid.
  */
 export function parseFieldElement(value: FieldElement): FieldElement {
-  if (
-    typeof value !== 'string' &&
-    typeof value !== 'number' &&
-    typeof value !== 'boolean' &&
-    typeof value !== 'bigint'
-  ) {
-    throw new Error(`Invalid field element type: ${typeof value}`);
-  }
-
   let processedValue: FieldElement = value;
-  if (typeof processedValue === 'string') {
-    processedValue = processedValue.trim();
-    // Check if the string is a valid integer representation (decimal or hex)
-    // Accepts decimal digits, or 0x/0X hex notation
-    if (!/^(0[xX][0-9a-fA-F]+|\d+)$/u.test(processedValue)) {
-      throw new Error(`String field element is not a valid positive integer (decimal or hex): ${processedValue}`);
-    }
-    try {
-      processedValue = BigInt(processedValue);
-    } catch (error) {
-      throw new Error(`String field element cannot be converted to BigInt: ${processedValue}, because: ${processedValue}`);
-    }
-  }
 
-  if (typeof processedValue === 'boolean') {
-    processedValue = processedValue ? 1n : 0n;
-  }
+  switch (typeof processedValue) {
+    case 'string':
+      processedValue = processedValue.trim();
+      // Check if the string is a valid integer representation (decimal or hex)
+      // Accepts decimal digits, or 0x/0X hex notation
+      if (!/^(0[xX][0-9a-fA-F]+|\d+)$/u.test(processedValue)) {
+        throw new Error(`String field element is not a valid positive integer (decimal or hex): ${processedValue}`);
+      }
+      try {
+        processedValue = BigInt(processedValue);
+      } catch (error) {
+        throw new Error(`String field element cannot be converted to BigInt: ${processedValue}, because: ${processedValue}`);
+      }
+      break;
 
-  if (typeof processedValue === 'number') {
-    // Check for special numbers that can't be converted to BigInt
-    if (
-      !Number.isInteger(processedValue)
-    ) {
-      throw new Error(`Field element is not in 'mod SNARK_SCALAR_FIELD': ${processedValue}`);
-    }
+    case 'boolean':
+      processedValue = processedValue ? 1n : 0n;
+      break;
 
-    try {
-      processedValue = BigInt(processedValue);
-    } catch (error) {
-      throw new Error(`Number field element cannot be converted to BigInt: ${processedValue}, because: ${error}`);
-    }
+    case 'number':
+      // Check for special numbers that can't be converted to BigInt
+      if (!Number.isInteger(processedValue)) {
+        throw new Error(`Field element is not in 'mod SNARK_SCALAR_FIELD': ${processedValue}`);
+      }
+
+      try {
+        processedValue = BigInt(processedValue);
+      } catch (error) {
+        throw new Error(`Number field element cannot be converted to BigInt: ${processedValue}, because: ${error}`);
+      }
+      break;
+
+    case 'bigint':
+      // No pre-processing needed for bigint values
+      break;
+
+    default:
+      throw new Error(`Invalid field element type: ${typeof value}`);
   }
 
   if (processedValue < 0n || processedValue >= SNARK_SCALAR_FIELD) {
