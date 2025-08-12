@@ -18,6 +18,16 @@ export type LeafLogCache = {
 };
 
 /**
+ * Configuration options for caching behavior
+ */
+export type CacheOptions = {
+  /** Whether to enable file system caching (default: true) */
+  enableFileCache?: boolean;
+  /** Custom cache directory path (optional) */
+  cacheDir?: string;
+};
+
+/**
  * Query the on-chain Merkle tree leaves needed as input for the Merkle tree
  * @param ethers - Ethers instance
  * @param contractAddr - Address of the ZkCertificateRegistry contract
@@ -31,28 +41,53 @@ export type LeafLogResult = {
 };
 
 /**
+ * Check if file system operations are available
+ * @returns True if file system operations can be performed
+ */
+function isFileSystemAvailable(): boolean {
+  try {
+    // Check if fs and path modules are available and working
+    return typeof fs !== 'undefined' && typeof path !== 'undefined' &&
+      typeof fs.existsSync === 'function' && typeof fs.mkdirSync === 'function';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Get the cache file path for a specific chain and registry
  * @param chainId - The chain ID
  * @param registryAddress - The registry contract address
+ * @param cacheDir - Custom cache directory (optional)
  * @returns The cache file path
  */
-function getCacheFilePath(chainId: number, registryAddress: string): string {
-  const dataDir = path.join(__dirname, '..', 'data');
-  if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
+function getCacheFilePath(chainId: number, registryAddress: string, cacheDir?: string): string {
+  try {
+    const dataDir = cacheDir || path.join(__dirname, '..', 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    return path.join(dataDir, `leafLogs_chain${chainId}_${registryAddress.toLowerCase()}.json`);
+  } catch (error) {
+    console.warn('Failed to create cache directory:', error);
+    throw error;
   }
-  return path.join(dataDir, `leafLogs_chain${chainId}_${registryAddress.toLowerCase()}.json`);
 }
 
 /**
  * Load cached leaf logs if available
  * @param chainId - The chain ID
  * @param registryAddress - The registry contract address
+ * @param cacheDir - Custom cache directory (optional)
  * @returns The cached data or null if not available
  */
-function loadCachedLeafLogs(chainId: number, registryAddress: string): LeafLogCache | null {
+function loadCachedLeafLogs(chainId: number, registryAddress: string, cacheDir?: string): LeafLogCache | null {
   try {
-    const cacheFilePath = getCacheFilePath(chainId, registryAddress);
+    if (!isFileSystemAvailable()) {
+      return null;
+    }
+
+    const cacheFilePath = getCacheFilePath(chainId, registryAddress, cacheDir);
     if (fs.existsSync(cacheFilePath)) {
       const cachedData = JSON.parse(fs.readFileSync(cacheFilePath, 'utf8'));
       return cachedData as LeafLogCache;
@@ -69,15 +104,21 @@ function loadCachedLeafLogs(chainId: number, registryAddress: string): LeafLogCa
  * @param registryAddress - The registry contract address
  * @param lastBlockConsidered - The last block that was considered
  * @param leafLogResults - The leaf log results to cache
+ * @param cacheDir - Custom cache directory (optional)
  */
 function saveCachedLeafLogs(
   chainId: number,
   registryAddress: string,
   lastBlockConsidered: number,
   leafLogResults: LeafLogResult[],
+  cacheDir?: string,
 ): void {
   try {
-    const cacheFilePath = getCacheFilePath(chainId, registryAddress);
+    if (!isFileSystemAvailable()) {
+      return;
+    }
+
+    const cacheFilePath = getCacheFilePath(chainId, registryAddress, cacheDir);
     const cacheData: LeafLogCache = {
       chainId,
       registryAddress,
@@ -88,6 +129,7 @@ function saveCachedLeafLogs(
     console.log(`Cached leaf logs saved to ${cacheFilePath}`);
   } catch (error) {
     console.warn('Failed to save cached leaf logs:', error);
+    // Don't throw - caching failure shouldn't break the main functionality
   }
 }
 
@@ -97,6 +139,7 @@ function saveCachedLeafLogs(
  * @param registry - Address of the RecordRegistry contract.
  * @param firstBlock - First block to query (optional, ideally the contract creation block).
  * @param onProgress - Callback function to be called with the progress in percent.
+ * @param cacheOptions - Options for caching behavior.
  * @returns Promise of an LeafLogResult array of Merkle tree leaves.
  */
 export async function queryOnChainLeaves(
@@ -104,13 +147,20 @@ export async function queryOnChainLeaves(
   registry: ZkCertificateRegistry,
   firstBlock = 1,
   onProgress?: (percent: string) => void,
+  cacheOptions: CacheOptions = {},
 ): Promise<LeafLogResult[]> {
+  const { enableFileCache = true, cacheDir } = cacheOptions;
+
   const currentBlock = await provider.getBlockNumber();
   const chainId = Number(await provider.getNetwork().then(net => net.chainId));
   const registryAddress = await registry.getAddress();
 
-  // Try to load cached data
-  const cachedData = loadCachedLeafLogs(chainId, registryAddress);
+  // Try to load cached data if caching is enabled
+  let cachedData: LeafLogCache | null = null;
+  if (enableFileCache) {
+    cachedData = loadCachedLeafLogs(chainId, registryAddress, cacheDir);
+  }
+
   let startBlock = firstBlock;
   let res: LeafLogResult[] = [];
 
@@ -217,8 +267,10 @@ export async function queryOnChainLeaves(
     );
   }
 
-  // Save updated cache
-  saveCachedLeafLogs(chainId, registryAddress, currentBlock, finalResults);
+  // Save updated cache if caching is enabled
+  if (enableFileCache) {
+    saveCachedLeafLogs(chainId, registryAddress, currentBlock, finalResults, cacheDir);
+  }
 
   if (onProgress) {
     onProgress(`100`);
@@ -233,6 +285,7 @@ export async function queryOnChainLeaves(
  * @param provider - Ethers provider.
  * @param merkleDepth - Depth of the Merkle tree.
  * @param onProgress - Callback function to be called with the progress in percent.
+ * @param cacheOptions - Options for caching behavior.
  * @returns Reconstructed Merkle tree.
  */
 export async function buildMerkleTreeFromRegistry(
@@ -240,6 +293,7 @@ export async function buildMerkleTreeFromRegistry(
   provider: Provider,
   merkleDepth: number,
   onProgress?: (percent: string) => void,
+  cacheOptions: CacheOptions = {},
 ): Promise<SparseMerkleTree> {
   // Not using on-chain record because `block.number` works differently on L2.
   const firstBlock = Number(await recordRegistry.initBlockHeight());
@@ -249,6 +303,7 @@ export async function buildMerkleTreeFromRegistry(
     recordRegistry,
     firstBlock,
     onProgress,
+    cacheOptions,
   );
   const leafHashes = leafLogResults.map((value) => value.leafHash);
   const leafIndices = leafLogResults.map((value) => Number(value.index));
