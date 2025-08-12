@@ -1,18 +1,17 @@
 import { expect } from 'chai';
 
-import { isValidFieldElement } from '../src/fieldElement';
+import { parseFieldElement } from '../src/fieldElement';
 import { SNARK_SCALAR_FIELD } from '../src/snark';
 
 describe('FieldElement', () => {
-  describe('isValidFieldElement', () => {
+  describe('parseFieldElement', () => {
     describe('valid field elements', () => {
       it('should accept valid string decimal numbers', () => {
         const testCases = ['0', '123', '999999', '0', '1'];
 
         testCases.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.true;
-          expect(result.error).to.be.undefined;
+          const result = parseFieldElement(value);
+          expect(result).to.be.a('bigint');
         });
       });
 
@@ -20,9 +19,8 @@ describe('FieldElement', () => {
         const testCases = ['0x0', '0x123', '0xabc', '0X123', '0XABC'];
 
         testCases.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.true;
-          expect(result.error).to.be.undefined;
+          const result = parseFieldElement(value);
+          expect(result).to.be.a('bigint');
         });
       });
 
@@ -30,53 +28,46 @@ describe('FieldElement', () => {
         const testCases = [0, 123, 999999, 1];
 
         testCases.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.true;
-          expect(result.error).to.be.undefined;
+          const result = parseFieldElement(value);
+          expect(result).to.be.a('bigint');
         });
       });
 
       it('should accept boolean values', () => {
-        const trueResult = isValidFieldElement(true);
-        expect(trueResult.valid).to.be.true;
-        expect(trueResult.error).to.be.undefined;
+        const trueResult = parseFieldElement(true);
+        expect(trueResult).to.equal(1n);
 
-        const falseResult = isValidFieldElement(false);
-        expect(falseResult.valid).to.be.true;
-        expect(falseResult.error).to.be.undefined;
+        const falseResult = parseFieldElement(false);
+        expect(falseResult).to.equal(0n);
       });
 
       it('should accept valid bigint values', () => {
         const testCases = [0n, 123n, 999999n, 1n];
 
         testCases.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.true;
-          expect(result.error).to.be.undefined;
+          const result = parseFieldElement(value);
+          expect(result).to.equal(value);
         });
       });
 
       it('should accept values at the boundary of SNARK_SCALAR_FIELD', () => {
         const boundaryValue = SNARK_SCALAR_FIELD - 1n;
-        const result = isValidFieldElement(boundaryValue);
-        expect(result.valid).to.be.true;
-        expect(result.error).to.be.undefined;
+        const result = parseFieldElement(boundaryValue);
+        expect(result).to.equal(boundaryValue);
       });
 
       it('should accept string representations of boundary values', () => {
         const boundaryValue = (SNARK_SCALAR_FIELD - 1n).toString();
-        const result = isValidFieldElement(boundaryValue);
-        expect(result.valid).to.be.true;
-        expect(result.error).to.be.undefined;
+        const result = parseFieldElement(boundaryValue);
+        expect(result).to.equal(SNARK_SCALAR_FIELD - 1n);
       });
 
       it('should accept whitespace in string values', () => {
         const testCases = [' 123 ', ' 0xabc ', ' 0 '];
 
         testCases.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.true;
-          expect(result.error).to.be.undefined;
+          const result = parseFieldElement(value);
+          expect(result).to.be.a('bigint');
         });
       });
     });
@@ -93,9 +84,7 @@ describe('FieldElement', () => {
         ];
 
         invalidTypes.forEach((value) => {
-          const result = isValidFieldElement(value as any);
-          expect(result.valid).to.be.false;
-          expect(result.error).to.include('Invalid field element type');
+          expect(() => parseFieldElement(value as any)).to.throw('Invalid field element type');
         });
       });
 
@@ -114,27 +103,19 @@ describe('FieldElement', () => {
         ];
 
         invalidStrings.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.false;
-          expect(result.error).to.include(
-            'String field element is not a valid positive integer',
-          );
+          expect(() => parseFieldElement(value)).to.throw('String field element is not a valid positive integer');
         });
       });
 
-      it('should reject strings that cannot be converted to BigInt', () => {
-        // These are edge cases that might cause BigInt conversion to fail
-        const invalidBigIntStrings = [
+      it('should reject strings that are too large for the field', () => {
+        // These are edge cases that pass validation but are too large for the field
+        const tooLargeStrings = [
           `0x${'f'.repeat(1000)}`, // Very large hex number
           '9'.repeat(1000), // Very large decimal number
         ];
 
-        invalidBigIntStrings.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.false;
-          expect(result.error).to.include(
-            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
-          );
+        tooLargeStrings.forEach((value) => {
+          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
         });
       });
 
@@ -142,11 +123,7 @@ describe('FieldElement', () => {
         const negativeValues = [-1, -123, -1n];
 
         negativeValues.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.false;
-          expect(result.error).to.include(
-            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
-          );
+          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
         });
       });
 
@@ -154,11 +131,7 @@ describe('FieldElement', () => {
         const negativeValues = ['-1', '-123', '-0x123'];
 
         negativeValues.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.false;
-          expect(result.error).to.include(
-            'String field element is not a valid positive integer',
-          );
+          expect(() => parseFieldElement(value)).to.throw('String field element is not a valid positive integer');
         });
       });
 
@@ -172,11 +145,7 @@ describe('FieldElement', () => {
         ];
 
         tooLargeValues.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.false;
-          expect(result.error).to.include(
-            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
-          );
+          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
         });
       });
 
@@ -184,11 +153,7 @@ describe('FieldElement', () => {
         const floatingPointValues = [1.5, 2.7, 0.1, -1.5];
 
         floatingPointValues.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.false;
-          expect(result.error).to.include(
-            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
-          );
+          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
         });
       });
 
@@ -196,11 +161,7 @@ describe('FieldElement', () => {
         const specialNumbers = [NaN, Infinity, -Infinity];
 
         specialNumbers.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.false;
-          expect(result.error).to.include(
-            "Field element is not in 'mod SNARK_SCALAR_FIELD'",
-          );
+          expect(() => parseFieldElement(value)).to.throw("Field element is not in 'mod SNARK_SCALAR_FIELD'");
         });
       });
     });
@@ -210,9 +171,8 @@ describe('FieldElement', () => {
         const zeroValues = [0, 0n, '0', '0x0', false];
 
         zeroValues.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.true;
-          expect(result.error).to.be.undefined;
+          const result = parseFieldElement(value);
+          expect(result).to.equal(0n);
         });
       });
 
@@ -220,9 +180,8 @@ describe('FieldElement', () => {
         const oneValues = [1, 1n, '1', '0x1', true];
 
         oneValues.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.true;
-          expect(result.error).to.be.undefined;
+          const result = parseFieldElement(value);
+          expect(result).to.equal(1n);
         });
       });
 
@@ -234,9 +193,8 @@ describe('FieldElement', () => {
         ];
 
         largeValidNumbers.forEach((value) => {
-          const result = isValidFieldElement(value);
-          expect(result.valid).to.be.true;
-          expect(result.error).to.be.undefined;
+          const result = parseFieldElement(value);
+          expect(result).to.equal(SNARK_SCALAR_FIELD - 1n);
         });
       });
     });

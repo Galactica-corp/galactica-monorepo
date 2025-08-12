@@ -3,7 +3,7 @@ import type {
   FieldElement,
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
-import { isValidFieldElement } from '@galactica-net/galactica-types';
+import { parseFieldElement } from '@galactica-net/galactica-types';
 import { Temporal } from '@js-temporal/polyfill';
 import { Buffer } from 'buffer';
 import type { Eddsa } from 'circomlibjs';
@@ -28,7 +28,7 @@ export function prepareContentForCircuit(
 
   const zkCertificateContentFields = Object.keys(
     contentSchema.properties ||
-      contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
+    contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
   );
 
   for (const field of zkCertificateContentFields) {
@@ -41,17 +41,10 @@ export function prepareContentForCircuit(
       typeof sourceData === 'boolean'
     ) {
       // we might be able to take the data 1 to 1 as field element
-      const { valid, error } = isValidFieldElement(sourceData);
-      if (!valid) {
-        throw new Error(
-          `${field}: ${sourceData} is not a valid field element: ${error}`,
-        );
-      }
-      resValue = sourceData;
+      resValue = parseFieldElement(sourceData);
     } else if (typeof sourceData === 'string') {
       // the meaning of the string depends on the format.
       const format = contentSchema.properties?.[field]?.format;
-      const { valid, error } = isValidFieldElement(sourceData);
       switch (format) {
         // going through built-in formats found in https://json-schema.org/understanding-json-schema/reference/type#format
         case 'date-time':
@@ -100,12 +93,7 @@ export function prepareContentForCircuit(
         case 'field-element': // can be passed as is
         case 'ethereum-address': // can be passed as is because it is a hex string
         case 'decimal':
-          if (!valid) {
-            throw new Error(
-              `${field}: ${sourceData} is not a valid field element: ${error}`,
-            );
-          }
-          resValue = sourceData;
+          resValue = parseFieldElement(sourceData);
           break;
         default:
           throw new Error(
