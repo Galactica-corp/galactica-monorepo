@@ -41,33 +41,54 @@ export type LeafLogResult = {
 };
 
 /**
- * Check if file system operations are available
- * @returns True if file system operations can be performed
+ * Check if file system operations are available.
+ * @returns True if file system operations can be performed.
  */
 function isFileSystemAvailable(): boolean {
   try {
     // Check if fs and path modules are available and working
-    return typeof fs !== 'undefined' && typeof path !== 'undefined' &&
-      typeof fs.existsSync === 'function' && typeof fs.mkdirSync === 'function';
+    return (
+      typeof fs !== 'undefined' &&
+      typeof path !== 'undefined' &&
+      typeof fs.existsSync === 'function' &&
+      typeof fs.mkdirSync === 'function'
+    );
   } catch {
     return false;
   }
 }
 
 /**
- * Get the cache file path for a specific chain and registry
- * @param chainId - The chain ID
- * @param registryAddress - The registry contract address
- * @param cacheDir - Custom cache directory (optional)
- * @returns The cache file path
+ * Get the cache file path for a specific chain and registry.
+ * @param chainId - The chain ID.
+ * @param registryAddress - The registry contract address.
+ * @param cacheDir - Custom cache directory (optional).
+ * @returns The cache file path.
  */
-function getCacheFilePath(chainId: number, registryAddress: string, cacheDir?: string): string {
+function getCacheFilePath(
+  chainId: number,
+  registryAddress: string,
+  cacheDir?: string,
+): string {
   try {
-    const dataDir = cacheDir || path.join(__dirname, '..', 'data');
+    // Use process.cwd() as fallback for browser environments where __dirname is not available
+    const defaultDataDir =
+      typeof globalThis.__dirname === 'undefined'
+        ? path.join(
+            // eslint-disable-next-line no-restricted-globals
+            process?.cwd ? process.cwd() : '.',
+            'data',
+          )
+        : path.join(globalThis.__dirname, '..', 'data');
+
+    const dataDir = cacheDir ?? defaultDataDir;
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
-    return path.join(dataDir, `leafLogs_chain${chainId}_${registryAddress.toLowerCase()}.json`);
+    return path.join(
+      dataDir,
+      `leafLogs_chain${chainId}_${registryAddress.toLowerCase()}.json`,
+    );
   } catch (error) {
     console.warn('Failed to create cache directory:', error);
     throw error;
@@ -75,13 +96,17 @@ function getCacheFilePath(chainId: number, registryAddress: string, cacheDir?: s
 }
 
 /**
- * Load cached leaf logs if available
- * @param chainId - The chain ID
- * @param registryAddress - The registry contract address
- * @param cacheDir - Custom cache directory (optional)
- * @returns The cached data or null if not available
+ * Load cached leaf logs if available.
+ * @param chainId - The chain ID.
+ * @param registryAddress - The registry contract address.
+ * @param cacheDir - Custom cache directory (optional).
+ * @returns The cached data or null if not available.
  */
-function loadCachedLeafLogs(chainId: number, registryAddress: string, cacheDir?: string): LeafLogCache | null {
+function loadCachedLeafLogs(
+  chainId: number,
+  registryAddress: string,
+  cacheDir?: string,
+): LeafLogCache | null {
   try {
     if (!isFileSystemAvailable()) {
       return null;
@@ -99,12 +124,12 @@ function loadCachedLeafLogs(chainId: number, registryAddress: string, cacheDir?:
 }
 
 /**
- * Save leaf logs to cache
- * @param chainId - The chain ID
- * @param registryAddress - The registry contract address
- * @param lastBlockConsidered - The last block that was considered
- * @param leafLogResults - The leaf log results to cache
- * @param cacheDir - Custom cache directory (optional)
+ * Save leaf logs to cache.
+ * @param chainId - The chain ID.
+ * @param registryAddress - The registry contract address.
+ * @param lastBlockConsidered - The last block that was considered.
+ * @param leafLogResults - The leaf log results to cache.
+ * @param cacheDir - Custom cache directory (optional).
  */
 function saveCachedLeafLogs(
   chainId: number,
@@ -152,7 +177,9 @@ export async function queryOnChainLeaves(
   const { enableFileCache = true, cacheDir } = cacheOptions;
 
   const currentBlock = await provider.getBlockNumber();
-  const chainId = Number(await provider.getNetwork().then(net => net.chainId));
+  const chainId = Number(
+    await provider.getNetwork().then((net) => net.chainId),
+  );
   const registryAddress = await registry.getAddress();
 
   // Try to load cached data if caching is enabled
@@ -165,15 +192,23 @@ export async function queryOnChainLeaves(
   let res: LeafLogResult[] = [];
 
   if (cachedData && cachedData.lastBlockConsidered < currentBlock) {
-    console.log(`Using cached leaf logs from block ${firstBlock} to ${cachedData.lastBlockConsidered}`);
+    console.log(
+      `Using cached leaf logs from block ${firstBlock} to ${cachedData.lastBlockConsidered}`,
+    );
     res = [...cachedData.leafLogResults];
     startBlock = cachedData.lastBlockConsidered + 1;
-    console.log(`Querying additional logs from block ${startBlock} to ${currentBlock}`);
+    console.log(
+      `Querying additional logs from block ${startBlock} to ${currentBlock}`,
+    );
   } else if (cachedData && cachedData.lastBlockConsidered >= currentBlock) {
-    console.log(`Using cached leaf logs (up to date): ${cachedData.leafLogResults.length} leaves`);
+    console.log(
+      `Using cached leaf logs (up to date): ${cachedData.leafLogResults.length} leaves`,
+    );
     return cachedData.leafLogResults;
   } else {
-    console.log(`No cache found, querying all logs from block ${firstBlock} to ${currentBlock}`);
+    console.log(
+      `No cache found, querying all logs from block ${firstBlock} to ${currentBlock}`,
+    );
   }
 
   const resAdded: LeafLogResult[] = [];
@@ -269,7 +304,13 @@ export async function queryOnChainLeaves(
 
   // Save updated cache if caching is enabled
   if (enableFileCache) {
-    saveCachedLeafLogs(chainId, registryAddress, currentBlock, finalResults, cacheDir);
+    saveCachedLeafLogs(
+      chainId,
+      registryAddress,
+      currentBlock,
+      finalResults,
+      cacheDir,
+    );
   }
 
   if (onProgress) {

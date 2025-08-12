@@ -113,6 +113,7 @@ export class SparseMerkleTree {
    * @param index - Index of the leaf to insert.
    */
   insertLeaf(leaf: string, index: number): void {
+    let currentLeaf = leaf;
     if (index < 0 || index >= 2 ** this.depth) {
       throw new Error(`invalid index ${index} for tree of depth ${this.depth}`);
     }
@@ -129,16 +130,22 @@ export class SparseMerkleTree {
       if (isLeftChild) {
         // Current node is left child, get right sibling
         const rightSibling = this.retrieveLeaf(level, currentIndex + 1);
-        this.tree[level + 1][parentIndex] = this.calculateNodeHash(leaf, rightSibling);
+        this.tree[level + 1][parentIndex] = this.calculateNodeHash(
+          currentLeaf,
+          rightSibling,
+        );
       } else {
         // Current node is right child, get left sibling
         const leftSibling = this.retrieveLeaf(level, currentIndex - 1);
-        this.tree[level + 1][parentIndex] = this.calculateNodeHash(leftSibling, leaf);
+        this.tree[level + 1][parentIndex] = this.calculateNodeHash(
+          leftSibling,
+          currentLeaf,
+        );
       }
 
       // Move up to parent level
       currentIndex = parentIndex;
-      leaf = this.tree[level + 1][parentIndex];
+      currentLeaf = this.tree[level + 1][parentIndex];
     }
   }
 

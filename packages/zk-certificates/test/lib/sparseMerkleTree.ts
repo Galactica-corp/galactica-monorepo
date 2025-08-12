@@ -7,7 +7,7 @@ import { buildEddsa } from 'circomlibjs';
 import { getMerkleRootFromProof } from '../../lib';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 
-describe.only('Sparse Merkle Tree', () => {
+describe('Sparse Merkle Tree', () => {
   let eddsa: Eddsa;
 
   before(async () => {
@@ -112,25 +112,27 @@ describe.only('Sparse Merkle Tree', () => {
 
   it('should have consistent insert behavior for leaves at the same index', async () => {
     const merkleTree1 = new SparseMerkleTree(4, eddsa.poseidon);
-    const merkleTree2 = new SparseMerkleTree(4, eddsa.poseidon)
+    const merkleTree2 = new SparseMerkleTree(4, eddsa.poseidon);
 
     const testLeafs: [string, number][] = [
-      ["100", 0],
-      ["200", 2],
-      ["300", 3],
-      ["400", 4],
-      ["500", 0],
-      ["600", 5],
-      ["700", 7],
-      ["800", 1],
-    ]
+      ['100', 0],
+      ['200', 2],
+      ['300', 3],
+      ['400', 4],
+      ['500', 0],
+      ['600', 5],
+      ['700', 7],
+      ['800', 1],
+    ];
 
     for (const [leaf, index] of testLeafs) {
       merkleTree1.insertLeaf(leaf, index);
       merkleTree2.insertLeaves([leaf], [index]);
 
       expect(merkleTree1.root).to.equal(merkleTree2.root);
-      expect(merkleTree1.createProof(index)).to.deep.equal(merkleTree2.createProof(index));
+      expect(merkleTree1.createProof(index)).to.deep.equal(
+        merkleTree2.createProof(index),
+      );
     }
   });
 
