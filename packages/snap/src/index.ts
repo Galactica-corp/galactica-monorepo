@@ -246,7 +246,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
       await saveState(snap, state);
 
       if (importParams.listZkCerts === true) {
-        return getZkCertStorageOverview(state.zkCerts);
+        const filteredCerts = filterZkCerts(state.zkCerts, {
+          chainID: importParams.chainID,
+        });
+        return getZkCertStorageOverview(filteredCerts);
       }
       response = { message: RpcResponseMsg.ZkCertImported };
       return response;
