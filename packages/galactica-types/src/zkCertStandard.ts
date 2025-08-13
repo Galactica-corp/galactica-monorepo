@@ -14,6 +14,7 @@ import type {
   CEXCertificateContent,
   TelegramCertificateContent,
 } from './zkCertContent';
+import type { JSONValue } from './json';
 
 /**
  * Enum for zkCert standards
@@ -149,7 +150,7 @@ export const personIDFieldOrder = [
  * @returns The parsed content object.
  */
 export function parseContentJson<ContentType>(
-  inputData: Record<string, unknown>,
+  inputData: Record<string, JSONValue>,
   schema: AnySchema,
 ): ContentType {
   const ajv = new Ajv({

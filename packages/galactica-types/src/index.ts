@@ -8,3 +8,4 @@ export * from './zkCertStandard';
 export * from './zkCertContent';
 export * from './fieldElement';
 export * from './schemas';
+export * from './json';

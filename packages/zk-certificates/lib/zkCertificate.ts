@@ -10,6 +10,7 @@ import type {
   ZkCertRegistration,
   EddsaPrivateKey,
   AnyZkCertContent,
+  JSONValue,
 } from '@galactica-net/galactica-types';
 import {
   ZkCertStandard,
@@ -22,6 +23,7 @@ import { encryptSafely } from '@metamask/eth-sig-util';
 import type { Eddsa, Point, Poseidon } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
 import { Scalar } from 'ffjavascript';
+import type { AnySchema } from 'ajv/dist/2020';
 
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
@@ -73,8 +75,8 @@ export class ZkCertificate implements ZkCertData {
     eddsa: Eddsa,
     randomSalt: string,
     expirationDate: number,
-    contentSchema: any,
-    content: Record<string, unknown>,
+    contentSchema: AnySchema,
+    content: Record<string, JSONValue>,
     providerData: ProviderData = {
       ax: '0',
       ay: '0',
@@ -133,7 +135,7 @@ export class ZkCertificate implements ZkCertData {
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
 
-  public setContent(content: Record<string, unknown>) {
+  public setContent(content: Record<string, JSONValue>) {
     this.content = parseContentJson(content, this.contentSchema);
   }
 
