@@ -171,11 +171,17 @@ export function parseContentJson<ContentType>(
 
   // Set default values for optional fields that are not provided
   const res = JSON.parse(JSON.stringify(inputData)); // deep copy to not modify the original object
-  const schemaProperties = (schema as any).properties || {};
-  const requiredList = (schema as any).required || [];
+  let schemaProperties: Record<string, { [key: string]: JSONValue }> = {};
+  if (typeof schema === 'object' && schema !== null && 'properties' in schema) {
+    schemaProperties = schema.properties as Record<string, { [key: string]: JSONValue }>;
+  }
+  let requiredList: string[] = [];
+  if (typeof schema === 'object' && schema !== null && 'required' in schema) {
+    requiredList = schema.required as string[];
+  }
   for (const field of Object.keys(schemaProperties)) {
     if (inputData[field] === undefined && !requiredList.includes(field)) {
-      if (schemaProperties[field].default === undefined) {
+      if (!('default' in schemaProperties[field])) {
         throw new Error(
           `Optional field ${field} is undefined and no default value is provided.`,
         );
