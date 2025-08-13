@@ -192,14 +192,14 @@ describe('SBTManager', () => {
     // random user cannot whitelist
     await expect(
       SBTManager.connect(randomUser).setSBT(0, await SBTs[0].getAddress()),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(SBTManager, 'OwnableUnauthorizedAccount');
 
     await expect(
       SBTManager.connect(randomUser).setVerifierWrapper(
         0,
         await SBTs[0].getAddress(),
       ),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(SBTManager, 'OwnableUnauthorizedAccount');
   });
 
   it('check that user can only receive the SBT after fulfilling the condition', async () => {

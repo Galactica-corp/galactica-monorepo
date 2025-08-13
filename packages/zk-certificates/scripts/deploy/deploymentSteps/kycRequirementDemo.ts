@@ -2,7 +2,6 @@
 import type { TokenData } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildPoseidon } from 'circomlibjs';
-import { parseEther } from 'ethers';
 import { ethers } from 'hardhat';
 
 import { deploySC, tryVerification } from '../../../lib/hardhatHelpers';
@@ -26,7 +25,6 @@ export async function deployKYCRequirementsDemoDApp(
   zkpVerifier: any;
   ageCitizenshipKYC: any;
   kycRequirementsDemoDApp: any;
-  compliantERC20: any;
   sbtAddr: string;
 }> {
   log(`Using account ${await deployer.getAddress()} to deploy contracts`);
@@ -67,15 +65,6 @@ export async function deployKYCRequirementsDemoDApp(
       sbtData.symbol,
     ],
   );
-  const verificationSBTAddr = await kycRequirementsDemoDApp.sbt();
-
-  const compliantERC20 = await deploySC('CompliantERC20', true, {}, [
-    'Compliant ERC20',
-    'CERC20',
-    await deployer.getAddress(),
-    parseEther('1000000'),
-    [verificationSBTAddr],
-  ]);
 
   const sbtAddr = await kycRequirementsDemoDApp.sbt();
 
@@ -94,7 +83,6 @@ export async function deployKYCRequirementsDemoDApp(
     zkpVerifier,
     ageCitizenshipKYC,
     kycRequirementsDemoDApp,
-    compliantERC20,
     sbtAddr,
   };
 }

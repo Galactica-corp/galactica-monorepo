@@ -1,18 +1,18 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-pragma circom 2.1.4;
+pragma circom 2.2.2;
 
 include "../../../node_modules/circomlib/circuits/comparators.circom";
 include "../../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
 
-/*
-  Circuit verifying the ownership of a zkCertificate with a signature in the holder commitment.
-
-  It is important to combine this circuit with some kind of receiver signature to prevent replay attacks.
-  For efficient computation in zkSNARKs, it uses the EdDSA signature scheme
-  (https://iden3-docs.readthedocs.io/en/latest/iden3_repos/research/publications/zkproof-standards-workshop-2/ed-dsa/ed-dsa.html)
-  with the Poseidon hash function (https://www.poseidon-hash.info/).
-*/
+/**
+ * Circuit verifying the ownership of a zkCertificate with a signature in the holder commitment.
+ *
+ * It is important to combine this circuit with some kind of receiver signature to prevent replay attacks.
+ * For efficient computation in zkSNARKs, it uses the EdDSA signature scheme
+ * (https://iden3-docs.readthedocs.io/en/latest/iden3_repos/research/publications/zkproof-standards-workshop-2/ed-dsa/ed-dsa.html)
+ * with the Poseidon hash function (https://www.poseidon-hash.info/).
+ */
 template Ownership(){
     // holderCommitment = poseidon(eddsa(poseidon(pubkey)))  // fixing the owner address while hiding it from the provider
     signal input holderCommitment;

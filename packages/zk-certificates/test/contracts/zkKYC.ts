@@ -111,10 +111,16 @@ describe('zkKYC SC', () => {
     // random user cannot change the addresses
     await expect(
       zkKYCContract.connect(user).setVerifier(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      zkKYCContract,
+      'OwnableUnauthorizedAccount',
+    );
     await expect(
       zkKYCContract.connect(user).setKYCRegistry(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      zkKYCContract,
+      'OwnableUnauthorizedAccount',
+    );
 
     // owner can change addresses
     await zkKYCContract.connect(deployer).setVerifier(user.address);

@@ -1,10 +1,11 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-pragma circom 2.1.4;
+pragma circom 2.2.2;
 
 include "../../../node_modules/circomlib/circuits/poseidon.circom";
+include "../../../node_modules/circomlib/circuits/comparators.circom";
 
 /**
- * Poseidon sponge hash of a message split into blocks of 31 bytes.
+ * Hash a string using a Poseidon sponge hash of a message split into blocks of 31 bytes.
  * This circuit assumes that all inputs are uint8 values.
  * 
  * This circom circuit corresponds to the reference implementations in
@@ -12,13 +13,20 @@ include "../../../node_modules/circomlib/circuits/poseidon.circom";
  *   - https://github.com/Galactica-corp/galactica-monorepo/blob/a6e1d37b99071d785d11efe256c3e0e1fab1f646/packages/zk-certificates/lib/poseidon.ts#L28
  * @param n - The number of uint8 inputs to the Poseidon hash function.
  */
-template PoseidonSponge(n){
+template HashString(n){
     // The uint8 values to hash
     signal input inputs[n];
     // The resulting Poseidon hash
     signal output out;
 
-    // ToDO: check needed that inputs are all smaller than 2^8?
+    // This circuit assumes that all inputs are uint8 chars
+    component lessThan[n];
+    for (var i = 0; i < n; i++) {
+        lessThan[i] = LessThan(252);
+        lessThan[i].in[0] <== inputs[i];
+        lessThan[i].in[1] <== 256;
+        lessThan[i].out === 1;
+    }
 
     // How many bytes are put into one block
     var spongeChunkSize = 31;
@@ -120,5 +128,4 @@ template PoseidonSponge(n){
     h === hashSteps-1;
 
     out <== hashes[h].out;
-    // TODO: rename according to inputs only being uint8 = hashString or something like that
 }

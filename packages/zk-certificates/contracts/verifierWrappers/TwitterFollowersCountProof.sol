@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.28;
 
-import '../Ownable.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 import '../interfaces/ITwitterZkCertificateVerifier.sol';
 import '../interfaces/IZkCertificateRegistry.sol';
 import {Fallback} from '../helpers/Fallback.sol';

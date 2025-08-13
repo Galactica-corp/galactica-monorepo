@@ -1,4 +1,4 @@
-pragma circom 2.1.4;
+pragma circom 2.2.2;
 
 /**
  * Encrypt/Decrypt extention of MimcSponge taken from https://github.com/iden3/circomlib/pull/16

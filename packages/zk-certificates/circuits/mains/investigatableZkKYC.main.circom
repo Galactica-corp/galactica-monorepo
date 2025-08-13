@@ -1,4 +1,4 @@
-pragma circom 2.1.4;
+pragma circom 2.2.2;
 
 include "../zkKYC.circom";
 
@@ -10,4 +10,4 @@ component main {public [
   dAppAddress,
   providerAx,
   providerAy
-]} = ZKKYC(32, 60, 0, 0);
+]} = ZKKYC(32, 60, 2, 3);

@@ -1,17 +1,17 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-pragma circom 2.1.4;
+pragma circom 2.2.2;
 
 include "privToPubKey.circom";
 include "ecdh.circom";
 include "mimcEncrypt.circom";
 
-/*
-  Circuit proving that a message is correctly encrypted so that the receiver can read it. 
-  It is based on public private keypairs and the ECDH key exchange protocol
-  (symmetric encryption key derived from sender's private key and receiver's public key = the other way around).
-
-  In Galactica's zkKYC, this is used to proof that the KYC holder provides encrypted information for eventual fraud investigation.
-*/
+/**
+ * Circuit proving that a message is correctly encrypted so that the receiver can read it.
+ * It is based on public private keypairs and the ECDH key exchange protocol
+ * (symmetric encryption key derived from sender's private key and receiver's public key = the other way around).
+ *
+ * In Galactica's zkKYC, this is used to proof that the KYC holder provides encrypted information for eventual fraud investigation.
+ */
 template EncryptionProof(){
     signal input senderPrivKey;
     signal input receiverPubKey[2]; //should be public input

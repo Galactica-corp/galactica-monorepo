@@ -75,7 +75,10 @@ describe('GuardianRegistry', () => {
         [testGuardian.pubkey[0], testGuardian.pubkey[1]],
         testGuardian.metadata,
       ),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      GuardianRegistry,
+      'OwnableUnauthorizedAccount',
+    );
   });
 
   it('should allow guardians to renounce their role', async function () {

@@ -14,7 +14,7 @@ import {GuardianInfo} from './GuardianRegistry.sol';
 import {IGuardianRegistry} from './interfaces/IGuardianRegistry.sol';
 import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
 
-import {Ownable} from './Ownable.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Fallback} from './helpers/Fallback.sol';
 
 /**

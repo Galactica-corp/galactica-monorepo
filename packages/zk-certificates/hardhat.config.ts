@@ -14,6 +14,7 @@ import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
 import './tasks/hashStringToField';
 import './tasks/reliefZkCertQueue';
+import './tasks/integrateCeremonyResults';
 
 const config: HardhatUserConfig = {
   mocha: {
@@ -108,133 +109,127 @@ const config: HardhatUserConfig = {
     circuits: [
       {
         name: 'zkKYC',
-        circuit: 'test/test_zkKYC.circom',
+        circuit: 'mains/zkKYC.main.circom',
         input: 'input/zkKYC.json',
       },
       {
         name: 'merkleProof',
-        circuit: 'test/test_merkleProof.circom',
+        circuit: 'mains/merkleProof.main.circom',
         input: 'input/merkleProof.json',
       },
       {
         name: 'merkleProof2',
-        circuit: 'test/test_merkleProof_2.circom',
+        circuit: 'mains/merkleProof_2.main.circom',
         input: 'input/merkleProof_2.json',
       },
       {
         name: 'calculateZkCertHash',
-        circuit: 'test/test_calculateZkCertHash.circom',
+        circuit: 'mains/calculateZkCertHash.main.circom',
         input: 'input/calculateZkCertHash.json',
       },
       {
         name: 'humanID',
-        circuit: 'test/test_humanID.circom',
+        circuit: 'mains/humanID.main.circom',
         input: 'input/humanID.json',
       },
       {
         name: 'ownership',
-        circuit: 'test/test_ownership.circom',
+        circuit: 'mains/ownership.main.circom',
         input: 'input/ownership.json',
       },
       {
         name: 'ageProof',
-        circuit: 'test/test_ageProof.circom',
+        circuit: 'mains/ageProof.main.circom',
         input: 'input/ageProof.json',
       },
       // {
       //   name: 'ageProofZkKYC',
-      //   circuit: 'test/test_ageProofZkKYC.circom',
+      //   circuit: 'mains/ageProofZkKYC.main.circom',
       //   input: 'input/ageProofZkKYC.json',
       // },
       {
         name: 'authorization',
-        circuit: 'test/test_authorization.circom',
+        circuit: 'mains/authorization.main.circom',
         input: 'input/authorization.json',
       },
       {
         name: 'mimcEncrypt',
-        circuit: 'test/test_mimcEncrypt.circom',
+        circuit: 'mains/mimcEncrypt.main.circom',
         input: 'input/mimcEncrypt.json',
       },
       {
         name: 'mimcEnDecrypt',
-        circuit: 'test/test_mimcEnDecrypt.circom',
+        circuit: 'mains/mimcEnDecrypt.main.circom',
         input: 'input/mimcEnDecrypt.json',
       },
       {
         name: 'privToPubKey',
-        circuit: 'test/test_privToPubKey.circom',
+        circuit: 'mains/privToPubKey.main.circom',
         input: 'input/privToPubKey.json',
       },
       {
         name: 'ecdh',
-        circuit: 'test/test_ecdh.circom',
+        circuit: 'mains/ecdh.main.circom',
         input: 'input/ecdh.json',
       },
       {
         name: 'encryptionProof',
-        circuit: 'test/test_encryptionProof.circom',
+        circuit: 'mains/encryptionProof.main.circom',
         input: 'input/encryptionProof.json',
       },
       {
         name: 'polynomial',
-        circuit: 'test/test_polynomial.circom',
+        circuit: 'mains/polynomial.main.circom',
         input: 'input/polynomial.json',
       },
       {
         name: 'shamirsSecretSharing',
-        circuit: 'test/test_shamirsSecretSharing.circom',
+        circuit: 'mains/shamirsSecretSharing.main.circom',
         input: 'input/shamirsSecretSharing.json',
       },
       {
         name: 'investigatableZkKYC',
-        circuit: 'test/test_investigatableZkKYC.circom',
+        circuit: 'mains/investigatableZkKYC.main.circom',
         input: 'input/investigatableZkKYC.json',
       },
       {
         name: 'exampleMockDApp',
-        circuit: 'test/test_exampleMockDApp.circom',
+        circuit: 'mains/exampleMockDApp.main.circom',
         input: 'input/exampleMockDApp.json',
       },
       {
         name: 'twitterZkCertificate',
-        circuit: 'test/test_twitterZkCertificate.circom',
+        circuit: 'mains/twitterZkCertificate.main.circom',
         input: 'input/twitterZkCertificate.json',
       },
       {
         name: 'twitterFollowersCountProof',
-        circuit: 'test/test_twitterFollowersCountProof.circom',
+        circuit: 'mains/twitterFollowersCountProof.main.circom',
         input: 'input/twitterFollowersCountProof.json',
       },
       {
         name: 'twitterVerificationProof',
-        circuit: 'test/test_twitterVerificationProof.circom',
+        circuit: 'mains/twitterVerificationProof.main.circom',
         input: 'input/twitterZkCertificate.json',
       },
       {
-        name: 'poseidonSponge',
-        circuit: 'test/test_poseidonSponge.circom',
-        input: 'input/poseidonSponge.json',
+        name: 'hashString',
+        circuit: 'mains/hashString.main.circom',
+        input: 'input/hashString.json',
       },
-      // disabled because they take a long time to compile and are just for testing
-      // {
-      //   name: 'reputationExperiment',
-      //   circuit: 'experiments/crossAccountReputation.circom',
-      //   input: 'input/experiments/crossAccountReputation.json',
-      // },
       {
         name: 'twitterCreationTimeProof',
-        circuit: 'test/test_twitterCreationTimeProof.circom',
+        circuit: 'mains/twitterCreationTimeProof.main.circom',
         input: 'input/twitterCreationTimeProof.json',
       },
       {
         name: 'exclusion3',
-        circuit: 'test/test_exclusion3.circom',
+        circuit: 'mains/exclusion3.main.circom',
         input: 'input/exclusion3.json',
       },
       {
         name: 'ageCitizenshipKYC',
-        circuit: 'test/test_ageCitizenshipKYC.circom',
+        circuit: 'mains/ageCitizenshipKYC.main.circom',
         input: 'input/ageCitizenshipKYC.json',
       },
     ],

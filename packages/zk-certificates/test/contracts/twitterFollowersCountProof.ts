@@ -80,12 +80,18 @@ describe('zkCertificate followers count proof', () => {
       twitterFollowersCountThresholdContract
         .connect(user)
         .setVerifier(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      twitterFollowersCountThresholdContract,
+      'OwnableUnauthorizedAccount',
+    );
     await expect(
       twitterFollowersCountThresholdContract
         .connect(user)
         .setRegistry(user.address),
-    ).to.be.revertedWith('Ownable: caller is not the owner');
+    ).to.be.revertedWithCustomError(
+      twitterFollowersCountThresholdContract,
+      'OwnableUnauthorizedAccount',
+    );
 
     // owner can change addresses
     await twitterFollowersCountThresholdContract
