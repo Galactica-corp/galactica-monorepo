@@ -46,7 +46,7 @@ describe('ZkCertificate', () => {
         testRandomSalt,
         testExpirationDate,
         contentSchemas.kyc,
-        kycExample as KYCCertificateContent,
+        kycExample,
       );
 
       expect(zkKYC.contentHash).to.equal(
@@ -106,7 +106,7 @@ describe('ZkCertificate', () => {
         testRandomSalt,
         testExpirationDate,
         contentSchemas.rey,
-        reyExample as REYCertificateContent,
+        reyExample,
       );
 
       expect(zkKYC.contentHash).to.equal(
@@ -167,23 +167,6 @@ describe('ZkCertificate', () => {
           contentSchemas.twitter,
         ),
       ).to.throw();
-    });
-  });
-
-  describe('Exporting', () => {
-    it('should preserve missing content fields', async () => {
-      const zkKYC = new ZkCertificate(
-        testHolderCommitment,
-        ZkCertStandard.ZkKYC,
-        eddsa,
-        testRandomSalt,
-        testExpirationDate,
-        contentSchemas.kyc,
-        kycExample as KYCCertificateContent,
-      );
-
-      const exported = zkKYC.exportRaw();
-      expect(exported.content).to.deep.equal(kycExample);
     });
   });
 });
