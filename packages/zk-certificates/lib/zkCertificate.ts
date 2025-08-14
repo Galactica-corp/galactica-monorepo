@@ -29,7 +29,6 @@ import { encryptFraudInvestigationData } from './SBTData';
 import {
   hashZkCertificateContent,
   padZkCertForEncryption,
-  prepareContentForCircuit,
 } from './zkCertificateDataProcessing';
 
 /**

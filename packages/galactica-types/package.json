@@ -27,9 +27,11 @@
     "ajv": "^8.17.1",
     "ajv-cli": "^5.0.0",
     "ajv-formats": "^3.0.1",
-    "buffer": "^6.0.3"
+    "buffer": "^6.0.3",
+    "iso-3166-2": "^1.0.0"
   },
   "devDependencies": {
+    "@types/iso-3166-2": "^1.0.4",
     "@types/mocha": "^10.0.10",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",

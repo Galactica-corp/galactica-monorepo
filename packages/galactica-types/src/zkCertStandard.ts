@@ -4,6 +4,7 @@ import type { AnySchema } from 'ajv/dist/2020';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import Ajv from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
+import { codes, subdivision } from 'iso-3166-2';
 
 import type { JSONValue } from './json';
 import { contentSchemas } from './schemas';
@@ -204,8 +205,16 @@ export function addAJVFormats(ajv: Ajv) {
   addFormats(ajv);
   ajv.addFormat('decimal', /^\d+$/u);
   ajv.addFormat('ethereum-address', /^0x[a-fA-F0-9]{40}$/u);
-  ajv.addFormat('iso3166_1_alpha3', /^[A-Z]{3}$/u);
-  ajv.addFormat('iso3166_2', /^[A-Z]{2}-[A-Z0-9]{1,3}$/u);
-  ajv.addFormat('iso3166_1_alpha3_optional', /^([A-Z]{3})?$/u);
-  ajv.addFormat('iso3166_2_optional', /^([A-Z]{2}-[A-Z0-9]{1,3})?$/u);
+  ajv.addFormat('iso3166_1_alpha3', (value: string) => {
+    return value in codes;
+  });
+  ajv.addFormat('iso3166_2', (value: string) => {
+    return subdivision(value) !== null;
+  });
+  ajv.addFormat('iso3166_1_alpha3_optional', (value: string) => {
+    return value === '' || value in codes;
+  });
+  ajv.addFormat('iso3166_2_optional', (value: string) => {
+    return value === '' || subdivision(value) !== null;
+  });
 }
