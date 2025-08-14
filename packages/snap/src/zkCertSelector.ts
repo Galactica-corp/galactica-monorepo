@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
+import type { JSONValue } from '@galactica-net/galactica-types';
 import { getContentSchema } from '@galactica-net/galactica-types';
 import type { ZkCertSelectionParams } from '@galactica-net/snap-api';
 import { RpcResponseErr } from '@galactica-net/snap-api';
@@ -140,7 +141,7 @@ export async function selectZkCert(
     selected.zkCert.randomSalt,
     selected.zkCert.expirationDate,
     selected.schema || getContentSchema(selected.zkCert.zkCertStandard),
-    selected.zkCert.content as unknown as Record<string, unknown>,
+    selected.zkCert.content as unknown as Record<string, JSONValue>,
     selected.zkCert.providerData,
   );
 

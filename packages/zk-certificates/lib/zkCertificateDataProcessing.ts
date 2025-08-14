@@ -84,6 +84,8 @@ export function prepareContentForCircuit(
         case 'regex':
         case 'iso3166_1_alpha3': // country code
         case 'iso3166_2': // region code
+        case 'iso3166_1_alpha3_optional': // country code
+        case 'iso3166_2_optional': // region code
         case undefined:
           // no format specified, so we assume it is a string that is not meant for something else, such as a name or address
           resValue = hashStringToFieldNumber(sourceData, eddsa.poseidon);
@@ -97,7 +99,7 @@ export function prepareContentForCircuit(
           break;
         default:
           throw new Error(
-            `No conversion for string format ${contentSchema.format} to a ZK field element implemented. Required for field ${field}: ${sourceData}`,
+            `No conversion for string format ${format} to a ZK field element implemented. Required for field ${field}: ${sourceData}`,
           );
       }
     } else if (typeof sourceData === 'object') {

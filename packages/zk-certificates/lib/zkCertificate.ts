@@ -17,19 +17,19 @@ import {
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
   parseContentJson,
-  dumpContentJson,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
+import type { AnySchema } from 'ajv/dist/2020';
 import type { Eddsa, Point, Poseidon } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
 import { Scalar } from 'ffjavascript';
-import type { AnySchema } from 'ajv/dist/2020';
 
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
 import {
   hashZkCertificateContent,
   padZkCertForEncryption,
+  prepareContentForCircuit,
 } from './zkCertificateDataProcessing';
 
 /**
@@ -182,7 +182,7 @@ export class ZkCertificate implements ZkCertData {
       leafHash: this.leafHash,
       did: this.did,
       zkCertStandard: this.zkCertStandard,
-      content: dumpContentJson(this.content, this.contentSchema),
+      content: this.content,
       contentHash: this.contentHash,
       providerData: this.providerData,
       randomSalt: this.randomSalt,

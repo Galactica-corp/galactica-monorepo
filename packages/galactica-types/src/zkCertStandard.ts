@@ -5,6 +5,7 @@ import type { AnySchema } from 'ajv/dist/2020';
 import Ajv from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 
+import type { JSONValue } from './json';
 import { contentSchemas } from './schemas';
 import type {
   KYCCertificateContent,
@@ -14,7 +15,6 @@ import type {
   CEXCertificateContent,
   TelegramCertificateContent,
 } from './zkCertContent';
-import type { JSONValue } from './json';
 
 /**
  * Enum for zkCert standards
@@ -173,7 +173,10 @@ export function parseContentJson<ContentType>(
   const res: Record<string, JSONValue> = JSON.parse(JSON.stringify(inputData)); // deep copy to not modify the original object
   let schemaProperties: Record<string, { [key: string]: JSONValue }> = {};
   if (typeof schema === 'object' && schema !== null && 'properties' in schema) {
-    schemaProperties = schema.properties as Record<string, { [key: string]: JSONValue }>;
+    schemaProperties = schema.properties as Record<
+      string,
+      { [key: string]: JSONValue }
+    >;
   }
   let requiredList: string[] = [];
   if (typeof schema === 'object' && schema !== null && 'required' in schema) {
@@ -194,28 +197,6 @@ export function parseContentJson<ContentType>(
 }
 
 /**
- * Dump a content object to a JSON object.
- * @param content - The content object to dump.
- * @param schema - The schema to use for dumping.
- * @returns The dumped content object.
- */
-export function dumpContentJson(content: AnyZkCertContent, schema: any): any {
-  // Because some content fields are optional and have default values that do not match the format,
-  // for example default "" for region in ISO 3166-2, we need to remove those before exporting to keep the exported content consistent with the schema.
-
-  const res: any = JSON.parse(JSON.stringify(content));
-  for (const field of Object.keys(schema.properties || {})) {
-    if (
-      !schema.required?.includes(field) &&
-      res[field] === schema.properties[field].default
-    ) {
-      delete res[field];
-    }
-  }
-  return res;
-}
-
-/**
  * Add custom formats used in the zkCert standards to an Ajv instance.
  * @param ajv - The Ajv instance to add the formats to.
  */
@@ -225,4 +206,6 @@ export function addAJVFormats(ajv: Ajv) {
   ajv.addFormat('ethereum-address', /^0x[a-fA-F0-9]{40}$/u);
   ajv.addFormat('iso3166_1_alpha3', /^[A-Z]{3}$/u);
   ajv.addFormat('iso3166_2', /^[A-Z]{2}-[A-Z0-9]{1,3}$/u);
+  ajv.addFormat('iso3166_1_alpha3_optional', /^([A-Z]{3})?$/u);
+  ajv.addFormat('iso3166_2_optional', /^([A-Z]{2}-[A-Z0-9]{1,3})?$/u);
 }

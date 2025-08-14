@@ -6,6 +6,7 @@ import {
   type KYCCertificateContent,
   type ProviderData,
   type ZkCertRegistration,
+  type JSONValue,
 } from '@galactica-net/galactica-types';
 import type {
   ZkCertRegistered,
@@ -168,7 +169,7 @@ export function parseZkCert(
   }
 
   try {
-    parseContentJson(zkCert.content as Record<string, unknown>, schema);
+    parseContentJson(zkCert.content as Record<string, JSONValue>, schema);
   } catch (error) {
     throw new ImportZkCertError({
       name: 'FormatError',
