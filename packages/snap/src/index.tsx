@@ -655,7 +655,10 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
               activeTab={zkCert.zkCertStandard}
               zkCerts={state.zkCerts}
               holders={state.holders.map(
-                ({ holderCommitment }) => holderCommitment,
+                ({ holderCommitment, encryptionPubKey }) => ({
+                  holderCommitment,
+                  encryptionPubKey,
+                }),
               )}
             />
           ),
@@ -676,7 +679,10 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
               activeTab={ZkCertStandard.ZkKYC}
               zkCerts={state.zkCerts}
               holders={state.holders.map(
-                ({ holderCommitment }) => holderCommitment,
+                ({ holderCommitment, encryptionPubKey }) => ({
+                  encryptionPubKey,
+                  holderCommitment,
+                }),
               )}
             />
           ),
@@ -716,7 +722,10 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
             activeTab={activeTab}
             zkCerts={state.zkCerts}
             holders={state.holders.map(
-              ({ holderCommitment }) => holderCommitment,
+              ({ holderCommitment, encryptionPubKey }) => ({
+                holderCommitment,
+                encryptionPubKey,
+              }),
             )}
           />
         ),
@@ -732,7 +741,12 @@ export const onHomePage: OnHomePageHandler = async () => {
       <StartPage
         activeTab={ZkCertStandard.ZkKYC}
         zkCerts={state.zkCerts}
-        holders={state.holders.map(({ holderCommitment }) => holderCommitment)}
+        holders={state.holders.map(
+          ({ encryptionPubKey, holderCommitment }) => ({
+            encryptionPubKey,
+            holderCommitment,
+          }),
+        )}
       />
     ),
   };

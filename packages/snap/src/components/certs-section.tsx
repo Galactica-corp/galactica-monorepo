@@ -5,12 +5,11 @@ import {
   Button,
   Card,
   Heading,
+  Link,
   Section,
   Text as SnapText,
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
-
-import type { HolderData } from '../types';
 
 const getTitle = (standard: ZkCertStandard) => {
   if (standard === ZkCertStandard.ZkKYC) {
@@ -37,13 +36,16 @@ const getValue = (cert: ZkCertRegistered) => {
 
 export const CertsSection: SnapComponent<{
   certs: ZkCertRegistered[];
-  holders: HolderData['holderCommitment'][];
-}> = ({ certs }) => {
+  holders: { holderCommitment: string; encryptionPubKey: string }[];
+}> = ({ certs, holders }) => {
   if (!certs.length) {
+    const holder = holders[0];
+    const url = `https://kyc-reticulum.galactica.com/?holderCommitment=${holder.holderCommitment}&encryptionPubKey=${holder.encryptionPubKey}`;
     return (
       <Box>
-        <Box>
-          <SnapText>NoData</SnapText>
+        <Box alignment="center" center>
+          <SnapText>You have no ZK certificates yet</SnapText>
+          <Link href={url}>Start KYC</Link>
         </Box>
       </Box>
     );

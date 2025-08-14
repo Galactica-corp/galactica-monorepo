@@ -9,7 +9,6 @@ import {
   Field,
   FileInput,
   Form,
-  Heading,
   Text as SnapText,
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
@@ -19,7 +18,7 @@ import { CertsSection } from './certs-section';
 type Props = {
   error?: string;
   activeTab: ZkCertStandard;
-  holders: string[];
+  holders: { holderCommitment: string; encryptionPubKey: string }[];
   zkCerts: ZkCertRegistered[];
 };
 
@@ -50,17 +49,11 @@ export const StartPage: SnapComponent<Props> = ({
     return true;
   });
 
-  console.log(certs);
   return (
     <Box>
       <Box>
-        <Heading>Galactica</Heading>
-        <SnapText>Welcome to galactica</SnapText>
-      </Box>
-
-      <Box>
         <Form name="upload-cert-form">
-          <Field label="Upload Cert">
+          <Field label="Upload Certificate">
             <FileInput accept={['application/json']} name="file-input" />
           </Field>
         </Form>
@@ -72,14 +65,14 @@ export const StartPage: SnapComponent<Props> = ({
         </Banner>
       ) : null}
 
-      <Box direction="horizontal">
+      <Box direction="horizontal" alignment="center">
         <Button
           variant={
             activeTab === ZkCertStandard.ZkKYC ? 'primary' : 'destructive'
           }
           name={`go-to-${ZkCertStandard.ZkKYC}`}
         >
-          KYC Certs
+          KYC
         </Button>
         <Button
           variant={
@@ -87,7 +80,7 @@ export const StartPage: SnapComponent<Props> = ({
           }
           name={`go-to-${ZkCertStandard.Twitter}`}
         >
-          Social Certs
+          Social
         </Button>
         <Button
           variant={
@@ -98,7 +91,7 @@ export const StartPage: SnapComponent<Props> = ({
           }
           name="go-to-other-certs"
         >
-          Other Certs
+          All
         </Button>
       </Box>
 
