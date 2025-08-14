@@ -1,3 +1,4 @@
+import type { FieldElement } from './fieldElement';
 import type { MerkleProof } from './merkleProof';
 import type { AnyZkCertContent, ZkCertStandard } from './zkCertStandard';
 
@@ -107,3 +108,5 @@ export declare type EthEncryptedData = {
   ephemPublicKey: string;
   ciphertext: string;
 };
+
+export type ProofInput = Record<string, FieldElement | FieldElement[]>;

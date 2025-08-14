@@ -38,7 +38,7 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
     '1773',
     1769736098,
     getContentSchema(ZkCertStandard.ZkKYC),
-    kycExample as KYCCertificateContent,
+    kycExample,
   );
 
   // some default provider private key

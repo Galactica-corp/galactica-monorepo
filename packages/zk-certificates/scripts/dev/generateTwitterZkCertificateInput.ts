@@ -1,7 +1,10 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
+  FieldElement,
   getContentSchema,
   ZkCertStandard,
+  type JSONValue,
+  type ProofInput,
 } from '@galactica-net/galactica-types';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
@@ -21,7 +24,7 @@ import { prepareContentForCircuit } from '../../lib/zkCertificateDataProcessing'
  * @returns Twitter ZkCertificate object promise.
  */
 export async function generateSampleTwitterZkCertificate(
-  fields: any = twitterExample,
+  fields: Record<string, JSONValue> = twitterExample,
 ): Promise<ZkCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
@@ -56,7 +59,7 @@ export async function generateSampleTwitterZkCertificate(
  */
 export async function generateTwitterZkCertificateProofInput(
   twitterZkCertificate: ZkCertificate,
-): Promise<any> {
+): Promise<ProofInput> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -78,7 +81,7 @@ export async function generateTwitterZkCertificateProofInput(
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
   // construct the twitterZkCertificate inputs
-  const twitterZkCertificateInput: any = prepareContentForCircuit(
+  const twitterZkCertificateInput: ProofInput = prepareContentForCircuit(
     eddsa,
     twitterZkCertificate.content,
     getContentSchema(ZkCertStandard.Twitter),
