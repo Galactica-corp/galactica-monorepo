@@ -53,7 +53,7 @@ export class ZkCertificate implements ZkCertData {
 
   public content: AnyZkCertContent;
 
-  public contentSchema: any;
+  public contentSchema: AnySchema;
 
   public providerData: ProviderData;
 
