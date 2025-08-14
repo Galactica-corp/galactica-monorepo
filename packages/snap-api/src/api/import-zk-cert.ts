@@ -14,6 +14,8 @@ export type ImportZkCertParams = {
   encryptedZkCert: EncryptedZkCert;
   // Should the snap return the list of zkCerts after import (to have 1 less confirmation)
   listZkCerts?: boolean;
+
+  chainID?: number;
 };
 
 /**
