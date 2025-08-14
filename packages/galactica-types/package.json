@@ -9,10 +9,10 @@
   },
   "license": "GPL-3.0-or-later",
   "author": "Galactica Network",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/galactica-types/index.js",
+  "types": "dist/galactica-types/index.d.ts",
   "files": [
-    "/dist"
+    "/dist/galactica-types"
   ],
   "scripts": {
     "generate-types": "json2ts -i schema/ > ./src/zkCertContent.ts",
