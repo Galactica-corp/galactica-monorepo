@@ -4,10 +4,10 @@ import type {
   EncryptedZkCert,
   MerkleProof,
   MerkleProofUpdateRequestParams,
+  ProverData,
   ZkCertProof,
   ZkCertRegistered,
   ZkCertSelectionParams,
-  ProverData,
 } from '@galactica-net/snap-api';
 import {
   RpcMethods,
@@ -20,6 +20,7 @@ import {
   fromDecToHex,
   getMerkleRootFromProof,
 } from '@galactica-net/zk-certificates';
+import { encryptZkCert } from '@galactica-net/zk-certificates/lib/encryption';
 import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -50,7 +51,6 @@ import zkCert2 from '../../../test/zkCert2.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import exclusion3VKey from '../../galactica-dapp/public/provers/exclusion3.vkey.json';
 import { processRpcRequest } from '../src';
-import { encryptZkCert } from '../src/encryption';
 import {
   subPathWasm,
   subPathZkeyHeader,

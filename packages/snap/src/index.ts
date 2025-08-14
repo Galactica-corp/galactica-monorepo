@@ -1,30 +1,27 @@
 // SPDX-License-Identifier: BUSL-1.1
 import type { HolderCommitmentData } from '@galactica-net/galactica-types';
 import type {
-  ConfirmationResponse,
-  ImportZkCertParams,
-  GenZkProofParams,
-  MerkleProofUpdateRequestParams,
-  ZkCertSelectionParams,
-  MerkleProofURLUpdateParams,
   BenchmarkZKPGenParams,
+  ConfirmationResponse,
+  GenZkProofParams,
+  ImportZkCertParams,
+  MerkleProofUpdateRequestParams,
+  MerkleProofURLUpdateParams,
+  ZkCertSelectionParams,
 } from '@galactica-net/snap-api';
 import {
-  RpcResponseErr,
-  RpcMethods,
-  RpcResponseMsg,
   GenericError,
+  RpcMethods,
+  RpcResponseErr,
+  RpcResponseMsg,
   URLUpdateError,
 } from '@galactica-net/snap-api';
+import { encryptZkCert } from '@galactica-net/zk-certificates/lib/encryption';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
-import { panel, text, heading, divider } from '@metamask/snaps-ui';
+import { divider, heading, panel, text } from '@metamask/snaps-ui';
 import { basicURLParse } from 'whatwg-url';
 
-import {
-  checkEncryptedZkCertFormat,
-  decryptZkCert,
-  encryptZkCert,
-} from './encryption';
+import { checkEncryptedZkCertFormat, decryptZkCert } from './encryption';
 import { getMerkleProof } from './merkleProofSelection';
 import {
   checkZkCertProofRequest,
@@ -33,13 +30,13 @@ import {
   generateZkCertProof,
 } from './proofGenerator';
 import { getHolder, getState, getZkCert, saveState } from './stateManagement';
-import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
+import type { HolderData, PanelContent, SnapRpcProcessor } from './types';
 import { stripURLProtocol } from './utils';
 import {
   getZkCertStorageHashes,
   getZkCertStorageOverview,
 } from './zkCertHandler';
-import { selectZkCert, filterZkCerts } from './zkCertSelector';
+import { filterZkCerts, selectZkCert } from './zkCertSelector';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.

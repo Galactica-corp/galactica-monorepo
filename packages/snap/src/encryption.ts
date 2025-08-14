@@ -1,16 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-import { ENCRYPTION_VERSION } from '@galactica-net/galactica-types';
 import type {
   EncryptedZkCert,
   ZkCertRegistered,
 } from '@galactica-net/snap-api';
 import { ImportZkCertError } from '@galactica-net/snap-api';
-import {
-  decryptSafely,
-  encryptSafely,
-  getEncryptionPublicKey,
-} from '@metamask/eth-sig-util';
+import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
 
 import { checkZkCert } from './zkCertHandler';
@@ -34,27 +29,6 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
   const privKey = entropy.slice(2); // remove 0x prefix
   const publicKey = getEncryptionPublicKey(privKey);
   return { pubKey: publicKey, privKey };
-}
-
-/**
- * Encrypt a zkCert for exporting.
- * @param zkCert - The ZkCertRegistered to encrypt.
- * @param pubKey - The public key for encryption.
- * @param holderCommitment - The holder commitment to associate the zkCert with the holder who can decrypt it.
- * @returns The encrypted ZkCertRegistered as EthEncryptedData.
- */
-export function encryptZkCert(
-  zkCert: ZkCertRegistered,
-  pubKey: string,
-  holderCommitment: string,
-): EncryptedZkCert {
-  const encryptedZkCert = encryptSafely({
-    publicKey: pubKey,
-    data: zkCert,
-    version: ENCRYPTION_VERSION,
-  }) as EncryptedZkCert;
-  encryptedZkCert.holderCommitment = holderCommitment;
-  return encryptedZkCert;
 }
 
 /**
