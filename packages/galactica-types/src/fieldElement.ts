@@ -5,7 +5,7 @@ import { SNARK_SCALAR_FIELD } from './snark';
 /**
  * The types a value might have that is passed to a zk circuit.
  */
-export type FieldElement = string | number | boolean | bigint;
+export type FieldElement = string | number | bigint;
 
 /**
  * Check if a value is a valid field element.
@@ -13,8 +13,8 @@ export type FieldElement = string | number | boolean | bigint;
  * @returns A valid field element.
  * @throws An error if the field element is not valid.
  */
-export function parseFieldElement(value: FieldElement): FieldElement {
-  let processedValue: FieldElement = value;
+export function parseFieldElement(value: FieldElement | boolean): FieldElement {
+  let processedValue: FieldElement | boolean = value;
 
   switch (typeof processedValue) {
     case 'string':

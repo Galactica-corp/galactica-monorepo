@@ -28,7 +28,7 @@ export function prepareContentForCircuit(
 
   const zkCertificateContentFields = Object.keys(
     contentSchema.properties ||
-      contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
+    contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
   );
 
   for (const field of zkCertificateContentFields) {
@@ -165,14 +165,7 @@ export function hashZkCertificateContent(
       // sort the fields alphabetically to ensure the same order as in the circuit
       Object.keys(contentFields)
         .sort()
-        .map((field) => {
-          const value = contentFields[field];
-          // Convert boolean to number for poseidon compatibility
-          if (typeof value === 'boolean') {
-            return value ? 1 : 0;
-          }
-          return value;
-        }),
+        .map((field) => contentFields[field]),
       undefined,
       1,
     ),
