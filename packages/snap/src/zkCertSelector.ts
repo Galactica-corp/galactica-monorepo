@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
+import type { JSONValue } from '@galactica-net/galactica-types';
 import {
-  JSONValue,
   KnownZkCertStandard,
+  getContentSchema,
 } from '@galactica-net/galactica-types';
-import { getContentSchema } from '@galactica-net/galactica-types';
 import type { ZkCertSelectionParams } from '@galactica-net/snap-api';
 import { RpcResponseErr } from '@galactica-net/snap-api';
 import { ZkCertificate } from '@galactica-net/zk-certificates';
@@ -39,7 +39,7 @@ export function filterZkCerts(
         value.zkCert.providerData.ax === filter?.providerAx) &&
       (filter?.registryAddress === undefined ||
         value.zkCert.registration.address.toLowerCase() ===
-        filter?.registryAddress.toLowerCase()) &&
+          filter?.registryAddress.toLowerCase()) &&
       (filter?.chainID === undefined ||
         value.zkCert.registration.chainID === filter?.chainID)
     );
@@ -139,7 +139,9 @@ export async function selectZkCert(
   const eddsa = await buildEddsa();
   let schema;
   if (selected.zkCert.zkCertStandard in KnownZkCertStandard) {
-    schema = getContentSchema(selected.zkCert.zkCertStandard as KnownZkCertStandard);
+    schema = getContentSchema(
+      selected.zkCert.zkCertStandard as KnownZkCertStandard,
+    );
   } else {
     schema = selected.schema;
   }
