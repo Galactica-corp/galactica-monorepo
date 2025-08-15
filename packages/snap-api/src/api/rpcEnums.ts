@@ -27,4 +27,5 @@ export enum RpcResponseErr {
   RejectedConnect = 'User rejected the request.',
   RejectedSignature = 'User denied message signature.',
   RejectedSelect = 'User did not choose a zkCertificate.',
+  StorageMigrationError = 'Storage layout version is not supported. Please clear the snap storage and try again.',
 }

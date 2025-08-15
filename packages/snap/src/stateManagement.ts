@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 import type { ZkCertRegistered } from '@galactica-net/snap-api';
-import { GenericError } from '@galactica-net/snap-api';
+import { GenericError, RpcResponseErr } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import type { Json, SnapsGlobalObject } from '@metamask/snaps-types';
 
 import { createEncryptionKeyPair } from './encryption';
 import type { HolderData, StorageState, ZkCertStorage } from './types';
 import { calculateHolderCommitment } from './zkCertHandler';
+
+export const CURRENT_STORAGE_LAYOUT_VERSION = 1;
 
 /**
  * Get the state from the snap storage in MetaMask's browser extension.
@@ -23,10 +25,24 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
     stateRecord === null ||
     stateRecord === undefined ||
     (typeof stateRecord === 'object' &&
-      (stateRecord.zkCerts === undefined || stateRecord.holders === undefined))
+      (stateRecord.zkCerts === undefined ||
+        stateRecord.holders === undefined)) ||
+    stateRecord.storageLayoutVersion === undefined // not backwards compatible because so old zkCerts are missing raw content values
   ) {
-    state = { holders: [], zkCerts: [] };
+    state = {
+      holders: [],
+      zkCerts: [],
+      storageLayoutVersion: CURRENT_STORAGE_LAYOUT_VERSION,
+    };
   } else {
+    if (stateRecord.storageLayoutVersion !== CURRENT_STORAGE_LAYOUT_VERSION) {
+      // Placeholder for future storage migrations
+      throw new GenericError({
+        name: 'StorageMigrationError',
+        message: RpcResponseErr.StorageMigrationError,
+      });
+    }
+
     let holderJSONData = stateRecord.holders?.valueOf() as {
       holderCommitment: string;
       eddsaEntropy: string;
@@ -50,6 +66,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
         encryptionPrivKey: holder.encryptionPrivKey,
       })),
       zkCerts: stateRecord.zkCerts?.valueOf() as ZkCertStorage[],
+      storageLayoutVersion: stateRecord.storageLayoutVersion?.valueOf(),
     };
     if (
       stateRecord.merkleServiceURL !== undefined &&
@@ -111,6 +128,7 @@ export async function saveState(
     merkleServiceURL: newState.merkleServiceURL
       ? newState.merkleServiceURL
       : '',
+    storageLayoutVersion: newState.storageLayoutVersion ?? null,
   };
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys
   await snap.request({

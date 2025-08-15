@@ -20,6 +20,7 @@ type GenericErrorName =
   | 'MerkleProofUpdateFailed'
   | 'RejectedConnect'
   | 'RejectedSignature'
-  | 'RejectedSelect';
+  | 'RejectedSelect'
+  | 'StorageMigrationError';
 
 export class GenericError extends GalacticaErrorBase<GenericErrorName> {}
