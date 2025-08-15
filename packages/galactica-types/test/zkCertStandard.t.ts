@@ -44,4 +44,29 @@ describe('ZkCertStandard', () => {
       expect(() => parseContentJson(invalidRegion, schema)).to.throw();
     });
   });
+
+  describe('Generic content', () => {
+    it('should accept unknown content types', () => {
+      type NameContent = { name: string };
+      const cert: ZkCertData<NameContent> = {
+        content: { name: 'Mark' },
+        contentHash: '',
+        did: '',
+        expirationDate: 0,
+        holderCommitment: '',
+        leafHash: '',
+        providerData: {
+          ax: '',
+          ay: '',
+          s: '',
+          r8x: '',
+          r8y: '',
+        },
+        randomSalt: '',
+        zkCertStandard: KnownZkCertStandard.ArbitraryData,
+      };
+
+      expect(cert.content.name).to.equal('Mark');
+    });
+  });
 });
