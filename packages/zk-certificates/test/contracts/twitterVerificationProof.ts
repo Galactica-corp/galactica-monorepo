@@ -381,13 +381,13 @@ describe('twitterVerificationProof SC', () => {
   it('unverified twitter account returns incorrect proof', async () => {
     const fields = {
       id: '23742384',
-      createdAt: '1726128494',
+      createdAt: '2024-06-19T17:24:53Z',
       followersCount: 85,
       followingCount: 28,
       listedCount: 10,
       tweetCount: 22,
       username: 'test',
-      verified: 0,
+      verified: false,
     };
 
     const twitterZkCertificateUnverified =

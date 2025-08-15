@@ -1,6 +1,9 @@
 /* eslint-disable prefer-const */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { ZkCertStandard } from '@galactica-net/galactica-types';
+import {
+  getContentSchema,
+  ZkCertStandard,
+} from '@galactica-net/galactica-types';
 import chalk from 'chalk';
 import { buildEddsa } from 'circomlibjs';
 import fs from 'fs';
@@ -22,7 +25,6 @@ import {
   waitOnIssuanceQueue,
 } from '../lib/registryTools';
 import { flagStandardMapping, ZkCertificate } from '../lib/zkCertificate';
-import { prepareZkCertificateFields } from '../lib/zkCertificateDataProcessing';
 import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
 import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
 
@@ -60,11 +62,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       )}`,
     );
   }
-  const zkCertificateFields = prepareZkCertificateFields(
-    eddsa,
-    data,
-    zkCertificateType,
-  );
 
   // read holder commitment file
   const holderCommitmentFile = JSON.parse(
@@ -89,7 +86,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     eddsa,
     randomSalt,
     args.expirationDate,
-    zkCertificateFields,
+    getContentSchema(zkCertificateType),
+    data,
   );
 
   // let provider sign the zkCertificate

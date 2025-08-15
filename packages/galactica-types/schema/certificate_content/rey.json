@@ -1,12 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Certificate REY",
+  "title": "REY Certificate Content",
   "description": "Certificate content for REY verification data.",
   "type": "object",
   "properties": {
     "xID": {
       "type": "string",
       "pattern": "^[0-9]+$",
+      "format": "decimal",
       "description": "The numeric ID of the user on X (Twitter)."
     },
     "xUsername": {
@@ -34,5 +35,6 @@
       "default": 0
     }
   },
+  "additionalProperties": false,
   "required": ["xID", "xUsername"]
 }

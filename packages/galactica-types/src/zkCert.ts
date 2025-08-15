@@ -1,5 +1,6 @@
+import type { FieldElement } from './fieldElement';
 import type { MerkleProof } from './merkleProof';
-import type { ZkCertStandard, ZkKYCContent } from './zkCertStandard';
+import type { AnyZkCertContent, ZkCertStandard } from './zkCertStandard';
 
 // / Data required for ZK ownership proofs
 export type OwnershipProofInput = {
@@ -57,7 +58,7 @@ export type ZkCertData = {
   zkCertStandard: ZkCertStandard;
   randomSalt: string;
   expirationDate: number;
-  content: ZkKYCContent | Record<string, any>;
+  content: AnyZkCertContent;
   providerData: ProviderData;
   contentHash: string;
   leafHash: string;
@@ -83,6 +84,10 @@ export type ZkCertRegistered = ZkCertData & {
   // Proof showing that the zkCert is part of the Merkle tree
   // Updating it helps to prevent tracking through finding uses of the same merkle root
   merkleProof: MerkleProof;
+
+  // Workaround for a bug in @metamask/eth-sig-util. With certain data sizes, the encryption fails to pad the data correctly.
+  // So we additionally inflate the data to make sure it is padded correctly.
+  paddingIssueWorkaround?: string;
 };
 
 // Encryption used for zkCerts when being exported or passed from guardian to user
@@ -103,3 +108,5 @@ export declare type EthEncryptedData = {
   ephemPublicKey: string;
   ciphertext: string;
 };
+
+export type ProofInput = Record<string, FieldElement | FieldElement[]>;

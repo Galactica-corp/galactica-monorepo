@@ -9,20 +9,27 @@ import type {
   ZkCertData,
   ZkCertRegistration,
   EddsaPrivateKey,
+  AnyZkCertContent,
+  JSONValue,
 } from '@galactica-net/galactica-types';
 import {
   ZkCertStandard,
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
+  parseContentJson,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
+import type { AnySchema } from 'ajv/dist/2020';
 import type { Eddsa, Point, Poseidon } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
 import { Scalar } from 'ffjavascript';
 
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
-import { hashZkCertificateContent } from './zkCertificateDataProcessing';
+import {
+  hashZkCertificateContent,
+  padZkCertForEncryption,
+} from './zkCertificateDataProcessing';
 
 /**
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
@@ -44,7 +51,9 @@ export class ZkCertificate implements ZkCertData {
 
   public expirationDate: number;
 
-  public content: Record<string, any>;
+  public content: AnyZkCertContent;
+
+  public contentSchema: AnySchema;
 
   public providerData: ProviderData;
 
@@ -55,7 +64,8 @@ export class ZkCertificate implements ZkCertData {
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
    * @param expirationDate - Expiration date of the zkCert.
-   * @param content - ZkCertificate parameters, can be set later.
+   * @param contentSchema - JSON Schema of the content containing information about the fields and how to provide them to the zk circuit.
+   * @param content - ZkCertificate content, this is the data being attested to.
    * @param providerData - Provider data, can be set later.
    */
   constructor(
@@ -64,7 +74,8 @@ export class ZkCertificate implements ZkCertData {
     eddsa: Eddsa,
     randomSalt: string,
     expirationDate: number,
-    content: Record<string, any> = {}, // standardize field definitions
+    contentSchema: AnySchema,
+    content: Record<string, JSONValue>,
     providerData: ProviderData = {
       ax: '0',
       ay: '0',
@@ -80,12 +91,17 @@ export class ZkCertificate implements ZkCertData {
     this.eddsa = eddsa;
     this.randomSalt = randomSalt;
     this.expirationDate = expirationDate;
-    this.content = content;
+    this.content = parseContentJson(content, contentSchema);
+    this.contentSchema = contentSchema;
     this.providerData = providerData;
   }
 
   get contentHash(): string {
-    return hashZkCertificateContent(this.eddsa, this.content);
+    return hashZkCertificateContent(
+      this.eddsa,
+      this.content,
+      this.contentSchema,
+    );
   }
 
   get leafHash(): string {
@@ -118,8 +134,8 @@ export class ZkCertificate implements ZkCertData {
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
 
-  public setContent(content: Record<string, any>) {
-    this.content = content;
+  public setContent(content: Record<string, JSONValue>) {
+    this.content = parseContentJson(content, this.contentSchema);
   }
 
   /**
@@ -141,6 +157,7 @@ export class ZkCertificate implements ZkCertData {
     if (registration) {
       dataToExport.registration = registration;
     }
+    padZkCertForEncryption(dataToExport);
 
     const encryptedData = encryptSafely({
       publicKey: encryptionPubKey,
@@ -324,5 +341,7 @@ export const flagStandardMapping: Record<string, ZkCertStandard> = {
   data: ZkCertStandard.ArbitraryData,
   twitter: ZkCertStandard.Twitter,
   rey: ZkCertStandard.Rey,
-  exchange: ZkCertStandard.Exchange,
+  cex: ZkCertStandard.CEX,
+  dex: ZkCertStandard.DEX,
+  telegram: ZkCertStandard.Telegram,
 };

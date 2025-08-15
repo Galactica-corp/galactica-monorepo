@@ -95,31 +95,31 @@ describe('SBTManager', () => {
     ])) as SBTManager;
 
     twitterZkCertificates = [];
-    const twitterExample1 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample1 = structuredClone(twitterExample);
     twitterExample1.followersCount = 110;
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample1),
     );
 
-    const twitterExample2 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample2 = structuredClone(twitterExample);
     twitterExample2.followersCount = 1100;
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample2),
     );
 
-    const twitterExample3 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample3 = structuredClone(twitterExample);
     twitterExample3.followersCount = 11000;
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample3),
     );
 
-    const twitterExample4 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample4 = structuredClone(twitterExample);
     twitterExample4.createdAt = '2018-06-19T17:24:53Z'; // before 2020-01-01
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample4),
     );
 
-    const twitterExample5 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample5 = structuredClone(twitterExample);
     twitterExample5.createdAt = '2024-06-19T17:24:53Z'; // after 2024-01-01
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample5),

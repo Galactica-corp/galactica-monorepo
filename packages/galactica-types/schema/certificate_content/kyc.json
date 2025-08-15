@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Certificate KYC",
+  "title": "KYC Certificate Content",
   "description": "Certificate content for Know Your Customer (KYC) verification data containing various fields required for identity verification and validation.",
   "type": "object",
   "properties": {
@@ -63,7 +63,7 @@
     },
     "region": {
       "type": "string",
-      "format": "iso3166_2",
+      "format": "iso3166_2_optional",
       "description": "The region of the individual's address as an ISO 3166-2 code.",
       "default": ""
     },
@@ -81,5 +81,6 @@
     "dayOfBirth",
     "citizenship",
     "country"
-  ]
+  ],
+  "additionalProperties": false
 }

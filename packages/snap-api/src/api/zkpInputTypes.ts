@@ -1,3 +1,5 @@
+import type { JSONValue } from '@galactica-net/galactica-types';
+
 /**
  * Public input needed to generate a zkKYC proof with age limit.
  */
@@ -54,4 +56,4 @@ export type ZkCertInputType =
   | ZkKYCProofInput
   | ZkKYCAgeProofInput
   | ZkKYCAgeCitizenshipProofInput
-  | Record<string, any>;
+  | Record<string, JSONValue>;
