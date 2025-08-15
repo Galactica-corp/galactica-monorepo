@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import type { FieldElement } from './fieldElement';
 import type { MerkleProof } from './merkleProof';
 import type { AnyZkCertContent, ZkCertStandard } from './zkCertStandard';
@@ -84,10 +88,6 @@ export type ZkCertRegistered = ZkCertData & {
   // Proof showing that the zkCert is part of the Merkle tree
   // Updating it helps to prevent tracking through finding uses of the same merkle root
   merkleProof: MerkleProof;
-
-  // Workaround for a bug in @metamask/eth-sig-util. With certain data sizes, the encryption fails to pad the data correctly.
-  // So we additionally inflate the data to make sure it is padded correctly.
-  paddingIssueWorkaround?: string;
 };
 
 // Encryption used for zkCerts when being exported or passed from guardian to user

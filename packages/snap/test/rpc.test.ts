@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import type { HolderCommitmentData } from '@galactica-net/galactica-types';
 import { getContentSchema } from '@galactica-net/galactica-types';
 import type {
@@ -18,6 +22,7 @@ import {
 } from '@galactica-net/snap-api';
 import type { Poseidon } from '@galactica-net/zk-certificates';
 import {
+  encryptZkCert,
   fromDecToHex,
   getMerkleRootFromProof,
 } from '@galactica-net/zk-certificates';
@@ -53,7 +58,6 @@ import zkCert2 from '../../../test/zkCert2.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import exclusion3VKey from '../../galactica-dapp/public/provers/exclusion3.vkey.json';
 import { processRpcRequest } from '../src';
-import { encryptZkCert } from '../src/encryption';
 import {
   subPathWasm,
   subPathZkeyHeader,

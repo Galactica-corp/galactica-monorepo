@@ -1,22 +1,26 @@
-/* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
 import type {
+  AnyZkCertContent,
   AuthorizationProofInput,
+  EddsaPrivateKey,
   EncryptedZkCert,
   FraudInvestigationDataEncryptionProofInput,
+  JSONValue,
   MerkleProof,
   OwnershipProofInput,
   ProviderData,
   ZkCertData,
+  ZkCertRegistered,
   ZkCertRegistration,
-  EddsaPrivateKey,
-  AnyZkCertContent,
-  JSONValue,
 } from '@galactica-net/galactica-types';
 import {
-  ZkCertStandard,
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
+  getContentSchema,
   parseContentJson,
+  ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
 import type { AnySchema } from 'ajv/dist/2020';
@@ -26,10 +30,7 @@ import { Scalar } from 'ffjavascript';
 
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
-import {
-  hashZkCertificateContent,
-  padZkCertForEncryption,
-} from './zkCertificateDataProcessing';
+import { hashZkCertificateContent } from './zkCertificateDataProcessing';
 
 /**
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
@@ -157,7 +158,6 @@ export class ZkCertificate implements ZkCertData {
     if (registration) {
       dataToExport.registration = registration;
     }
-    padZkCertForEncryption(dataToExport);
 
     const encryptedData = encryptSafely({
       publicKey: encryptionPubKey,
@@ -345,3 +345,126 @@ export const flagStandardMapping: Record<string, ZkCertStandard> = {
   dex: ZkCertStandard.DEX,
   telegram: ZkCertStandard.Telegram,
 };
+
+/**
+ * Choose the schema for a zkCert. If no custom schema is provided, the standard schema is used.
+ * @param standard - The standard of the zkCert.
+ * @param schema - Optional custom schema to use.
+ * @returns The schema for the zkCert.
+ * @throws Error If the standard is not recognized and no custom schema is provided.
+ */
+export function chooseSchema(
+  standard: ZkCertStandard,
+  schema?: AnySchema,
+): AnySchema {
+  if (!Object.values(ZkCertStandard).includes(standard)) {
+    if (!schema) {
+      throw new Error(
+        `Cannot import zkCert with unknown standard ${standard} without an attached JSON schema.`,
+      );
+    }
+
+    return schema;
+  }
+
+  return getContentSchema(standard);
+}
+
+/**
+ * Parses {@link ZkCertRegistered} from raw data.
+ * @param zkCert - The zkCert to check.
+ * @param schema - The custom schema for the zkCert.
+ * @throws If the format is not correct.
+ * @returns The parsed zkCert with registration data.
+ * @throws Error If the {@link ZkCertRegistered} can't be parsed.
+ */
+export function parseZkCert(
+  zkCert: Record<string, unknown>,
+  schema: AnySchema,
+): ZkCertRegistered {
+  if (!zkCert) {
+    throw new Error('The zkCert is invalid.');
+  }
+  /**
+   * Throws customized error for missing fields.
+   * @param field - The missing field.
+   */
+  function complainMissingField(field: string) {
+    throw new Error(`The zkCert is invalid. It is missing the filed ${field}.`);
+  }
+  // check all the fields that are required for a zkCert
+  if (!zkCert.leafHash) {
+    complainMissingField('leafHash');
+  }
+  if (!zkCert.contentHash) {
+    complainMissingField('contentHash');
+  }
+  if (!zkCert.providerData) {
+    complainMissingField('providerData');
+  }
+  const providerData = zkCert.providerData as ProviderData;
+  if (!providerData.ax) {
+    complainMissingField('providerData.ax');
+  }
+  if (!providerData.ay) {
+    complainMissingField('providerData.ay');
+  }
+  if (!providerData.r8x) {
+    complainMissingField('providerData.r8x');
+  }
+  if (!providerData.r8y) {
+    complainMissingField('providerData.r8y');
+  }
+  if (!providerData.s) {
+    complainMissingField('providerData.s');
+  }
+  if (!zkCert.holderCommitment) {
+    complainMissingField('holderCommitment');
+  }
+  if (!zkCert.randomSalt) {
+    complainMissingField('randomSalt');
+  }
+  if (!zkCert.zkCertStandard) {
+    complainMissingField('zkCertStandard');
+  }
+  if (!zkCert.content) {
+    complainMissingField('content');
+  }
+  if (!zkCert.registration) {
+    complainMissingField('registration');
+  }
+  const registration = zkCert.registration as ZkCertRegistration;
+  if (!registration.address) {
+    complainMissingField('registration.address');
+  }
+  if (registration.revocable === undefined) {
+    complainMissingField('registration.revocable');
+  }
+  if (registration.leafIndex === undefined) {
+    complainMissingField('registration.leafIndex');
+  }
+
+  try {
+    return {
+      content: parseContentJson(
+        zkCert.content as Record<string, JSONValue>,
+        schema,
+      ),
+      contentHash: zkCert.contentHash,
+      did: zkCert.did,
+      expirationDate: zkCert.expirationDate,
+      holderCommitment: zkCert.holderCommitment,
+      leafHash: zkCert.leafHash,
+      merkleProof: zkCert.merkleProof,
+      providerData: zkCert.providerData,
+      randomSalt: zkCert.randomSalt,
+      registration: zkCert.registration,
+      zkCertStandard: zkCert.zkCertStandard,
+    } as ZkCertRegistered; // BUG: This function must ensure that the type is correct in compile time.
+  } catch (error) {
+    const message = error instanceof Error ? error.message : `${error}`;
+    throw new Error(
+      `The zkCert is invalid. The content does not fit to the schema: ${message}.`,
+    );
+  }
+}
