@@ -21,7 +21,7 @@ export function parseFieldElement(value: FieldElement | boolean): FieldElement {
       processedValue = processedValue.trim();
       // Check if the string is a valid integer representation (decimal or hex)
       // Accepts decimal digits, or 0x/0X hex notation
-      if (!/^0[xX][0-9a-fA-F]+|\d+$/u.test(processedValue)) {
+      if (!/^(0[xX][0-9a-fA-F]+|\d+)$/u.test(processedValue)) {
         throw new Error(
           `String field element is not a valid positive integer (decimal or hex): ${processedValue}`,
         );
