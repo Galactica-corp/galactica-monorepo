@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type { JSONValue } from '@galactica-net/galactica-types';
+import type { JSONValue, ZkCertStandard } from '@galactica-net/galactica-types';
 import { getContentSchema } from '@galactica-net/galactica-types';
 import type { ZkCertSelectionParams } from '@galactica-net/snap-api';
-import { RpcResponseErr } from '@galactica-net/snap-api';
+import { GenericError, RpcResponseErr } from '@galactica-net/snap-api';
 import { ZkCertificate } from '@galactica-net/zk-certificates';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
 import { divider, heading, panel, text } from '@metamask/snaps-ui';
@@ -134,13 +134,24 @@ export async function selectZkCert(
   }
 
   const eddsa = await buildEddsa();
+  let schema;
+  try {
+    schema = getContentSchema(selected.zkCert.zkCertStandard as ZkCertStandard);
+  } catch (error) {
+    if (!selected.schema) {
+      throw new Error(
+        `No schema available for zkCert standard ${selected.zkCert.zkCertStandard}.`,
+      );
+    }
+    schema = selected.schema;
+  }
   const zkCert = new ZkCertificate(
     selected.zkCert.holderCommitment,
     selected.zkCert.zkCertStandard,
     eddsa,
     selected.zkCert.randomSalt,
     selected.zkCert.expirationDate,
-    selected.schema || getContentSchema(selected.zkCert.zkCertStandard),
+    schema,
     selected.zkCert.content as unknown as Record<string, JSONValue>,
     selected.zkCert.providerData,
   );
