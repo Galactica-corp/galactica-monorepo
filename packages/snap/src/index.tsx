@@ -29,12 +29,13 @@ import {
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
+import type { AnySchema } from 'ajv/dist/2020';
 import { basicURLParse } from 'whatwg-url';
 
 import { StartPage } from './components/start-page';
 import {
   checkEncryptedZkCertFormat,
-  decryptZkCert,
+  decryptMessageToObject,
   encryptZkCert,
 } from './encryption';
 import { getMerkleProof } from './merkleProofSelection';
@@ -48,8 +49,10 @@ import { getHolder, getState, getZkCert, saveState } from './stateManagement';
 import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
 import { stripURLProtocol } from './utils';
 import {
+  choseSchema,
   getZkCertStorageHashes,
   getZkCertStorageOverview,
+  parseZkCert,
 } from './zkCertHandler';
 import { selectZkCert, filterZkCerts } from './zkCertSelector';
 
@@ -87,7 +90,10 @@ export const processRpcRequest: SnapRpcProcessor = async (
       });
       holder = getHolder(zkCert.holderCommitment, state.holders);
 
-      const searchedZkCert = getZkCert(zkCert.leafHash, state.zkCerts);
+      const searchedZkCert = getZkCert(
+        zkCert.leafHash,
+        state.zkCerts.map((cert) => cert.zkCert),
+      );
 
       const merkleProof = await getMerkleProof(
         searchedZkCert,
@@ -180,18 +186,25 @@ export const processRpcRequest: SnapRpcProcessor = async (
         state.holders,
       );
 
-      const zkCert = decryptZkCert(
+      const decrypted = decryptMessageToObject(
         importParams.encryptedZkCert,
         holder.encryptionPrivKey,
       );
+      const schema = choseSchema(
+        decrypted.zkCertStandard as ZkCertStandard,
+        importParams.customSchema as unknown as AnySchema,
+      );
+      const zkCert = parseZkCert(decrypted, schema);
 
       // prevent uploading the same zkCert again (it is fine on different registries though)
-      const searchedZkCert = state.zkCerts.find(
-        (candidate) =>
-          candidate.leafHash === zkCert.leafHash &&
-          candidate.registration.address === zkCert.registration.address &&
-          candidate.zkCertStandard === zkCert.zkCertStandard,
-      );
+      const searchedZkCert = state.zkCerts
+        .map((cert) => cert.zkCert)
+        .find(
+          (candidate) =>
+            candidate.leafHash === zkCert.leafHash &&
+            candidate.registration.address === zkCert.registration.address &&
+            candidate.zkCertStandard === zkCert.zkCertStandard,
+        );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };
         return response;
@@ -227,13 +240,15 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       // check if the imported zkCert is a renewal of an existing one
-      const oldVersion = state.zkCerts.find(
-        (candidate) =>
-          candidate.holderCommitment === zkCert.holderCommitment &&
-          candidate.merkleProof.leafIndex === zkCert.merkleProof.leafIndex &&
-          candidate.registration.address === zkCert.registration.address &&
-          candidate.zkCertStandard === zkCert.zkCertStandard,
-      );
+      const oldVersion = state.zkCerts
+        .map((cert) => cert.zkCert)
+        .find(
+          (candidate) =>
+            candidate.holderCommitment === zkCert.holderCommitment &&
+            candidate.merkleProof.leafIndex === zkCert.merkleProof.leafIndex &&
+            candidate.registration.address === zkCert.registration.address &&
+            candidate.zkCertStandard === zkCert.zkCertStandard,
+        );
       if (oldVersion) {
         const confirmRenewal = await snap.request({
           method: 'snap_dialog',
@@ -249,16 +264,24 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
         if (confirmRenewal) {
           state.zkCerts = state.zkCerts.filter(
-            (candidate) => candidate.leafHash !== oldVersion.leafHash,
+            (candidate) => candidate.zkCert.leafHash !== oldVersion.leafHash,
           );
         }
       }
 
-      state.zkCerts.push(zkCert);
+      state.zkCerts.push({
+        zkCert,
+        schema,
+      });
       await saveState(snap, state);
 
       if (importParams.listZkCerts === true) {
-        return getZkCertStorageOverview(state.zkCerts);
+        const filteredCerts = filterZkCerts(state.zkCerts, {
+          chainID: importParams.chainID,
+        });
+        return getZkCertStorageOverview(
+          filteredCerts.map((cert) => cert.zkCert),
+        );
       }
       response = { message: RpcResponseMsg.ZkCertImported };
       return response;
@@ -296,7 +319,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       );
       const zkCertStorageData = getZkCert(
         zkCertForExport.leafHash,
-        state.zkCerts,
+        state.zkCerts.map((zkCert) => zkCert.zkCert),
       );
       const encryptedZkCert = encryptZkCert(
         zkCertStorageData,
@@ -370,13 +393,18 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
       }
       const filteredCerts = filterZkCerts(state.zkCerts, listParams);
-      return getZkCertStorageOverview(filteredCerts);
+      return getZkCertStorageOverview(
+        filteredCerts.map((zkCert) => zkCert.zkCert),
+      );
     }
 
     case RpcMethods.GetZkCertStorageHashes: {
       // This method only returns a single hash of the storage state. It can be used to detect changes, for example if the user imported another zkCert in the meantime.
       // Because it does not leak any personal or tracking data, we do not ask for confirmation.
-      return getZkCertStorageHashes(state.zkCerts, origin);
+      return getZkCertStorageHashes(
+        state.zkCerts.map((zkCert) => zkCert.zkCert),
+        origin,
+      );
     }
 
     case RpcMethods.GetZkCertHash: {
@@ -404,7 +432,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
       }
 
-      return state.zkCerts.map((zkCert) => zkCert.leafHash);
+      return state.zkCerts.map((zkCert) => zkCert.zkCert.leafHash);
     }
 
     // To preserve privacy by not using the same merkle proof every time, the merkle proof can be updated.
@@ -435,7 +463,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       for (const update of merkleUpdateParams.updates) {
         let foundZkCert = false;
-        for (const zkCert of state.zkCerts) {
+        for (const zkCert of state.zkCerts.map((cert) => cert.zkCert)) {
           if (
             zkCert.leafHash === update.proof.leaf &&
             zkCert.registration.address === update.registryAddr
@@ -487,7 +515,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       }
 
       state.zkCerts = state.zkCerts.filter(
-        (zkCert) => zkCert.leafHash !== zkCertToDelete.leafHash,
+        (zkCert) => zkCert.zkCert.leafHash !== zkCertToDelete.leafHash,
       );
       await saveState(snap, state);
 
@@ -631,18 +659,26 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
 
       const holder = getHolder(encryptedZkCert.holderCommitment, state.holders);
 
-      const zkCert = decryptZkCert(encryptedZkCert, holder.encryptionPrivKey);
+      const decrypted = decryptMessageToObject(
+        encryptedZkCert,
+        holder.encryptionPrivKey,
+      );
+      const schema = choseSchema(decrypted.zkCertStandard as ZkCertStandard);
+
+      const zkCert = parseZkCert(decrypted, schema);
       const searchedZkCert = state.zkCerts.find(
         (candidate) =>
-          candidate.leafHash === zkCert.leafHash &&
-          candidate.registration.address === zkCert.registration.address &&
-          candidate.zkCertStandard === zkCert.zkCertStandard,
+          candidate.zkCert.leafHash === zkCert.leafHash &&
+          candidate.zkCert.registration.address ===
+            zkCert.registration.address &&
+          candidate.zkCert.zkCertStandard === zkCert.zkCertStandard,
       );
       if (searchedZkCert) {
         throw new Error('This zkCert has already been imported');
       }
 
-      state.zkCerts.push(zkCert);
+      state.zkCerts.push({ zkCert, schema });
+      const certs = state.zkCerts.map((cert) => cert.zkCert);
       await saveState(snap, state);
       await snap.request({
         // @ts-ignore
@@ -653,7 +689,7 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
           ui: (
             <StartPage
               activeTab={zkCert.zkCertStandard}
-              zkCerts={state.zkCerts}
+              zkCerts={certs}
               holders={state.holders.map(
                 ({ holderCommitment, encryptionPubKey }) => ({
                   holderCommitment,
@@ -667,6 +703,13 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
       // eslint-disable-next-line id-length
     } catch (e) {
       const error = (e as Error).message;
+      const oldCerts = state.zkCerts.map((cert) => cert.zkCert);
+      const holders = state.holders.map(
+        ({ holderCommitment, encryptionPubKey }) => ({
+          encryptionPubKey,
+          holderCommitment,
+        }),
+      );
       await snap.request({
         // @ts-ignore
         method: 'snap_updateInterface',
@@ -677,13 +720,8 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
             <StartPage
               error={error}
               activeTab={ZkCertStandard.ZkKYC}
-              zkCerts={state.zkCerts}
-              holders={state.holders.map(
-                ({ holderCommitment, encryptionPubKey }) => ({
-                  encryptionPubKey,
-                  holderCommitment,
-                }),
-              )}
+              zkCerts={oldCerts}
+              holders={holders}
             />
           ),
         },
@@ -692,7 +730,7 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
   }
 
   if (event.type === UserInputEventType.ButtonClickEvent) {
-    let activeTab = ZkCertStandard.Exchange;
+    let activeTab: ZkCertStandard = ZkCertStandard.ArbitraryData;
 
     if (event.name?.includes(ZkCertStandard.ZkKYC)) {
       activeTab = ZkCertStandard.ZkKYC;
@@ -705,12 +743,19 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
     if (event.name?.includes('delete-cert-id')) {
       const leafHash = event.name.replace('delete-cert-id-', '');
       const newCerts = state.zkCerts.filter(
-        (cert) => cert.leafHash !== leafHash,
+        (cert) => cert.zkCert.leafHash !== leafHash,
       );
       state.zkCerts = newCerts;
       await saveState(snap, state);
     }
 
+    const certs = state.zkCerts.map((cert) => cert.zkCert);
+    const holders = state.holders.map(
+      ({ holderCommitment, encryptionPubKey }) => ({
+        encryptionPubKey,
+        holderCommitment,
+      }),
+    );
     await snap.request({
       // @ts-ignore
       method: 'snap_updateInterface',
@@ -718,16 +763,7 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
       params: {
         id,
         ui: (
-          <StartPage
-            activeTab={activeTab}
-            zkCerts={state.zkCerts}
-            holders={state.holders.map(
-              ({ holderCommitment, encryptionPubKey }) => ({
-                holderCommitment,
-                encryptionPubKey,
-              }),
-            )}
-          />
+          <StartPage activeTab={activeTab} zkCerts={certs} holders={holders} />
         ),
       },
     });
@@ -736,17 +772,20 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
 
 export const onHomePage: OnHomePageHandler = async () => {
   const state = await getState(snap);
+
+  const certs = state.zkCerts.map(({ zkCert }) => zkCert);
+  const holders = state.holders.map(
+    ({ encryptionPubKey, holderCommitment }) => ({
+      encryptionPubKey,
+      holderCommitment,
+    }),
+  );
   return {
     content: (
       <StartPage
         activeTab={ZkCertStandard.ZkKYC}
-        zkCerts={state.zkCerts}
-        holders={state.holders.map(
-          ({ encryptionPubKey, holderCommitment }) => ({
-            encryptionPubKey,
-            holderCommitment,
-          }),
-        )}
+        zkCerts={certs}
+        holders={holders}
       />
     ),
   };

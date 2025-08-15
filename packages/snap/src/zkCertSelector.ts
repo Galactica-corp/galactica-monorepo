@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type {
-  ZkCertRegistered,
-  ZkCertSelectionParams,
-} from '@galactica-net/snap-api';
+import type { JSONValue } from '@galactica-net/galactica-types';
+import { getContentSchema } from '@galactica-net/galactica-types';
+import type { ZkCertSelectionParams } from '@galactica-net/snap-api';
 import { RpcResponseErr } from '@galactica-net/snap-api';
 import { ZkCertificate } from '@galactica-net/zk-certificates';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
 import { divider, heading, panel, text } from '@metamask/snaps-ui';
 import { buildEddsa } from 'circomlibjs';
+
+import type { ZkCertStorage } from './types';
 
 /**
  * Filters ZkCerts according to selection parameters.
@@ -16,28 +17,28 @@ import { buildEddsa } from 'circomlibjs';
  * @returns Filtered zkCert.
  */
 export function filterZkCerts(
-  availableCerts: ZkCertRegistered[],
+  availableCerts: ZkCertStorage[],
   filter?: ZkCertSelectionParams,
-): ZkCertRegistered[] {
+): ZkCertStorage[] {
   const filteredCerts = availableCerts.filter((value) => {
     return (
       // same zkCert Standard, if defined as filter
       (filter?.zkCertStandard === undefined ||
         // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-        value.zkCertStandard === filter.zkCertStandard) &&
+        value.zkCert.zkCertStandard === filter.zkCertStandard) &&
       // not expired (if zkCert has expiration date) or same as filtered
-      (value.expirationDate === undefined ||
-        (value.expirationDate >= Date.now() / 1000 &&
+      (value.zkCert.expirationDate === undefined ||
+        (value.zkCert.expirationDate >= Date.now() / 1000 &&
           filter?.expirationDate === undefined) ||
-        value.expirationDate === filter?.expirationDate) &&
+        value.zkCert.expirationDate === filter?.expirationDate) &&
       // same provider, if defined as filter
       (filter?.providerAx === undefined ||
-        value.providerData.ax === filter?.providerAx) &&
+        value.zkCert.providerData.ax === filter?.providerAx) &&
       (filter?.registryAddress === undefined ||
-        value.registration.address.toLowerCase() ===
+        value.zkCert.registration.address.toLowerCase() ===
           filter?.registryAddress.toLowerCase()) &&
       (filter?.chainID === undefined ||
-        value.registration.chainID === filter?.chainID)
+        value.zkCert.registration.chainID === filter?.chainID)
     );
   });
   return filteredCerts;
@@ -52,7 +53,7 @@ export function filterZkCerts(
  */
 export async function selectZkCert(
   snap: SnapsGlobalObject,
-  availableCerts: ZkCertRegistered[],
+  availableCerts: ZkCertStorage[],
   filter?: ZkCertSelectionParams,
 ): Promise<ZkCertificate> {
   if (availableCerts.length === 0) {
@@ -69,7 +70,7 @@ export async function selectZkCert(
     );
   }
 
-  let selected: ZkCertRegistered;
+  let selected: ZkCertStorage;
 
   if (filteredCerts.length === 1) {
     selected = filteredCerts[0];
@@ -77,7 +78,7 @@ export async function selectZkCert(
     // build selection dialog
     const options = [];
     for (let i = 0; i < filteredCerts.length; i++) {
-      const { did } = filteredCerts[i];
+      const { did } = filteredCerts[i].zkCert;
 
       const zkCertDisplay = [
         text(
@@ -87,7 +88,7 @@ export async function selectZkCert(
 
       // custom information to display depending on the type of zkCert
       const certExpirationDate = new Date(
-        filteredCerts[i].expirationDate * 1000,
+        filteredCerts[i].zkCert.expirationDate * 1000,
       );
       zkCertDisplay.push(
         text(`Valid until: ${certExpirationDate.toDateString()}`),
@@ -133,14 +134,26 @@ export async function selectZkCert(
   }
 
   const eddsa = await buildEddsa();
+  let schema;
+  try {
+    schema = getContentSchema(selected.zkCert.zkCertStandard);
+  } catch (error) {
+    if (!selected.schema) {
+      throw new Error(
+        `No schema available for zkCert standard ${selected.zkCert.zkCertStandard}.`,
+      );
+    }
+    schema = selected.schema;
+  }
   const zkCert = new ZkCertificate(
-    selected.holderCommitment,
-    selected.zkCertStandard,
+    selected.zkCert.holderCommitment,
+    selected.zkCert.zkCertStandard,
     eddsa,
-    selected.randomSalt,
-    selected.expirationDate,
-    selected.content,
-    selected.providerData,
+    selected.zkCert.randomSalt,
+    selected.zkCert.expirationDate,
+    schema,
+    selected.zkCert.content as unknown as Record<string, JSONValue>,
+    selected.zkCert.providerData,
   );
 
   return zkCert;

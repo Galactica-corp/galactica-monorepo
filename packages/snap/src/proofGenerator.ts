@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type { MerkleProof } from '@galactica-net/galactica-types';
+import type { MerkleProof, JSONValue } from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
   ProverData,
@@ -12,10 +12,11 @@ import type { ZkCertificate } from '@galactica-net/zk-certificates';
 import {
   formatPrivKeyForBabyJub,
   getMerkleRootFromProof,
+  prepareContentForCircuit,
 } from '@galactica-net/zk-certificates';
 import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
-import { buildEddsa, buildPoseidon } from 'circomlibjs';
+import { buildEddsa } from 'circomlibjs';
 import { buildBls12381, buildBn128 } from 'ffjavascript';
 import hash from 'object-hash';
 import { groth16 } from 'snarkjs';
@@ -30,7 +31,7 @@ import { stripURLProtocol } from './utils';
  * @returns Generated ZkCert proof.
  */
 export const generateProof = async (
-  inputs: Record<string, any>,
+  inputs: Record<string, JSONValue>,
   proverOrLink: ProverData | ProverLink,
 ): Promise<ZkCertProof> => {
   // get prover data from params or fetch it from a URL
@@ -86,13 +87,13 @@ export const generateZkCertProof = async (
     holder.eddsaKey,
     params.userAddress,
   );
-  const poseidon = await buildPoseidon();
-  const merkleRoot = getMerkleRootFromProof(merkleProof, poseidon);
+  const eddsa = await buildEddsa();
+  const merkleRoot = getMerkleRootFromProof(merkleProof, eddsa.poseidon);
 
   const inputs: any = {
     ...params.input,
 
-    ...zkCert.content,
+    ...prepareContentForCircuit(eddsa, zkCert.content, zkCert.contentSchema),
     randomSalt: zkCert.randomSalt,
     expirationDate: zkCert.expirationDate,
 
@@ -118,7 +119,6 @@ export const generateZkCertProof = async (
     // Generate private key for sending encrypted messages to institutions
     // It should be different if the ZKP is sent from another address
     // Therefore generating it from the private holder eddsa key and the user address
-    const eddsa = await buildEddsa();
     const encryptionHashBase = eddsa.poseidon.F.toObject(
       eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
     ).toString();

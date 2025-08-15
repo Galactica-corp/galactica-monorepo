@@ -6,14 +6,13 @@ import type {
   ZkCertRegistered,
 } from '@galactica-net/snap-api';
 import { ImportZkCertError } from '@galactica-net/snap-api';
+import { padZkCertForEncryption } from '@galactica-net/zk-certificates';
 import {
   decryptSafely,
   encryptSafely,
   getEncryptionPublicKey,
 } from '@metamask/eth-sig-util';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
-
-import { checkZkCert } from './zkCertHandler';
 
 /**
  * Create a new encryption key pair for the holder. It is used to encrypt personal details in ZK certificates, for example on the way from guardian to the holder.
@@ -48,6 +47,8 @@ export function encryptZkCert(
   pubKey: string,
   holderCommitment: string,
 ): EncryptedZkCert {
+  padZkCertForEncryption(zkCert);
+
   const encryptedZkCert = encryptSafely({
     publicKey: pubKey,
     data: zkCert,
@@ -64,10 +65,10 @@ export function encryptZkCert(
  * @returns The decrypted ZkCertRegistered.
  * @throws If the zkCert is not in the right format or the decryption fails.
  */
-export function decryptZkCert(
+export function decryptMessageToObject(
   encryptedZkCert: EncryptedZkCert,
   privKey: string,
-): ZkCertRegistered {
+): Record<string, unknown> {
   const decryptedMessage = decryptSafely({
     encryptedData: encryptedZkCert,
     privateKey: privKey,
@@ -75,9 +76,8 @@ export function decryptZkCert(
   // decryptSafely says it would return a string, but it actually returns what came out of JSON.parse().
   // (https://github.com/MetaMask/eth-sig-util/blob/10206bf2f16f0b47b1f2da9a9cfbb39c6a7a7800/src/encryption.ts#L234)
   // So we can cast it to ZkCertRegistered here.
-  const zkCert = decryptedMessage as unknown as ZkCertRegistered;
-  checkZkCert(zkCert);
-  return zkCert;
+  const decrypted = decryptedMessage as unknown as Record<string, unknown>;
+  return decrypted;
 }
 
 /**

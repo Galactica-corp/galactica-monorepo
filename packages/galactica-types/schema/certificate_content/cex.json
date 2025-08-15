@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CEX Certificate Content",
+  "description": "Certificate content for verification of trading on a centralized exchange.",
+  "type": "object",
+  "properties": {
+    "totalSwapVolume": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The total volume in USD equivalent traded by the user on the exchange."
+    },
+    "swapVolumeYear": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The volume in USD equivalent traded by the user on the exchange over the past year.",
+      "default": "0"
+    },
+    "swapVolumeHalfYear": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The volume in USD equivalent traded by the user on the exchange over the past half year (6 months).",
+      "default": "0"
+    }
+  },
+  "required": ["totalSwapVolume"],
+  "additionalProperties": false
+}

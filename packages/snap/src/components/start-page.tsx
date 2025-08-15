@@ -37,7 +37,7 @@ export const StartPage: SnapComponent<Props> = ({
     }
     if (
       activeTab === ZkCertStandard.ArbitraryData ||
-      ZkCertStandard.Exchange ||
+      ZkCertStandard.CEX ||
       ZkCertStandard.Rey
     ) {
       return (
