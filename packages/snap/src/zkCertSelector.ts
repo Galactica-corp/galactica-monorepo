@@ -138,7 +138,11 @@ export async function selectZkCert(
 
   const eddsa = await buildEddsa();
   let schema;
-  if (selected.zkCert.zkCertStandard in KnownZkCertStandard) {
+  if (
+    Object.values(KnownZkCertStandard).includes(
+      selected.zkCert.zkCertStandard as KnownZkCertStandard,
+    )
+  ) {
     schema = getContentSchema(
       selected.zkCert.zkCertStandard as KnownZkCertStandard,
     );
