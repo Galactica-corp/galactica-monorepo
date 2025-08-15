@@ -1,7 +1,7 @@
 import { GalacticaErrorBase } from './error';
 import { RpcMethods } from './rpcEnums';
 import type {
-  KnownZkCertStandard,
+  ZkCertStandard,
   ProverData,
   ZkCertProof,
   ProverLink,
@@ -19,7 +19,7 @@ export type GenZkProofParams<ProofInputType> = {
 
   requirements: {
     // For the standard of the zkCertificate that should be used for the proof.
-    zkCertStandard: KnownZkCertStandard;
+    zkCertStandard: ZkCertStandard;
     // EVM address where the zkCertificate is registered.
     registryAddress: string;
   };
@@ -43,7 +43,7 @@ export type GenZkProofParams<ProofInputType> = {
 
 type GenZKPErrorName = 'MissingInputParams' | 'ProverFetchFailed';
 
-export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> {}
+export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> { }
 
 /**
  * GenerateZKProof prepares and executes the call to generate a ZKP in the Galactica snap.
