@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
   getContentSchema,
-  ZkCertStandard,
+  KnownZkCertStandard,
   type JSONValue,
   type ProofInput,
 } from '@galactica-net/galactica-types';
@@ -35,11 +35,11 @@ export async function generateSampleTwitterZkCertificate(
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
   const zkTwitterCertificate = new ZkCertificate(
     holderCommitment,
-    ZkCertStandard.Twitter,
+    KnownZkCertStandard.Twitter,
     eddsa,
     '1773',
     1769736098,
-    getContentSchema(ZkCertStandard.Twitter),
+    getContentSchema(KnownZkCertStandard.Twitter),
     fields,
   );
 
@@ -83,7 +83,7 @@ export async function generateTwitterZkCertificateProofInput(
   const twitterZkCertificateInput: ProofInput = prepareContentForCircuit(
     eddsa,
     twitterZkCertificate.content,
-    getContentSchema(ZkCertStandard.Twitter),
+    getContentSchema(KnownZkCertStandard.Twitter),
   );
 
   twitterZkCertificateInput.providerAx = twitterZkCertificate.providerData.ax;

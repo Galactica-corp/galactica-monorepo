@@ -11,12 +11,13 @@ import type {
   EddsaPrivateKey,
   AnyZkCertContent,
   JSONValue,
+  ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import {
-  ZkCertStandard,
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
   parseContentJson,
+  KnownZkCertStandard,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
 import type { AnySchema } from 'ajv/dist/2020';
@@ -337,12 +338,12 @@ export class ZkCertificate<Content = AnyZkCertContent>
 /**
  * Mapping of zkCert standard names to their respective enum values.
  */
-export const flagStandardMapping: Record<string, ZkCertStandard> = {
-  zkKYC: ZkCertStandard.ZkKYC,
-  data: ZkCertStandard.ArbitraryData,
-  twitter: ZkCertStandard.Twitter,
-  rey: ZkCertStandard.Rey,
-  cex: ZkCertStandard.CEX,
-  dex: ZkCertStandard.DEX,
-  telegram: ZkCertStandard.Telegram,
+export const flagStandardMapping: Record<string, KnownZkCertStandard> = {
+  zkKYC: KnownZkCertStandard.ZkKYC,
+  data: KnownZkCertStandard.ArbitraryData,
+  twitter: KnownZkCertStandard.Twitter,
+  rey: KnownZkCertStandard.Rey,
+  cex: KnownZkCertStandard.CEX,
+  dex: KnownZkCertStandard.DEX,
+  telegram: KnownZkCertStandard.Telegram,
 };

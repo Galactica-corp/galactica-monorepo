@@ -1,7 +1,7 @@
 import { GalacticaErrorBase } from './error';
 import { RpcMethods } from './rpcEnums';
 import type {
-  ZkCertStandard,
+  KnownZkCertStandard,
   ProverData,
   ZkCertProof,
   ProverLink,
@@ -19,7 +19,7 @@ export type GenZkProofParams<ProofInputType> = {
 
   requirements: {
     // For the standard of the zkCertificate that should be used for the proof.
-    zkCertStandard: ZkCertStandard;
+    zkCertStandard: KnownZkCertStandard;
     // EVM address where the zkCertificate is registered.
     registryAddress: string;
   };

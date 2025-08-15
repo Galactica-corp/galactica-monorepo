@@ -14,7 +14,7 @@ import {
   RpcMethods,
   RpcResponseErr,
   RpcResponseMsg,
-  ZkCertStandard,
+  KnownZkCertStandard,
 } from '@galactica-net/snap-api';
 import type { Poseidon } from '@galactica-net/zk-certificates';
 import {
@@ -306,7 +306,10 @@ describe('Test rpc handler function', function () {
             },
           ],
           zkCerts: [
-            { zkCert: zkKYC, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+            {
+              zkCert: zkKYC,
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
+            },
           ],
           merkleServiceURL: '',
         },
@@ -501,7 +504,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [
             {
               zkCert: renewedZkCert,
-              schema: getContentSchema(ZkCertStandard.ZkKYC),
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
           merkleServiceURL: '',
@@ -562,7 +565,7 @@ describe('Test rpc handler function', function () {
       await processRpcRequest(
         buildRPCRequest(RpcMethods.ImportZkCert, {
           encryptedZkCert: encryptedUnknownZkCert,
-          customSchema: getContentSchema(ZkCertStandard.ZkKYC),
+          customSchema: getContentSchema(KnownZkCertStandard.ZkKYC),
         }),
         snapProvider,
         ethereumProvider,
@@ -575,7 +578,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [
             {
               zkCert: unknownZkCert,
-              schema: getContentSchema(ZkCertStandard.ZkKYC),
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
           merkleServiceURL: '',
@@ -733,7 +736,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [
             {
               zkCert: outdatedZkCert,
-              schema: getContentSchema(ZkCertStandard.ZkKYC),
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
         });
@@ -764,7 +767,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [
             {
               zkCert: outdatedZkCert,
-              schema: getContentSchema(ZkCertStandard.ZkKYC),
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
         });
@@ -905,7 +908,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [
             {
               zkCert: unknownZkCert,
-              schema: getContentSchema(ZkCertStandard.ZkKYC),
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
         });
@@ -1022,10 +1025,10 @@ describe('Test rpc handler function', function () {
         .resolves({
           holders: [testHolder],
           zkCerts: [
-            { zkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+            { zkCert, schema: getContentSchema(KnownZkCertStandard.ZkKYC) },
             {
               zkCert: zkCert2OnOtherChain,
-              schema: getContentSchema(ZkCertStandard.ZkKYC),
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
         });
@@ -1044,7 +1047,7 @@ describe('Test rpc handler function', function () {
       // filter type to get both
       res = await processRpcRequest(
         buildRPCRequest(RpcMethods.ListZkCerts, {
-          zkCertStandard: ZkCertStandard.ZkKYC,
+          zkCertStandard: KnownZkCertStandard.ZkKYC,
         }),
         snapProvider,
         ethereumProvider,
@@ -1197,7 +1200,7 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_dialog.resolves(false);
 
       const params: ZkCertSelectionParams = {
-        zkCertStandard: ZkCertStandard.ZkKYC,
+        zkCertStandard: KnownZkCertStandard.ZkKYC,
       };
 
       const callPromise = processRpcRequest(
@@ -1221,7 +1224,7 @@ describe('Test rpc handler function', function () {
         });
 
       const params: ZkCertSelectionParams = {
-        zkCertStandard: ZkCertStandard.ZkKYC,
+        zkCertStandard: KnownZkCertStandard.ZkKYC,
       };
 
       const result = (await processRpcRequest(
@@ -1254,7 +1257,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [
             {
               zkCert: unknownZkCert,
-              schema: getContentSchema(ZkCertStandard.Rey),
+              schema: getContentSchema(KnownZkCertStandard.Rey),
             },
           ],
         });
@@ -1406,9 +1409,12 @@ describe('Test rpc handler function', function () {
           zkCerts: [
             {
               zkCert: expectedUpdatedZkCert,
-              schema: getContentSchema(ZkCertStandard.ZkKYC),
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
-            { zkCert: zkCert2, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+            {
+              zkCert: zkCert2,
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
+            },
           ],
           merkleServiceURL: '',
         },
@@ -1464,7 +1470,10 @@ describe('Test rpc handler function', function () {
         newState: {
           holders: [testHolder],
           zkCerts: [
-            { zkCert: zkCert2, schema: getContentSchema(ZkCertStandard.ZkKYC) },
+            {
+              zkCert: zkCert2,
+              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
+            },
           ],
           merkleServiceURL: '',
         },
@@ -1492,7 +1501,9 @@ describe('Test rpc handler function', function () {
         operation: 'update',
         newState: {
           holders: [testHolder],
-          zkCerts: [{ zkCert, schema: getContentSchema(ZkCertStandard.ZkKYC) }],
+          zkCerts: [
+            { zkCert, schema: getContentSchema(KnownZkCertStandard.ZkKYC) },
+          ],
           merkleServiceURL: '',
         },
       });
@@ -1608,7 +1619,7 @@ describe('Test rpc handler function', function () {
         });
 
       const params: ZkCertSelectionParams = {
-        zkCertStandard: ZkCertStandard.ZkKYC,
+        zkCertStandard: KnownZkCertStandard.ZkKYC,
       };
 
       const result = (await processRpcRequest(

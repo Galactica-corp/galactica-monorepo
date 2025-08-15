@@ -1,8 +1,9 @@
 import { expect } from 'chai';
 
 import kycFields from '../../zk-certificates/example/kycFields.json';
+import type { ZkCertData } from '../src/zkCert';
 import {
-  ZkCertStandard,
+  KnownZkCertStandard,
   getContentFields,
   getContentSchema,
   parseContentJson,
@@ -11,7 +12,7 @@ import {
 describe('ZkCertStandard', () => {
   describe('getContentFields', () => {
     it('should return sorted fields for ZkKYC', () => {
-      const fields = getContentFields(ZkCertStandard.ZkKYC);
+      const fields = getContentFields(KnownZkCertStandard.ZkKYC);
       const expectedFields = [
         'citizenship',
         'country',
@@ -33,11 +34,11 @@ describe('ZkCertStandard', () => {
 
   describe('JSON schema formats', () => {
     it('should accept valid country and empty region', () => {
-      const schema = getContentSchema(ZkCertStandard.ZkKYC);
+      const schema = getContentSchema(KnownZkCertStandard.ZkKYC);
       expect(() => parseContentJson(kycFields, schema)).to.not.throw();
     });
     it('should reject invalid country and region', () => {
-      const schema = getContentSchema(ZkCertStandard.ZkKYC);
+      const schema = getContentSchema(KnownZkCertStandard.ZkKYC);
       const invalidCountry = { ...kycFields, country: 'AAA' };
       expect(() => parseContentJson(invalidCountry, schema)).to.throw();
       const invalidRegion = { ...kycFields, region: 'US-ABC' };
@@ -63,10 +64,11 @@ describe('ZkCertStandard', () => {
           r8y: '',
         },
         randomSalt: '',
-        zkCertStandard: KnownZkCertStandard.ArbitraryData,
+        zkCertStandard: 'newNameStandard',
       };
 
       expect(cert.content.name).to.equal('Mark');
+      expect(cert.zkCertStandard).to.equal('newNameStandard');
     });
   });
 });

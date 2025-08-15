@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
   getContentSchema,
-  ZkCertStandard,
+  KnownZkCertStandard,
 } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildEddsa } from 'circomlibjs';
@@ -35,11 +35,11 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
   const zkKYC = new ZkCertificate(
     holderCommitment,
-    ZkCertStandard.ZkKYC,
+    KnownZkCertStandard.ZkKYC,
     eddsa,
     '1773',
     1769736098,
-    getContentSchema(ZkCertStandard.ZkKYC),
+    getContentSchema(KnownZkCertStandard.ZkKYC),
     kycExample,
   );
 
@@ -109,7 +109,7 @@ export async function generateZkKYCProofInput(
   const zkKYCInput: any = prepareContentForCircuit(
     eddsa,
     zkKYC.content,
-    getContentSchema(ZkCertStandard.ZkKYC),
+    getContentSchema(KnownZkCertStandard.ZkKYC),
   );
 
   zkKYCInput.providerAx = zkKYC.providerData.ax;

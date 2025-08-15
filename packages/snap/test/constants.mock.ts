@@ -1,6 +1,6 @@
 import {
   getContentSchema,
-  ZkCertStandard,
+  KnownZkCertStandard,
 } from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
@@ -72,7 +72,7 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
     countryExclusionList: [],
   },
   requirements: {
-    zkCertStandard: ZkCertStandard.ZkKYC,
+    zkCertStandard: KnownZkCertStandard.ZkKYC,
     registryAddress: '0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE',
   },
   prover,
@@ -125,10 +125,10 @@ export const proverHash = hash.MD5(testZkpParams.prover);
 
 export const zkCertStorage: ZkCertStorage = {
   zkCert: zkCert as unknown as ZkCertRegistered,
-  schema: getContentSchema(ZkCertStandard.ZkKYC),
+  schema: getContentSchema(KnownZkCertStandard.ZkKYC),
 };
 
 export const zkCertStorage2: ZkCertStorage = {
   zkCert: zkCert2 as unknown as ZkCertRegistered,
-  schema: getContentSchema(ZkCertStandard.ZkKYC),
+  schema: getContentSchema(KnownZkCertStandard.ZkKYC),
 };

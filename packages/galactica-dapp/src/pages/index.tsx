@@ -32,6 +32,7 @@ import {
   generateZKProof,
   ZkCertProof,
   ZkCertStandard,
+  KnownZkCertStandard,
 } from '@galactica-net/snap-api';
 
 const Container = styled.div`
@@ -171,7 +172,7 @@ const Index = () => {
         input: proofInput,
         prover: await getProver("https://galactica-trusted-setup.s3.eu-central-1.amazonaws.com/ageCitizenshipKYC.0x01cBD5b467bA6C82d9A8BC6523a38Df0D677F817.prover.json"),
         requirements: {
-          zkCertStandard: ZkCertStandard.ZkKYC,
+          zkCertStandard: KnownZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
         },
         userAddress: getUserAddress(),
@@ -232,7 +233,7 @@ const Index = () => {
         input: proofInput,
         prover: await getProver("provers/ageCitizenshipKYC.json"),
         requirements: {
-          zkCertStandard: ZkCertStandard.ZkKYC,
+          zkCertStandard: KnownZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
         },
         userAddress: getUserAddress(),
@@ -323,7 +324,7 @@ const Index = () => {
         input: proofInput,
         prover: await getProver("provers/zkKYC.json"),
         requirements: {
-          zkCertStandard: ZkCertStandard.ZkKYC,
+          zkCertStandard: KnownZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
         },
         userAddress: getUserAddress(),
