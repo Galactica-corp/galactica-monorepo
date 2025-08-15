@@ -2,7 +2,7 @@
 import type { JSONValue, ZkCertStandard } from '@galactica-net/galactica-types';
 import { getContentSchema } from '@galactica-net/galactica-types';
 import type { ZkCertSelectionParams } from '@galactica-net/snap-api';
-import { GenericError, RpcResponseErr } from '@galactica-net/snap-api';
+import { RpcResponseErr } from '@galactica-net/snap-api';
 import { ZkCertificate } from '@galactica-net/zk-certificates';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
 import { divider, heading, panel, text } from '@metamask/snaps-ui';
