@@ -30,7 +30,7 @@ export function parseFieldElement(value: FieldElement | boolean): FieldElement {
         processedValue = BigInt(processedValue);
       } catch (error) {
         throw new Error(
-          `String field element cannot be converted to BigInt: ${processedValue}, because: ${processedValue}`,
+          `String field element cannot be converted to BigInt: ${processedValue}, because: ${error}`,
         );
       }
       break;
