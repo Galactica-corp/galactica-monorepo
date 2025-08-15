@@ -473,7 +473,7 @@ describe('Test rpc handler function', function () {
           zkCerts: [zkCertStorage],
         });
 
-      const renewedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
+      const renewedZkCert = structuredClone(zkCert); // deep copy to not mess up original
       // some made up content analog to a renewed zkCert
       renewedZkCert.expirationDate += 20;
       renewedZkCert.leafHash = zkCert2.leafHash;
@@ -723,7 +723,7 @@ describe('Test rpc handler function', function () {
         { overwriteRoutes: true },
       );
 
-      const outdatedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
+      const outdatedZkCert = structuredClone(zkCert); // deep copy to not mess up original
       outdatedZkCert.merkleProof.pathElements[0] = '01234';
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
@@ -754,7 +754,7 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const outdatedZkCert = JSON.parse(JSON.stringify(zkCert)); // deep copy to not mess up original
+      const outdatedZkCert = structuredClone(zkCert);
       outdatedZkCert.merkleProof.pathElements[0] = '01234';
 
       snapProvider.rpcStubs.snap_manageState
@@ -889,12 +889,12 @@ describe('Test rpc handler function', function () {
     it('should handle unknown zkCert types', async function (this: Mocha.Context) {
       this.timeout(25000);
 
-      const unknownZkCert = JSON.parse(JSON.stringify(zkCert));
+      const unknownZkCert = structuredClone(zkCert);
       unknownZkCert.zkCertStandard = 'gipUKNOWN';
       const testUnkownZkpParams = { ...testZkpParams };
       testUnkownZkpParams.requirements = {
         ...testZkpParams.requirements,
-        zkCertStandard: unknownZkCert.zkCertStandard,
+        zkCertStandard: unknownZkCert.zkCertStandard as ZkCertStandard,
       };
 
       snapProvider.rpcStubs.snap_dialog.resolves(true);
@@ -1014,7 +1014,7 @@ describe('Test rpc handler function', function () {
     });
 
     it('should filter list according to parameters', async function () {
-      const zkCert2OnOtherChain = JSON.parse(JSON.stringify(zkCert2));
+      const zkCert2OnOtherChain = structuredClone(zkCert2);
       zkCert2OnOtherChain.registration.chainID = 12345;
 
       snapProvider.rpcStubs.snap_manageState
@@ -1243,7 +1243,7 @@ describe('Test rpc handler function', function () {
     it('should handle unknown certificate types', async function (this: Mocha.Context) {
       this.timeout(5000);
 
-      const unknownZkCert = JSON.parse(JSON.stringify(reyCert));
+      const unknownZkCert = structuredClone(reyCert);
       unknownZkCert.zkCertStandard = 'gip123456789';
 
       snapProvider.rpcStubs.snap_dialog.resolves(true);
@@ -1260,7 +1260,7 @@ describe('Test rpc handler function', function () {
         });
 
       const params: ZkCertSelectionParams = {
-        zkCertStandard: unknownZkCert.zkCertStandard,
+        zkCertStandard: unknownZkCert.zkCertStandard as ZkCertStandard,
       };
 
       const result = (await processRpcRequest(
