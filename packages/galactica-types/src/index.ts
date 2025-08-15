@@ -5,3 +5,7 @@ export * from './merkleProof';
 export * from './tokenData';
 export * from './zkCert';
 export * from './zkCertStandard';
+export * from './zkCertContent';
+export * from './fieldElement';
+export * from './schemas';
+export * from './json';

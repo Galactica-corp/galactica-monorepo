@@ -1,19 +1,21 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
-  twitterZkCertificateContentFields,
+  getContentSchema,
   ZkCertStandard,
+  type JSONValue,
+  type ProofInput,
 } from '@galactica-net/galactica-types';
 import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 
 import twitterExample from '../../example/twitterFields.json';
-import { prepareZkCertificateFields } from '../../lib';
 import {
   createHolderCommitment,
   getEddsaKeyFromEthSigner,
 } from '../../lib/keyManagement';
 import { MerkleTree } from '../../lib/merkleTree';
 import { ZkCertificate } from '../../lib/zkCertificate';
+import { prepareContentForCircuit } from '../../lib/zkCertificateDataProcessing';
 
 /**
  * Generates a sample twitter ZkCertificate object with the given fields.
@@ -21,7 +23,7 @@ import { ZkCertificate } from '../../lib/zkCertificate';
  * @returns Twitter ZkCertificate object promise.
  */
 export async function generateSampleTwitterZkCertificate(
-  fields: any = twitterExample,
+  fields: Record<string, JSONValue> = twitterExample,
 ): Promise<ZkCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
@@ -37,16 +39,9 @@ export async function generateSampleTwitterZkCertificate(
     eddsa,
     '1773',
     1769736098,
-    twitterZkCertificateContentFields,
-  );
-
-  // set the fields in zkKYC object
-  const processedFields = prepareZkCertificateFields(
-    eddsa,
+    getContentSchema(ZkCertStandard.Twitter),
     fields,
-    ZkCertStandard.Twitter,
   );
-  zkTwitterCertificate.setContent(processedFields);
 
   // some default provider private key
   // providerData needs to be created before leafHash computation
@@ -63,7 +58,7 @@ export async function generateSampleTwitterZkCertificate(
  */
 export async function generateTwitterZkCertificateProofInput(
   twitterZkCertificate: ZkCertificate,
-): Promise<any> {
+): Promise<ProofInput> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();
 
@@ -85,7 +80,11 @@ export async function generateTwitterZkCertificateProofInput(
   const currentTimestamp = Math.floor(Date.now() / 1000) + 10000;
 
   // construct the twitterZkCertificate inputs
-  const twitterZkCertificateInput: any = { ...twitterZkCertificate.content };
+  const twitterZkCertificateInput: ProofInput = prepareContentForCircuit(
+    eddsa,
+    twitterZkCertificate.content,
+    getContentSchema(ZkCertStandard.Twitter),
+  );
 
   twitterZkCertificateInput.providerAx = twitterZkCertificate.providerData.ax;
   twitterZkCertificateInput.providerAy = twitterZkCertificate.providerData.ay;

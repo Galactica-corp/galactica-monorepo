@@ -287,7 +287,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
   it('revert if public output merkle root does not match with the one onchain', async () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
-    const fakeProof = JSON.parse(JSON.stringify(proof)); // deep copy
+    const fakeProof = structuredClone(proof);
     fakeProof.publicInputs[Number(await sc.ageCitizenshipKYC.INDEX_ROOT())] =
       '0x11';
 
@@ -340,7 +340,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
   it('revert if public input for year is incorrect', async () => {
     const { acc, sc, proof } = await loadFixture(deploy);
 
-    const fakeProof = JSON.parse(JSON.stringify(proof)); // deep copy
+    const fakeProof = structuredClone(proof);
     fakeProof.publicInputs[
       Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_YEAR())
     ] = '0x123';
@@ -374,7 +374,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
   it('revert if citizenship is in list of sanctioned countries', async () => {
     const { acc, sc, sampleInput } = await loadFixture(deploy);
 
-    const forgedInput = JSON.parse(JSON.stringify(sampleInput)); // deep copy
+    const forgedInput = structuredClone(sampleInput);
     forgedInput.countryExclusionList[0] = forgedInput.citizenship;
 
     const { proof, publicSignals } = await groth16.fullProve(

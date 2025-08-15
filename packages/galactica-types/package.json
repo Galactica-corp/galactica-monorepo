@@ -9,22 +9,34 @@
   },
   "license": "GPL-3.0-or-later",
   "author": "Galactica Network",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/galactica-types/index.js",
+  "types": "dist/galactica-types/index.d.ts",
   "files": [
-    "/dist"
+    "/dist/galactica-types"
   ],
   "scripts": {
-    "build": "tsc",
+    "generate-types": "json2ts -i schema/ > ./src/zkCertContent.ts",
+    "build": "yarn generate-types && tsc",
     "debug": "eslint --print-config .eslintrc.js | grep -i sourceType",
     "start": "tsc --watch",
-    "test": "echo \"No test specified\""
+    "test": "mocha -r ts-node/register test/**/*.t.ts",
+    "validate-schema": "sh -c 'for f in schema/*.json; do yarn ajv compile -s \"$f\" --spec=draft2020 -c ajv-formats; done'"
   },
   "dependencies": {
     "@types/circomlibjs": "^0.1.6",
-    "buffer": "^6.0.3"
+    "ajv": "^8.17.1",
+    "ajv-cli": "^5.0.0",
+    "ajv-formats": "^3.0.1",
+    "buffer": "^6.0.3",
+    "iso-3166-2": "^1.0.0"
   },
   "devDependencies": {
+    "@types/iso-3166-2": "^1.0.4",
+    "@types/mocha": "^10.0.10",
+    "chai": "^4.5.0",
+    "chai-as-promised": "^7.1.2",
+    "json-schema-to-typescript": "^15.0.4",
+    "mocha": "^10.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^4.9.5"
   },
