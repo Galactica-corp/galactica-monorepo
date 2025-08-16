@@ -1,23 +1,18 @@
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // SPDX-License-Identifier: BUSL-1.1
 import {
-  getContentSchema,
-  parseContentJson,
   type EddsaPrivateKey,
   type KYCCertificateContent,
-  type ProviderData,
-  type ZkCertRegistration,
-  type JSONValue,
+  ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import type {
   ZkCertRegistered,
   ZkCertStorageHashes,
 } from '@galactica-net/snap-api';
-import { ImportZkCertError } from '@galactica-net/snap-api';
-import {
-  createHolderCommitment,
-  ZkCertStandard,
-} from '@galactica-net/zk-certificates';
-import type { AnySchema } from 'ajv/dist/2020';
+import { createHolderCommitment } from '@galactica-net/zk-certificates';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
 
@@ -85,117 +80,4 @@ export function getZkCertStorageHashes(
     );
   }
   return storageHashes;
-}
-
-/**
- * Checks if an imported ZkCert has the right format.
- * @param zkCert - The zkCert to check.
- * @param schema - The custom schema for the zkCert.
- * @throws If the format is not correct.
- * @returns The parsed zkCert with registration data.
- */
-export function parseZkCert(
-  zkCert: Record<string, unknown>,
-  schema: AnySchema,
-) {
-  if (!zkCert) {
-    throw new ImportZkCertError({
-      name: 'FormatError',
-      message: 'The decrypted zkCert is invalid.',
-    });
-  }
-  /**
-   * Throws customized error for missing fields.
-   * @param field - The missing field.
-   */
-  function complainMissingField(field: string) {
-    throw new ImportZkCertError({
-      name: 'FormatError',
-      message: `The decrypted zkCert is invalid. It is missing the filed ${field}.`,
-    });
-  }
-  // check all the fields that are required for a zkCert
-  if (!zkCert.leafHash) {
-    complainMissingField('leafHash');
-  }
-  if (!zkCert.contentHash) {
-    complainMissingField('contentHash');
-  }
-  if (!zkCert.providerData) {
-    complainMissingField('providerData');
-  }
-  const providerData = zkCert.providerData as ProviderData;
-  if (!providerData.ax) {
-    complainMissingField('providerData.ax');
-  }
-  if (!providerData.ay) {
-    complainMissingField('providerData.ay');
-  }
-  if (!providerData.r8x) {
-    complainMissingField('providerData.r8x');
-  }
-  if (!providerData.r8y) {
-    complainMissingField('providerData.r8y');
-  }
-  if (!providerData.s) {
-    complainMissingField('providerData.s');
-  }
-  if (!zkCert.holderCommitment) {
-    complainMissingField('holderCommitment');
-  }
-  if (!zkCert.randomSalt) {
-    complainMissingField('randomSalt');
-  }
-  if (!zkCert.zkCertStandard) {
-    complainMissingField('zkCertStandard');
-  }
-  if (!zkCert.content) {
-    complainMissingField('content');
-  }
-  if (!zkCert.registration) {
-    complainMissingField('registration');
-  }
-  const registration = zkCert.registration as ZkCertRegistration;
-  if (!registration.address) {
-    complainMissingField('registration.address');
-  }
-  if (registration.revocable === undefined) {
-    complainMissingField('registration.revocable');
-  }
-  if (registration.leafIndex === undefined) {
-    complainMissingField('registration.leafIndex');
-  }
-
-  try {
-    parseContentJson(zkCert.content as Record<string, JSONValue>, schema);
-  } catch (error) {
-    throw new ImportZkCertError({
-      name: 'FormatError',
-      message: `The decrypted zkCert is invalid. The content does not fit to the schema: ${error.message}.`,
-    });
-  }
-
-  return zkCert as unknown as ZkCertRegistered;
-}
-
-/**
- * Chose the schema for a zkCert. If no custom schema is provided, the standard schema is used.
- * @param zkCertStandard - The standard of the zkCert.
- * @param customSchema - The custom schema for the zkCert.
- * @returns The schema for the zkCert.
- */
-export function choseSchema(
-  zkCertStandard: ZkCertStandard,
-  customSchema?: AnySchema,
-) {
-  if (customSchema) {
-    return customSchema;
-  }
-  if (!Object.values(ZkCertStandard).includes(zkCertStandard)) {
-    throw new ImportZkCertError({
-      name: 'MissingSchema',
-      message: `Can not import zkCert with unknown standard ${zkCertStandard} without an attached JSON schema.`,
-    });
-  }
-  return getContentSchema(zkCertStandard);
 }

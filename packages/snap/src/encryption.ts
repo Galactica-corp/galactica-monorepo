@@ -1,17 +1,12 @@
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // SPDX-License-Identifier: BUSL-1.1
 
-import { ENCRYPTION_VERSION } from '@galactica-net/galactica-types';
-import type {
-  EncryptedZkCert,
-  ZkCertRegistered,
-} from '@galactica-net/snap-api';
+import type { EncryptedZkCert } from '@galactica-net/snap-api';
 import { ImportZkCertError } from '@galactica-net/snap-api';
-import { padZkCertForEncryption } from '@galactica-net/zk-certificates';
-import {
-  decryptSafely,
-  encryptSafely,
-  getEncryptionPublicKey,
-} from '@metamask/eth-sig-util';
+import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
 
 /**
@@ -22,7 +17,7 @@ import type { SnapsGlobalObject } from '@metamask/snaps-types';
 export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
   // It is derived from the user's private key handled by Metamask. Meaning that HW wallets are not supported.
   // The plan to support HW wallets is to use the `eth_sign` method to derive the key from a signature.
-  // However this plan is currently not supported anymore as discussed here: https://github.com/MetaMask/snaps/discussions/1364#discussioncomment-5719039
+  // However, this plan is currently not supported anymore as discussed here: https://github.com/MetaMask/snaps/discussions/1364#discussioncomment-5719039
   const entropy = await snap.request({
     method: 'snap_getEntropy',
     params: {
@@ -33,51 +28,6 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
   const privKey = entropy.slice(2); // remove 0x prefix
   const publicKey = getEncryptionPublicKey(privKey);
   return { pubKey: publicKey, privKey };
-}
-
-/**
- * Encrypt a zkCert for exporting.
- * @param zkCert - The ZkCertRegistered to encrypt.
- * @param pubKey - The public key for encryption.
- * @param holderCommitment - The holder commitment to associate the zkCert with the holder who can decrypt it.
- * @returns The encrypted ZkCertRegistered as EthEncryptedData.
- */
-export function encryptZkCert(
-  zkCert: ZkCertRegistered,
-  pubKey: string,
-  holderCommitment: string,
-): EncryptedZkCert {
-  padZkCertForEncryption(zkCert);
-
-  const encryptedZkCert = encryptSafely({
-    publicKey: pubKey,
-    data: zkCert,
-    version: ENCRYPTION_VERSION,
-  }) as EncryptedZkCert;
-  encryptedZkCert.holderCommitment = holderCommitment;
-  return encryptedZkCert;
-}
-
-/**
- * Decrypt a zkCert. It takes the encrypted ZkCertRegistered as given by the guardian or exported from the Snap.
- * @param encryptedZkCert - The encrypted zkCert as EthEncryptedData.
- * @param privKey - The private key for decryption.
- * @returns The decrypted ZkCertRegistered.
- * @throws If the zkCert is not in the right format or the decryption fails.
- */
-export function decryptMessageToObject(
-  encryptedZkCert: EncryptedZkCert,
-  privKey: string,
-): Record<string, unknown> {
-  const decryptedMessage = decryptSafely({
-    encryptedData: encryptedZkCert,
-    privateKey: privKey,
-  });
-  // decryptSafely says it would return a string, but it actually returns what came out of JSON.parse().
-  // (https://github.com/MetaMask/eth-sig-util/blob/10206bf2f16f0b47b1f2da9a9cfbb39c6a7a7800/src/encryption.ts#L234)
-  // So we can cast it to ZkCertRegistered here.
-  const decrypted = decryptedMessage as unknown as Record<string, unknown>;
-  return decrypted;
 }
 
 /**
