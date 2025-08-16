@@ -2,7 +2,7 @@
 import type { ZkCertRegistered } from '@galactica-net/galactica-types';
 import {
   getContentSchema,
-  ZkCertStandard,
+  KnownZkCertStandard,
   parseContentJson,
   ENCRYPTION_VERSION,
 } from '@galactica-net/galactica-types';
@@ -33,8 +33,11 @@ describe('ZK Certificate Data Processing', () => {
     it('should process kyc example', async () => {
       const processed = prepareContentForCircuit(
         eddsa,
-        parseContentJson(kycExample, getContentSchema(ZkCertStandard.ZkKYC)),
-        getContentSchema(ZkCertStandard.ZkKYC),
+        parseContentJson(
+          kycExample,
+          getContentSchema(KnownZkCertStandard.ZkKYC),
+        ),
+        getContentSchema(KnownZkCertStandard.ZkKYC),
       );
 
       // check that all string fields have been hashed by checking that all remaining strings are numbers
@@ -50,9 +53,9 @@ describe('ZK Certificate Data Processing', () => {
         eddsa,
         parseContentJson(
           twitterExample,
-          getContentSchema(ZkCertStandard.Twitter),
+          getContentSchema(KnownZkCertStandard.Twitter),
         ),
-        getContentSchema(ZkCertStandard.Twitter),
+        getContentSchema(KnownZkCertStandard.Twitter),
       );
 
       expect(processed.username).to.match(/^[0-9]+$/u);
@@ -62,8 +65,8 @@ describe('ZK Certificate Data Processing', () => {
     it('should process rey example', async () => {
       const processed = prepareContentForCircuit(
         eddsa,
-        parseContentJson(reyExample, getContentSchema(ZkCertStandard.Rey)),
-        getContentSchema(ZkCertStandard.Rey),
+        parseContentJson(reyExample, getContentSchema(KnownZkCertStandard.Rey)),
+        getContentSchema(KnownZkCertStandard.Rey),
       );
 
       expect(processed.xUsername).to.match(/^[0-9]+$/u);
@@ -74,9 +77,9 @@ describe('ZK Certificate Data Processing', () => {
         eddsa,
         parseContentJson(
           dataExample,
-          getContentSchema(ZkCertStandard.ArbitraryData),
+          getContentSchema(KnownZkCertStandard.ArbitraryData),
         ),
-        getContentSchema(ZkCertStandard.ArbitraryData),
+        getContentSchema(KnownZkCertStandard.ArbitraryData),
       );
 
       expect(processed.type).to.match(/^[0-9]+$/u);

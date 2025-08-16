@@ -9,7 +9,7 @@ import type {
   TwitterCertificateContent,
 } from '@galactica-net/galactica-types';
 import {
-  ZkCertStandard,
+  KnownZkCertStandard,
   contentSchemas,
   parseContentJson,
 } from '@galactica-net/galactica-types';
@@ -41,7 +41,7 @@ describe('ZkCertificate', () => {
     it('should generate zkKYC from example', async () => {
       const zkKYC = new ZkCertificate(
         testHolderCommitment,
-        ZkCertStandard.ZkKYC,
+        KnownZkCertStandard.ZkKYC,
         eddsa,
         testRandomSalt,
         testExpirationDate,
@@ -74,7 +74,7 @@ describe('ZkCertificate', () => {
     it('should generate twitter certificate from example', async () => {
       const cert = new ZkCertificate(
         testHolderCommitment,
-        ZkCertStandard.Twitter,
+        KnownZkCertStandard.Twitter,
         eddsa,
         testRandomSalt,
         testExpirationDate,
@@ -101,7 +101,7 @@ describe('ZkCertificate', () => {
     it('should generate rey cert from example', async () => {
       const zkKYC = new ZkCertificate(
         testHolderCommitment,
-        ZkCertStandard.Rey,
+        KnownZkCertStandard.Rey,
         eddsa,
         testRandomSalt,
         testExpirationDate,

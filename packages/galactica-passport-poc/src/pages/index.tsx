@@ -12,6 +12,7 @@ import {
   generateZKProof,
   getHolderCommitment,
   ZkCertStandard,
+  KnownZkCertStandard,
   updateMerkleProof,
   updateMerkleProofURL,
   benchmarkZKPGen,
@@ -298,7 +299,7 @@ const Index = () => {
         input: proofInput,
         prover: await getProver("provers/exampleMockDApp.json"),
         requirements: {
-          zkCertStandard: ZkCertStandard.ZkKYC,
+          zkCertStandard: KnownZkCertStandard.ZkKYC,
           registryAddress: addresses.zkKYCRegistry,
         },
         userAddress: getUserAddress(),
@@ -358,7 +359,7 @@ const Index = () => {
             'provers/twitterFollowersCountProof.json',
           ),
           requirements: {
-            zkCertStandard: ZkCertStandard.Twitter,
+            zkCertStandard: KnownZkCertStandard.Twitter,
             // eslint-disable-next-line import/no-named-as-default-member
             registryAddress: addresses.twitterZkCertificateRegistry,
           },

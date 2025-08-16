@@ -2,7 +2,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
   getContentSchema,
-  ZkCertStandard,
+  KnownZkCertStandard,
 } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
 import { buildEddsa } from 'circomlibjs';
@@ -83,7 +83,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   newZkCertificate.signWithProvider(providerEdDSAKey);
 
   const recordRegistry = (await hre.ethers.getContractAt(
-    zkCertificateType === ZkCertStandard.ZkKYC
+    zkCertificateType === KnownZkCertStandard.ZkKYC
       ? 'ZkKYCRegistry'
       : 'ZkCertificateRegistry',
     args.registryAddress,

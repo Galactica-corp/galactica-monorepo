@@ -34,7 +34,13 @@ import {
   generateProof,
   generateZkCertProof,
 } from './proofGenerator';
-import { getHolder, getState, getZkCert, saveState } from './stateManagement';
+import {
+  CURRENT_STORAGE_LAYOUT_VERSION,
+  getHolder,
+  getState,
+  getZkCert,
+  saveState,
+} from './stateManagement';
 import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
 import { stripURLProtocol } from './utils';
 import {
@@ -160,7 +166,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
       }
 
-      await saveState(snap, { holders: [], zkCerts: [] });
+      await saveState(snap, {
+        holders: [],
+        zkCerts: [],
+        storageLayoutVersion: CURRENT_STORAGE_LAYOUT_VERSION,
+      });
       response = { message: RpcResponseMsg.StorageCleared };
       return response;
     }

@@ -39,6 +39,7 @@ export type StorageState = {
   holders: HolderData[];
   zkCerts: ZkCertStorage[];
   merkleServiceURL?: string;
+  storageLayoutVersion: number;
 };
 
 export type PanelContent = (

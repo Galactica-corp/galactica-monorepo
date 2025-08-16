@@ -8,6 +8,7 @@ export type {
   EncryptedZkCert,
 } from '@galactica-net/galactica-types';
 export type { ZkCertStandard } from '@galactica-net/galactica-types';
+export { KnownZkCertStandard } from '@galactica-net/galactica-types';
 
 /**
  * Data defining a zk circuit prover

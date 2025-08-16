@@ -150,7 +150,7 @@ return await generateZKProof({
   input: proofInput,
   prover: await getProver('/provers/exampleMockDApp.json'),
   requirements: {
-    zkCertStandard: ZkCertStandard.ZkKYC,
+    zkCertStandard: KnownZkCertStandard.ZkKYC,
   },
   userAddress: getUserAddress(),
   disclosureDescription:
@@ -276,7 +276,7 @@ Asks the user for confirmation and selection of the zkCertificate to be exported
 
 ```javascript
 import { exportZkCert } from '@galactica-net/snap-api';
-return await exportZkCert({ zkCertStandard: ZkCertStandard.ZkKYC });
+return await exportZkCert({ zkCertStandard: KnownZkCertStandard.ZkKYC });
 ```
 
 ### `deleteZkCert`
@@ -305,7 +305,7 @@ It asks the user for confirmation and selection of the zkCertificate to be delet
 
 ```javascript
 import { deleteZkCert } from '@galactica-net/snap-api';
-return await deleteZkCert({ zkCertStandard: ZkCertStandard.ZkKYC });
+return await deleteZkCert({ zkCertStandard: KnownZkCertStandard.ZkKYC });
 ```
 
 ### `listZkCerts`

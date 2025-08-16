@@ -24,6 +24,7 @@ module.exports = {
         '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
         // Importing buffer for base64 decoding
         'import/no-nodejs-modules': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off', // allow enum comparison with string, such as zkCertStandard === KnownZkCertStandard.ZkKYC
       },
     },
 
