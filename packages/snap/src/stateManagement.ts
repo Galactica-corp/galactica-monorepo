@@ -128,7 +128,7 @@ export async function saveState(
     merkleServiceURL: newState.merkleServiceURL
       ? newState.merkleServiceURL
       : '',
-    storageLayoutVersion: newState.storageLayoutVersion ?? null,
+    storageLayoutVersion: newState.storageLayoutVersion,
   };
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys
   await snap.request({
