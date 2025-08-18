@@ -10,7 +10,6 @@ import type {
   ZkCertRegistration,
   EddsaPrivateKey,
   AnyZkCertContent,
-  JSONValue,
   ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import {
@@ -78,7 +77,7 @@ export class ZkCertificate<Content = AnyZkCertContent>
     randomSalt: string,
     expirationDate: number,
     contentSchema: AnySchema,
-    content: Record<string, JSONValue>,
+    content: Record<string, unknown>,
     providerData: ProviderData = {
       ax: '0',
       ay: '0',
@@ -137,7 +136,7 @@ export class ZkCertificate<Content = AnyZkCertContent>
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
 
-  public setContent(content: Record<string, JSONValue>) {
+  public setContent(content: Record<string, unknown>) {
     this.content = parseContentJson<Content>(content, this.contentSchema);
   }
 
