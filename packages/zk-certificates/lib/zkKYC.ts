@@ -4,7 +4,7 @@ import {
   humanIDFieldOrder,
   personIDFieldOrder,
   getContentSchema,
-  ZkCertStandard,
+  KnownZkCertStandard,
 } from '@galactica-net/galactica-types';
 
 import type { ZkCertificate } from './zkCertificate';
@@ -17,7 +17,7 @@ import { prepareContentForCircuit } from './zkCertificateDataProcessing';
  * @returns Human ID as string.
  */
 export function getHumanID(zkKYC: ZkCertificate, dAppAddress: string): string {
-  if (zkKYC.zkCertStandard !== ZkCertStandard.ZkKYC) {
+  if (zkKYC.zkCertStandard !== KnownZkCertStandard.ZkKYC) {
     throw new Error('zkKYC: can not get human ID from non-ZkKYC certificate');
   }
 
@@ -52,14 +52,14 @@ export function getHumanIDProofInput(dAppAddress: string): HumanIDProofInput {
  * @returns ZkKYC ID hash.
  */
 export function getIdHash(zkKYC: ZkCertificate): string {
-  if (zkKYC.zkCertStandard !== ZkCertStandard.ZkKYC) {
+  if (zkKYC.zkCertStandard !== KnownZkCertStandard.ZkKYC) {
     throw new Error('zkKYC: can not get IdHash from non-ZkKYC certificate');
   }
 
   const content = prepareContentForCircuit(
     zkKYC.eddsa,
     zkKYC.content,
-    getContentSchema(ZkCertStandard.ZkKYC),
+    getContentSchema(KnownZkCertStandard.ZkKYC),
   );
 
   return zkKYC.poseidon.F.toObject(

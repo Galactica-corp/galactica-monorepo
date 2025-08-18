@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 import type { GenZkProofParams, ProverData } from '@galactica-net/snap-api';
-import { ZkCertStandard } from '@galactica-net/snap-api';
+import { KnownZkCertStandard } from '@galactica-net/snap-api';
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import { Buffer } from 'buffer';
 import * as fs from 'fs';
@@ -93,7 +93,7 @@ async function createCircuitData(
       zkeySections,
     },
     requirements: {
-      zkCertStandard: ZkCertStandard.ZkKYC,
+      zkCertStandard: KnownZkCertStandard.ZkKYC,
       registryAddress: '0x0',
     },
     userAddress: '0x0',
