@@ -85,6 +85,42 @@ describe('ZK Certificate Data Processing', () => {
       expect(processed.type).to.match(/^[0-9]+$/u);
       expect(processed.example).to.match(/^[0-9]+$/u);
     });
+
+    it('should handle gip2 case without properties field in schema', async () => {
+      const gip2Schema = {
+        type: 'object',
+        // No properties field - this is the gip2 case
+      };
+
+      const gip2Content = {
+        field1: 'value1',
+        field2: undefined, // This should throw a proper error about missing required field
+      };
+
+      // Should throw a proper error message about undefined field without default
+      // instead of the current TypeError about accessing properties of undefined
+      expect(() => {
+        prepareContentForCircuit(eddsa, gip2Content, gip2Schema);
+      }).to.throw('Certificate field field2 is undefined and no default value is provided in the schema.');
+    });
+
+    it('should handle gip2 case with valid content fields', async () => {
+      const gip2Schema = {
+        type: 'object',
+        // No properties field - this is the gip2 case
+      };
+
+      const gip2Content = {
+        // All fields provided - should work
+        field1: 'value1',
+        field2: 'value2',
+      };
+
+      const processed = prepareContentForCircuit(eddsa, gip2Content, gip2Schema);
+
+      expect(processed.field1).to.match(/^[0-9]+$/u);
+      expect(processed.field2).to.match(/^[0-9]+$/u);
+    });
   });
 
   describe('Date Processing', () => {

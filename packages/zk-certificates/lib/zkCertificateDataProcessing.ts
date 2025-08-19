@@ -51,6 +51,7 @@ export function prepareContentForCircuit(
     if (sourceData === undefined) {
       // Zk circuits need data to be provided for all fields, so we set default values for optional fields that are not provided
       if (
+        schemaProperties[field] === undefined || // handle case where field is not defined in the schema, such as in gip2
         !('default' in schemaProperties[field]) ||
         schemaProperties[field].default === undefined
       ) {
