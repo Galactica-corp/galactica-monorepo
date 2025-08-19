@@ -155,7 +155,7 @@ export async function selectZkCert(
     selected.zkCert.randomSalt,
     selected.zkCert.expirationDate,
     schema,
-    selected.zkCert.content as unknown as Record<string, unknown>,
+    selected.zkCert.content,
     selected.zkCert.providerData,
   );
 

@@ -37,7 +37,9 @@ export async function calculateHolderCommitment(
  * @param zkCertStorage - The list of zkCerts stored.
  * @returns ZkCerts metadata listed for each zkCertStandard.
  */
-export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
+export function getZkCertStorageOverview(
+  zkCertStorage: ZkCertRegistered<Record<string, unknown>>[],
+) {
   const sharedZkCerts: any = {};
   for (const zkCert of zkCertStorage) {
     if (sharedZkCerts[zkCert.zkCertStandard] === undefined) {
@@ -52,7 +54,7 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
       expirationDate: zkCert.expirationDate,
     };
     if (zkCert.zkCertStandard === KnownZkCertStandard.ZkKYC) {
-      const content = zkCert.content as KYCCertificateContent;
+      const content = zkCert.content as unknown as KYCCertificateContent;
       disclosureData.verificationLevel = content.verificationLevel;
     }
     sharedZkCerts[zkCert.zkCertStandard].push(disclosureData);
@@ -67,7 +69,7 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
  * @returns Storage hash for each zkCertStandard.
  */
 export function getZkCertStorageHashes(
-  zkCertStorage: ZkCertRegistered[],
+  zkCertStorage: ZkCertRegistered<Record<string, unknown>>[],
   origin: string,
 ): any {
   const storageHashes: ZkCertStorageHashes = {};
@@ -95,7 +97,7 @@ export function getZkCertStorageHashes(
 export function parseZkCert(
   zkCert: Record<string, unknown>,
   schema: AnySchema,
-) {
+): ZkCertRegistered<Record<string, unknown>> {
   if (!zkCert) {
     throw new ImportZkCertError({
       name: 'FormatError',
@@ -173,7 +175,7 @@ export function parseZkCert(
     });
   }
 
-  return zkCert as unknown as ZkCertRegistered;
+  return zkCert as ZkCertRegistered<Record<string, unknown>>;
 }
 
 /**
