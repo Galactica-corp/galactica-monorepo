@@ -1,7 +1,8 @@
 import { ethers } from 'ethers';
 
 /**
- * Detect if the wallet injecting the ethereum object is Flask.
+ * Detects if the wallet injecting the ethereum object is Flask.
+ *
  * @returns True if the MetaMask version is Flask, false otherwise.
  */
 export const isFlask = async () => {
@@ -20,6 +21,11 @@ export const isFlask = async () => {
   }
 };
 
+/**
+ * Gets the current block time.
+ *
+ * @returns The current block time.
+ */
 export async function getCurrentBlockTime(): Promise<number> {
   // @ts-ignore https://github.com/metamask/providers/issues/200
   const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -27,6 +33,12 @@ export async function getCurrentBlockTime(): Promise<number> {
   return (await provider.getBlock('latest')).timestamp;
 }
 
+/**
+ * Gets the user address if it is available.
+ *
+ * @returns The user address.
+ * @throws Error if no user address is found.
+ */
 export function getUserAddress(): string {
   const userAddress = window.ethereum.selectedAddress;
   if (userAddress === null) {
@@ -35,6 +47,11 @@ export function getUserAddress(): string {
   return userAddress;
 }
 
+/**
+ * Detects the signer address.
+ *
+ * @returns The signer address or undefined if not found.
+ */
 export async function detectSignerAddress() {
   if (!window.ethereum) {
     return undefined;
@@ -48,7 +65,7 @@ export async function detectSignerAddress() {
 
   try {
     return await signer.getAddress();
-  } catch (error) {
+  } catch {
     return undefined;
   }
 }

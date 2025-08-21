@@ -14,6 +14,7 @@ import { hashStringToFieldNumber } from './helpers';
 /**
  * Function preparing the fields for  ZkCertificate depending on its types.
  * It hashes all string fields to be representable in zk circuits.
+ *
  * @param eddsa - Eddsa object from circomlibjs.
  * @param contentData - Input certificate data to be verified and hashed if necessary.
  * @param contentSchema - JSON Schema of the content containing information about the fields and how to provide them to the zk circuit.
@@ -132,11 +133,11 @@ export function prepareContentForCircuit(
     } else if (typeof sourceData === 'object') {
       // We can extend this in the future to support the new circom 2 feature https://docs.circom.io/circom-language/buses/
       throw new Error(
-        `Nested objects are not supported yet for conversion to ZK field elements. Required for field ${String(field)}: ${String(sourceData)}`,
+        `Nested objects are not supported yet for conversion to ZK field elements. Required for field ${String(field)}: ${JSON.stringify(sourceData)}`,
       );
     } else {
       throw new Error(
-        `No conversion from JS type: ${typeof sourceData} to a ZK field element implemented. Required for field ${String(field)}: ${String(sourceData)}`,
+        `No conversion from JS type: ${typeof sourceData} to a ZK field element implemented. Required for field ${String(field)}: ${JSON.stringify(sourceData)}`,
       );
     }
 
@@ -148,6 +149,7 @@ export function prepareContentForCircuit(
 
 /**
  * Converts a date string to a unix timestamp to be used in zk circuits.
+ *
  * @param date - Date string in RFC3339 format or unix timestamp.
  * @returns Unix timestamp.
  */
@@ -167,6 +169,7 @@ export function dateStringToUnixTimestamp(date: string): number {
 
 /**
  * Hashes the content of a ZkCertificate into the contentHash of the ZkCertificate.
+ *
  * @param eddsa - Eddsa object from circomlibjs.
  * @param contentData - Content of the zkCertificate to hash.
  * @param contentSchema - JSON Schema of the content containing information about the fields and how to provide them to the zk circuit.
@@ -197,6 +200,7 @@ export function hashZkCertificateContent(
 
 /**
  * Workaround for a bug in the encryption library. With certain data sizes, the encryption fails to pad the data correctly. So we additionally inflate the data to make sure it is padded correctly.
+ *
  * @param data - ZkCert to pad.
  * @returns Encrypted zkCert.
  */

@@ -12,6 +12,7 @@ import { prepareContentForCircuit } from './zkCertificateDataProcessing';
 
 /**
  * Calculate dApp specific human ID from zkKYC and dApp address.
+ *
  * @param zkKYC - The zkCertificate containing the KYC data.
  * @param dAppAddress - Address of the dApp.
  * @returns Human ID as string.
@@ -37,6 +38,7 @@ export function getHumanID(zkKYC: ZkCertificate, dAppAddress: string): string {
 
 /**
  * Get the ZKP input for the human ID proof.
+ *
  * @param dAppAddress - Address of the dApp.
  * @returns Human ID proof input.
  */
@@ -48,6 +50,7 @@ export function getHumanIDProofInput(dAppAddress: string): HumanIDProofInput {
 
 /**
  * Calculate the user identifying hash as it is needed to register a salt in the salt registry.
+ *
  * @param zkKYC - The zkCertificate containing the KYC data.
  * @returns ZkKYC ID hash.
  */

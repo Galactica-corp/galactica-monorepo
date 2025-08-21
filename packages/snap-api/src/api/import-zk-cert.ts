@@ -22,6 +22,7 @@ export type ImportZkCertParams = {
 
 /**
  * Imports a zkCertificate from a file into the Snap.
+ *
  * @param importParams - The zkCert to be imported.
  * @param snapOrigin - Optional origin ID of the Snap if you want to use a non-default version.
  * @returns List of zkCert metadata or success message.

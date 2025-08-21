@@ -101,7 +101,9 @@ describe('ZK Certificate Data Processing', () => {
       // instead of the current TypeError about accessing properties of undefined
       expect(() => {
         prepareContentForCircuit(eddsa, gip2Content, gip2Schema);
-      }).to.throw('Certificate field field2 is undefined and no default value is provided in the schema.');
+      }).to.throw(
+        'Certificate field field2 is undefined and no default value is provided in the schema.',
+      );
     });
 
     it('should handle gip2 case with valid content fields', async () => {
@@ -116,7 +118,11 @@ describe('ZK Certificate Data Processing', () => {
         field2: 'value2',
       };
 
-      const processed = prepareContentForCircuit(eddsa, gip2Content, gip2Schema);
+      const processed = prepareContentForCircuit(
+        eddsa,
+        gip2Content,
+        gip2Schema,
+      );
 
       expect(processed.field1).to.match(/^[0-9]+$/u);
       expect(processed.field2).to.match(/^[0-9]+$/u);
@@ -138,6 +144,7 @@ describe('ZK Certificate Data Processing', () => {
   describe('Encryption padding workaround', () => {
     /**
      * This is a zkCert that is affected by the padding issue.
+     *
      * @returns A zkCert that is affected by the padding issue.
      */
     function getAffectedData(): ZkCertRegistered {

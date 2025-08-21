@@ -16,6 +16,7 @@ export type BenchmarkZKPGenParams = {
 
 /**
  * BenchmarkZKPGen runs and measures the ZK proof generation in the Snap.
+ *
  * @param params - The parameters required to generate a ZKP in the Snap.
  * @param snapOrigin - Optional origin ID of the Snap if you want to use a non-default version.
  * @returns Request result with the ZK proof or error.

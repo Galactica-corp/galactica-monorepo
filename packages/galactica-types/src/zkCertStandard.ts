@@ -59,6 +59,7 @@ export const zkCertCommonFields = [
 
 /**
  * Get the fields of a ZK certificate content object in the order it is used for hashing.
+ *
  * @param contentType - The type of zkCert standard to get the fields for.
  * @returns The fields of the zkCert content object in the order they are used for hashing.
  */
@@ -83,8 +84,12 @@ export function getContentFields(contentType: KnownZkCertStandard): string[] {
     case KnownZkCertStandard.Telegram:
       schema = contentSchemas.telegram;
       break;
+    case KnownZkCertStandard.ArbitraryData:
+      schema = contentSchemas.simpleJson;
+      break;
+    // In case someone passes an invalid value:
     default:
-      throw new Error(`Unknown zkCert standard: ${contentType}`);
+      throw new Error(`Unknown zkCert standard: ${String(contentType)}`);
   }
 
   return Object.keys(schema.properties).sort();
@@ -92,6 +97,7 @@ export function getContentFields(contentType: KnownZkCertStandard): string[] {
 
 /**
  * Get the schema for a zkCert standard.
+ *
  * @param contentType - The type of zkCert standard to get the schema for.
  * @returns The schema for the zkCert standard.
  */
@@ -150,6 +156,7 @@ export const personIDFieldOrder = [
 
 /**
  * Parse a JSON object to a content object of a certain type. This does not convert any data types, it only validates the input data against the schema.
+ *
  * @param inputData - The JSON object to parse.
  * @param schema - The schema to use for parsing.
  * @returns The parsed content object.
@@ -203,6 +210,7 @@ export function parseContentJson<ContentType>(
 
 /**
  * Add custom formats used in the zkCert standards to an Ajv instance.
+ *
  * @param ajv - The Ajv instance to add the formats to.
  */
 export function addAJVFormats(ajv: Ajv) {

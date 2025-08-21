@@ -18,7 +18,7 @@ import { divider, heading, text } from '@metamask/snaps-ui';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { buildBls12381, buildBn128 } from 'ffjavascript';
-import hash from 'object-hash';
+import { MD5 } from 'object-hash';
 import { groth16 } from 'snarkjs';
 
 import type { HolderData, PanelContent } from './types';
@@ -26,6 +26,7 @@ import { stripURLProtocol } from './utils';
 
 /**
  * GenerateProof runs the low level groth16 proof generation.
+ *
  * @param inputs - Input data containing signals for the proof generation.
  * @param proverOrLink - Prover data containing the wasm and zkey header and sections, or link to it.
  * @returns Generated ZkCert proof.
@@ -71,6 +72,7 @@ export const generateProof = async (
 
 /**
  * GenerateZkCertProof constructs and checks the zkCert proof.
+ *
  * @param params - Parameters defining the proof to be generated.
  * @param zkCert - ZkCert to be used for the proof.
  * @param holder - Holder data needed to derive private proof inputs.
@@ -135,6 +137,7 @@ export const generateZkCertProof = async (
 
 /**
  * Generate proof confirmation prompt for the user.
+ *
  * @param params - Parameters defining the proof to be generated.
  * @param proof - Proof to be confirmed.
  * @param origin - Origin of the request.
@@ -192,6 +195,7 @@ export function createProofConfirmationPrompt(
 /**
  * Prepares prover data from RPC request for snarkjs by converting it to the correct data types.
  * In the JSON message, arrays are base64 encoded.
+ *
  * @param prover - ProverData.
  * @returns Prepared ProverData.
  */
@@ -235,6 +239,7 @@ async function preprocessProver(prover: ProverData): Promise<ProverData> {
 
 /**
  * Reconstruct curve from name for the snarkjs zkey header.
+ *
  * @param name - Name of the curve used for the ZKP.
  * @returns Curve object.
  */
@@ -258,6 +263,7 @@ async function getCurveForSnarkJS(name: string): Promise<any> {
 
 /**
  * Check validity of the ZKP generation request.
+ *
  * @param params - Parameters defining the proof to be generated.
  * @throws an error if the request is invalid.
  */
@@ -304,6 +310,7 @@ export const subPathWasm = 'wasm.json';
 export const subPathZkeyHeader = 'zkeyHeader.json';
 /**
  * Returns the sub path to the i-th zkey section.
+ *
  * @param i - Index of the zkey section.
  * @returns Sub path to the i-th zkey section.
  */
@@ -313,12 +320,14 @@ export function subPathZkeySections(i: number) {
 
 /**
  * Fetches prover data from a URL. It collects all parts of the prover and verifies the hash for security.
+ *
  * @param link - ProverLink containing the URL and hash of the prover data.
  * @returns ProverData.
  */
 async function fetchProverData(link: ProverLink): Promise<ProverData> {
   /**
    * Helper for fetch with error handling.
+   *
    * @param url - URL to fetch from.
    * @returns JSON object response.
    */
@@ -330,7 +339,7 @@ async function fetchProverData(link: ProverLink): Promise<ProverData> {
     let response: any;
     try {
       response = await fetch(url);
-    } catch (error) {
+    } catch {
       throw potentialError;
     }
     if (!response.ok) {
@@ -338,7 +347,7 @@ async function fetchProverData(link: ProverLink): Promise<ProverData> {
     }
     try {
       return await response.json();
-    } catch (error) {
+    } catch {
       throw potentialError;
     }
   }
@@ -363,7 +372,7 @@ async function fetchProverData(link: ProverLink): Promise<ProverData> {
     zkeySections: zkSections,
   };
 
-  if (hash.MD5(prover) !== link.hash) {
+  if (MD5(prover) !== link.hash) {
     throw new GenZKPError({
       name: 'MissingInputParams',
       message: `Prover data hash does not match hash in ProverLink.`,

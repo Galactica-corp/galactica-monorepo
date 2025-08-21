@@ -7,6 +7,7 @@ import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCerti
 
 /**
  * Query the on-chain Merkle tree leaves needed as input for the Merkle tree
+ *
  * @param ethers - Ethers instance
  * @param contractAddr - Address of the ZkCertificateRegistry contract
  * @param firstBlock - First block to query (ideally the contract creation block)
@@ -19,6 +20,7 @@ export type LeafLogResult = {
 };
 /**
  * Get Merkle tree leaves by reading blockchain log.
+ *
  * @param provider - Ethers provider.
  * @param registry - Address of the RecordRegistry contract.
  * @param firstBlock - First block to query (optional, ideally the contract creation block).
@@ -126,6 +128,7 @@ export async function queryOnChainLeaves(
 
 /**
  * Constructs a merkle tree from the leaves stored in an on-chain registry.
+ *
  * @param recordRegistry - Contract of the registry storing the Merkle tree on-chain.
  * @param provider - Ethers provider.
  * @param merkleDepth - Depth of the Merkle tree.

@@ -18,6 +18,7 @@ const spongeInputs = 16;
 
 /**
  * Returns a sponge hash of a message split into blocks of 31 bytes.
+ *
  * @param poseidon - Poseidon instance to use for hashing.
  * @param message - Message to be hashed.
  * @param frameSize - Amount of 31-byte blocks to be included in one hashing frame. If string is longer than one frame,

@@ -7,6 +7,7 @@ export type DeleteZkCertResponse = string;
 
 /**
  * Exports a zkCertificate stored in the snap.
+ *
  * @param params - Parameters with requirements to filter what kind of zkCert to export.
  * @param snapOrigin - Optional origin ID of the Snap if you want to use a non-default version.
  * @returns ZkCert data or error.

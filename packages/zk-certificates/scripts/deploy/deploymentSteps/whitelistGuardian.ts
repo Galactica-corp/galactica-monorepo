@@ -7,6 +7,7 @@ import { getEddsaKeyFromEthSigner } from '../../../lib/keyManagement';
 
 /**
  * Whitelists a guardian in the guardian registry.
+ *
  * @param authorizer - The signer to submit the whitelist tx.
  * @param guardianRegistryAddr - The address of the guardian registry.
  * @param guardian - The signer of the guardian to whitelist (needed to generate EdDSA keys).
@@ -36,6 +37,7 @@ export async function whitelistSignerGuardian(
 
 /**
  * Whitelists a guardian in the guardian registry.
+ *
  * @param authorizer - The signer to submit the whitelist tx.
  * @param guardianRegistryAddr - The address of the guardian registry.
  * @param guardianAddress - The address of the guardian to whitelist.

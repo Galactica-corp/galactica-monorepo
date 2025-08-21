@@ -18,6 +18,7 @@ import { prepareContentForCircuit } from '../../lib/zkCertificateDataProcessing'
 
 /**
  * Generates a sample twitter ZkCertificate object with the given fields.
+ *
  * @param fields - The fields to set in the twitter ZkCertificate object.
  * @returns Twitter ZkCertificate object promise.
  */
@@ -52,6 +53,7 @@ export async function generateSampleTwitterZkCertificate(
 
 /**
  * Generates the twitter ZkCertificate proof input for the twitter ZkCertificate smart contract.
+ *
  * @param twitterZkCertificate - The twitter ZkCertificate object.
  * @returns Zero Knowledge twitter proof input for the twitter ZkCertificate smart contract.
  */

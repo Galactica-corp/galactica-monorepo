@@ -1,8 +1,9 @@
-import { ComponentProps, ChangeEvent, useRef, useState } from 'react';
+import type { ComponentProps, ChangeEvent } from 'react';
+import { useRef, useState } from 'react';
 import styled from 'styled-components';
-import { MetamaskState } from '../hooks';
+
 import { ReactComponent as FlaskFox } from '../assets/flask_fox.svg';
-import { shouldDisplayReconnectButton } from '../utils';
+import type { MetamaskState } from '../hooks';
 
 const Link = styled.a`
   display: flex;
@@ -113,29 +114,44 @@ export const GeneralButton = (props: ComponentProps<typeof Button>) => {
 
 /**
  * Button for importing a zkCert into Snap by first selecting it though a file input, reading it and passing the contents to the snap
+ *
+ * @param props - The props for the button.
+ * @returns The button component.
  */
 export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [file, setFile] = useState<File>();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files) {
       return;
     }
-    setFile(e.target.files[0]);
+    setFile(event.target.files[0]);
 
     // call snap method with file contents
-    props.fileSelectAction(await e.target.files[0]?.text());
+    props.fileSelectAction(
+      event.target.files[0]
+        ?.text()
+        .then((text) => {
+          return text;
+        })
+        .catch((error) => {
+          console.error('Error reading file:', error);
+        }),
+    );
   };
 
   // Redirect the click event onto the hidden input element to open the file selector dialog
   // The original click event is executed on the file selection event
   const handleClick = () => {
     // logic to make it react on reselecting the same file
-    const pausedEvent = inputRef.current!.onchange;
-    inputRef.current!.onchange = null;
-    inputRef.current!.value = '';
-    inputRef.current!.onchange = pausedEvent;
+    if (inputRef.current) {
+      const pausedEvent = inputRef.current.onchange;
+      inputRef.current.onchange = null;
+      inputRef.current.value = '';
+      inputRef.current.onchange = pausedEvent;
+    }
 
     // forward click event to hidden input, so that file dialog is opened
     inputRef.current?.click();
@@ -143,12 +159,10 @@ export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
 
   return (
     <div>
-      <HiddenInput
-        type="file"
-        ref={inputRef}
-        onChange={handleFileChange}
-      />
-      <Button {...props} onClick={handleClick}>{props.text}</Button>
+      <HiddenInput type="file" ref={inputRef} onChange={handleFileChange} />
+      <Button {...props} onClick={handleClick}>
+        {props.text}
+      </Button>
     </div>
   );
 };
@@ -167,7 +181,9 @@ export const HeaderButtons = ({
   }
 
   if (!state.installedSnap) {
-    return <ConnectSnapButton onClick={onSnapConnectClick} text={"Connect Snap"} />;
+    return (
+      <ConnectSnapButton onClick={onSnapConnectClick} text={'Connect Snap'} />
+    );
   }
 
   if (!state.signer) {

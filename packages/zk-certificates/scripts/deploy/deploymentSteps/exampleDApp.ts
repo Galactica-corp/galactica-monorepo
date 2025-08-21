@@ -9,6 +9,7 @@ const { log } = console;
 
 /**
  * Deploys the example DApp, a smart contract requiring zkKYC + age proof to airdrop tokens once to each user.
+ *
  * @param deployer - The deployer wallet.
  * @param recordRegistryAddr - The address of the zkKYC record registry.
  * @param institutionAddrs - The list of fraud investigation institutions.

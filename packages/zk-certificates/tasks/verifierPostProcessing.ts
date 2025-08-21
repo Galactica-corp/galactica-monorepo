@@ -3,6 +3,7 @@ import fs from 'fs';
 
 /**
  * Post-processes Solidity verifier code to match project conventions.
+ *
  * @param verifierPath - Path to the Solidity verifier file.
  * @param verifierName - Name of the verifier contract (in PascalCase).
  */
