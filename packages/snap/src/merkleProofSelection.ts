@@ -26,7 +26,7 @@ const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
  * @returns Merkle proof for the zkCert.
  */
 export async function getMerkleProof(
-  zkCert: ZkCertRegistered,
+  zkCert: ZkCertRegistered<Record<string, unknown>>,
   registryAddr: string,
   ethereum: BaseProvider,
   merkleServiceURL?: string,

@@ -6,7 +6,6 @@ import Ajv from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import { codes, subdivision } from 'iso-3166-2';
 
-import type { JSONValue } from './json';
 import { contentSchemas } from './schemas';
 import type {
   KYCCertificateContent,
@@ -156,7 +155,7 @@ export const personIDFieldOrder = [
  * @returns The parsed content object.
  */
 export function parseContentJson<ContentType>(
-  inputData: Record<string, JSONValue>,
+  inputData: Record<string, unknown>,
   schema: AnySchema,
 ): ContentType {
   const ajv = new Ajv({
@@ -175,7 +174,30 @@ export function parseContentJson<ContentType>(
     );
   }
 
-  const res: Record<string, JSONValue> = structuredClone(inputData);
+  // Set default values for optional fields that are not provided
+  const res: Record<string, unknown> = structuredClone(inputData);
+  let schemaProperties: Record<string, { [key: string]: unknown }> = {};
+  if (typeof schema === 'object' && schema !== null && 'properties' in schema) {
+    schemaProperties = schema.properties as Record<
+      string,
+      { [key: string]: unknown }
+    >;
+  }
+  let requiredList: string[] = [];
+  if (typeof schema === 'object' && schema !== null && 'required' in schema) {
+    requiredList = schema.required as string[];
+  }
+  for (const field of Object.keys(schemaProperties)) {
+    if (inputData[field] === undefined && !requiredList.includes(field)) {
+      if (!('default' in schemaProperties[field])) {
+        throw new Error(
+          `Optional field ${field} is undefined and no default value is provided.`,
+        );
+      }
+      res[field] = schemaProperties[field].default;
+    }
+  }
+
   return res as unknown as ContentType;
 }
 
