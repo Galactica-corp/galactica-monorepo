@@ -53,6 +53,7 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
       },
       expirationDate: zkCert.expirationDate,
     };
+
     if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
       const content = zkCert.content as KYCCertificateContent;
       disclosureData.verificationLevel = content.verificationLevel;

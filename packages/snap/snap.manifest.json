@@ -7,7 +7,7 @@
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
   "source": {
-    "shasum": "j0HRERUF7/VDFvP4ICa5F8UbCcKbGQIssABOEeRPOkA=",
+    "shasum": "S5+9nWmmC0W+MXzDkbiyyL9RI1GcRWJslXfDRI2EhBs=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -21,7 +21,8 @@
     "https://kyc-cassiopeia.galactica.com": {},
     "https://kyc-reticulum.galactica.com": {},
     "https://app.galactica.com": {},
-    "https://cassiopeia.galactica.com": {}
+    "https://cassiopeia.galactica.com": {},
+    "http://localhost:5174": {}
   },
   "initialPermissions": {
     "endowment:page-home": {},
