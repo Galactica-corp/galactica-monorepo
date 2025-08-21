@@ -28,7 +28,7 @@ export function prepareContentForCircuit(
 
   const zkCertificateContentFields = Object.keys(
     contentSchema.properties ||
-    contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
+      contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
   );
 
   for (const field of zkCertificateContentFields) {
