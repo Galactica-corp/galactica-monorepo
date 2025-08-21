@@ -4,9 +4,9 @@ import type {
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import { parseFieldElement } from '@galactica-net/galactica-types';
-import { Temporal } from '@js-temporal/polyfill';
 import { Buffer } from 'buffer';
 import type { Eddsa } from 'circomlibjs';
+import { Temporal } from 'temporal-polyfill';
 
 import { hashStringToFieldNumber } from './helpers';
 

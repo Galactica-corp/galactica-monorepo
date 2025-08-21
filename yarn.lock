@@ -4223,7 +4223,6 @@ __metadata:
   resolution: "@galactica-net/zk-certificates@workspace:packages/zk-certificates"
   dependencies:
     "@galactica-net/galactica-types": "workspace:^"
-    "@js-temporal/polyfill": ^0.5.1
     "@metamask/eth-sig-util": ^8.2.0
     "@nomicfoundation/hardhat-chai-matchers": ^2.0.9
     "@nomicfoundation/hardhat-ethers": ^3.0.9
@@ -4264,6 +4263,7 @@ __metadata:
     keccak256: ^1.0.6
     snarkjs: ^0.7.5
     solidity-coverage: ^0.8.16
+    temporal-polyfill: ^0.3.0
     ts-node: ^10.9.2
     tsup: ^7.2.0
     typechain: ^8.3.2
@@ -4775,15 +4775,6 @@ __metadata:
     "@jridgewell/resolve-uri": ^3.1.0
     "@jridgewell/sourcemap-codec": ^1.4.14
   checksum: 9d3c40d225e139987b50c48988f8717a54a8c994d8a948ee42e1412e08988761d0754d7d10b803061cc3aebf35f92a5dbbab493bd0e1a9ef9e89a2130e83ba34
-  languageName: node
-  linkType: hard
-
-"@js-temporal/polyfill@npm:^0.5.1":
-  version: 0.5.1
-  resolution: "@js-temporal/polyfill@npm:0.5.1"
-  dependencies:
-    jsbi: ^4.3.0
-  checksum: f87127500d4532034d74836160bc013d02989dfe4f67f9264aeca6b2bb1eaed66e1bdb80e37e6e1c647d698726d317459ff13d8b2aa25b107af24c06590e8bd0
   languageName: node
   linkType: hard
 
@@ -19011,13 +19002,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsbi@npm:^4.3.0":
-  version: 4.3.2
-  resolution: "jsbi@npm:4.3.2"
-  checksum: 58e06ea3328c1f455ab92219254b4ac09257fee2b611f4af73c0a6606022bbf2f5b9bf1f6f713eda3c943a842454e8ee0948b0525362cb0182e54e851e8d67c4
-  languageName: node
-  linkType: hard
-
 "jsdoc-type-pratt-parser@npm:~4.0.0":
   version: 4.0.0
   resolution: "jsdoc-type-pratt-parser@npm:4.0.0"
@@ -25499,6 +25483,22 @@ __metadata:
     mkdirp: ^1.0.3
     yallist: ^4.0.0
   checksum: f23832fceeba7578bf31907aac744ae21e74a66f4a17a9e94507acf460e48f6db598c7023882db33bab75b80e027c21f276d405e4a0322d58f51c7088d428268
+  languageName: node
+  linkType: hard
+
+"temporal-polyfill@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "temporal-polyfill@npm:0.3.0"
+  dependencies:
+    temporal-spec: 0.3.0
+  checksum: ec08f2515dd340023424d768557ed8f7c53951c87eb6053544ab4ef39eabde5262eff3085e7c506b7db7a57400601cd698b83a5375379ce84f13bd5d4977b21a
+  languageName: node
+  linkType: hard
+
+"temporal-spec@npm:0.3.0":
+  version: 0.3.0
+  resolution: "temporal-spec@npm:0.3.0"
+  checksum: 6e154023f66094a1c7817ed438806920b455a4df7ddd299192bb314f93506d972cfb77bbb8ff5bc4ff06211b2d22bb3c66a3ac2c09487ccc35939e873fdd957c
   languageName: node
   linkType: hard
 
