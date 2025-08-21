@@ -16,5 +16,6 @@ export * from './shamirTools';
 export * from './sparseMerkleTree';
 export * from './zkCertificate';
 export * from './zkCertificateDataProcessing';
-export type { getContentFields } from '@galactica-net/galactica-types';
+export { getContentFields } from '@galactica-net/galactica-types';
 export { ZkCertStandard } from '@galactica-net/galactica-types';
+export { KnownZkCertStandard } from '@galactica-net/galactica-types';

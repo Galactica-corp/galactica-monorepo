@@ -7,16 +7,15 @@ import {
   type ProviderData,
   type ZkCertRegistration,
   type JSONValue,
+  KnownZkCertStandard,
+  type ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import type {
   ZkCertRegistered,
   ZkCertStorageHashes,
 } from '@galactica-net/snap-api';
 import { ImportZkCertError } from '@galactica-net/snap-api';
-import {
-  createHolderCommitment,
-  ZkCertStandard,
-} from '@galactica-net/zk-certificates';
+import { createHolderCommitment } from '@galactica-net/zk-certificates';
 import type { AnySchema } from 'ajv/dist/2020';
 import { buildEddsa } from 'circomlibjs';
 import { keccak256 } from 'js-sha3';
@@ -53,8 +52,7 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
       },
       expirationDate: zkCert.expirationDate,
     };
-
-    if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
+    if (zkCert.zkCertStandard === KnownZkCertStandard.ZkKYC) {
       const content = zkCert.content as KYCCertificateContent;
       disclosureData.verificationLevel = content.verificationLevel;
     }
@@ -192,11 +190,15 @@ export function choseSchema(
   if (customSchema) {
     return customSchema;
   }
-  if (!Object.values(ZkCertStandard).includes(zkCertStandard)) {
+  if (
+    !Object.values(KnownZkCertStandard).includes(
+      zkCertStandard as KnownZkCertStandard,
+    )
+  ) {
     throw new ImportZkCertError({
       name: 'MissingSchema',
       message: `Can not import zkCert with unknown standard ${zkCertStandard} without an attached JSON schema.`,
     });
   }
-  return getContentSchema(zkCertStandard);
+  return getContentSchema(zkCertStandard as KnownZkCertStandard);
 }

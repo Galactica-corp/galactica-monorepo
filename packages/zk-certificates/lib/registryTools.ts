@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
 import {
-  ZkCertStandard,
+  KnownZkCertStandard,
   type MerkleProof,
   type ZkCertRegistration,
 } from '@galactica-net/galactica-types';
@@ -44,7 +44,7 @@ export async function issueZkCert(
 
   let tx;
   // if the zkCert is a zkKYC, we need to pass a few more parameters for the salt registry
-  if (zkCert.zkCertStandard === ZkCertStandard.ZkKYC) {
+  if (zkCert.zkCertStandard === KnownZkCertStandard.ZkKYC) {
     tx = await (recordRegistry as ZkKYCRegistry).connect(issuer).addZkKYC(
       chosenLeafIndex,
       leafBytes,
@@ -204,7 +204,7 @@ export async function checkZkKYCSaltHashCompatibility(
   issuer: HardhatEthersSigner,
   ethers: HardhatEthersHelpers,
 ): Promise<boolean> {
-  if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
+  if (zkCert.zkCertStandard !== KnownZkCertStandard.ZkKYC) {
     throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
   }
   const idHash = getIdHash(zkCert);
@@ -239,7 +239,7 @@ export async function listZkKYCsLockingTheSaltHash(
   issuer: HardhatEthersSigner,
   ethers: HardhatEthersHelpers,
 ): Promise<SaltLockingZkCertStruct[]> {
-  if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
+  if (zkCert.zkCertStandard !== KnownZkCertStandard.ZkKYC) {
     throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
   }
   const idHash = getIdHash(zkCert);
@@ -267,7 +267,7 @@ export async function resetSaltHash(
   issuer: HardhatEthersSigner,
   ethers: HardhatEthersHelpers,
 ) {
-  if (zkCert.zkCertStandard !== ZkCertStandard.ZkKYC) {
+  if (zkCert.zkCertStandard !== KnownZkCertStandard.ZkKYC) {
     throw new Error('Only ZkKYC can be checked for salt hash compatibility.');
   }
   const idHash = getIdHash(zkCert);

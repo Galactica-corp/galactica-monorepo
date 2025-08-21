@@ -18,9 +18,14 @@ import type {
 } from './zkCertContent';
 
 /**
+ * Type for zkCert standards. Can be a known standard or a custom standard that will be defined in the future.
+ */
+export type ZkCertStandard = KnownZkCertStandard | string;
+
+/**
  * Enum for zkCert standards
  */
-export enum ZkCertStandard {
+export enum KnownZkCertStandard {
   ZkKYC = 'gip1',
   ArbitraryData = 'gip2',
   Twitter = 'gip3',
@@ -58,25 +63,25 @@ export const zkCertCommonFields = [
  * @param contentType - The type of zkCert standard to get the fields for.
  * @returns The fields of the zkCert content object in the order they are used for hashing.
  */
-export function getContentFields(contentType: ZkCertStandard): string[] {
+export function getContentFields(contentType: KnownZkCertStandard): string[] {
   let schema: any;
   switch (contentType) {
-    case ZkCertStandard.ZkKYC:
+    case KnownZkCertStandard.ZkKYC:
       schema = contentSchemas.kyc;
       break;
-    case ZkCertStandard.Twitter:
+    case KnownZkCertStandard.Twitter:
       schema = contentSchemas.twitter;
       break;
-    case ZkCertStandard.Rey:
+    case KnownZkCertStandard.Rey:
       schema = contentSchemas.rey;
       break;
-    case ZkCertStandard.CEX:
+    case KnownZkCertStandard.CEX:
       schema = contentSchemas.cex;
       break;
-    case ZkCertStandard.DEX:
+    case KnownZkCertStandard.DEX:
       schema = contentSchemas.dex;
       break;
-    case ZkCertStandard.Telegram:
+    case KnownZkCertStandard.Telegram:
       schema = contentSchemas.telegram;
       break;
     default:
@@ -91,21 +96,21 @@ export function getContentFields(contentType: ZkCertStandard): string[] {
  * @param contentType - The type of zkCert standard to get the schema for.
  * @returns The schema for the zkCert standard.
  */
-export function getContentSchema(contentType: ZkCertStandard): AnySchema {
+export function getContentSchema(contentType: KnownZkCertStandard): AnySchema {
   switch (contentType) {
-    case ZkCertStandard.ZkKYC:
+    case KnownZkCertStandard.ZkKYC:
       return contentSchemas.kyc;
-    case ZkCertStandard.Twitter:
+    case KnownZkCertStandard.Twitter:
       return contentSchemas.twitter;
-    case ZkCertStandard.Rey:
+    case KnownZkCertStandard.Rey:
       return contentSchemas.rey;
-    case ZkCertStandard.DEX:
+    case KnownZkCertStandard.DEX:
       return contentSchemas.dex;
-    case ZkCertStandard.CEX:
+    case KnownZkCertStandard.CEX:
       return contentSchemas.cex;
-    case ZkCertStandard.Telegram:
+    case KnownZkCertStandard.Telegram:
       return contentSchemas.telegram;
-    case ZkCertStandard.ArbitraryData:
+    case KnownZkCertStandard.ArbitraryData:
       return contentSchemas.simpleJson;
     default:
       throw new Error(

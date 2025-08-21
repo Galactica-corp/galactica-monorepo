@@ -177,9 +177,9 @@ export function hashZkCertificateContent(
  * @param data - ZkCert to pad.
  * @returns Encrypted zkCert.
  */
-export function padZkCertForEncryption(
-  data: ZkCertRegistered,
-): ZkCertRegistered {
+export function padZkCertForEncryption<Content = any>(
+  data: ZkCertRegistered<Content>,
+): ZkCertRegistered<Content> {
   const dataWithPadding = {
     data,
     padding: '',
