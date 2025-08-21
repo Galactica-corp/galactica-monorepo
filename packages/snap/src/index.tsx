@@ -20,7 +20,7 @@ import {
   RpcResponseMsg,
   GenericError,
   URLUpdateError,
-  ZkCertStandard,
+  KnownZkCertStandard,
 } from '@galactica-net/snap-api';
 import {
   UserInputEventType,
@@ -205,7 +205,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       console.log(JSON.stringify(decrypted, null, 2));
 
       const schema = choseSchema(
-        decrypted.zkCertStandard as ZkCertStandard,
+        decrypted.zkCertStandard as KnownZkCertStandard,
         importParams.customSchema as unknown as AnySchema,
       );
       const zkCert = parseZkCert(decrypted, schema);
@@ -682,7 +682,9 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
         encryptedZkCert,
         holder.encryptionPrivKey,
       );
-      const schema = choseSchema(decrypted.zkCertStandard as ZkCertStandard);
+      const schema = choseSchema(
+        decrypted.zkCertStandard as KnownZkCertStandard,
+      );
 
       const zkCert = parseZkCert(decrypted, schema);
       const searchedZkCert = state.zkCerts.find(
@@ -738,7 +740,7 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
           ui: (
             <StartPage
               error={error}
-              activeTab={ZkCertStandard.ZkKYC}
+              activeTab={KnownZkCertStandard.ZkKYC}
               zkCerts={oldCerts}
               holders={holders}
             />
@@ -749,14 +751,14 @@ export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
   }
 
   if (event.type === UserInputEventType.ButtonClickEvent) {
-    let activeTab: ZkCertStandard = ZkCertStandard.ArbitraryData;
+    let activeTab: KnownZkCertStandard = KnownZkCertStandard.ArbitraryData;
 
-    if (event.name?.includes(ZkCertStandard.ZkKYC)) {
-      activeTab = ZkCertStandard.ZkKYC;
+    if (event.name?.includes(KnownZkCertStandard.ZkKYC)) {
+      activeTab = KnownZkCertStandard.ZkKYC;
     }
 
-    if (event.name?.includes(ZkCertStandard.Twitter)) {
-      activeTab = ZkCertStandard.Twitter;
+    if (event.name?.includes(KnownZkCertStandard.Twitter)) {
+      activeTab = KnownZkCertStandard.Twitter;
     }
 
     if (event.name?.includes('delete-cert-id')) {
@@ -802,7 +804,7 @@ export const onHomePage: OnHomePageHandler = async () => {
   return {
     content: (
       <StartPage
-        activeTab={ZkCertStandard.ZkKYC}
+        activeTab={KnownZkCertStandard.ZkKYC}
         zkCerts={certs}
         holders={holders}
       />
