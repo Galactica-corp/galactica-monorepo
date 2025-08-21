@@ -4,9 +4,9 @@ import type {
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import { parseFieldElement } from '@galactica-net/galactica-types';
-import { Temporal } from '@js-temporal/polyfill';
 import { Buffer } from 'buffer';
 import type { Eddsa } from 'circomlibjs';
+import { Temporal } from 'temporal-polyfill';
 
 import { hashStringToFieldNumber } from './helpers';
 
@@ -28,7 +28,7 @@ export function prepareContentForCircuit(
 
   const zkCertificateContentFields = Object.keys(
     contentSchema.properties ||
-      contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
+    contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
   );
 
   for (const field of zkCertificateContentFields) {
