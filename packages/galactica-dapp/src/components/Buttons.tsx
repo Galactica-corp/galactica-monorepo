@@ -130,8 +130,7 @@ type SelectAndImportButtonProps = {
  * @returns The button component.
  */
 export const SelectAndImportButton = (props: SelectAndImportButtonProps) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [file, setFile] = useState<File>();
+  const [, setFile] = useState<File>();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
