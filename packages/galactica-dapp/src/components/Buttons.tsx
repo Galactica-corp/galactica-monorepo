@@ -85,7 +85,6 @@ export type ButtonProps = {
   text?: string;
   onClick?: (() => void) | (() => Promise<void>);
   children?: React.ReactNode;
-  [key: string]: any;
 };
 
 export const ConnectSnapButton = (props: ButtonProps) => {
