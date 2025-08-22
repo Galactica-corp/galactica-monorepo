@@ -714,9 +714,7 @@ describe('Test rpc handler function', function () {
             [testHolder],
             [
               {
-                zkCert: outdatedZkCert as ZkCertRegistered<
-                  Record<string, unknown>
-                >,
+                zkCert: outdatedZkCert,
                 schema: getContentSchema(KnownZkCertStandard.ZkKYC),
               },
             ],
