@@ -154,7 +154,9 @@ export async function decompressEddsaPubKey(
   }
   const babyjub = await buildBabyjub();
   // Convert hex array to uint8 byte array
-  const point = babyjub.unpackPoint(Buffer.from(pubKeyHex, 'hex'));
+  const point = babyjub.unpackPoint(
+    Uint8Array.from(Buffer.from(pubKeyHex, 'hex')),
+  );
 
   return [
     babyjub.F.toObject(point[0]).toString(),

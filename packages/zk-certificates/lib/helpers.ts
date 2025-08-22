@@ -155,7 +155,7 @@ export function bigIntToArray(bn: bigint): Uint8Array {
   }
 
   // Convert hex array to uint8 byte array
-  return Buffer.from(hexValue, 'hex');
+  return Uint8Array.from(Buffer.from(hexValue, 'hex'));
 }
 
 /**

@@ -39,7 +39,8 @@ export class SparseMerkleTree {
     this.field = poseidon.F;
 
     this.emptyLeaf = (
-      arrayToBigInt(keccak256('Galactica')) % SNARK_SCALAR_FIELD
+      arrayToBigInt(Uint8Array.from(keccak256('Galactica'))) %
+      SNARK_SCALAR_FIELD
     ).toString();
 
     // create empty tree
