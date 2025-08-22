@@ -186,15 +186,13 @@ describe('Test rpc handler function', function () {
 
     // setting up merkle proof service for testing
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
-        zkCert.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
       }/${zkCert.leafHash}`,
       merkleProofToServiceResponse(zkCert.merkleProof),
       { overwriteRoutes: true },
     );
     fetchMock.get(
-      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
-        zkCert2.registration.address
+      `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert2.registration.address
       }/${zkCert2.leafHash}`,
       merkleProofToServiceResponse(zkCert2.merkleProof),
       { overwriteRoutes: true },
@@ -548,9 +546,9 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], []));
 
-      const unknownZkCert = { ...zkCert } as ZkCertRegistered<
+      const unknownZkCert: ZkCertRegistered<
         Record<string, unknown>
-      >;
+      > = { ...zkCert };
       unknownZkCert.zkCertStandard = 'gipUKNOWN';
 
       const encryptedUnknownZkCert = encryptZkCert(
@@ -700,8 +698,7 @@ describe('Test rpc handler function', function () {
     it('should handle failures fetching merkle proof update', async function (this: Mocha.Context) {
       this.timeout(25000);
       fetchMock.get(
-        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
-          zkCert.registration.address
+        `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${zkCert.registration.address
         }/${zkCert.leafHash}`,
         404,
         { overwriteRoutes: true },
@@ -742,9 +739,9 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const outdatedZkCert = structuredClone(zkCert) as ZkCertRegistered<
+      const outdatedZkCert: ZkCertRegistered<
         Record<string, unknown>
-      >;
+      > = structuredClone(zkCert);
       outdatedZkCert.merkleProof.pathElements[0] = '01234';
 
       snapProvider.rpcStubs.snap_manageState
