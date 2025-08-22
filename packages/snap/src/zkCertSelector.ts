@@ -58,7 +58,7 @@ export async function selectZkCert(
   snap: SnapsGlobalObject,
   availableCerts: ZkCertStorage[],
   filter?: ZkCertSelectionParams,
-): Promise<ZkCertificate> {
+): Promise<ZkCertificate<Record<string, unknown>>> {
   if (availableCerts.length === 0) {
     throw new Error('No zkCerts available. Please import it first.');
   }
@@ -149,7 +149,7 @@ export async function selectZkCert(
   } else {
     schema = selected.schema;
   }
-  const zkCert = new ZkCertificate(
+  const zkCert = new ZkCertificate<Record<string, unknown>>(
     selected.zkCert.holderCommitment,
     selected.zkCert.zkCertStandard,
     eddsa,

@@ -81,7 +81,7 @@ export const generateProof = async (
  */
 export const generateZkCertProof = async (
   params: GenZkProofParams<ZkCertInputType>,
-  zkCert: ZkCertificate,
+  zkCert: ZkCertificate<Record<string, unknown>>,
   holder: HolderData,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> => {
