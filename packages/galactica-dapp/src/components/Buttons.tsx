@@ -167,10 +167,9 @@ export const SelectAndImportButton = (props: SelectAndImportButtonProps) => {
       inputRef.current.onchange = null;
       inputRef.current.value = '';
       inputRef.current.onchange = pausedEvent;
+      // forward click event to hidden input, so that file dialog is opened
+      inputRef.current.click();
     }
-
-    // forward click event to hidden input, so that file dialog is opened
-    inputRef.current?.click();
   };
 
   return (
