@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type { JSONValue } from '@galactica-net/galactica-types';
 import {
   KnownZkCertStandard,
   getContentSchema,
@@ -156,7 +155,7 @@ export async function selectZkCert(
     selected.zkCert.randomSalt,
     selected.zkCert.expirationDate,
     schema,
-    selected.zkCert.content as unknown as Record<string, JSONValue>,
+    selected.zkCert.content,
     selected.zkCert.providerData,
   );
 

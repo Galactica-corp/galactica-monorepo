@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type { MerkleProof, JSONValue } from '@galactica-net/galactica-types';
+import type { MerkleProof } from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
   ProverData,
@@ -31,7 +31,7 @@ import { stripURLProtocol } from './utils';
  * @returns Generated ZkCert proof.
  */
 export const generateProof = async (
-  inputs: Record<string, JSONValue>,
+  inputs: Record<string, unknown>,
   proverOrLink: ProverData | ProverLink,
 ): Promise<ZkCertProof> => {
   // get prover data from params or fetch it from a URL

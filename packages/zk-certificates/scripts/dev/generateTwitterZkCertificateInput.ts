@@ -2,7 +2,6 @@
 import {
   getContentSchema,
   KnownZkCertStandard,
-  type JSONValue,
   type ProofInput,
 } from '@galactica-net/galactica-types';
 import { buildEddsa } from 'circomlibjs';
@@ -23,7 +22,7 @@ import { prepareContentForCircuit } from '../../lib/zkCertificateDataProcessing'
  * @returns Twitter ZkCertificate object promise.
  */
 export async function generateSampleTwitterZkCertificate(
-  fields: Record<string, JSONValue> = twitterExample,
+  fields: Record<string, unknown> = twitterExample,
 ): Promise<ZkCertificate> {
   // and eddsa instance for signing
   const eddsa = await buildEddsa();

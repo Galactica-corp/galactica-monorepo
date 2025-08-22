@@ -7,7 +7,6 @@ import type {
   ProverData,
   BenchmarkZKPGenParams,
   ZkKYCAgeCitizenshipProofInput,
-  ZkCertRegistered,
 } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
@@ -124,11 +123,11 @@ export const testProverURL =
 export const proverHash = hash.MD5(testZkpParams.prover);
 
 export const zkCertStorage: ZkCertStorage = {
-  zkCert: zkCert as unknown as ZkCertRegistered,
+  zkCert,
   schema: getContentSchema(KnownZkCertStandard.ZkKYC),
 };
 
 export const zkCertStorage2: ZkCertStorage = {
-  zkCert: zkCert2 as unknown as ZkCertRegistered,
+  zkCert: zkCert2,
   schema: getContentSchema(KnownZkCertStandard.ZkKYC),
 };

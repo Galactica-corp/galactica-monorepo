@@ -1,5 +1,3 @@
-import type { JSONValue } from '@galactica-net/galactica-types';
-
 import { RpcMethods } from './rpcEnums';
 import type { ProverData, ProverLink, ZkCertProof } from './types';
 import { sdkConfig } from '../config';
@@ -10,7 +8,7 @@ import { invokeSnap } from '../utils/invoke-snap';
  */
 export type BenchmarkZKPGenParams = {
   // Input for the ZKP generation.
-  input: Record<string, JSONValue>;
+  input: Record<string, unknown>;
 
   // Prover to generate the ZKP.
   prover: ProverData | ProverLink;

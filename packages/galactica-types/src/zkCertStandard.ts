@@ -6,7 +6,6 @@ import Ajv from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import { codes, subdivision } from 'iso-3166-2';
 
-import type { JSONValue } from './json';
 import { contentSchemas } from './schemas';
 import type {
   KYCCertificateContent,
@@ -156,7 +155,7 @@ export const personIDFieldOrder = [
  * @returns The parsed content object.
  */
 export function parseContentJson<ContentType>(
-  inputData: Record<string, JSONValue>,
+  inputData: Record<string, unknown>,
   schema: AnySchema,
 ): ContentType {
   const ajv = new Ajv({
@@ -176,12 +175,12 @@ export function parseContentJson<ContentType>(
   }
 
   // Set default values for optional fields that are not provided
-  const res: Record<string, JSONValue> = structuredClone(inputData);
-  let schemaProperties: Record<string, { [key: string]: JSONValue }> = {};
+  const res: Record<string, unknown> = structuredClone(inputData);
+  let schemaProperties: Record<string, { [key: string]: unknown }> = {};
   if (typeof schema === 'object' && schema !== null && 'properties' in schema) {
     schemaProperties = schema.properties as Record<
       string,
-      { [key: string]: JSONValue }
+      { [key: string]: unknown }
     >;
   }
   let requiredList: string[] = [];
