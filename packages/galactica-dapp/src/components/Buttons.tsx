@@ -1,4 +1,4 @@
-import type { ComponentProps, ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
 import { useRef, useState } from 'react';
 import styled from 'styled-components';
 
@@ -81,7 +81,14 @@ export const InstallFlaskButton = () => (
   </Link>
 );
 
-export const ConnectSnapButton = (props: ComponentProps<typeof Button>) => {
+export type ButtonProps = {
+  text?: string;
+  onClick?: (() => void) | (() => Promise<void>);
+  children?: React.ReactNode;
+  [key: string]: any;
+};
+
+export const ConnectSnapButton = (props: ButtonProps) => {
   return (
     <Button {...props}>
       <FlaskFox />
@@ -90,7 +97,7 @@ export const ConnectSnapButton = (props: ComponentProps<typeof Button>) => {
   );
 };
 
-export const ConnectWalletButton = (props: ComponentProps<typeof Button>) => {
+export const ConnectWalletButton = (props: ButtonProps) => {
   return (
     <Button {...props}>
       <FlaskFox />
@@ -99,7 +106,7 @@ export const ConnectWalletButton = (props: ComponentProps<typeof Button>) => {
   );
 };
 
-export const ReconnectButton = (props: ComponentProps<typeof Button>) => {
+export const ReconnectButton = (props: ButtonProps) => {
   return (
     <Button {...props}>
       <FlaskFox />
@@ -108,7 +115,7 @@ export const ReconnectButton = (props: ComponentProps<typeof Button>) => {
   );
 };
 
-export const GeneralButton = (props: ComponentProps<typeof Button>) => {
+export const GeneralButton = (props: ButtonProps) => {
   return <Button {...props}>{props.text}</Button>;
 };
 
@@ -118,7 +125,12 @@ export const GeneralButton = (props: ComponentProps<typeof Button>) => {
  * @param props - The props for the button.
  * @returns The button component.
  */
-export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
+type SelectAndImportButtonProps = {
+  text: string;
+  fileSelectAction: (text: string) => void | Promise<void>;
+};
+
+export const SelectAndImportButton = (props: SelectAndImportButtonProps) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [file, setFile] = useState<File>();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -130,16 +142,22 @@ export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
     setFile(event.target.files[0]);
 
     // call snap method with file contents
-    props.fileSelectAction(
+    if (event.target.files[0]) {
       event.target.files[0]
-        ?.text()
-        .then((text) => {
-          return text;
+        .text()
+        .then(async (text) => {
+          try {
+            await props.fileSelectAction(text);
+          } catch (error) {
+            console.error('Error in fileSelectAction:', error);
+          }
+          return undefined;
         })
         .catch((error) => {
           console.error('Error reading file:', error);
-        }),
-    );
+          return undefined;
+        });
+    }
   };
 
   // Redirect the click event onto the hidden input element to open the file selector dialog
@@ -160,9 +178,7 @@ export const SelectAndImportButton = (props: ComponentProps<typeof Button>) => {
   return (
     <div>
       <HiddenInput type="file" ref={inputRef} onChange={handleFileChange} />
-      <Button {...props} onClick={handleClick}>
-        {props.text}
-      </Button>
+      <Button onClick={handleClick}>{props.text}</Button>
     </div>
   );
 };
@@ -173,8 +189,8 @@ export const HeaderButtons = ({
   onWalletConnectClick,
 }: {
   state: MetamaskState;
-  onSnapConnectClick(): unknown;
-  onWalletConnectClick(): unknown;
+  onSnapConnectClick(): void | Promise<void>;
+  onWalletConnectClick(): void | Promise<void>;
 }) => {
   if (!state.isFlask && !state.installedSnap) {
     return <InstallFlaskButton />;

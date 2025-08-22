@@ -2,9 +2,10 @@ import type { FunctionComponent, ReactNode } from 'react';
 import { createContext, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
 
-import { getThemePreference, setLocalStorage } from './utils';
 import { dark, light } from '../../galactica-dapp/src/config/theme';
 import { MetaMaskProvider } from '../../galactica-dapp/src/hooks';
+import { setLocalStorage } from '../../galactica-dapp/src/utils/localStorage';
+import { getThemePreference } from '../../galactica-dapp/src/utils/theme';
 
 export type RootProps = {
   children: ReactNode;

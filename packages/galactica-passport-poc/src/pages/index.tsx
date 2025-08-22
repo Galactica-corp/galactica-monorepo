@@ -41,25 +41,29 @@ import {
   MetamaskActions,
   MetaMaskContext,
 } from '../../../galactica-dapp/src/hooks';
-import { getCurrentBlockTime } from '../../../galactica-dapp/src/utils/metamask';
+import {
+  shouldDisplayReconnectButton,
+  handleSnapConnectClick,
+  handleWalletConnectClick,
+} from '../../../galactica-dapp/src/utils/button';
+import {
+  getCurrentBlockTime,
+  getUserAddress,
+} from '../../../galactica-dapp/src/utils/metamask';
 import {
   processProof,
   processPublicSignals,
 } from '../../../galactica-dapp/src/utils/proofProcessing';
+import {
+  formatVerificationSBTs,
+  showVerificationSBTs,
+} from '../../../galactica-dapp/src/utils/zkCertTools';
 import {
   getProver,
   prepareProofInput,
 } from '../../../galactica-dapp/src/utils/zkp';
 // import benchmarkInput from '../benchmark/exampleMockDApp.json';
 import benchmarkInput from '../benchmark/input.json';
-import {
-  shouldDisplayReconnectButton,
-  formatVerificationSBTs,
-  getUserAddress,
-  handleSnapConnectClick,
-  handleWalletConnectClick,
-  showVerificationSBTs,
-} from '../utils';
 
 const Container = styled.div`
   display: flex;
@@ -683,7 +687,6 @@ const Index = () => {
             button: (
               <SelectAndImportButton
                 fileSelectAction={importSelectedZkCert}
-                disabled={false}
                 text="Select & Import"
               />
             ),
@@ -733,7 +736,6 @@ const Index = () => {
             button: (
               <SelectAndImportButton
                 fileSelectAction={updateSelectedMerkleProof}
-                disabled={false}
                 text="Select & Import"
               />
             ),
