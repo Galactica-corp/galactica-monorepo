@@ -26,6 +26,7 @@ type TwitterContracts = {
 
 /**
  * Deploys the standard Twitter proofs used in the Galactica Passport.
+ *
  * @param deployer - The deployer wallet.
  * @param recordRegistryAddr - The address of the Twitter record registry.
  * @param sbtCreationTimeBefore2020 - The data of the CreationTime SBT.

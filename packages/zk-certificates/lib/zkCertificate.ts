@@ -10,7 +10,6 @@ import type {
   ZkCertRegistration,
   EddsaPrivateKey,
   AnyZkCertContent,
-  JSONValue,
   ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import {
@@ -62,6 +61,7 @@ export class ZkCertificate<Content = AnyZkCertContent>
 
   /**
    * Create a ZkCertificate.
+   *
    * @param holderCommitment - Commitment fixing the holder eddsa key without revealing it to the provider.
    * @param zkCertStandard - ZkCert standard to use.
    * @param eddsa - EdDSA instance to use for signing.
@@ -78,7 +78,7 @@ export class ZkCertificate<Content = AnyZkCertContent>
     randomSalt: string,
     expirationDate: number,
     contentSchema: AnySchema,
-    content: Record<string, JSONValue>,
+    content: Record<string, unknown>,
     providerData: ProviderData = {
       ax: '0',
       ay: '0',
@@ -137,12 +137,13 @@ export class ZkCertificate<Content = AnyZkCertContent>
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
 
-  public setContent(content: Record<string, JSONValue>) {
+  public setContent(content: Record<string, unknown>) {
     this.content = parseContentJson<Content>(content, this.contentSchema);
   }
 
   /**
    * Export the encrypted zkCert as a JSON string that can be imported in the Galactica Snap for Metamask.
+   *
    * @param encryptionPubKey - Public key of the holder used for encryption.
    * @param merkleProof - Merkle proof to attach to the zkCert (optional).
    * @param registration - Registration data to attach to the zkCert (optional).
@@ -176,6 +177,7 @@ export class ZkCertificate<Content = AnyZkCertContent>
 
   /**
    * Export the unencrypted zkCert as object containing only the fields relevant for import in a wallet.
+   *
    * @returns ZkCertData object.
    */
   public exportRaw(): ZkCertData<Content> {
@@ -195,6 +197,7 @@ export class ZkCertificate<Content = AnyZkCertContent>
 
   /**
    * Create the input for the ownership proof of this zkCert.
+   *
    * @param holderKey - EdDSA Private key of the holder.
    * @returns OwnershipProofInput struct.
    */
@@ -232,6 +235,7 @@ export class ZkCertificate<Content = AnyZkCertContent>
 
   /**
    * Create the input for the provider signature check of this zkCert.
+   *
    * @param providerKey - EdDSA Private key of the KYC provider.
    * @returns ProviderData struct.
    */
@@ -267,6 +271,7 @@ export class ZkCertificate<Content = AnyZkCertContent>
 
   /**
    * Create the input for the authorization proof of this zkCert.
+   *
    * @param holderKey - EdDSA Private key of the holder.
    * @param userAddress - User address to be signed.
    * @returns AuthorizationProofInput struct.
@@ -306,6 +311,7 @@ export class ZkCertificate<Content = AnyZkCertContent>
 
   /**
    * Create the input for the fraud investigation data encryption proof of this zkCert.
+   *
    * @param institutionPub - EdDSA Public encryption key of the institution.
    * @param userPrivKey - EdDSA Private encryption key of the holder.
    * @returns Input for FraudInvestigationProof.

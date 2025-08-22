@@ -15,6 +15,7 @@ import { Scalar, utils } from 'ffjavascript';
 
 /**
  * Generates the eddsa private key from the ethereum private key signing a fixed message.
+ *
  * @param signer - Ethers signer.
  * @returns The eddsa private key.
  */
@@ -28,6 +29,7 @@ export async function getEddsaKeyFromEthSigner(
 
 /**
  * Generates the EdDSA private key, following https://www.rfc-editor.org/rfc/rfc8032#section-5.1.5 .
+ *
  * @param entropy - Random entropy to generate key from as hex string (can be with or without 0x prefix).
  * @returns The eddsa private key.
  */
@@ -62,6 +64,7 @@ export function getEddsaKeyFromEntropy(entropy: string): EddsaPrivateKey {
  * Generates an Elliptic-curve Diffie–Hellman shared key https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%E2%80%93Hellman.
  * It is symmetric and can be produced by both parties using their private key and the other party's public key.
  * Implementation based on https://github.com/privacy-scaling-explorations/maci/blob/796c3fa49d4983478d306061f094cf8a7532d63a/crypto/ts/index.ts#L328.
+ *
  * @param privKey - EdDSA private key of Alice.
  * @param pubKey - EdDSA public key of Bob.
  * @param eddsa - EdDSA instance from circomlibjs.
@@ -82,6 +85,7 @@ export function generateEcdhSharedKey(
 /**
  * Format a random private key to be compatible with the BabyJub curve.
  * This is the format which should be passed into the PublicKey and other circuits.
+ *
  * @param privKey - Private key to format.
  * @param eddsa - EdDSA instance from circomlibjs.
  * @returns The formatted private key.
@@ -100,6 +104,7 @@ export function formatPrivKeyForBabyJub(
 /**
  * Create the holder commitment for a zkCert.
  * Holder commitment = poseidon(sign_eddsa(poseidon(pubkey))).
+ *
  * @param eddsa - EdDSA instance to use for signing (passed to avoid making this function async).
  * @param privateKey - EdDSA Private key of the holder.
  * @returns Holder commitment.
@@ -136,6 +141,7 @@ export function createHolderCommitment(
 
 /**
  * Decompress an EdDSA public key.
+ *
  * @param pubKeyHex - Compressed public key as hex string.
  * @returns The decompressed public key as [Ax, Ay] strings in decimal format.
  */
@@ -148,7 +154,9 @@ export async function decompressEddsaPubKey(
   }
   const babyjub = await buildBabyjub();
   // Convert hex array to uint8 byte array
-  const point = babyjub.unpackPoint(Buffer.from(pubKeyHex, 'hex'));
+  const point = babyjub.unpackPoint(
+    Uint8Array.from(Buffer.from(pubKeyHex, 'hex')),
+  );
 
   return [
     babyjub.F.toObject(point[0]).toString(),
@@ -158,6 +166,7 @@ export async function decompressEddsaPubKey(
 
 /**
  * Check if a string is a hex string.
+ *
  * @param test - String to check.
  * @returns True if the string is a hex string.
  */

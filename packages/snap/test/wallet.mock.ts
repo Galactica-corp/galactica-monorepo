@@ -15,6 +15,7 @@ class ProviderMock {
   /**
    * Calls this.requestStub or this.rpcStubs[req.method], if the method has
    * a dedicated stub.
+   *
    * @param args - Parameters of the request.
    * @returns A stubbed response.
    */
@@ -26,7 +27,7 @@ class ProviderMock {
       // eslint-disable-next-line
       return (this.rpcStubs)[method](...(Array.isArray(params) ? params : [params]));
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
     return this.requestStub(args);
   }
 }
@@ -83,6 +84,7 @@ class EthereumMock extends ProviderMock {
 
 /**
  * Creates a mock SnapProvider instance.
+ *
  * @returns The mock SnapProvider instance.
  */
 export function mockSnapProvider(): SnapsGlobalObject & SnapMock {
@@ -93,6 +95,7 @@ export function mockSnapProvider(): SnapsGlobalObject & SnapMock {
 
 /**
  * Creates a mock EthereumProvider instance.
+ *
  * @returns The mock EthereumProvider instance.
  */
 export function mockEthereumProvider(): MetaMaskInpageProvider & EthereumMock {

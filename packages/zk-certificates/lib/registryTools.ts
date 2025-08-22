@@ -22,6 +22,7 @@ import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
 
 /**
  * Issues zkCert record on-chain and updates the merkle tree.
+ *
  * @param zkCert - ZkCertificate to issue on-chain.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert (guardian).
@@ -90,6 +91,7 @@ export async function issueZkCert(
 
 /**
  * Revokes zkCert record on-chain and updates the merkle tree.
+ *
  * @param zkCertLeafHash - Leaf hash of the zkCert to revoke.
  * @param leafIndex - Index of the zkCert to revoke.
  * @param recordRegistry - Record registry contract.
@@ -128,6 +130,7 @@ export async function revokeZkCert(
 
 /**
  * Registers zkCert record in the on-chain queue for issuance.
+ *
  * @param zkCertLeafHash - Leaf hash of the zkCert to register.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert (= guardian allowed to register).
@@ -148,6 +151,7 @@ export async function registerZkCertToQueue(
 
 /**
  * Waits for the queue until a zkCert can be issued.
+ *
  * @param recordRegistry - Record registry contract.
  * @param leafHash - Leaf hash of the zkCert.
  * @param provider - Provider to use for the transaction.
@@ -176,7 +180,7 @@ export async function waitOnIssuanceQueue(
   let earliestIssueTime = startTime;
   while (lastBlockTime < earliestIssueTime) {
     await sleep(10);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     [earliestIssueTime] =
       await recordRegistry.getTimeParameters(leafHashAsBytes);
     lastBlockTime = (await provider.getBlock(currentBlock))?.timestamp ?? 0;
@@ -192,6 +196,7 @@ export async function waitOnIssuanceQueue(
 
 /**
  * Checks if the zkCert holder commitment is compatible with the registered salt hash.
+ *
  * @param zkCert - ZkCertificate to check.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert.
@@ -227,6 +232,7 @@ export async function checkZkKYCSaltHashCompatibility(
 
 /**
  * Lists zkKYCs that lock the salt hash of the zkCert. If the user can not use the same commitment hash as before, the guardian can tell the user what zkKYCs need to expire or be revoked.
+ *
  * @param zkCert - ZkCertificate to check.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert.
@@ -256,6 +262,7 @@ export async function listZkKYCsLockingTheSaltHash(
 
 /**
  * Resets the salt hash of a user.
+ *
  * @param zkCert - New ZkCertificate to be issued.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert.

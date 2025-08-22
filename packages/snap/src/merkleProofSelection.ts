@@ -19,6 +19,7 @@ const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 /**
  * Get Merkle proof for a zkCert in a registry. Fetches the merkle proof if it is ina revocable registry.
  * If the registry is non-revocable, the merkle proof is already included in the zkCert.
+ *
  * @param zkCert - ZkCert to get the merkle proof for.
  * @param registryAddr - Address of the registry the zkCert is registered in.
  * @param ethereum - Ethereum provider to read from the blockchain.
@@ -26,7 +27,7 @@ const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
  * @returns Merkle proof for the zkCert.
  */
 export async function getMerkleProof(
-  zkCert: ZkCertRegistered,
+  zkCert: ZkCertRegistered<Record<string, unknown>>,
   registryAddr: string,
   ethereum: BaseProvider,
   merkleServiceURL?: string,
@@ -123,6 +124,7 @@ export async function getMerkleProof(
 
 /**
  * Gets the node URL from the ethereum provider to fetch non-EVM data from.
+ *
  * @returns URL as string.
  */
 function getDefaultMerkleServiceURL(): string {

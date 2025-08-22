@@ -12,6 +12,7 @@ export const CURRENT_STORAGE_LAYOUT_VERSION = 1;
 
 /**
  * Get the state from the snap storage in MetaMask's browser extension.
+ *
  * @param snap - The snap for interaction with Metamask.
  * @returns The state.
  */
@@ -109,6 +110,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
 
 /**
  * Save updated state to the snap storage in MetaMask's browser extension.
+ *
  * @param snap - The snap for interaction with Metamask.
  * @param newState - The new state.
  */
@@ -125,9 +127,7 @@ export async function saveState(
     })),
     // using unknown to avoid ts error converting ZkCert[] to Json[]
     zkCerts: newState.zkCerts as unknown as Json[],
-    merkleServiceURL: newState.merkleServiceURL
-      ? newState.merkleServiceURL
-      : '',
+    merkleServiceURL: newState.merkleServiceURL ?? '',
     storageLayoutVersion: newState.storageLayoutVersion,
   };
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys
@@ -139,6 +139,7 @@ export async function saveState(
 
 /**
  * Get holder matching a holder commitment from the holderData array.
+ *
  * @param holderCommitment - The holder commitment to search for.
  * @param holders - The holderData array to search in.
  * @returns The holderData.
@@ -162,6 +163,7 @@ export function getHolder(
 
 /**
  * Get zkCert matching a leafHash from the zkCert array.
+ *
  * @param leafHash - The holder commitment to search for.
  * @param zkCerts - The holderData array to search in.
  * @returns The holderData.
@@ -169,8 +171,8 @@ export function getHolder(
  */
 export function getZkCert(
   leafHash: string,
-  zkCerts: ZkCertRegistered[],
-): ZkCertRegistered {
+  zkCerts: ZkCertRegistered<Record<string, unknown>>[],
+): ZkCertRegistered<Record<string, unknown>> {
   const res = zkCerts.find((zkCert) => zkCert.leafHash === leafHash);
   if (res === undefined) {
     throw new GenericError({

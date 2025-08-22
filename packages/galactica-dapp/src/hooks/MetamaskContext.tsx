@@ -1,16 +1,11 @@
-import {
-  createContext,
-  Dispatch,
-  ReactNode,
-  Reducer,
-  useEffect,
-  useReducer,
-} from 'react';
-import { Snap } from '../types';
-import { detectSignerAddress, isFlask, SBT } from '../utils';
 import { getSnap } from '@galactica-net/snap-api';
-import { defaultSnapOrigin } from '../../../galactica-dapp/src/config/snap';
+import type { Dispatch, ReactNode, Reducer } from 'react';
+import { createContext, useEffect, useReducer } from 'react';
 
+import { defaultSnapOrigin } from '../config/snap';
+import type { Snap } from '../types';
+import type { SBT } from '../utils';
+import { detectSignerAddress, isFlask } from '../utils';
 
 export type MetamaskState = {
   isFlask: boolean;
@@ -20,7 +15,7 @@ export type MetamaskState = {
   signer?: string;
   proofData?: any;
   verificationSbts: SBT[];
-  guardianNameMap: Map<string[2], string>,
+  guardianNameMap: Map<string[2], string>;
 };
 
 const initialState: MetamaskState = {
@@ -119,41 +114,72 @@ export const MetaMaskProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
+    /**
+     * Detects if the wallet is Flask.
+     */
     async function detectFlask() {
-      const isFlaskDetected = await isFlask();
+      try {
+        const isFlaskDetected = await isFlask();
 
-      dispatch({
-        type: MetamaskActions.SetFlaskDetected,
-        payload: isFlaskDetected,
-      });
+        dispatch({
+          type: MetamaskActions.SetFlaskDetected,
+          payload: isFlaskDetected,
+        });
+      } catch (error) {
+        console.error('Error detecting Flask:', error);
+      }
     }
 
-    detectFlask();
+    detectFlask().catch((error) => {
+      console.error('Error in detectFlask:', error);
+    });
   }, [state.isFlask, window.ethereum]);
 
   useEffect(() => {
+    /**
+     * Detects if the snap is installed.
+     */
     async function detectSnapInstalled() {
-      const installedSnap = await getSnap(defaultSnapOrigin);
-      console.log('installedSnap', JSON.stringify(installedSnap), defaultSnapOrigin);
-      dispatch({
-        type: MetamaskActions.SetInstalled,
-        payload: installedSnap,
-      });
+      try {
+        const installedSnap = await getSnap(defaultSnapOrigin);
+        console.log(
+          'installedSnap',
+          JSON.stringify(installedSnap),
+          defaultSnapOrigin,
+        );
+        dispatch({
+          type: MetamaskActions.SetInstalled,
+          payload: installedSnap,
+        });
+      } catch (error) {
+        console.error('Error detecting snap installation:', error);
+      }
     }
 
-    detectSnapInstalled();
+    detectSnapInstalled().catch((error) => {
+      console.error('Error in detectSnapInstalled:', error);
+    });
   }, [state.isFlask, window.ethereum]);
 
   useEffect(() => {
+    /**
+     * Detects the connected wallet.
+     */
     async function detectConnectedWallet() {
-      const signer = await detectSignerAddress();
-      dispatch({
-        type: MetamaskActions.SetConnected,
-        payload: signer,
-      });
+      try {
+        const signer = await detectSignerAddress();
+        dispatch({
+          type: MetamaskActions.SetConnected,
+          payload: signer,
+        });
+      } catch (error) {
+        console.error('Error detecting connected wallet:', error);
+      }
     }
 
-    detectConnectedWallet();
+    detectConnectedWallet().catch((error) => {
+      console.error('Error in detectConnectedWallet:', error);
+    });
   }, [state.isFlask, window.ethereum]);
 
   useEffect(() => {

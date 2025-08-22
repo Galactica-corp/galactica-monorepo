@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type { JSONValue } from '@galactica-net/galactica-types';
 import {
   KnownZkCertStandard,
   getContentSchema,
@@ -15,6 +14,7 @@ import type { ZkCertStorage } from './types';
 
 /**
  * Filters ZkCerts according to selection parameters.
+ *
  * @param availableCerts - The available ZkCerts to select from.
  * @param filter - The parameters to filter for (optional).
  * @returns Filtered zkCert.
@@ -27,7 +27,6 @@ export function filterZkCerts(
     return (
       // same zkCert Standard, if defined as filter
       (filter?.zkCertStandard === undefined ||
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
         value.zkCert.zkCertStandard === filter.zkCertStandard) &&
       // not expired (if zkCert has expiration date) or same as filtered
       (value.zkCert.expirationDate === undefined ||
@@ -49,6 +48,7 @@ export function filterZkCerts(
 
 /**
  * Selects a ZkCert from the available ones.
+ *
  * @param snap - The snap for interaction with Metamask.
  * @param availableCerts - The available ZkCerts to select from.
  * @param filter - The parameters to filter for (optional).
@@ -58,7 +58,7 @@ export async function selectZkCert(
   snap: SnapsGlobalObject,
   availableCerts: ZkCertStorage[],
   filter?: ZkCertSelectionParams,
-): Promise<ZkCertificate> {
+): Promise<ZkCertificate<Record<string, unknown>>> {
   if (availableCerts.length === 0) {
     throw new Error('No zkCerts available. Please import it first.');
   }
@@ -149,14 +149,14 @@ export async function selectZkCert(
   } else {
     schema = selected.schema;
   }
-  const zkCert = new ZkCertificate(
+  const zkCert = new ZkCertificate<Record<string, unknown>>(
     selected.zkCert.holderCommitment,
     selected.zkCert.zkCertStandard,
     eddsa,
     selected.zkCert.randomSalt,
     selected.zkCert.expirationDate,
     schema,
-    selected.zkCert.content as unknown as Record<string, JSONValue>,
+    selected.zkCert.content,
     selected.zkCert.providerData,
   );
 

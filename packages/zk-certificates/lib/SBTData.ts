@@ -10,6 +10,7 @@ import { buildMimcSponge } from './mimcEncrypt';
 
 /**
  * Encrypts data for fraud investigation, so that it can be posted on-chain and only be decrypted by the user and the institution.
+ *
  * @param galaInstitutionPub - Public key of institution.
  * @param userPrivKey - Encryption key derived from user private key.
  * @param providerPubKeyAx - The first part of the provider pubkey as string (decimal string or hex string starting with 0x).
@@ -39,6 +40,7 @@ export async function encryptFraudInvestigationData(
 
 /**
  * Decrypts data for fraud investigation according to the encryption.
+ *
  * @param galaInstitutionPrivKey - Private key of institution.
  * @param userPubKey - Public key of user (disclosed in proof, unique for each ZKP).
  * @param encryptedData - Message to decrypt.

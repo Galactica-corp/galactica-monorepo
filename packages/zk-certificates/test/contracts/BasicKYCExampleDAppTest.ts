@@ -48,33 +48,31 @@ describe('BasicKYCExampleDApp', () => {
     [deployer, user] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    mockZkCertificateRegistry = (await ethers.deployContract(
+    mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
-    zkKYCVerifier = (await ethers.deployContract(
-      'ZkKYCVerifier',
-    )) as ZkKYCVerifier;
+    zkKYCVerifier = await ethers.deployContract('ZkKYCVerifier');
 
-    zkKycSC = (await ethers.deployContract('ZkKYC', [
+    zkKycSC = await ethers.deployContract('ZkKYC', [
       deployer.address,
       await zkKYCVerifier.getAddress(),
       await mockZkCertificateRegistry.getAddress(),
       [],
-    ])) as ZkKYC;
+    ]);
     await zkKycSC.waitForDeployment();
 
-    basicExampleDApp = (await ethers.deployContract('BasicKYCExampleDApp', [
+    basicExampleDApp = await ethers.deployContract('BasicKYCExampleDApp', [
       await zkKycSC.getAddress(),
       'test URI',
       'VerificationSBT',
       'VerificationSBT',
-    ])) as BasicKYCExampleDApp;
+    ]);
 
-    verificationSBT = (await ethers.getContractAt(
+    verificationSBT = await ethers.getContractAt(
       'VerificationSBT',
       await basicExampleDApp.sbt(),
-    )) as VerificationSBT;
+    );
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();
@@ -95,9 +93,9 @@ describe('BasicKYCExampleDApp', () => {
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
 
     // Deploy GuardianRegistry
-    guardianRegistry = (await ethers.deployContract('GuardianRegistry', [
+    guardianRegistry = await ethers.deployContract('GuardianRegistry', [
       'https://example.com/metadata',
-    ])) as GuardianRegistry;
+    ]);
     await guardianRegistry.waitForDeployment();
 
     // Set GuardianRegistry in MockZkCertificateRegistry

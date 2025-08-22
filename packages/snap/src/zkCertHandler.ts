@@ -6,7 +6,6 @@ import {
   type KYCCertificateContent,
   type ProviderData,
   type ZkCertRegistration,
-  type JSONValue,
   KnownZkCertStandard,
   type ZkCertStandard,
 } from '@galactica-net/galactica-types';
@@ -22,6 +21,7 @@ import { keccak256 } from 'js-sha3';
 
 /**
  * Calculates the holder commitment from the eddsa key. It is used to link a ZkCert to a holder without revealing the holder's identity to the provider.
+ *
  * @param holderEddsaKey - The eddsa key of the holder.
  * @returns Calculated holder commitment.
  */
@@ -35,10 +35,13 @@ export async function calculateHolderCommitment(
 /**
  * Provides an overview of the zkCert storage. This data can be queried by front-ends.
  * The data shared here must not reveal any private information or possibility to track users).
+ *
  * @param zkCertStorage - The list of zkCerts stored.
  * @returns ZkCerts metadata listed for each zkCertStandard.
  */
-export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
+export function getZkCertStorageOverview(
+  zkCertStorage: ZkCertRegistered<Record<string, unknown>>[],
+) {
   const sharedZkCerts: any = {};
   for (const zkCert of zkCertStorage) {
     if (sharedZkCerts[zkCert.zkCertStandard] === undefined) {
@@ -53,7 +56,7 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
       expirationDate: zkCert.expirationDate,
     };
     if (zkCert.zkCertStandard === KnownZkCertStandard.ZkKYC) {
-      const content = zkCert.content as KYCCertificateContent;
+      const content = zkCert.content as unknown as KYCCertificateContent;
       disclosureData.verificationLevel = content.verificationLevel;
     }
     sharedZkCerts[zkCert.zkCertStandard].push(disclosureData);
@@ -63,19 +66,18 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
 
 /**
  * Provides hashes of zkCerts stored in the snap. Used to detect changes in the storage.
+ *
  * @param zkCertStorage - The list of zkCerts stored.
  * @param origin - The site asking for the hash. Used as salt to prevent tracking.
  * @returns Storage hash for each zkCertStandard.
  */
 export function getZkCertStorageHashes(
-  zkCertStorage: ZkCertRegistered[],
+  zkCertStorage: ZkCertRegistered<Record<string, unknown>>[],
   origin: string,
 ): any {
   const storageHashes: ZkCertStorageHashes = {};
   for (const zkCert of zkCertStorage) {
-    if (storageHashes[zkCert.zkCertStandard] === undefined) {
-      storageHashes[zkCert.zkCertStandard] = keccak256(origin);
-    }
+    storageHashes[zkCert.zkCertStandard] ??= keccak256(origin);
     storageHashes[zkCert.zkCertStandard] = keccak256(
       (storageHashes[zkCert.zkCertStandard] as string) +
         zkCert.leafHash +
@@ -88,6 +90,7 @@ export function getZkCertStorageHashes(
 
 /**
  * Checks if an imported ZkCert has the right format.
+ *
  * @param zkCert - The zkCert to check.
  * @param schema - The custom schema for the zkCert.
  * @throws If the format is not correct.
@@ -96,7 +99,7 @@ export function getZkCertStorageHashes(
 export function parseZkCert(
   zkCert: Record<string, unknown>,
   schema: AnySchema,
-) {
+): ZkCertRegistered<Record<string, unknown>> {
   if (!zkCert) {
     throw new ImportZkCertError({
       name: 'FormatError',
@@ -105,6 +108,7 @@ export function parseZkCert(
   }
   /**
    * Throws customized error for missing fields.
+   *
    * @param field - The missing field.
    */
   function complainMissingField(field: string) {
@@ -166,7 +170,7 @@ export function parseZkCert(
   }
 
   try {
-    parseContentJson(zkCert.content as Record<string, JSONValue>, schema);
+    parseContentJson(zkCert.content as Record<string, unknown>, schema);
   } catch (error) {
     throw new ImportZkCertError({
       name: 'FormatError',
@@ -174,11 +178,12 @@ export function parseZkCert(
     });
   }
 
-  return zkCert as unknown as ZkCertRegistered;
+  return zkCert as ZkCertRegistered<Record<string, unknown>>;
 }
 
 /**
  * Chose the schema for a zkCert. If no custom schema is provided, the standard schema is used.
+ *
  * @param zkCertStandard - The standard of the zkCert.
  * @param customSchema - The custom schema for the zkCert.
  * @returns The schema for the zkCert.

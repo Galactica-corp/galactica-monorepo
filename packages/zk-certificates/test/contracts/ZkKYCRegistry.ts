@@ -32,6 +32,7 @@ describe('ZkKYCRegistry', () => {
 
   /**
    * Deploy fixtures to work with the same setup in an efficient way.
+   *
    * @returns Fixtures.
    */
   async function deploy() {
@@ -68,6 +69,7 @@ describe('ZkKYCRegistry', () => {
 
   /**
    * Tests the equality of two arrays.
+   *
    * @param a1 - The first array to compare.
    * @param a2 - The second array to compare.
    */

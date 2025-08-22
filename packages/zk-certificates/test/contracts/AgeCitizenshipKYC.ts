@@ -18,12 +18,6 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/dev/generateZkKYCInput';
-import type { KYCRequirementsDemoDApp } from '../../typechain-types/contracts/dapps/KYCRequirementsDemoDApp';
-import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
-import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
-import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/verifierWrappers/AgeCitizenshipKYC';
-import type { AgeCitizenshipKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/AgeCitizenshipKYCVerifier';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -35,6 +29,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
   /**
    * Deploy fixtures to work with the same setup in an efficient way.
+   *
    * @returns Fixtures.
    */
   async function deploy() {
@@ -48,28 +43,25 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       hashStringToFieldNumber('USA', poseidon),
     ].concat(Array(17).fill('0'));
 
-    const mockZkCertificateRegistry = (await ethers.deployContract(
+    const mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
-    const ageCitizenshipKYCVerifier = (await ethers.deployContract(
+    const ageCitizenshipKYCVerifier = await ethers.deployContract(
       'AgeCitizenshipKYCVerifier',
-    )) as AgeCitizenshipKYCVerifier;
+    );
 
-    const ageCitizenshipKYC = (await ethers.deployContract(
-      'AgeCitizenshipKYC',
-      [
-        deployer.address,
-        await ageCitizenshipKYCVerifier.getAddress(),
-        await mockZkCertificateRegistry.getAddress(),
-        countryExclusionList,
-        [],
-        18,
-      ],
-    )) as AgeCitizenshipKYC;
+    const ageCitizenshipKYC = await ethers.deployContract('AgeCitizenshipKYC', [
+      deployer.address,
+      await ageCitizenshipKYCVerifier.getAddress(),
+      await mockZkCertificateRegistry.getAddress(),
+      countryExclusionList,
+      [],
+      18,
+    ]);
     await ageCitizenshipKYCVerifier.waitForDeployment();
 
-    const kycRequirementsDemoDApp = (await ethers.deployContract(
+    const kycRequirementsDemoDApp = await ethers.deployContract(
       'KYCRequirementsDemoDApp',
       [
         await ageCitizenshipKYC.getAddress(),
@@ -77,16 +69,16 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
         'VerificationSBT',
         'VerificationSBT',
       ],
-    )) as KYCRequirementsDemoDApp;
+    );
 
-    const verificationSBT = (await ethers.getContractAt(
+    const verificationSBT = await ethers.getContractAt(
       'VerificationSBT',
       await kycRequirementsDemoDApp.sbt(),
-    )) as VerificationSBT;
+    );
 
-    const guardianRegistry = (await ethers.deployContract('GuardianRegistry', [
+    const guardianRegistry = await ethers.deployContract('GuardianRegistry', [
       '',
-    ])) as GuardianRegistry;
+    ]);
     await mockZkCertificateRegistry.setGuardianRegistry(
       await guardianRegistry.getAddress(),
     );

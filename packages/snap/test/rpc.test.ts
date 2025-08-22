@@ -70,6 +70,7 @@ chai.use(chaiFetchMock);
 
 /**
  * Helper to build RPC requests for testing.
+ *
  * @param method - The method to be called.
  * @param params - Parameters to be passed, if any.
  * @returns The RPC request object.
@@ -85,6 +86,7 @@ function buildRPCRequest(method: RpcMethods, params: any = undefined): RpcArgs {
 
 /**
  * Helper to create state objects for testing.
+ *
  * @param holders - Array of holders to include in the state.
  * @param zkCerts - Array of zkCerts to include in the state.
  * @param storageLayoutVersion - Optional storage layout version, defaults to CURRENT_STORAGE_LAYOUT_VERSION.
@@ -107,6 +109,7 @@ function createState(
 
 /**
  * Verifies a proof and expects it to be valid.
+ *
  * @param result - The proof to be verified.
  * @param minPublicSignalsLength - The minimum length of the public signals.
  * @param vkey - The verification key to be used.
@@ -131,6 +134,7 @@ async function verifyProof(
 
 /**
  * Helper for formatting a merkle proof to the format expected by the service.
+ *
  * @param merkleProof - The merkle proof to be formatted.
  * @returns The formatted merkle proof as returned by the service.
  */
@@ -207,7 +211,6 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Clear Storage method', function () {
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
     // (found no better way to increase timeouts for async tests)
     it('should throw error if not confirmed', async function (this: Mocha.Context) {
       this.timeout(4000);
@@ -305,7 +308,7 @@ describe('Test rpc handler function', function () {
       await processRpcRequest(
         buildRPCRequest(RpcMethods.ImportZkCert, {
           encryptedZkCert: encryptZkCert(
-            zkKYC as ZkCertRegistered,
+            zkKYC,
             testHolder.encryptionPubKey,
             expectedHolderCommitment,
           ),
@@ -343,7 +346,7 @@ describe('Test rpc handler function', function () {
         .resolves(createState([testHolder], []));
 
       encryptedZkCert = encryptZkCert(
-        zkCert as ZkCertRegistered,
+        zkCert,
         testHolder.encryptionPubKey,
         zkCert.holderCommitment,
       );
@@ -382,7 +385,7 @@ describe('Test rpc handler function', function () {
       invalidZkCert.holderCommitment = undefined;
 
       const invalidEncryptedZkCert = encryptZkCert(
-        invalidZkCert as ZkCertRegistered,
+        invalidZkCert,
         testHolder.encryptionPubKey,
         zkCert.holderCommitment,
       );
@@ -473,14 +476,16 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], [zkCertStorage]));
 
-      const renewedZkCert = structuredClone(zkCert); // deep copy to not mess up original
+      const renewedZkCert = structuredClone(zkCert) as ZkCertRegistered<
+        Record<string, unknown>
+      >; // deep copy to not mess up original
       // some made up content analog to a renewed zkCert
       renewedZkCert.expirationDate += 20;
       renewedZkCert.leafHash = zkCert2.leafHash;
       // note that the merkle path indices and registry address stay the same
 
       const encryptedRenewedZkCert = encryptZkCert(
-        renewedZkCert as ZkCertRegistered,
+        renewedZkCert,
         testHolder.encryptionPubKey,
         zkCert.holderCommitment,
       );
@@ -500,7 +505,7 @@ describe('Test rpc handler function', function () {
           [testHolder],
           [
             {
-              zkCert: renewedZkCert as ZkCertRegistered,
+              zkCert: renewedZkCert,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
@@ -519,7 +524,7 @@ describe('Test rpc handler function', function () {
       unknownZkCert.zkCertStandard = 'gipUKNOWN';
 
       const encryptedUnknownZkCert = encryptZkCert(
-        unknownZkCert as ZkCertRegistered,
+        unknownZkCert,
         testHolder.encryptionPubKey,
         zkCert.holderCommitment,
       );
@@ -543,11 +548,13 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], []));
 
-      const unknownZkCert = { ...zkCert };
+      const unknownZkCert: ZkCertRegistered<Record<string, unknown>> = {
+        ...zkCert,
+      };
       unknownZkCert.zkCertStandard = 'gipUKNOWN';
 
       const encryptedUnknownZkCert = encryptZkCert(
-        unknownZkCert as ZkCertRegistered,
+        unknownZkCert,
         testHolder.encryptionPubKey,
         zkCert.holderCommitment,
       );
@@ -567,7 +574,7 @@ describe('Test rpc handler function', function () {
           [testHolder],
           [
             {
-              zkCert: unknownZkCert as ZkCertRegistered,
+              zkCert: unknownZkCert,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
@@ -710,7 +717,7 @@ describe('Test rpc handler function', function () {
             [testHolder],
             [
               {
-                zkCert: outdatedZkCert as ZkCertRegistered,
+                zkCert: outdatedZkCert,
                 schema: getContentSchema(KnownZkCertStandard.ZkKYC),
               },
             ],
@@ -733,7 +740,8 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const outdatedZkCert = structuredClone(zkCert);
+      const outdatedZkCert: ZkCertRegistered<Record<string, unknown>> =
+        structuredClone(zkCert);
       outdatedZkCert.merkleProof.pathElements[0] = '01234';
 
       snapProvider.rpcStubs.snap_manageState
@@ -743,7 +751,7 @@ describe('Test rpc handler function', function () {
             [testHolder],
             [
               {
-                zkCert: outdatedZkCert as ZkCertRegistered,
+                zkCert: outdatedZkCert,
                 schema: getContentSchema(KnownZkCertStandard.ZkKYC),
               },
             ],
@@ -873,7 +881,7 @@ describe('Test rpc handler function', function () {
             [testHolder],
             [
               {
-                zkCert: unknownZkCert as ZkCertRegistered,
+                zkCert: unknownZkCert,
                 schema: getContentSchema(KnownZkCertStandard.ZkKYC),
               },
             ],
@@ -985,11 +993,11 @@ describe('Test rpc handler function', function () {
             [testHolder],
             [
               {
-                zkCert: zkCert as ZkCertRegistered,
+                zkCert,
                 schema: getContentSchema(KnownZkCertStandard.ZkKYC),
               },
               {
-                zkCert: zkCert2OnOtherChain as ZkCertRegistered,
+                zkCert: zkCert2OnOtherChain,
                 schema: getContentSchema(KnownZkCertStandard.ZkKYC),
               },
             ],
@@ -1346,11 +1354,11 @@ describe('Test rpc handler function', function () {
           [testHolder],
           [
             {
-              zkCert: expectedUpdatedZkCert as ZkCertRegistered,
+              zkCert: expectedUpdatedZkCert,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
             {
-              zkCert: zkCert2 as ZkCertRegistered,
+              zkCert: zkCert2,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
@@ -1405,7 +1413,7 @@ describe('Test rpc handler function', function () {
           [testHolder],
           [
             {
-              zkCert: zkCert2 as ZkCertRegistered,
+              zkCert: zkCert2,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],
@@ -1436,7 +1444,7 @@ describe('Test rpc handler function', function () {
           [testHolder],
           [
             {
-              zkCert: zkCert as ZkCertRegistered,
+              zkCert,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
             },
           ],

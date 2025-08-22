@@ -12,7 +12,7 @@ export * from './api/update-merkle-proof';
 export * from './api/update-merkle-proof-url';
 
 export * from './api/types';
-export * from './api/zkpInputTypes';
+export type * from './api/zkpInputTypes';
 export * from './api/snap';
 
 export { sdkConfig, type SdkConfig, type ChainId } from './config';

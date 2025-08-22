@@ -29,6 +29,7 @@ export class SparseMerkleTree {
 
   /**
    * Create a MerkleTree.
+   *
    * @param depth - Depth of the tree.
    * @param poseidon - Poseidon instance to use for hashing.
    */
@@ -38,7 +39,8 @@ export class SparseMerkleTree {
     this.field = poseidon.F;
 
     this.emptyLeaf = (
-      arrayToBigInt(keccak256('Galactica')) % SNARK_SCALAR_FIELD
+      arrayToBigInt(Uint8Array.from(keccak256('Galactica'))) %
+      SNARK_SCALAR_FIELD
     ).toString();
 
     // create empty tree
@@ -55,6 +57,7 @@ export class SparseMerkleTree {
 
   /**
    * Retrieve node/leaf at certain index and level of the tree.
+   *
    * @param level - Level numbered with depth contains the root.
    * @param index - Index of the leaf in that level.
    * @returns Content of the leaf.
@@ -80,6 +83,7 @@ export class SparseMerkleTree {
 
   /**
    * Calculate hash of a node from its left and right children.
+   *
    * @param left - Left child of the node.
    * @param right - Right child of the node.
    * @returns Hash of the node.
@@ -90,6 +94,7 @@ export class SparseMerkleTree {
 
   /**
    * Calculate node hashes for empty branches of all depths.
+   *
    * @param depth - Max depth to calculate.
    * @returns Array of hashes for empty branches with [0] being an empty leaf and [depth] being the root.
    */
@@ -112,6 +117,7 @@ export class SparseMerkleTree {
    * and updating hashes along the path to the root. This is not necessary for the current use case
    * because inserting new leaves into an existing tree is done in the smart contract.
    * Here in the frontend or backend you want to build a new tree from scratch.
+   *
    * @param leaves - Array of leaf hashes to insert.
    * @param indices - Array of indices of the leaves to insert.
    */
@@ -157,6 +163,7 @@ export class SparseMerkleTree {
 
   /**
    * Create a merkle proof for a leaf at certain index.
+   *
    * @param leafIndex - Index of the leaf to prove.
    * @returns Merkle proof for the leaf at the index.
    */
@@ -189,6 +196,7 @@ export class SparseMerkleTree {
 
   /**
    * Finds the smallest index of an empty leaf.
+   *
    * @returns Index of the first empty leaf.
    */
   getFreeLeafIndex(): number {
@@ -222,6 +230,7 @@ export class SparseMerkleTree {
 
   /**
    * Gets the index of a leaf in the tree.
+   *
    * @param leaf - Leaf to check.
    * @returns Index.
    */
