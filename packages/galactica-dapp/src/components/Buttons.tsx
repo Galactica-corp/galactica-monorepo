@@ -118,17 +118,17 @@ export const GeneralButton = (props: ButtonProps) => {
   return <Button {...props}>{props.text}</Button>;
 };
 
+type SelectAndImportButtonProps = {
+  text: string;
+  fileSelectAction: (text: string) => void | Promise<void>;
+};
+
 /**
  * Button for importing a zkCert into Snap by first selecting it though a file input, reading it and passing the contents to the snap
  *
  * @param props - The props for the button.
  * @returns The button component.
  */
-type SelectAndImportButtonProps = {
-  text: string;
-  fileSelectAction: (text: string) => void | Promise<void>;
-};
-
 export const SelectAndImportButton = (props: SelectAndImportButtonProps) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [file, setFile] = useState<File>();
