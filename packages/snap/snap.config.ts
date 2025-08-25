@@ -24,7 +24,7 @@ const config: SnapConfig = {
     }
     return res;
   },
-  // eslint-disable-next-line no-restricted-globals
+
   input: resolve(__dirname, 'src/index.ts'),
   server: {
     port: 8080,

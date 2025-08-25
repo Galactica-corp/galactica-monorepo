@@ -12,6 +12,7 @@ const { log } = console;
 
 /**
  * Deploys the KYC requirement demo, a smart contract requiring zkKYC + age proof + citizenship sanctioned to mint an SBT for the user.
+ *
  * @param deployer - The deployer wallet.
  * @param recordRegistryAddr - The address of the ZkKYC record registry.
  * @param sbtData - The data of the verification SBT.

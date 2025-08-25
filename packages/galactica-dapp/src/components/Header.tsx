@@ -1,11 +1,12 @@
 import { useContext } from 'react';
 import styled, { useTheme } from 'styled-components';
+
 import { MetaMaskContext } from '../hooks';
-import { getThemePreference } from '../utils';
 import { HeaderButtons } from './Buttons';
 import { SnapLogo } from './SnapLogo';
 import { Toggle } from './Toggle';
 import {
+  getThemePreference,
   handleSnapConnectClick,
   handleWalletConnectClick,
 } from '../utils';
@@ -60,7 +61,15 @@ export const Header = ({
           onToggle={handleToggleClick}
           defaultChecked={getThemePreference()}
         />
-        <HeaderButtons state={state} onSnapConnectClick={async () => await handleSnapConnectClick(dispatch)} onWalletConnectClick={async () => await handleWalletConnectClick(dispatch)} />
+        <HeaderButtons
+          state={state}
+          onSnapConnectClick={async () =>
+            await handleSnapConnectClick(dispatch)
+          }
+          onWalletConnectClick={async () =>
+            await handleWalletConnectClick(dispatch)
+          }
+        />
       </RightContainer>
     </HeaderWrapper>
   );

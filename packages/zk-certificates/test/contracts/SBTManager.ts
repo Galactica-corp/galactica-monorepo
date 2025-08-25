@@ -1,5 +1,4 @@
 /* eslint-disable require-atomic-updates */
-/* eslint-disable jest/no-if */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
@@ -59,40 +58,38 @@ describe('SBTManager', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
-    mockZkCertificateRegistry = (await ethers.deployContract(
+    mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
-    twitterFollowersCountProofVerifier = (await ethers.deployContract(
+    twitterFollowersCountProofVerifier = await ethers.deployContract(
       'TwitterFollowersCountProofVerifier',
-    )) as TwitterFollowersCountProofVerifier;
+    );
 
-    twitterFollowersCountProof = (await ethers.deployContract(
+    twitterFollowersCountProof = await ethers.deployContract(
       'TwitterFollowersCountProof',
       [
         deployer.address,
         await twitterFollowersCountProofVerifier.getAddress(),
         await mockZkCertificateRegistry.getAddress(),
       ],
-    )) as TwitterFollowersCountProof;
+    );
 
-    twitterCreationTimeProofVerifier = (await ethers.deployContract(
+    twitterCreationTimeProofVerifier = await ethers.deployContract(
       'TwitterCreationTimeProofVerifier',
-    )) as TwitterCreationTimeProofVerifier;
+    );
 
-    twitterCreationTimeProof = (await ethers.deployContract(
+    twitterCreationTimeProof = await ethers.deployContract(
       'TwitterCreationTimeProof',
       [
         deployer.address,
         await twitterCreationTimeProofVerifier.getAddress(),
         await mockZkCertificateRegistry.getAddress(),
       ],
-    )) as TwitterCreationTimeProof;
+    );
 
     // set up airdropGateway and set up the client
-    SBTManager = (await ethers.deployContract('SBTManager', [
-      deployer.address,
-    ])) as SBTManager;
+    SBTManager = await ethers.deployContract('SBTManager', [deployer.address]);
 
     twitterZkCertificates = [];
     const twitterExample1 = structuredClone(twitterExample);
@@ -163,12 +160,12 @@ describe('SBTManager', () => {
     SBTs = [];
     for (let i = 0; i < 5; i++) {
       SBTs.push(
-        (await ethers.deployContract('VerificationSBT', [
+        await ethers.deployContract('VerificationSBT', [
           `test_${i}`,
           `test_${i}`,
           `test_${i}`,
           await SBTManager.getAddress(),
-        ])) as VerificationSBT,
+        ]),
       );
     }
 

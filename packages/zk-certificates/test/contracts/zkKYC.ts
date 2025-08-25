@@ -49,14 +49,14 @@ describe('zkKYC SC', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
-    mockZkCertificateRegistry = (await ethers.deployContract(
+    mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
     // Deploy GuardianRegistry
-    guardianRegistry = (await ethers.deployContract('GuardianRegistry', [
+    guardianRegistry = await ethers.deployContract('GuardianRegistry', [
       'https://example.com/metadata',
-    ])) as GuardianRegistry;
+    ]);
     await guardianRegistry.waitForDeployment();
 
     await mockZkCertificateRegistry.setGuardianRegistry(
@@ -66,22 +66,18 @@ describe('zkKYC SC', () => {
     mockGalacticaInstitutions = [];
     for (let i = 0; i < amountInstitutions; i++) {
       mockGalacticaInstitutions.push(
-        (await ethers.deployContract(
-          'MockGalacticaInstitution',
-        )) as MockGalacticaInstitution,
+        await ethers.deployContract('MockGalacticaInstitution'),
       );
     }
 
-    zkKYCVerifier = (await ethers.deployContract(
-      'ZkKYCVerifier',
-    )) as ZkKYCVerifier;
+    zkKYCVerifier = await ethers.deployContract('ZkKYCVerifier');
 
-    zkKYCContract = (await ethers.deployContract('ZkKYC', [
+    zkKYCContract = await ethers.deployContract('ZkKYC', [
       deployer.address,
       await zkKYCVerifier.getAddress(),
       await mockZkCertificateRegistry.getAddress(),
       [],
-    ])) as ZkKYC;
+    ]);
     await zkKYCContract.waitForDeployment();
 
     // Generate sample ZkKYC and proof input

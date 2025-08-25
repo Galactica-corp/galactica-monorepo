@@ -10,7 +10,7 @@ import type {
 } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
-import hash from 'object-hash';
+import { MD5 } from 'object-hash';
 
 import zkCert from '../../../test/zkCert.json';
 import zkCert2 from '../../../test/zkCert2.json';
@@ -120,7 +120,7 @@ export const merkleProofServiceURL =
 
 export const testProverURL =
   'https://prover.galactica.com/v1/galactica/exampleMockDApp/';
-export const proverHash = hash.MD5(testZkpParams.prover);
+export const proverHash = MD5(testZkpParams.prover);
 
 export const zkCertStorage: ZkCertStorage = {
   zkCert,

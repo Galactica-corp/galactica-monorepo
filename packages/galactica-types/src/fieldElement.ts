@@ -9,6 +9,7 @@ export type FieldElement = string | number | bigint;
 
 /**
  * Check if a value is a valid field element.
+ *
  * @param value - The value to check.
  * @returns A valid field element.
  * @throws An error if the field element is not valid.
@@ -30,7 +31,7 @@ export function parseFieldElement(value: FieldElement | boolean): FieldElement {
         processedValue = BigInt(processedValue);
       } catch (error) {
         throw new Error(
-          `String field element cannot be converted to BigInt: ${processedValue}, because: ${error}`,
+          `String field element cannot be converted to BigInt: ${processedValue}, because: ${String(error)}`,
         );
       }
       break;
@@ -51,7 +52,7 @@ export function parseFieldElement(value: FieldElement | boolean): FieldElement {
         processedValue = BigInt(processedValue);
       } catch (error) {
         throw new Error(
-          `Number field element cannot be converted to BigInt: ${processedValue}, because: ${error}`,
+          `Number field element cannot be converted to BigInt: ${processedValue}, because: ${String(error)}`,
         );
       }
       break;
@@ -59,7 +60,10 @@ export function parseFieldElement(value: FieldElement | boolean): FieldElement {
     case 'bigint':
       // No pre-processing needed for bigint values
       break;
-
+    case 'object':
+    case 'undefined':
+    case 'function':
+    case 'symbol':
     default:
       throw new Error(`Invalid field element type: ${typeof value}`);
   }

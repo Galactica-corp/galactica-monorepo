@@ -18,6 +18,7 @@ type ComplianceContracts = {
 
 /**
  * Deploys the standard KYC compliance proofs used in the Galactica Passport.
+ *
  * @param deployer - The deployer wallet.
  * @param recordRegistryAddr - The address of the ZkKYC record registry.
  * @param sbtDataNonUS - The data of the NonUS SBT.

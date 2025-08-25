@@ -1,8 +1,8 @@
-import { GatsbyBrowser } from 'gatsby';
-import { StrictMode } from 'react';
+import type { GatsbyBrowser } from 'gatsby';
+import React, { StrictMode } from 'react';
+
 import { App } from './src/App';
 import { Root } from './src/Root';
-import React from 'react';
 
 export const wrapRootElement: GatsbyBrowser['wrapRootElement'] = ({
   element,

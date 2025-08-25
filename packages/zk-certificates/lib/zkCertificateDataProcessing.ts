@@ -4,6 +4,7 @@ import type {
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import { parseFieldElement } from '@galactica-net/galactica-types';
+import type { AnySchema } from 'ajv';
 import { Buffer } from 'buffer';
 import type { Eddsa } from 'circomlibjs';
 import { Temporal } from 'temporal-polyfill';
@@ -13,6 +14,7 @@ import { hashStringToFieldNumber } from './helpers';
 /**
  * Function preparing the fields for  ZkCertificate depending on its types.
  * It hashes all string fields to be representable in zk circuits.
+ *
  * @param eddsa - Eddsa object from circomlibjs.
  * @param contentData - Input certificate data to be verified and hashed if necessary.
  * @param contentSchema - JSON Schema of the content containing information about the fields and how to provide them to the zk circuit.
@@ -21,19 +23,45 @@ import { hashStringToFieldNumber } from './helpers';
  */
 export function prepareContentForCircuit(
   eddsa: Eddsa,
-  contentData: any,
-  contentSchema: any,
+  contentData: Record<string, unknown>,
+  contentSchema: AnySchema,
 ): Record<string, FieldElement> {
   const contentFields: Record<string, FieldElement> = {};
 
-  const zkCertificateContentFields = Object.keys(
-    contentSchema.properties ||
-      contentData /* use keys of content directly if no properties are defined in the schema (gip2) */,
-  );
+  let schemaProperties: Record<string, Record<string, unknown>> = {};
+  let zkCertificateContentFields: string[] = [];
+  if (
+    typeof contentSchema === 'object' &&
+    contentSchema !== null &&
+    'properties' in contentSchema
+  ) {
+    schemaProperties = contentSchema.properties as Record<
+      string,
+      Record<string, unknown>
+    >;
+    zkCertificateContentFields = Object.keys(schemaProperties);
+  } else {
+    // use keys of content directly if no properties are defined in the schema (gip2)
+    zkCertificateContentFields = Object.keys(contentData);
+  }
 
   for (const field of zkCertificateContentFields) {
     let resValue: FieldElement;
-    const sourceData = contentData[field];
+    let sourceData = contentData[field];
+
+    if (sourceData === undefined) {
+      // Zk circuits need data to be provided for all fields, so we set default values for optional fields that are not provided
+      if (
+        schemaProperties[field] === undefined || // handle case where field is not defined in the schema, such as in gip2
+        !('default' in schemaProperties[field]) ||
+        schemaProperties[field].default === undefined
+      ) {
+        throw new Error(
+          `Certificate field ${field} is undefined and no default value is provided in the schema.`,
+        );
+      }
+      sourceData = schemaProperties[field].default;
+    }
 
     if (
       typeof sourceData === 'number' ||
@@ -44,7 +72,7 @@ export function prepareContentForCircuit(
       resValue = parseFieldElement(sourceData);
     } else if (typeof sourceData === 'string') {
       // the meaning of the string depends on the format.
-      const format = contentSchema.properties?.[field]?.format;
+      const format = schemaProperties[field]?.format;
       switch (format) {
         // going through built-in formats found in https://json-schema.org/understanding-json-schema/reference/type#format
         case 'date-time':
@@ -99,21 +127,17 @@ export function prepareContentForCircuit(
           break;
         default:
           throw new Error(
-            `No conversion for string format ${format} to a ZK field element implemented. Required for field ${field}: ${sourceData}`,
+            `No conversion for string format ${String(format)} to a ZK field element implemented. Required for field ${String(field)}: ${String(sourceData)}`,
           );
       }
     } else if (typeof sourceData === 'object') {
       // We can extend this in the future to support the new circom 2 feature https://docs.circom.io/circom-language/buses/
       throw new Error(
-        `Nested objects are not supported yet for conversion to ZK field elements. Required for field ${field}: ${sourceData}`,
-      );
-    } else if (sourceData === undefined) {
-      throw new Error(
-        `Required field ${field} is undefined. Run it through 'parseContentJson' first to set default values from the schema.`,
+        `Nested objects are not supported yet for conversion to ZK field elements. Required for field ${String(field)}: ${JSON.stringify(sourceData)}`,
       );
     } else {
       throw new Error(
-        `No conversion from JS type: ${typeof sourceData} to a ZK field element implemented. Required for field ${field}: ${sourceData}`,
+        `No conversion from JS type: ${typeof sourceData} to a ZK field element implemented. Required for field ${String(field)}: ${JSON.stringify(sourceData)}`,
       );
     }
 
@@ -125,6 +149,7 @@ export function prepareContentForCircuit(
 
 /**
  * Converts a date string to a unix timestamp to be used in zk circuits.
+ *
  * @param date - Date string in RFC3339 format or unix timestamp.
  * @returns Unix timestamp.
  */
@@ -144,6 +169,7 @@ export function dateStringToUnixTimestamp(date: string): number {
 
 /**
  * Hashes the content of a ZkCertificate into the contentHash of the ZkCertificate.
+ *
  * @param eddsa - Eddsa object from circomlibjs.
  * @param contentData - Content of the zkCertificate to hash.
  * @param contentSchema - JSON Schema of the content containing information about the fields and how to provide them to the zk circuit.
@@ -174,6 +200,7 @@ export function hashZkCertificateContent(
 
 /**
  * Workaround for a bug in the encryption library. With certain data sizes, the encryption fails to pad the data correctly. So we additionally inflate the data to make sure it is padded correctly.
+ *
  * @param data - ZkCert to pad.
  * @returns Encrypted zkCert.
  */

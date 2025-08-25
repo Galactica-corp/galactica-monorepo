@@ -11,6 +11,7 @@ const { log } = console;
 
 /**
  * Deploys the infrastructure for zkKYC.
+ *
  * @param deployer - The deployer wallet.
  * @param institutions - The institutions wallets for fraud investigation.
  * @param merkleTreeDepth - The depth of the Registration merkle tree.

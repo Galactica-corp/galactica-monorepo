@@ -70,6 +70,7 @@ chai.use(chaiFetchMock);
 
 /**
  * Helper to build RPC requests for testing.
+ *
  * @param method - The method to be called.
  * @param params - Parameters to be passed, if any.
  * @returns The RPC request object.
@@ -85,6 +86,7 @@ function buildRPCRequest(method: RpcMethods, params: any = undefined): RpcArgs {
 
 /**
  * Helper to create state objects for testing.
+ *
  * @param holders - Array of holders to include in the state.
  * @param zkCerts - Array of zkCerts to include in the state.
  * @param storageLayoutVersion - Optional storage layout version, defaults to CURRENT_STORAGE_LAYOUT_VERSION.
@@ -107,6 +109,7 @@ function createState(
 
 /**
  * Verifies a proof and expects it to be valid.
+ *
  * @param result - The proof to be verified.
  * @param minPublicSignalsLength - The minimum length of the public signals.
  * @param vkey - The verification key to be used.
@@ -131,6 +134,7 @@ async function verifyProof(
 
 /**
  * Helper for formatting a merkle proof to the format expected by the service.
+ *
  * @param merkleProof - The merkle proof to be formatted.
  * @returns The formatted merkle proof as returned by the service.
  */
@@ -207,7 +211,6 @@ describe('Test rpc handler function', function () {
   });
 
   describe('Clear Storage method', function () {
-    /* eslint-disable jest/no-done-callback, no-invalid-this */
     // (found no better way to increase timeouts for async tests)
     it('should throw error if not confirmed', async function (this: Mocha.Context) {
       this.timeout(4000);
@@ -545,9 +548,9 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], []));
 
-      const unknownZkCert = { ...zkCert } as ZkCertRegistered<
-        Record<string, unknown>
-      >;
+      const unknownZkCert: ZkCertRegistered<Record<string, unknown>> = {
+        ...zkCert,
+      };
       unknownZkCert.zkCertStandard = 'gipUKNOWN';
 
       const encryptedUnknownZkCert = encryptZkCert(
@@ -714,9 +717,7 @@ describe('Test rpc handler function', function () {
             [testHolder],
             [
               {
-                zkCert: outdatedZkCert as ZkCertRegistered<
-                  Record<string, unknown>
-                >,
+                zkCert: outdatedZkCert,
                 schema: getContentSchema(KnownZkCertStandard.ZkKYC),
               },
             ],
@@ -739,9 +740,8 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const outdatedZkCert = structuredClone(zkCert) as ZkCertRegistered<
-        Record<string, unknown>
-      >;
+      const outdatedZkCert: ZkCertRegistered<Record<string, unknown>> =
+        structuredClone(zkCert);
       outdatedZkCert.merkleProof.pathElements[0] = '01234';
 
       snapProvider.rpcStubs.snap_manageState

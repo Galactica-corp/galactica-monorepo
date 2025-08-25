@@ -20,6 +20,7 @@ import { getHumanIDProofInput } from '../../lib/zkKYC';
 
 /**
  * Generates a sample ZkKYC object with the given fields.
+ *
  * @returns ZkKYC object promise.
  */
 export async function generateSampleZkKYC(): Promise<ZkCertificate> {
@@ -53,6 +54,7 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
 
 /**
  * Generates the zkKYC proof input for the zkKYC smart contract.
+ *
  * @param zkKYC - The zkKYC object.
  * @param amountInstitutions - The amount of institutions to use for fraud investigation.
  * @param dAppAddress - The address of the DApp smart contract.
@@ -77,18 +79,13 @@ export async function generateZkKYCProofInput(
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
   const [_holder, _user, _encryptionAccount] = await ethers.getSigners();
-  if (holder === null) {
-    // eslint-disable-next-line no-param-reassign
-    holder = _holder;
-  }
-  if (user === null) {
-    // eslint-disable-next-line no-param-reassign
-    user = _user;
-  }
-  if (encryptionAccount === null) {
-    // eslint-disable-next-line no-param-reassign
-    encryptionAccount = _encryptionAccount;
-  }
+  // eslint-disable-next-line no-param-reassign
+  holder ??= _holder;
+  // eslint-disable-next-line no-param-reassign
+  user ??= _user;
+  // eslint-disable-next-line no-param-reassign
+  encryptionAccount ??= _encryptionAccount;
+
   const institutions = [];
   for (let i = 0; i < amountInstitutions; i++) {
     institutions.push((await ethers.getSigners())[4 + i]);
