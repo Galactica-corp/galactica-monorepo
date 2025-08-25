@@ -28,8 +28,8 @@ export function prepareContentForCircuit(
 ): Record<string, FieldElement> {
   const contentFields: Record<string, FieldElement> = {};
 
-  let schemaProperties: Record<string, { [key: string]: unknown }> = {};
-  let zkCertificateContentFields;
+  let schemaProperties: Record<string, Record<string, unknown>> = {};
+  let zkCertificateContentFields: string[] = [];
   if (
     typeof contentSchema === 'object' &&
     contentSchema !== null &&
@@ -37,7 +37,7 @@ export function prepareContentForCircuit(
   ) {
     schemaProperties = contentSchema.properties as Record<
       string,
-      { [key: string]: unknown }
+      Record<string, unknown>
     >;
     zkCertificateContentFields = Object.keys(schemaProperties);
   } else {
