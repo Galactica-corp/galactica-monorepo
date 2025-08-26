@@ -1,0 +1,225 @@
+export const kycRecordRegistryABI = [
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint8',
+        name: 'version',
+        type: 'uint8',
+      },
+    ],
+    name: 'Initialized',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'zkKYCRecordLeafHash',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'Guardian',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'index',
+        type: 'uint256',
+      },
+    ],
+    name: 'zkKYCRecordAddition',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'zkKYCRecordLeafHash',
+        type: 'bytes32',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'Guardian',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'index',
+        type: 'uint256',
+      },
+    ],
+    name: 'zkKYCRecordRevocation',
+    type: 'event',
+  },
+  {
+    inputs: [],
+    name: 'ZERO_VALUE',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    name: 'ZKKYCRecordToCenter',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: '_GuardianRegistry',
+    outputs: [
+      {
+        internalType: 'contract GuardianRegistry',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'leafIndex',
+        type: 'uint256',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'zkKYCRecordHash',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32[]',
+        name: 'merkleProof',
+        type: 'bytes32[]',
+      },
+    ],
+    name: 'addZkKYCRecord',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: '_left',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: '_right',
+        type: 'bytes32',
+      },
+    ],
+    name: 'hashLeftRight',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'merkleRoot',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'nextLeafIndex',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'leafIndex',
+        type: 'uint256',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'zkKYCRecordHash',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32[]',
+        name: 'merkleProof',
+        type: 'bytes32[]',
+      },
+    ],
+    name: 'revokeZkKYCRecord',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    name: 'zeros',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;

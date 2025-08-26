@@ -22,7 +22,7 @@ import hash from 'object-hash';
 import { groth16 } from 'snarkjs';
 
 import type { HolderData, PanelContent } from './types';
-import { stripURLProtocol } from './utils';
+import { stripURLProtocol } from './utils/utils';
 
 /**
  * GenerateProof runs the low level groth16 proof generation.

@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // SPDX-License-Identifier: BUSL-1.1
-import type {
-  EncryptedZkCert,
-  HolderCommitmentData,
-} from '@galactica-net/galactica-types';
+import type { HolderCommitmentData } from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
   ImportZkCertParams,
@@ -13,6 +10,7 @@ import type {
   MerkleProofURLUpdateParams,
   BenchmarkZKPGenParams,
   GetZkCertStorageHashesRequest,
+  KnownZkCertStandard,
 } from '@galactica-net/snap-api';
 import {
   RpcResponseErr,
@@ -20,20 +18,18 @@ import {
   RpcResponseMsg,
   GenericError,
   URLUpdateError,
-  KnownZkCertStandard,
 } from '@galactica-net/snap-api';
 import {
   UserInputEventType,
   type OnHomePageHandler,
   type OnUserInputHandler,
 } from '@metamask/snaps-sdk';
+import type { JSXElement } from '@metamask/snaps-sdk/jsx';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
-import { base64ToBytes, bytesToString } from '@metamask/utils';
 import type { AnySchema } from 'ajv/dist/2020';
 import { basicURLParse } from 'whatwg-url';
 
-import { StartPage } from './components/start-page';
 import {
   checkEncryptedZkCertFormat,
   decryptMessageToObject,
@@ -54,7 +50,14 @@ import {
   saveState,
 } from './stateManagement';
 import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
-import { stripURLProtocol } from './utils';
+import { cancelDeleteCertHandler } from './uiHandlers/cancelDeleteCertHandler';
+import { certUploadHandler } from './uiHandlers/certUploadHandler';
+import { defaultHandler } from './uiHandlers/defaultHandler';
+import { deleteCertHandler } from './uiHandlers/deleteCertHandler';
+import { deletePreviewCertHandler } from './uiHandlers/deletePreviewCertHandler';
+import { goToTabHandler } from './uiHandlers/goToTabHandler';
+import { viewCertHandler } from './uiHandlers/viewCertHandler';
+import { stripURLProtocol } from './utils/utils';
 import {
   choseSchema,
   getZkCertStorageHashes,
@@ -416,7 +419,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
       // This method only returns a single hash of the storage state. It can be used to detect changes, for example if the user imported another zkCert in the meantime.
       // Because it does not leak any personal or tracking data, we do not ask for confirmation.
 
-      const { chainID } = request.params as GetZkCertStorageHashesRequest;
+      const chainID =
+        (request?.params as GetZkCertStorageHashesRequest)?.chainID || 843843;
 
       return getZkCertStorageHashes(
         state.zkCerts
@@ -663,151 +667,53 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
  * @param params.event - The event object containing the event type, name and value.
  * @see https://docs.metamask.io/snaps/reference/exports/#onuserinput
  */
-export const onUserInput: OnUserInputHandler = async ({ id, event }) => {
-  const state = await getState(snap);
+export const onUserInput: OnUserInputHandler = async (params) => {
+  const { event, id } = params;
 
-  if (
-    event.type === UserInputEventType.FileUploadEvent &&
-    event.file !== null
-  ) {
-    try {
-      const encryptedZkCert: EncryptedZkCert = JSON.parse(
-        bytesToString(base64ToBytes(event.file.contents)),
-      );
-      checkEncryptedZkCertFormat(encryptedZkCert);
+  let ui: JSXElement | null = null;
 
-      const holder = getHolder(encryptedZkCert.holderCommitment, state.holders);
-
-      const decrypted = decryptMessageToObject(
-        encryptedZkCert,
-        holder.encryptionPrivKey,
-      );
-      const schema = choseSchema(
-        decrypted.zkCertStandard as KnownZkCertStandard,
-      );
-
-      const zkCert = parseZkCert(decrypted, schema);
-      const searchedZkCert = state.zkCerts.find(
-        (candidate) =>
-          candidate.zkCert.leafHash === zkCert.leafHash &&
-          candidate.zkCert.registration.address ===
-            zkCert.registration.address &&
-          candidate.zkCert.zkCertStandard === zkCert.zkCertStandard,
-      );
-      if (searchedZkCert) {
-        throw new Error('This zkCert has already been imported');
-      }
-
-      state.zkCerts.push({ zkCert, schema });
-      const certs = state.zkCerts.map((cert) => cert.zkCert);
-      await saveState(snap, state);
-      await snap.request({
-        // @ts-ignore
-        method: 'snap_updateInterface',
-        // @ts-ignore
-        params: {
-          id,
-          ui: (
-            <StartPage
-              activeTab={zkCert.zkCertStandard}
-              zkCerts={certs}
-              holders={state.holders.map(
-                ({ holderCommitment, encryptionPubKey }) => ({
-                  holderCommitment,
-                  encryptionPubKey,
-                }),
-              )}
-            />
-          ),
-        },
-      });
-      // eslint-disable-next-line id-length
-    } catch (e) {
-      const error = (e as Error).message;
-      const oldCerts = state.zkCerts.map((cert) => cert.zkCert);
-      const holders = state.holders.map(
-        ({ holderCommitment, encryptionPubKey }) => ({
-          encryptionPubKey,
-          holderCommitment,
-        }),
-      );
-      await snap.request({
-        // @ts-ignore
-        method: 'snap_updateInterface',
-        // @ts-ignore
-        params: {
-          id,
-          ui: (
-            <StartPage
-              error={error}
-              activeTab={KnownZkCertStandard.ZkKYC}
-              zkCerts={oldCerts}
-              holders={holders}
-            />
-          ),
-        },
-      });
-    }
+  if (event.type === UserInputEventType.FileUploadEvent) {
+    ui = await certUploadHandler({ event, id });
   }
 
   if (event.type === UserInputEventType.ButtonClickEvent) {
-    let activeTab: KnownZkCertStandard = KnownZkCertStandard.ArbitraryData;
-
-    if (event.name?.includes(KnownZkCertStandard.ZkKYC)) {
-      activeTab = KnownZkCertStandard.ZkKYC;
+    if (event.name?.startsWith('go-to-tab')) {
+      ui = await goToTabHandler({ event });
     }
 
-    if (event.name?.includes(KnownZkCertStandard.Twitter)) {
-      activeTab = KnownZkCertStandard.Twitter;
+    if (event.name?.startsWith('delete-preview-cert-id')) {
+      ui = await deletePreviewCertHandler({ event });
     }
 
-    if (event.name?.includes('delete-cert-id')) {
-      const leafHash = event.name.replace('delete-cert-id-', '');
-      const newCerts = state.zkCerts.filter(
-        (cert) => cert.zkCert.leafHash !== leafHash,
-      );
-      state.zkCerts = newCerts;
-      await saveState(snap, state);
+    if (event.name?.startsWith('delete-cert-id')) {
+      ui = await deleteCertHandler({ event });
     }
 
-    const certs = state.zkCerts.map((cert) => cert.zkCert);
-    const holders = state.holders.map(
-      ({ holderCommitment, encryptionPubKey }) => ({
-        encryptionPubKey,
-        holderCommitment,
-      }),
-    );
-    await snap.request({
-      // @ts-ignore
-      method: 'snap_updateInterface',
-      // @ts-ignore
-      params: {
-        id,
-        ui: (
-          <StartPage activeTab={activeTab} zkCerts={certs} holders={holders} />
-        ),
-      },
-    });
+    if (event.name?.startsWith('cancel-delete-cert-id')) {
+      ui = await cancelDeleteCertHandler({ event });
+    }
+
+    if (event.name?.startsWith('view-cert-id')) {
+      ui = await viewCertHandler({ event });
+    }
   }
+
+  if (!ui) {
+    ui = await defaultHandler();
+  }
+  await snap.request({
+    // @ts-ignore
+    method: 'snap_updateInterface',
+    params: {
+      id,
+      ui,
+    },
+  });
 };
 
 export const onHomePage: OnHomePageHandler = async () => {
-  const state = await getState(snap);
-
-  const certs = state.zkCerts.map(({ zkCert }) => zkCert);
-  const holders = state.holders.map(
-    ({ encryptionPubKey, holderCommitment }) => ({
-      encryptionPubKey,
-      holderCommitment,
-    }),
-  );
+  const ui = await defaultHandler();
   return {
-    content: (
-      <StartPage
-        activeTab={KnownZkCertStandard.ZkKYC}
-        zkCerts={certs}
-        holders={holders}
-      />
-    ),
+    content: ui,
   };
 };

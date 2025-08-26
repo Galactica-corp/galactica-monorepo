@@ -10,9 +10,12 @@ import {
 } from '@galactica-net/zk-certificates';
 import type { BaseProvider } from '@metamask/providers';
 import { buildPoseidon } from 'circomlibjs';
-import { Contract, BrowserProvider } from 'ethers';
+import type { Address } from 'viem';
+import { getContract } from 'viem';
 
-import { fetchWithTimeout, switchChain } from './utils';
+import { kycRecordRegistryABI } from './config/abi/kycRecordRegistry';
+import { fetchWithTimeout, switchChain } from './utils/utils';
+import { getWalletClient } from './utils/getWalletClient';
 
 const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 
@@ -37,12 +40,12 @@ export async function getMerkleProof(
   }
 
   await switchChain(zkCert.registration.chainID, ethereum);
-  const provider = new BrowserProvider(ethereum);
-  const registry = new Contract(
-    registryAddr,
-    ['function merkleRoot() external view returns (bytes32)'],
-    provider,
-  );
+  const wc = await getWalletClient();
+  const registry = getContract({
+    client: wc,
+    abi: kycRecordRegistryABI,
+    address: registryAddr as Address,
+  });
   const poseidon = await buildPoseidon();
 
   // make sure the MerkleProof format is correct until inconsistency is solved
@@ -66,7 +69,7 @@ export async function getMerkleProof(
   }
 
   if (
-    fromHexToDec(await registry.merkleRoot()) ===
+    fromHexToDec(await registry.read.merkleRoot()) ===
     getMerkleRootFromProof(zkCert.merkleProof, poseidon)
   ) {
     // The merkle root is the same as the one in the zkCert, so we can just use the old one

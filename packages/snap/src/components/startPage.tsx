@@ -1,5 +1,5 @@
 import {
-  ZkCertStandard,
+  KnownZkCertStandard,
   type ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import {
@@ -13,36 +13,32 @@ import {
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
 
-import { CertsSection } from './certs-section';
+import { CertsSection } from './certsSection';
+import type { TabType } from '../stores';
 
 type Props = {
+  isLoading?: boolean;
   error?: string;
-  activeTab: ZkCertStandard;
+  activeTab: TabType;
   holders: { holderCommitment: string; encryptionPubKey: string }[];
   zkCerts: ZkCertRegistered[];
 };
 
 export const StartPage: SnapComponent<Props> = ({
+  isLoading,
   error,
   activeTab,
   holders,
   zkCerts,
 }) => {
   const certs = zkCerts.filter((cert) => {
-    if (activeTab === ZkCertStandard.ZkKYC) {
-      return cert.zkCertStandard === ZkCertStandard.ZkKYC;
+    if (activeTab === 'kyc') {
+      return cert.zkCertStandard === KnownZkCertStandard.ZkKYC;
     }
-    if (activeTab === ZkCertStandard.Twitter) {
-      return cert.zkCertStandard === ZkCertStandard.Twitter;
-    }
-    if (
-      activeTab === ZkCertStandard.ArbitraryData ||
-      ZkCertStandard.CEX ||
-      ZkCertStandard.Rey
-    ) {
+    if (activeTab === 'social') {
       return (
-        cert.zkCertStandard !== ZkCertStandard.ZkKYC &&
-        cert.zkCertStandard !== ZkCertStandard.Twitter
+        cert.zkCertStandard === KnownZkCertStandard.Twitter ||
+        cert.zkCertStandard === KnownZkCertStandard.Telegram
       );
     }
 
@@ -67,35 +63,28 @@ export const StartPage: SnapComponent<Props> = ({
 
       <Box direction="horizontal" alignment="center">
         <Button
-          variant={
-            activeTab === ZkCertStandard.ZkKYC ? 'primary' : 'destructive'
-          }
-          name={`go-to-${ZkCertStandard.ZkKYC}`}
+          variant={activeTab === 'kyc' ? 'primary' : 'destructive'}
+          name={`go-to-tab-kyc`}
         >
           KYC
         </Button>
+        <SnapText>{' | '}</SnapText>
         <Button
-          variant={
-            activeTab === ZkCertStandard.Twitter ? 'primary' : 'destructive'
-          }
-          name={`go-to-${ZkCertStandard.Twitter}`}
+          variant={activeTab === 'social' ? 'primary' : 'destructive'}
+          name={`go-to-tab-social`}
         >
           Social
         </Button>
+        <SnapText>{' | '}</SnapText>
         <Button
-          variant={
-            activeTab !== ZkCertStandard.ZkKYC &&
-            activeTab !== ZkCertStandard.Twitter
-              ? 'primary'
-              : 'destructive'
-          }
-          name="go-to-other-certs"
+          variant={activeTab === 'all' ? 'primary' : 'destructive'}
+          name="go-to-tab-all"
         >
           All
         </Button>
       </Box>
 
-      <CertsSection certs={certs} holders={holders} />
+      <CertsSection isLoading={isLoading} certs={certs} holders={holders} />
     </Box>
   );
 };

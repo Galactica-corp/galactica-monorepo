@@ -36,8 +36,8 @@
     "@galactica-net/zk-certificates": "workspace:^",
     "@metamask/snaps-sdk": "^9.0.0",
     "circomlibjs": "^0.1.7",
-    "ethers": "^6.14.3",
-    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
+    "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap",
+    "viem": "^2.34.0"
   },
   "devDependencies": {
     "@iden3/binfileutils": "^0.0.11",

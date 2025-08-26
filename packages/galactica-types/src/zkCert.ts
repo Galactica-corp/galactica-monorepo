@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type { FieldElement } from './fieldElement';
 import type { MerkleProof } from './merkleProof';
 import type { AnyZkCertContent, ZkCertStandard } from './zkCertStandard';
@@ -26,6 +27,17 @@ export type AuthorizationProofInput = {
   r8y: string;
 };
 
+export type ProviderMeta = {
+  address?: string;
+  cert_background?: string;
+  certificate_name?: string;
+  certificate_type?: string;
+  description?: string;
+  icon?: string;
+  name?: string;
+  url?: string;
+};
+
 // / Data required for ZK fraud proofs
 export type ProviderData = {
   // public eddsa key of provider
@@ -35,6 +47,7 @@ export type ProviderData = {
   s: string;
   r8x: string;
   r8y: string;
+  meta?: ProviderMeta;
 };
 
 // / Data required for ZK fraud proofs
