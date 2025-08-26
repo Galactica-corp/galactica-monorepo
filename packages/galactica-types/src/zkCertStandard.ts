@@ -182,8 +182,8 @@ export function parseContentJson<ContentType>(
   }
 
   // Set default values for optional fields that are not provided
-  const res: Record<string, JSONValue> = JSON.parse(JSON.stringify(inputData));
-  let schemaProperties: Record<string, { [key: string]: JSONValue }> = {};
+  const res: Record<string, any> = JSON.parse(JSON.stringify(inputData));
+  let schemaProperties: Record<string, { [key: string]: any }> = {};
   if (typeof schema === 'object' && schema !== null && 'properties' in schema) {
     schemaProperties = schema.properties as Record<
       string,

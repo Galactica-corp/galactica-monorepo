@@ -2,6 +2,7 @@
 import {
   getContentSchema,
   parseContentJson,
+  type AnyZkCertContent,
   type EddsaPrivateKey,
   type KYCCertificateContent,
   type ProviderData,
@@ -99,7 +100,7 @@ export function getZkCertStorageHashes(
 export function parseZkCert(
   zkCert: Record<string, unknown>,
   schema: AnySchema,
-): ZkCertRegistered<Record<string, unknown>> {
+) {
   if (!zkCert) {
     throw new ImportZkCertError({
       name: 'FormatError',
@@ -178,7 +179,7 @@ export function parseZkCert(
     });
   }
 
-  return zkCert as ZkCertRegistered<Record<string, unknown>>;
+  return zkCert as ZkCertRegistered<AnyZkCertContent>;
 }
 
 /**
