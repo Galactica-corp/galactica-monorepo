@@ -55,38 +55,36 @@ describe('RepeatableZKPTest', () => {
     )) as GuardianRegistry;
     await guardianRegistry.waitForDeployment();
 
-    mockZkCertificateRegistry = (await ethers.deployContract(
+    mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(
       await guardianRegistry.getAddress(),
     );
 
-    zkKYCVerifier = (await ethers.deployContract(
-      'ZkKYCVerifier',
-    )) as ZkKYCVerifier;
+    zkKYCVerifier = await ethers.deployContract('ZkKYCVerifier');
 
-    zkKycSC = (await ethers.deployContract('ZkKYC', [
+    zkKycSC = await ethers.deployContract('ZkKYC', [
       deployer.address,
       await zkKYCVerifier.getAddress(),
       await mockZkCertificateRegistry.getAddress(),
       [],
-    ])) as ZkKYC;
+    ]);
     await zkKYCVerifier.waitForDeployment();
 
-    repeatableZKPTest = (await ethers.deployContract('RepeatableZKPTest', [
+    repeatableZKPTest = await ethers.deployContract('RepeatableZKPTest', [
       await zkKycSC.getAddress(),
       'test URI',
       'VerificationSBT',
       'VerificationSBT',
-    ])) as RepeatableZKPTest;
+    ]);
 
-    verificationSBT = (await ethers.getContractAt(
+    verificationSBT = await ethers.getContractAt(
       'VerificationSBT',
       await repeatableZKPTest.sbt(),
-    )) as VerificationSBT;
+    );
 
     // inputs to create proof
     zkKYC = await generateSampleZkKYC();

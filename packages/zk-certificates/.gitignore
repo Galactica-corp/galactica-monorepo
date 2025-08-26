@@ -42,3 +42,6 @@ deployments
 
 # external data
 data
+
+
+ignition/deployments/**/*

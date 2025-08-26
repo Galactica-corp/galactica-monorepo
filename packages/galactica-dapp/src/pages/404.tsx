@@ -1,6 +1,5 @@
 import styled from 'styled-components';
 
-
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -24,12 +23,9 @@ const Heading = styled.h1`
 `;
 
 const Index = () => {
-
   return (
     <Container>
-      <Heading>
-        404: Page not found
-      </Heading>
+      <Heading>404: Page not found</Heading>
     </Container>
   );
 };

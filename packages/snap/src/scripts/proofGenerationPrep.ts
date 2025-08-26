@@ -2,9 +2,8 @@
 import type { GenZkProofParams, ProverData } from '@galactica-net/snap-api';
 import { KnownZkCertStandard } from '@galactica-net/snap-api';
 import { readBinFile, readSection } from '@iden3/binfileutils';
-import { Buffer } from 'buffer';
 import * as fs from 'fs';
-import hash from 'object-hash';
+import { MD5 } from 'object-hash';
 import path from 'path';
 import { groth16, zKey } from 'snarkjs';
 import { parse } from 'ts-command-line-args';
@@ -22,6 +21,7 @@ import {
 
 /**
  * TestModified constructs and checks the zkKYC proof with the modified code of snarkjs that does not depend on file reading.
+ *
  * @param circuitName - Name of the circuit to find the files.
  * @param circuitDir - Directory holding the .wasm and .zkey files.
  * @param params - Parameters to generate the proof with.
@@ -54,6 +54,7 @@ async function testModified(
 /**
  * Because we can not read files inside the SES of a snap, we parse the data here
  * to have it in typescript and be able to pass it through the RPC endpoint.
+ *
  * @param circuitName - Name of the circuit to find the files.
  * @param circuitDir - Directory holding the .wasm and .zkey files.
  * @param input - Input data for testing if the generation works.
@@ -107,6 +108,7 @@ async function createCircuitData(
 /**
  * To simplify reading the data in the frontend, we write it to a json file here.
  * Then it can be imported on demand to be uploaded to the snap.
+ *
  * @param filePath - Path to write to.
  * @param prover - Prover data to write.
  */
@@ -193,7 +195,7 @@ async function writeCircuitDataToJSON(filePath: string, prover: ProverData) {
 
   // save hash for verification
   delete jsContent.zkeyHeader.sectionsLength;
-  const proverHash = hash.MD5(jsContent);
+  const proverHash = MD5(jsContent);
   console.log(`Prover hash: ${proverHash}`);
   fs.writeFileSync(
     path.join(proverDir, 'hash.json'),
@@ -203,6 +205,7 @@ async function writeCircuitDataToJSON(filePath: string, prover: ProverData) {
 
 /**
  * Check if a generated  zkProof is valid.
+ *
  * @param proof - Proof data.
  * @param publicSignals - Public signals.
  * @param vKey - Verification key.
@@ -278,16 +281,22 @@ async function main() {
     },
   );
 
-  const testInput = args.testInput
-    ? args.testInput
-    : path.join(
-        __dirname,
-        `../../../zk-certificates/circuits/input/${args.circuitName}.json`,
-      );
+  const testInput =
+    args.testInput ??
+    path.join(
+      __dirname,
+      `../../../zk-certificates/circuits/input/`,
+      args.circuitName,
+      `.json`,
+    );
 
-  if (!args.output) {
-    args.output = `${__dirname}/../../../galactica-dapp/public/provers/${args.circuitName}.json`;
-  }
+  args.output ??= path.join(
+    __dirname,
+    `../../../galactica-dapp/public/provers/`,
+    args.circuitName,
+    `.json`,
+  );
+
   if (!fs.existsSync(testInput)) {
     throw new Error(`Test input file ${testInput} does not exist.`);
   }

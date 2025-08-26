@@ -9,6 +9,7 @@ const { log } = console;
 
 /**
  * Deploys the example DApp, a smart contract requiring zkKYC to issue a verification SBT, repeatably.
+ *
  * @param deployer - The deployer wallet.
  * @param zkKYCRegistryAddr - The address of the zkKYC registry.
  * @param sbtData - The data of the verification SBT.
