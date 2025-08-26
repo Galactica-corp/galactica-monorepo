@@ -5393,6 +5393,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@galactica-net/gnet-staking@workspace:packages/gnet-staking"
   dependencies:
+    "@galactica-net/zk-certificates": "workspace:^"
     "@nomicfoundation/hardhat-chai-matchers": ^2.0.0
     "@nomicfoundation/hardhat-ethers": ^3.0.0
     "@nomicfoundation/hardhat-ignition": ^0.15.0
