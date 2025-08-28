@@ -423,7 +423,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       // Because it does not leak any personal or tracking data, we do not ask for confirmation.
 
       const chainID =
-        (request?.params as GetZkCertStorageHashesRequest)?.chainID || 843843;
+        (request?.params as GetZkCertStorageHashesRequest)?.chainID ?? 843843;
 
       return getZkCertStorageHashes(
         state.zkCerts

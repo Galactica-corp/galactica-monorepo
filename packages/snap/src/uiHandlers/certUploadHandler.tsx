@@ -101,7 +101,6 @@ export const certUploadHandler = async (params: Params) => {
         holders={holders}
       />
     );
-    // eslint-disable-next-line id-length
   } catch (error) {
     const errorMessage = (error as Error).message;
     const oldCerts = state.zkCerts.map((cert) => cert.zkCert);
