@@ -41,7 +41,7 @@ export async function getMerkleProof(
   }
 
   await switchChain(zkCert.registration.chainID, ethereum);
-  const wc = await getWalletClient();
+  const wc = await getWalletClient(ethereum);
   const registry = getContract({
     client: wc,
     abi: kycRecordRegistryABI,

@@ -1,9 +1,11 @@
+import type { BaseProvider } from '@metamask/providers';
 import { createWalletClient, custom } from 'viem';
 
 import { chainMap } from '../config/networks';
 
-export const getWalletClient = async () => {
-  const chainIdHex = (await ethereum.request({
+export const getWalletClient = async (ethereumProvider?: BaseProvider) => {
+  const eth = ethereumProvider ?? ethereum;
+  const chainIdHex = (await eth.request({
     method: 'eth_chainId',
   })) as string | undefined | null;
 
@@ -15,6 +17,6 @@ export const getWalletClient = async () => {
 
   return createWalletClient({
     chain: chainMap[chainId],
-    transport: custom(ethereum),
+    transport: custom(eth),
   });
 };
