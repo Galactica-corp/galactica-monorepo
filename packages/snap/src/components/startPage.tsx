@@ -24,6 +24,8 @@ type Props = {
   zkCerts: ZkCertRegistered[];
 };
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 export const StartPage: SnapComponent<Props> = ({
   isLoading,
   error,

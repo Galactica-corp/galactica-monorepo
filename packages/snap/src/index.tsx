@@ -135,6 +135,8 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       const proof = await generateZkCertProof(
         genParams,
+        // FIXME:
+        // @ts-ignore
         zkCert,
         holder,
         merkleProof,

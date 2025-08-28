@@ -12,8 +12,8 @@ import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import { MD5 } from 'object-hash';
 
-import zkCert from '../../../test/zkCert.json';
-import zkCert2 from '../../../test/zkCert2.json';
+import { zkCert } from './zkCert';
+import { zkCert2 } from './zkCert2';
 import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
 import exclusionProver from '../../galactica-dapp/public/provers/exclusion3.json';
 import exclusionInput from '../../zk-certificates/circuits/input/exclusion3.json';

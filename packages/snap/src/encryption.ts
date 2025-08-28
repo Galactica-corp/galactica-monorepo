@@ -45,7 +45,7 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
  * @returns The encrypted ZkCertRegistered as EthEncryptedData.
  */
 export function encryptZkCert(
-  zkCert: ZkCertRegistered<Record<string, unknown>>,
+  zkCert: ZkCertRegistered,
   pubKey: string,
   holderCommitment: string,
 ): EncryptedZkCert {

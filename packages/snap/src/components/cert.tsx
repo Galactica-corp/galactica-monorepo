@@ -21,6 +21,10 @@ type Props = {
   cert: ZkCertRegistered;
   withDeleteBanner?: boolean;
 };
+
+// FIXME
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 export const Cert: SnapComponent<Props> = (props) => {
   const {
     cert,

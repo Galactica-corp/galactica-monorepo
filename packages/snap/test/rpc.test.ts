@@ -1,4 +1,7 @@
-import type { HolderCommitmentData } from '@galactica-net/galactica-types';
+import type {
+  HolderCommitmentData,
+  KYCCertificateContent,
+} from '@galactica-net/galactica-types';
 import { getContentSchema } from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
@@ -47,10 +50,10 @@ import {
   zkCertStorage2,
 } from './constants.mock';
 import { mockEthereumProvider, mockSnapProvider } from './wallet.mock';
+import { zkCert } from './zkCert';
+import { zkCert2 } from './zkCert2';
 import reyCert from '../../../test/reyCert.json';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
-import zkCert from '../../../test/zkCert.json';
-import zkCert2 from '../../../test/zkCert2.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import exclusion3VKey from '../../galactica-dapp/public/provers/exclusion3.vkey.json';
 import { processRpcRequest } from '../src';
@@ -476,9 +479,9 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], [zkCertStorage]));
 
-      const renewedZkCert = structuredClone(zkCert) as ZkCertRegistered<
-        Record<string, unknown>
-      >; // deep copy to not mess up original
+      const renewedZkCert = JSON.parse(
+        JSON.stringify(zkCert),
+      ) as ZkCertRegistered; // deep copy to not mess up original
       // some made up content analog to a renewed zkCert
       renewedZkCert.expirationDate += 20;
       renewedZkCert.leafHash = zkCert2.leafHash;
@@ -548,7 +551,7 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], []));
 
-      const unknownZkCert: ZkCertRegistered<Record<string, unknown>> = {
+      const unknownZkCert: ZkCertRegistered = {
         ...zkCert,
       };
       unknownZkCert.zkCertStandard = 'gipUKNOWN';
@@ -740,8 +743,7 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const outdatedZkCert: ZkCertRegistered<Record<string, unknown>> =
-        structuredClone(zkCert);
+      const outdatedZkCert: ZkCertRegistered = structuredClone(zkCert);
       outdatedZkCert.merkleProof.pathElements[0] = '01234';
 
       snapProvider.rpcStubs.snap_manageState
@@ -978,7 +980,10 @@ describe('Test rpc handler function', function () {
       expect(
         res[zkCert.zkCertStandard][1].verificationLevel,
         'testing verification level',
-      ).to.equal(zkCert2.content.verificationLevel);
+      ).to.equal(
+        (zkCert2 as ZkCertRegistered<KYCCertificateContent>).content
+          .verificationLevel,
+      );
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
     });
 
