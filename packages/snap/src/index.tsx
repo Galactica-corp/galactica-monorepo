@@ -208,8 +208,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
         holder.encryptionPrivKey,
       );
 
-      console.log(JSON.stringify(decrypted, null, 2));
-
       const schema = choseSchema(
         decrypted.zkCertStandard as KnownZkCertStandard,
         importParams.customSchema as unknown as AnySchema,
