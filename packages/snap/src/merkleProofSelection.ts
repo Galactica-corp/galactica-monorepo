@@ -10,9 +10,12 @@ import {
 } from '@galactica-net/zk-certificates';
 import type { BaseProvider } from '@metamask/providers';
 import { buildPoseidon } from 'circomlibjs';
-import { Contract, BrowserProvider } from 'ethers';
+import type { Address } from 'viem';
+import { getContract } from 'viem';
 
-import { fetchWithTimeout, switchChain } from './utils';
+import { kycRecordRegistryABI } from './config/abi/kycRecordRegistry';
+import { getWalletClient } from './utils/getWalletClient';
+import { fetchWithTimeout, switchChain } from './utils/utils';
 
 const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 
@@ -27,7 +30,7 @@ const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
  * @returns Merkle proof for the zkCert.
  */
 export async function getMerkleProof(
-  zkCert: ZkCertRegistered<Record<string, unknown>>,
+  zkCert: ZkCertRegistered,
   registryAddr: string,
   ethereum: BaseProvider,
   merkleServiceURL?: string,
@@ -38,12 +41,12 @@ export async function getMerkleProof(
   }
 
   await switchChain(zkCert.registration.chainID, ethereum);
-  const provider = new BrowserProvider(ethereum);
-  const registry = new Contract(
-    registryAddr,
-    ['function merkleRoot() external view returns (bytes32)'],
-    provider,
-  );
+  const wc = await getWalletClient(ethereum);
+  const registry = getContract({
+    client: wc,
+    abi: kycRecordRegistryABI,
+    address: registryAddr as Address,
+  });
   const poseidon = await buildPoseidon();
 
   // make sure the MerkleProof format is correct until inconsistency is solved
@@ -67,7 +70,7 @@ export async function getMerkleProof(
   }
 
   if (
-    fromHexToDec(await registry.merkleRoot()) ===
+    fromHexToDec(await registry.read.merkleRoot()) ===
     getMerkleRootFromProof(zkCert.merkleProof, poseidon)
   ) {
     // The merkle root is the same as the one in the zkCert, so we can just use the old one

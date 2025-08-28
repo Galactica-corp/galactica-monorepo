@@ -11,7 +11,6 @@ import { expect } from 'chai';
 import type { Eddsa } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
 
-import zkCert from '../../../../test/zkCert.json';
 import dataExample from '../../example/arbitraryDataFields.json';
 import kycExample from '../../example/kycFields.json';
 import reyExample from '../../example/reyFields.json';
@@ -21,6 +20,7 @@ import {
   dateStringToUnixTimestamp,
   padZkCertForEncryption,
 } from '../../lib/zkCertificateDataProcessing';
+import { zkCert } from '../zkCert';
 
 describe('ZK Certificate Data Processing', () => {
   let eddsa: Eddsa;
@@ -181,7 +181,7 @@ describe('ZK Certificate Data Processing', () => {
     });
 
     it('should not change anything if not needed', () => {
-      const data = zkCert as ZkCertRegistered;
+      const data = zkCert;
       const padded = padZkCertForEncryption(data);
       expect(padded).to.deep.equal(data);
     });

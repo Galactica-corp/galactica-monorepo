@@ -45,7 +45,7 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
  * @returns The encrypted ZkCertRegistered as EthEncryptedData.
  */
 export function encryptZkCert(
-  zkCert: ZkCertRegistered<Record<string, unknown>>,
+  zkCert: ZkCertRegistered,
   pubKey: string,
   holderCommitment: string,
 ): EncryptedZkCert {
@@ -71,7 +71,7 @@ export function encryptZkCert(
 export function decryptMessageToObject(
   encryptedZkCert: EncryptedZkCert,
   privKey: string,
-): Record<string, unknown> {
+) {
   const decryptedMessage = decryptSafely({
     encryptedData: encryptedZkCert,
     privateKey: privKey,
@@ -79,7 +79,7 @@ export function decryptMessageToObject(
   // decryptSafely says it would return a string, but it actually returns what came out of JSON.parse().
   // (https://github.com/MetaMask/eth-sig-util/blob/10206bf2f16f0b47b1f2da9a9cfbb39c6a7a7800/src/encryption.ts#L234)
   // So we can cast it to ZkCertRegistered here.
-  const decrypted = decryptedMessage as unknown as Record<string, unknown>;
+  const decrypted = decryptedMessage as unknown as { zkCertStandard: string };
   return decrypted;
 }
 

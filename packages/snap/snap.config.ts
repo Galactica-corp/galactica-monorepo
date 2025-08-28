@@ -25,7 +25,7 @@ const config: SnapConfig = {
     return res;
   },
 
-  input: resolve(__dirname, 'src/index.ts'),
+  input: resolve(__dirname, 'src/index.tsx'),
   server: {
     port: 8080,
   },
