@@ -1,8 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type {
-  AnyZkCertContent,
-  EddsaPrivateKey,
-} from '@galactica-net/galactica-types';
+import type { EddsaPrivateKey } from '@galactica-net/galactica-types';
 import type { ZkCertRegistered } from '@galactica-net/snap-api';
 import type { MetaMaskInpageProvider } from '@metamask/providers';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
@@ -34,7 +31,7 @@ export type HolderData = {
  * Everything the snap needs to store about a zkCert.
  */
 export type ZkCertStorage = {
-  zkCert: ZkCertRegistered<AnyZkCertContent>;
+  zkCert: ZkCertRegistered;
   schema: AnySchema;
 };
 

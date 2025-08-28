@@ -2,7 +2,6 @@
 import {
   getContentSchema,
   parseContentJson,
-  type AnyZkCertContent,
   type EddsaPrivateKey,
   type KYCCertificateContent,
   type ProviderData,
@@ -179,7 +178,7 @@ export function parseZkCert(
     });
   }
 
-  return zkCert as ZkCertRegistered<AnyZkCertContent>;
+  return zkCert as ZkCertRegistered;
 }
 
 /**

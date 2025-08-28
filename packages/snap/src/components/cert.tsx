@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-jsdoc */
 import type { ZkCertRegistered } from '@galactica-net/galactica-types';
 import {
   Address,
@@ -54,7 +53,7 @@ export const Cert: SnapComponent<Props> = (props) => {
         {fields.map(([key, value]) => {
           return (
             <Row key={`${key}`} label={`${humanize(key)}`}>
-              <SnapText>{`${value || '-'}`}</SnapText>
+              <SnapText>{`${value ?? '-'}`}</SnapText>
             </Row>
           );
         })}

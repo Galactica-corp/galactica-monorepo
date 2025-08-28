@@ -664,6 +664,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 
 /**
  * Handle incoming user events coming from the MetaMask clients open interfaces.
+ *
  * @param params - The event parameters.
  * @param params.id - The Snap interface ID where the event was fired.
  * @param params.event - The event object containing the event type, name and value.
@@ -700,9 +701,8 @@ export const onUserInput: OnUserInputHandler = async (params) => {
     }
   }
 
-  if (!ui) {
-    ui = await defaultHandler();
-  }
+  ui ??= await defaultHandler();
+
   await snap.request({
     // @ts-ignore
     method: 'snap_updateInterface',

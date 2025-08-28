@@ -14,8 +14,8 @@ import type { Address } from 'viem';
 import { getContract } from 'viem';
 
 import { kycRecordRegistryABI } from './config/abi/kycRecordRegistry';
-import { fetchWithTimeout, switchChain } from './utils/utils';
 import { getWalletClient } from './utils/getWalletClient';
+import { fetchWithTimeout, switchChain } from './utils/utils';
 
 const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 
