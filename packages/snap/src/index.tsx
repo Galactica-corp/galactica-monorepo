@@ -26,7 +26,7 @@ import {
 } from '@metamask/snaps-sdk';
 import type { JSXElement } from '@metamask/snaps-sdk/jsx';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
-import { panel, text, heading, divider } from '@metamask/snaps-ui';
+import { panel, text, heading } from '@metamask/snaps-ui';
 import type { AnySchema } from 'ajv/dist/2020';
 import { basicURLParse } from 'whatwg-url';
 
@@ -234,15 +234,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
           `With this action you are importing your ${zkCert.zkCertStandard} in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
         ),
       ];
-      if (importParams.listZkCerts === true) {
-        prompt.push(
-          divider(),
-          text(
-            `The application also requests to get an overview of zkCertificates stored in your MetaMask.This overview does not contain personal information, only metadata(expiration date of the document, issue, and verification level).`,
-          ),
-        );
-      }
-
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
@@ -293,16 +284,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       });
       await saveState(snap, state);
 
-      if (importParams.listZkCerts === true) {
-        const filteredCerts = filterZkCerts(state.zkCerts, {
-          chainID: importParams.chainID,
-        });
-        return getZkCertStorageOverview(
-          filteredCerts.map((cert) => cert.zkCert),
-        );
-      }
-      response = { message: RpcResponseMsg.ZkCertImported };
-      return response;
+      return getZkCertStorageOverview([zkCert])[0];
     }
 
     case RpcMethods.ExportZkCert: {
@@ -386,30 +368,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
     case RpcMethods.ListZkCerts: {
       const listParams = request.params as ZkCertSelectionParams;
 
-      // This method returns a list of zkCertificate details so that a front-end can help the user to identify imported zkCerts and whether they are still valid.
-      // The data contains expiration date, issuer and verification level. We ask for confirmation to prevent tracking of users.
-      confirm = await snap.request({
-        method: 'snap_dialog',
-        params: {
-          type: 'confirmation',
-          content: panel([
-            heading(
-              'Provide the list of your zkCertificates to the application',
-            ),
-            text(
-              `The application "${stripURLProtocol(
-                origin,
-              )}" requests to get an overview of zkCertificates stored in your MetaMask.This overview does not contain personal information, only metadata(expiration date of the document, issue, and verification level).`,
-            ),
-          ]),
-        },
-      });
-      if (!confirm) {
-        throw new GenericError({
-          name: 'RejectedConfirm',
-          message: RpcResponseErr.RejectedConfirm,
-        });
-      }
       const filteredCerts = filterZkCerts(state.zkCerts, listParams);
       return getZkCertStorageOverview(
         filteredCerts.map((zkCert) => zkCert.zkCert),
