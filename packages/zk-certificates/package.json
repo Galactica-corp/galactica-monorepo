@@ -65,6 +65,7 @@
     "@types/circomlibjs": "^0.1.6",
     "@types/download": "^8.0.5",
     "@types/mocha": "^9.1.1",
+    "@types/object-hash": "^3.0.6",
     "camelcase": "^6.3.0",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
