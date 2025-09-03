@@ -31,9 +31,11 @@ export type ProverLink = {
 
 export type ZkCertProof = {
   proof: {
+    /* eslint-disable @typescript-eslint/naming-convention */
     pi_a: [string, string];
     pi_b: [[string, string], [string, string]];
     pi_c: [string, string];
+    /* eslint-enable @typescript-eslint/naming-convention */
     protocol: string;
     curve: string;
   };
@@ -146,6 +148,7 @@ export async function generateProof(
 
   const processedProver = await preprocessProver(prover);
 
+  // fullProveMemory exists in the snarkjs version used
   const { proof, publicSignals } = await groth16.fullProveMemory(
     inputs,
     processedProver.wasm,
@@ -190,36 +193,44 @@ export async function generateZkCertProof(
  * and preprocessed ProverData object.
  */
 async function preprocessProver(prover: ProverData): Promise<ProverData> {
-  prover.wasm = Uint8Array.from(Buffer.from(prover.wasm, 'base64'));
-  prover.zkeyHeader.q = BigInt(prover.zkeyHeader.q);
-  prover.zkeyHeader.r = BigInt(prover.zkeyHeader.r);
-  for (let i = 0; i < prover.zkeySections.length; i++) {
-    prover.zkeySections[i] = Uint8Array.from(
-      Buffer.from(prover.zkeySections[i], 'base64'),
-    );
-  }
-  prover.zkeyHeader.vk_alpha_1 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_alpha_1, 'base64'),
-  );
-  prover.zkeyHeader.vk_beta_1 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_beta_1, 'base64'),
-  );
-  prover.zkeyHeader.vk_beta_2 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_beta_2, 'base64'),
-  );
-  prover.zkeyHeader.vk_gamma_2 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_gamma_2, 'base64'),
-  );
-  prover.zkeyHeader.vk_delta_1 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_delta_1, 'base64'),
-  );
-  prover.zkeyHeader.vk_delta_2 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_delta_2, 'base64'),
-  );
-  prover.zkeyHeader.curve = await getCurveForSnarkJS(
-    prover.zkeyHeader.curveName,
-  );
-  return prover;
+  // Store the curve before creating the object to avoid race condition
+  const curve = await getCurveForSnarkJS(prover.zkeyHeader.curveName);
+  
+  // Create a new object to avoid mutating the input
+  const processedProver: ProverData = {
+    wasm: Uint8Array.from(Buffer.from(prover.wasm, 'base64')),
+    zkeyHeader: {
+      ...prover.zkeyHeader,
+      q: BigInt(prover.zkeyHeader.q),
+      r: BigInt(prover.zkeyHeader.r),
+      /* eslint-disable @typescript-eslint/naming-convention */
+      vk_alpha_1: Uint8Array.from(
+        Buffer.from(prover.zkeyHeader.vk_alpha_1, 'base64'),
+      ),
+      vk_beta_1: Uint8Array.from(
+        Buffer.from(prover.zkeyHeader.vk_beta_1, 'base64'),
+      ),
+      vk_beta_2: Uint8Array.from(
+        Buffer.from(prover.zkeyHeader.vk_beta_2, 'base64'),
+      ),
+      vk_gamma_2: Uint8Array.from(
+        Buffer.from(prover.zkeyHeader.vk_gamma_2, 'base64'),
+      ),
+      vk_delta_1: Uint8Array.from(
+        Buffer.from(prover.zkeyHeader.vk_delta_1, 'base64'),
+      ),
+      vk_delta_2: Uint8Array.from(
+        Buffer.from(prover.zkeyHeader.vk_delta_2, 'base64'),
+      ),
+      /* eslint-enable @typescript-eslint/naming-convention */
+      curve,
+    },
+    zkeySections: prover.zkeySections.map(section =>
+      Uint8Array.from(Buffer.from(section, 'base64'))
+    ),
+  };
+  
+  return processedProver;
 }
 
 /**
