@@ -5499,7 +5499,7 @@ __metadata:
     hardhat-circom: "git+https://github.com/Galactica-corp/hardhat-circom.git#dd6ffd249cb174e504e3cbfb127503c6ef9155cc"
     hardhat-gas-reporter: ^2.3.0
     keccak256: ^1.0.6
-    snarkjs: ^0.7.5
+    snarkjs: "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
     solidity-coverage: ^0.8.16
     temporal-polyfill: ^0.3.0
     ts-node: ^10.9.2
