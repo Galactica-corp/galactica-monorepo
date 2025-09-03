@@ -47,10 +47,11 @@ export type ZkKYCProofInput = {
   dAppAddress: string;
 };
 
-/**
- * Union of any ZkCertInputType.
- */
-export type ZkCertInputType =
+// Re-export ZkCertInputType from zk-certificates to avoid circular dependency
+export type { ZkCertInputType } from '@galactica-net/zk-certificates';
+
+// Keep the specific input types here for backward compatibility
+export type SpecificZkCertInputType =
   | ZkKYCProofInput
   | ZkKYCAgeProofInput
   | ZkKYCAgeCitizenshipProofInput

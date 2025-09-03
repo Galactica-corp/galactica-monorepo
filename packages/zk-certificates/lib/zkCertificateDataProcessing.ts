@@ -23,7 +23,7 @@ import { hashStringToFieldNumber } from './helpers';
  */
 export function prepareContentForCircuit(
   eddsa: Eddsa,
-  contentData: Record<string, unknown>,
+  contentData: any,
   contentSchema: AnySchema,
 ): Record<string, FieldElement> {
   const contentFields: Record<string, FieldElement> = {};
