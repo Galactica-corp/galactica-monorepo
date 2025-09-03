@@ -149,6 +149,7 @@ export async function generateProof(
   const processedProver = await preprocessProver(prover);
 
   // fullProveMemory exists in the snarkjs version used
+  // eslint-disable-next-line import-x/namespace
   const { proof, publicSignals } = await groth16.fullProveMemory(
     inputs,
     processedProver.wasm,
@@ -195,7 +196,7 @@ export async function generateZkCertProof(
 async function preprocessProver(prover: ProverData): Promise<ProverData> {
   // Store the curve before creating the object to avoid race condition
   const curve = await getCurveForSnarkJS(prover.zkeyHeader.curveName);
-  
+
   // Create a new object to avoid mutating the input
   const processedProver: ProverData = {
     wasm: Uint8Array.from(Buffer.from(prover.wasm, 'base64')),
@@ -225,11 +226,11 @@ async function preprocessProver(prover: ProverData): Promise<ProverData> {
       /* eslint-enable @typescript-eslint/naming-convention */
       curve,
     },
-    zkeySections: prover.zkeySections.map(section =>
-      Uint8Array.from(Buffer.from(section, 'base64'))
+    zkeySections: prover.zkeySections.map((section) =>
+      Uint8Array.from(Buffer.from(section, 'base64')),
     ),
   };
-  
+
   return processedProver;
 }
 
