@@ -20,6 +20,9 @@ import type { Poseidon } from '@galactica-net/zk-certificates';
 import {
   fromDecToHex,
   getMerkleRootFromProof,
+  subPathWasm,
+  subPathZkeyHeader,
+  subPathZkeySections,
 } from '@galactica-net/zk-certificates';
 import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import type { Json } from '@metamask/snaps-types';
@@ -55,11 +58,6 @@ import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMock
 import exclusion3VKey from '../../galactica-dapp/public/provers/exclusion3.vkey.json';
 import { processRpcRequest } from '../src';
 import { encryptZkCert } from '../src/encryption';
-import {
-  subPathWasm,
-  subPathZkeyHeader,
-  subPathZkeySections,
-} from '../src/proofGenerator';
 import { CURRENT_STORAGE_LAYOUT_VERSION } from '../src/stateManagement';
 import type { RpcArgs, ZkCertStorage } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
