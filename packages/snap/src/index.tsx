@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // SPDX-License-Identifier: BUSL-1.1
-import type { HolderCommitmentData } from '@galactica-net/galactica-types';
+import type {
+  HolderCommitmentData,
+  ZkCertRegistered,
+} from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
   ImportZkCertParams,
@@ -57,6 +60,7 @@ import { deleteCertHandler } from './uiHandlers/deleteCertHandler';
 import { deletePreviewCertHandler } from './uiHandlers/deletePreviewCertHandler';
 import { goToTabHandler } from './uiHandlers/goToTabHandler';
 import { viewCertHandler } from './uiHandlers/viewCertHandler';
+import { getGuardianInfo } from './utils/getGuardianInfo';
 import { stripURLProtocol } from './utils/utils';
 import {
   choseSchema,
@@ -278,8 +282,20 @@ export const processRpcRequest: SnapRpcProcessor = async (
         }
       }
 
+      const guardianInfo = await getGuardianInfo(zkCert);
+      if (!guardianInfo?.isWhitelisted) {
+        throw new Error(
+          'The issuer of the provided zkCertificate is not currently whitelisted',
+        );
+      }
+
+      const newCert: ZkCertRegistered = {
+        ...zkCert,
+        providerData: { ...zkCert.providerData, meta: guardianInfo?.data },
+      };
+
       state.zkCerts.push({
-        zkCert,
+        zkCert: newCert,
         schema,
       });
       await saveState(snap, state);
