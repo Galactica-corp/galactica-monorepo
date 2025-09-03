@@ -69,12 +69,16 @@ export async function generateProof(
  */
 async function preprocessProver(prover: ProverData): Promise<ProverData> {
   // Create a new object to avoid mutating the input
+  // Store the curve name before creating the object to avoid race condition
+  const curve = await getCurveForSnarkJS(prover.zkeyHeader.curveName);
+
   const processedProver: ProverData = {
     wasm: Uint8Array.from(Buffer.from(prover.wasm, 'base64')),
     zkeyHeader: {
       ...prover.zkeyHeader,
       q: BigInt(prover.zkeyHeader.q),
       r: BigInt(prover.zkeyHeader.r),
+      /* eslint-disable @typescript-eslint/naming-convention */
       vk_alpha_1: Uint8Array.from(
         Buffer.from(prover.zkeyHeader.vk_alpha_1, 'base64'),
       ),
@@ -93,7 +97,8 @@ async function preprocessProver(prover: ProverData): Promise<ProverData> {
       vk_delta_2: Uint8Array.from(
         Buffer.from(prover.zkeyHeader.vk_delta_2, 'base64'),
       ),
-      curve: await getCurveForSnarkJS(prover.zkeyHeader.curveName),
+      /* eslint-enable @typescript-eslint/naming-convention */
+      curve,
     },
     zkeySections: prover.zkeySections.map((section) =>
       Uint8Array.from(Buffer.from(section, 'base64')),
