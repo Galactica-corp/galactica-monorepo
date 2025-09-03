@@ -148,14 +148,15 @@ export async function generateProof(
 
   const processedProver = await preprocessProver(prover);
 
-  // fullProveMemory exists in the snarkjs version used
-  // eslint-disable-next-line import-x/namespace
+  // Use SES-compatible snarkjs fullProveMemory
+
   const { proof, publicSignals } = await groth16.fullProveMemory(
-    inputs,
     processedProver.wasm,
     processedProver.zkeyHeader,
     processedProver.zkeySections,
+    inputs,
   );
+
   return { proof, publicSignals };
 }
 
