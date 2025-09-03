@@ -5,14 +5,8 @@
 import type {
   EddsaPrivateKey,
   MerkleProof,
+  ZkCertStandard,
 } from '@galactica-net/galactica-types';
-import type {
-  GenZkProofParams,
-  ProverData,
-  ProverLink,
-  ZkCertInputType,
-  ZkCertProof,
-} from '@galactica-net/snap-api';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
 import { buildBls12381, buildBn128 } from 'ffjavascript';
@@ -22,6 +16,44 @@ import { groth16 } from 'snarkjs';
 import { getMerkleRootFromProof, prepareContentForCircuit } from '.';
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import type { ZkCertificate } from './zkCertificate';
+
+// Type definitions to avoid circular dependency with snap-api
+export type ProverData = {
+  wasm: any;
+  zkeyHeader: any;
+  zkeySections: any[];
+};
+
+export type ProverLink = {
+  url: string;
+  hash: string;
+};
+
+export type ZkCertProof = {
+  proof: {
+    pi_a: [string, string];
+    pi_b: [[string, string], [string, string]];
+    pi_c: [string, string];
+    protocol: string;
+    curve: string;
+  };
+  publicSignals: string[];
+};
+
+export type ZkCertInputType = Record<string, unknown>;
+
+export type GenZkProofParams<ProofInputType> = {
+  input: ProofInputType;
+  requirements: {
+    zkCertStandard: ZkCertStandard;
+    registryAddress: string;
+  };
+  prover: ProverData | ProverLink;
+  userAddress: string;
+  description: string;
+  publicInputDescriptions: string[];
+  zkInputRequiresPrivKey: boolean;
+};
 
 export type PreparedZkCertProofInputs = { inputs: Record<string, unknown> };
 
