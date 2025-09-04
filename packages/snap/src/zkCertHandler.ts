@@ -3,14 +3,13 @@ import {
   getContentSchema,
   parseContentJson,
   type EddsaPrivateKey,
-  type KYCCertificateContent,
   type ProviderData,
   type ZkCertRegistration,
   KnownZkCertStandard,
-  type ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import type {
   ZkCertRegistered,
+  ZkCertStandard,
   ZkCertStorageHashes,
 } from '@galactica-net/snap-api';
 import { ImportZkCertError } from '@galactica-net/snap-api';
@@ -32,6 +31,10 @@ export async function calculateHolderCommitment(
   return createHolderCommitment(await buildEddsa(), holderEddsaKey);
 }
 
+type SharedZkCert = {
+  standard: KnownZkCertStandard;
+  expirationDate: number;
+};
 /**
  * Provides an overview of the zkCert storage. This data can be queried by front-ends.
  * The data shared here must not reveal any private information or possibility to track users).
@@ -40,26 +43,13 @@ export async function calculateHolderCommitment(
  * @returns ZkCerts metadata listed for each zkCertStandard.
  */
 export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
-  const sharedZkCerts: any = {};
-  for (const zkCert of zkCertStorage) {
-    if (sharedZkCerts[zkCert.zkCertStandard] === undefined) {
-      sharedZkCerts[zkCert.zkCertStandard] = [];
-    }
-
-    const disclosureData: any = {
-      providerPubKey: {
-        ax: zkCert.providerData.ax,
-        ay: zkCert.providerData.ay,
-      },
-      expirationDate: zkCert.expirationDate,
+  return zkCertStorage.map((zkCert) => {
+    const data: SharedZkCert = {
+      standard: zkCert.zkCertStandard as KnownZkCertStandard,
+      expirationDate: zkCert.expirationDate * 1000,
     };
-    if (zkCert.zkCertStandard === KnownZkCertStandard.ZkKYC) {
-      const content = zkCert.content as unknown as KYCCertificateContent;
-      disclosureData.verificationLevel = content.verificationLevel;
-    }
-    sharedZkCerts[zkCert.zkCertStandard].push(disclosureData);
-  }
-  return sharedZkCerts;
+    return data;
+  });
 }
 
 /**
