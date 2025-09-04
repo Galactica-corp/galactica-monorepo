@@ -151,10 +151,10 @@ export async function generateProof(
   // Use SES-compatible snarkjs fullProveMemory
 
   const { proof, publicSignals } = await groth16.fullProveMemory(
+    inputs,
     processedProver.wasm,
     processedProver.zkeyHeader,
     processedProver.zkeySections,
-    inputs,
   );
 
   return { proof, publicSignals };
