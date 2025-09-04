@@ -9,7 +9,6 @@ import type {
   ZkCertRegistered,
   ZkCertSelectionParams,
   ProverData,
-  ZkCertListItem,
 } from '@galactica-net/snap-api';
 import {
   RpcMethods,
@@ -22,7 +21,7 @@ import {
   fromDecToHex,
   getMerkleRootFromProof,
 } from '@galactica-net/zk-certificates';
-import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
+import { decryptSafely } from '@metamask/eth-sig-util';
 import type { Json } from '@metamask/snaps-types';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -38,7 +37,6 @@ import {
   defaultRPCRequest,
   merkleProofServiceURL,
   proverHash,
-  testEdDSAKey,
   testEntropyEncrypt,
   testEntropyHolder,
   testHolder,
@@ -63,7 +61,6 @@ import {
 } from '../src/proofGenerator';
 import { CURRENT_STORAGE_LAYOUT_VERSION } from '../src/stateManagement';
 import type { RpcArgs, ZkCertStorage } from '../src/types';
-import { calculateHolderCommitment } from '../src/zkCertHandler';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
