@@ -2,6 +2,7 @@ import type {
   ProviderMeta,
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
+import type { BaseProvider } from '@metamask/providers';
 import type { Address } from 'viem';
 import { getContract } from 'viem';
 
@@ -9,9 +10,12 @@ import { getWalletClient } from './getWalletClient';
 import { guardianRegistryABI } from '../config/abi/guardianRegistry';
 import { kycRecordRegistryABI } from '../config/abi/kycRecordRegistry';
 
-export const getGuardianInfo = async (cert: ZkCertRegistered) => {
+export const getGuardianInfo = async (
+  cert: ZkCertRegistered,
+  ethereum?: BaseProvider,
+) => {
   try {
-    const wc = await getWalletClient();
+    const wc = await getWalletClient(ethereum);
 
     const kycRecordRegistryContract = getContract({
       client: wc,
