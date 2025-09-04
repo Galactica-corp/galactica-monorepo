@@ -5476,6 +5476,7 @@ __metadata:
     "@types/circomlibjs": ^0.1.6
     "@types/download": ^8.0.5
     "@types/mocha": ^9.1.1
+    "@types/object-hash": ^3.0.6
     ajv: ^8.17.1
     ajv-cli: ^5.0.0
     ajv-formats: ^3.0.1
@@ -5498,7 +5499,7 @@ __metadata:
     hardhat-circom: "git+https://github.com/Galactica-corp/hardhat-circom.git#dd6ffd249cb174e504e3cbfb127503c6ef9155cc"
     hardhat-gas-reporter: ^2.3.0
     keccak256: ^1.0.6
-    snarkjs: ^0.7.5
+    snarkjs: "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
     solidity-coverage: ^0.8.16
     temporal-polyfill: ^0.3.0
     ts-node: ^10.9.2

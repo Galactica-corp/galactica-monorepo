@@ -1,5 +1,8 @@
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // SPDX-License-Identifier: BUSL-1.1
-import type { MerkleProof } from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
   ProverData,
@@ -8,132 +11,10 @@ import type {
   ZkCertProof,
 } from '@galactica-net/snap-api';
 import { GenZKPError } from '@galactica-net/snap-api';
-import type { ZkCertificate } from '@galactica-net/zk-certificates';
-import {
-  formatPrivKeyForBabyJub,
-  getMerkleRootFromProof,
-  prepareContentForCircuit,
-} from '@galactica-net/zk-certificates';
 import { divider, heading, text } from '@metamask/snaps-ui';
-import { Buffer } from 'buffer';
-import { buildEddsa } from 'circomlibjs';
-import { buildBls12381, buildBn128 } from 'ffjavascript';
-import { MD5 } from 'object-hash';
-import { groth16 } from 'snarkjs';
 
-import type { HolderData, PanelContent } from './types';
+import type { PanelContent } from './types';
 import { stripURLProtocol } from './utils';
-
-/**
- * GenerateProof runs the low level groth16 proof generation.
- *
- * @param inputs - Input data containing signals for the proof generation.
- * @param proverOrLink - Prover data containing the wasm and zkey header and sections, or link to it.
- * @returns Generated ZkCert proof.
- */
-export const generateProof = async (
-  inputs: Record<string, unknown>,
-  proverOrLink: ProverData | ProverLink,
-): Promise<ZkCertProof> => {
-  // get prover data from params or fetch it from a URL
-  let prover: ProverData;
-  if ('wasm' in proverOrLink) {
-    prover = proverOrLink;
-  } else {
-    if (!('url' in proverOrLink)) {
-      throw new GenZKPError({
-        name: 'MissingInputParams',
-        message: `ProverLink does not contain a URL.`,
-      });
-    }
-    prover = await fetchProverData(proverOrLink);
-  }
-
-  const processedProver = await preprocessProver(prover);
-
-  try {
-    const { proof, publicSignals } = await groth16.fullProveMemory(
-      inputs,
-      processedProver.wasm,
-      processedProver.zkeyHeader,
-      processedProver.zkeySections,
-    );
-
-    // console.log('Calculated proof: ');
-    // console.log(JSON.stringify(proof, null, 1));
-
-    return { proof, publicSignals };
-  } catch (error) {
-    console.log('proof generation failed');
-    console.log(error.stack);
-    throw error;
-  }
-};
-
-/**
- * GenerateZkCertProof constructs and checks the zkCert proof.
- *
- * @param params - Parameters defining the proof to be generated.
- * @param zkCert - ZkCert to be used for the proof.
- * @param holder - Holder data needed to derive private proof inputs.
- * @param merkleProof - Merkle proof of the zkCert in the zkCert registry.
- * @returns Generated ZkCert proof.
- */
-export const generateZkCertProof = async (
-  params: GenZkProofParams<ZkCertInputType>,
-  zkCert: ZkCertificate<Record<string, unknown>>,
-  holder: HolderData,
-  merkleProof: MerkleProof,
-): Promise<ZkCertProof> => {
-  const authorizationProof = zkCert.getAuthorizationProofInput(
-    holder.eddsaKey,
-    params.userAddress,
-  );
-  const eddsa = await buildEddsa();
-  const merkleRoot = getMerkleRootFromProof(merkleProof, eddsa.poseidon);
-
-  const inputs: any = {
-    ...params.input,
-
-    ...prepareContentForCircuit(eddsa, zkCert.content, zkCert.contentSchema),
-    randomSalt: zkCert.randomSalt,
-    expirationDate: zkCert.expirationDate,
-
-    ...zkCert.getOwnershipProofInput(holder.eddsaKey),
-
-    userAddress: authorizationProof.userAddress,
-    s2: authorizationProof.s,
-    r8x2: authorizationProof.r8x,
-    r8y2: authorizationProof.r8y,
-
-    providerAx: zkCert.providerData.ax,
-    providerAy: zkCert.providerData.ay,
-    providerS: zkCert.providerData.s,
-    providerR8x: zkCert.providerData.r8x,
-    providerR8y: zkCert.providerData.r8y,
-
-    root: merkleRoot,
-    pathElements: merkleProof.pathElements,
-    leafIndex: merkleProof.leafIndex,
-  };
-
-  if (params.zkInputRequiresPrivKey) {
-    // Generate private key for sending encrypted messages to institutions
-    // It should be different if the ZKP is sent from another address
-    // Therefore generating it from the private holder eddsa key and the user address
-    const encryptionHashBase = eddsa.poseidon.F.toObject(
-      eddsa.poseidon([holder.eddsaKey, params.userAddress, zkCert.randomSalt]),
-    ).toString();
-    const encryptionPrivKey = formatPrivKeyForBabyJub(
-      encryptionHashBase,
-      eddsa,
-    ).toString();
-
-    inputs.userPrivKey = encryptionPrivKey;
-  }
-
-  return generateProof(inputs, params.prover);
-};
 
 /**
  * Generate proof confirmation prompt for the user.
@@ -193,75 +74,6 @@ export function createProofConfirmationPrompt(
 }
 
 /**
- * Prepares prover data from RPC request for snarkjs by converting it to the correct data types.
- * In the JSON message, arrays are base64 encoded.
- *
- * @param prover - ProverData.
- * @returns Prepared ProverData.
- */
-async function preprocessProver(prover: ProverData): Promise<ProverData> {
-  // Somehow we need to convert them to Uint8Array to avoid an error inside snarkjs.
-  prover.wasm = Uint8Array.from(Buffer.from(prover.wasm, 'base64'));
-
-  prover.zkeyHeader.q = BigInt(prover.zkeyHeader.q);
-  prover.zkeyHeader.r = BigInt(prover.zkeyHeader.r);
-  for (let i = 0; i < prover.zkeySections.length; i++) {
-    prover.zkeySections[i] = Uint8Array.from(
-      Buffer.from(prover.zkeySections[i], 'base64'),
-    );
-  }
-  prover.zkeyHeader.vk_alpha_1 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_alpha_1, 'base64'),
-  );
-  prover.zkeyHeader.vk_beta_1 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_beta_1, 'base64'),
-  );
-  prover.zkeyHeader.vk_beta_2 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_beta_2, 'base64'),
-  );
-  prover.zkeyHeader.vk_gamma_2 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_gamma_2, 'base64'),
-  );
-  prover.zkeyHeader.vk_delta_1 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_delta_1, 'base64'),
-  );
-  prover.zkeyHeader.vk_delta_2 = Uint8Array.from(
-    Buffer.from(prover.zkeyHeader.vk_delta_2, 'base64'),
-  );
-
-  /* eslint-disable-next-line require-atomic-updates */
-  prover.zkeyHeader.curve = await getCurveForSnarkJS(
-    prover.zkeyHeader.curveName,
-  );
-
-  return prover;
-}
-
-/**
- * Reconstruct curve from name for the snarkjs zkey header.
- *
- * @param name - Name of the curve used for the ZKP.
- * @returns Curve object.
- */
-async function getCurveForSnarkJS(name: string): Promise<any> {
-  let curve;
-  // normalize name
-  const validChars = name.toUpperCase().match(/[A-Za-z0-9]+/gu);
-  if (!validChars) {
-    throw new Error(`Invalid curve name '${name}'`);
-  }
-  const normalizedName = validChars.join('');
-  if (['BN128', 'BN254', 'ALTBN128'].includes(normalizedName)) {
-    curve = await buildBn128(true);
-  } else if (['BLS12381'].includes(normalizedName)) {
-    curve = await buildBls12381(true);
-  } else {
-    throw new Error(`Curve not supported: ${name}`);
-  }
-  return curve;
-}
-
-/**
  * Check validity of the ZKP generation request.
  *
  * @param params - Parameters defining the proof to be generated.
@@ -304,80 +116,4 @@ export function checkZkCertProofRequest(
       message: `Missing field 'zkInputRequiresPrivKey' in GenZkProofParams.`,
     });
   }
-}
-
-export const subPathWasm = 'wasm.json';
-export const subPathZkeyHeader = 'zkeyHeader.json';
-/**
- * Returns the sub path to the i-th zkey section.
- *
- * @param i - Index of the zkey section.
- * @returns Sub path to the i-th zkey section.
- */
-export function subPathZkeySections(i: number) {
-  return `zkeySections/${i}.json`;
-}
-
-/**
- * Fetches prover data from a URL. It collects all parts of the prover and verifies the hash for security.
- *
- * @param link - ProverLink containing the URL and hash of the prover data.
- * @returns ProverData.
- */
-async function fetchProverData(link: ProverLink): Promise<ProverData> {
-  /**
-   * Helper for fetch with error handling.
-   *
-   * @param url - URL to fetch from.
-   * @returns JSON object response.
-   */
-  async function fetchWithErrorHandling(url: string) {
-    const potentialError = new GenZKPError({
-      name: 'ProverFetchFailed',
-      message: `Failed to fetch prover data from ${url} .`,
-    });
-    let response: any;
-    try {
-      response = await fetch(url);
-    } catch {
-      throw potentialError;
-    }
-    if (!response.ok) {
-      throw potentialError;
-    }
-    try {
-      return await response.json();
-    } catch {
-      throw potentialError;
-    }
-  }
-
-  const wasm = await fetchWithErrorHandling(link.url + subPathWasm);
-  const zkeyHeader = await fetchWithErrorHandling(link.url + subPathZkeyHeader);
-
-  const zkSections = [];
-  for (let i = 0; i < zkeyHeader.sectionsLength; i++) {
-    const section = await fetchWithErrorHandling(
-      link.url + subPathZkeySections(i),
-    );
-    zkSections.push(section);
-  }
-
-  // delete sectionsLength parameter, because it is not included in the circom prover or hashing
-  delete zkeyHeader.sectionsLength;
-
-  const prover: ProverData = {
-    wasm,
-    zkeyHeader,
-    zkeySections: zkSections,
-  };
-
-  if (MD5(prover) !== link.hash) {
-    throw new GenZKPError({
-      name: 'MissingInputParams',
-      message: `Prover data hash does not match hash in ProverLink.`,
-    });
-  }
-
-  return prover;
 }

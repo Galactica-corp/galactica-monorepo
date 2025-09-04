@@ -17,6 +17,10 @@ import {
   GenericError,
   URLUpdateError,
 } from '@galactica-net/snap-api';
+import {
+  generateProof,
+  generateZkCertProof,
+} from '@galactica-net/zk-certificates';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text, heading, divider } from '@metamask/snaps-ui';
 import type { AnySchema } from 'ajv/dist/2020';
@@ -31,8 +35,6 @@ import { getMerkleProof } from './merkleProofSelection';
 import {
   checkZkCertProofRequest,
   createProofConfirmationPrompt,
-  generateProof,
-  generateZkCertProof,
 } from './proofGenerator';
 import {
   CURRENT_STORAGE_LAYOUT_VERSION,
@@ -121,7 +123,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const proof = await generateZkCertProof(
         genParams,
         zkCert,
-        holder,
+        holder.eddsaKey,
         merkleProof,
       );
 
