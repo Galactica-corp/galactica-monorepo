@@ -76,7 +76,7 @@ const KYCComplianceProofsModule = buildModule(
     const sanctionedCountriesHashes = [
       '1', // undefined
       ...Object.values(sanctionList.sanctionedCountries).filter(
-        (country: string) => country !== 'USA',
+        (country: string) => country !== sanctionList.sanctionedCountries.USA,
       ),
       ...Array(4).fill('0'), // placeholders to fill up to 20 total entries
     ];

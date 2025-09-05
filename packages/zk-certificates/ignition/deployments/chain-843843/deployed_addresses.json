@@ -6,7 +6,6 @@
   "InfrastructureModule#Institution1": "0xDDf7813E3549872FADa22B1b151A6D604F13eDB3",
   "InfrastructureModule#Institution2": "0x96b7b29a0E646693a6696468AEfB0BD2BCeba8BD",
   "InfrastructureModule#Institution3": "0xa52af85a8aE0296D7Bc9B300202a6bEBD96B4E3f",
-  "PoseidonModule#PoseidonT3": "0x4b7d37D0274b8840B324687901e5C26b0806A9d8",
   "RepeatableZKPTestModule#ZkKYCVerifier": "0x9D0c5e8aa073E5cf325e4C280b55cF431Bdc3ab0",
   "InfrastructureModule#ZkKYCRegistry": "0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE",
   "InfrastructureModule#HumanIDSaltRegistry": "0xDf9CD430d4f6566aEBA05B0A232506fED67E6a2F",
@@ -20,13 +19,10 @@
   "BasicKYCExampleModule#VerificationSBT": "0xdaE7B9F25e7F1ed2D875E93d1831582EeceBEDcc",
   "KYCComplianceProofsModule#AgeCitizenshipKYCVerifier": "0xFFf4e40d27150c54360370E37ba5955A00b0Ad82",
   "KYCComplianceProofsModule#Adult18PlusWrapper": "0x5155575CE18f16C72a398De63Ab345F908777368",
-  "KYCComplianceProofsModule#NonSanctionedWrapper": "0x9e7E057CB5b22604b040eb9C739Bd9A1aA226593",
   "KYCComplianceProofsModule#NonUSWrapper": "0xebBa39b0C583E28d131207b764acFF5461549E3F",
   "KYCComplianceProofsModule#Age18ProverDApp": "0x641e8CA3dD1966a90C35C4fd12dAf777a65BA95F",
-  "KYCComplianceProofsModule#NonSanctionedProverDApp": "0xA10F4f2e6e881B876dF5cAfEF754F42d81606656",
   "KYCComplianceProofsModule#NonUSProverDApp": "0x8e0E26BfaB75883e3E13017eB290E880B6fb184f",
   "KYCComplianceProofsModule#Adult18PlusSBT": "0xc9764cb8BD8aFe6c726B7AeDf66Ea6fE4EC0b83b",
-  "KYCComplianceProofsModule#NonSanctionedSBT": "0x8e57865f95BDa14bF13C1EA125caB61b5fBfc97C",
   "KYCComplianceProofsModule#NonUSSBT": "0xdfABBaCf35128De7977B273B2C1FcF1546947368",
   "Gip3ZkCertRegistryModule#GuardianRegistry": "0x975F1AeAD40A5e5BA646507FE221CB3E294720a3",
   "TwitterProofsModule#SBTManager": "0x0fB567269BA3eff032B01129772b653Cd2103116",
@@ -53,5 +49,8 @@
   "KYCRequirementsDemoModule#AgeCitizenshipKYCVerifier": "0x4797Ecec1aE7E5F53CaFCD09120450E817073ca2",
   "KYCRequirementsDemoModule#AgeCitizenshipKYC": "0x418739b680dC0962c4Cfe77347432aa12f2d4E87",
   "KYCRequirementsDemoModule#KYCRequirementsDemoDApp": "0x7B16Ea0b003C119B49707c8d1A6F0961ea28fF8D",
-  "KYCRequirementsDemoModule#VerificationSBT": "0xdf9bDf7227636048B19A6fcdD4E9878cc1D724D2"
+  "KYCRequirementsDemoModule#VerificationSBT": "0xdf9bDf7227636048B19A6fcdD4E9878cc1D724D2",
+  "KYCComplianceProofsModule#NonSanctionedWrapper": "0x173646C07c3507534896EEe5a7ef96400Ad904aa",
+  "KYCComplianceProofsModule#NonSanctionedProverDApp": "0xa680fb1e1c60Ffa6bABF9FBd936bE647671F951E",
+  "KYCComplianceProofsModule#NonSanctionedSBT": "0x95Bf56Ca792c901F3529aFeb8b7673B472C4D0B1"
 }
