@@ -1,0 +1,40 @@
+{
+  "name": "@galactica-net/cross-chain-replication",
+  "version": "1.0.0",
+  "description": "Cross-Chain State Replication for Galactica Network",
+  "homepage": "https://galactica.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Galactica-corp/galactica-monorepo.git"
+  },
+  "scripts": {
+    "build": "yarn hardhat compile",
+    "test": "yarn hardhat test",
+    "deploy": "yarn hardhat ignition deploy"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": "Galactica Network",
+  "packageManager": "yarn@3.2.1",
+  "type": "module",
+  "dependencies": {
+    "@galactica-net/zk-certificates": "workspace:^",
+    "@openzeppelin/contracts": "^5.3.0",
+    "@openzeppelin/contracts-upgradeable": "^5.3.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.2",
+    "@nomicfoundation/hardhat-ignition-viem": "^3.0.2",
+    "@nomicfoundation/hardhat-keystore": "^3.0.1",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.0",
+    "@nomicfoundation/hardhat-node-test-runner": "^3.0.2",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
+    "@nomicfoundation/hardhat-verify": "^3.0.1",
+    "@nomicfoundation/hardhat-viem": "^3.0.0",
+    "@nomicfoundation/hardhat-viem-assertions": "^3.0.1",
+    "@types/node": "^22.8.5",
+    "forge-std": "foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.0.0",
+    "typescript": "~5.8.0",
+    "viem": "^2.30.0"
+  }
+}
