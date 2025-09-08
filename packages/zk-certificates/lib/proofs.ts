@@ -4,7 +4,9 @@
 
 import type {
   EddsaPrivateKey,
+  FieldElement,
   MerkleProof,
+  OwnershipProofInput,
   ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import { Buffer } from 'buffer';
@@ -42,8 +44,6 @@ export type ZkCertProof = {
   publicSignals: string[];
 };
 
-export type ZkCertInputType = Record<string, unknown>;
-
 export type GenZkProofParams<ProofInputType> = {
   input: ProofInputType;
   requirements: {
@@ -57,7 +57,28 @@ export type GenZkProofParams<ProofInputType> = {
   zkInputRequiresPrivKey: boolean;
 };
 
-export type PreparedZkCertProofInputs = { inputs: Record<string, unknown> };
+export type PreparedZkCertProofInputs<
+  Params extends Record<string, FieldElement | FieldElement[]>,
+  Content extends Record<string, unknown>,
+> = Params &
+  Record<keyof Content, FieldElement> &
+  OwnershipProofInput & {
+    expirationDate: number;
+    leafIndex: number;
+    pathElements: string[];
+    providerAx: string;
+    providerAy: string;
+    providerR8x: string;
+    providerR8y: string;
+    providerS: string;
+    r8x2: string;
+    r8y2: string;
+    randomSalt: string;
+    root: string;
+    s2: string;
+    userAddress: string;
+    userPrivKey?: string;
+  };
 
 /**
  * Prepares the input object required to generate a zero-knowledge certificate proof.
@@ -68,12 +89,15 @@ export type PreparedZkCertProofInputs = { inputs: Record<string, unknown> };
  * @param merkleProof - The Merkle proof containing the path elements and leaf index for verification of data integrity within a Merkle tree.
  * @returns A promise resolving to an object containing the prepared proof inputs required for ZK proof generation.
  */
-export async function prepareZkCertProofInputs(
-  params: GenZkProofParams<ZkCertInputType>,
-  zkCert: ZkCertificate<Record<string, unknown>>,
+export async function prepareZkCertProofInputs<
+  Params extends Record<string, FieldElement | FieldElement[]>,
+  Content extends Record<string, unknown>,
+>(
+  params: GenZkProofParams<Params>,
+  zkCert: ZkCertificate<Content>,
   holderEddsaKey: EddsaPrivateKey,
   merkleProof: MerkleProof,
-): Promise<PreparedZkCertProofInputs> {
+): Promise<PreparedZkCertProofInputs<Params, Content>> {
   const authorizationProof = zkCert.getAuthorizationProofInput(
     holderEddsaKey,
     params.userAddress,
@@ -81,7 +105,23 @@ export async function prepareZkCertProofInputs(
   const eddsa = await buildEddsa();
   const merkleRoot = getMerkleRootFromProof(merkleProof, eddsa.poseidon);
 
-  const inputs: any = {
+  let userPrivateKey: string | undefined;
+  if (params.zkInputRequiresPrivKey) {
+    const encryptionHashBase = eddsa.poseidon.F.toObject(
+      eddsa.poseidon([
+        new Uint8Array(holderEddsaKey),
+        params.userAddress,
+        zkCert.randomSalt,
+      ]),
+    ).toString();
+
+    userPrivateKey = formatPrivKeyForBabyJub(
+      encryptionHashBase,
+      eddsa,
+    ).toString();
+  }
+
+  return {
     ...params.input,
 
     ...prepareContentForCircuit(eddsa, zkCert.content, zkCert.contentSchema),
@@ -104,24 +144,9 @@ export async function prepareZkCertProofInputs(
     root: merkleRoot,
     pathElements: merkleProof.pathElements,
     leafIndex: merkleProof.leafIndex,
+
+    userPrivKey: userPrivateKey,
   };
-
-  if (params.zkInputRequiresPrivKey) {
-    const encryptionHashBase = eddsa.poseidon.F.toObject(
-      eddsa.poseidon([
-        new Uint8Array(holderEddsaKey),
-        params.userAddress,
-        zkCert.randomSalt,
-      ]),
-    ).toString();
-
-    inputs.userPrivKey = formatPrivKeyForBabyJub(
-      encryptionHashBase,
-      eddsa,
-    ).toString();
-  }
-
-  return { inputs };
 }
 
 /**
@@ -131,8 +156,11 @@ export async function prepareZkCertProofInputs(
  * @param proverOrLink - The prover data or a link to fetch the prover data.
  * @returns A promise that resolves to the generated proof and public signals.
  */
-export async function generateProof(
-  inputs: Record<string, unknown>,
+export async function generateProof<
+  Params extends Record<string, FieldElement | FieldElement[]>,
+  Content extends Record<string, unknown>,
+>(
+  inputs: PreparedZkCertProofInputs<Params, Content>,
   proverOrLink: ProverData | ProverLink,
 ): Promise<ZkCertProof> {
   let prover: ProverData;
@@ -169,18 +197,22 @@ export async function generateProof(
  * @param merkleProof - The Merkle proof associated with the zero-knowledge certificate to verify its validity.
  * @returns A promise that resolves to the generated zero-knowledge certificate proof.
  */
-export async function generateZkCertProof(
-  params: GenZkProofParams<ZkCertInputType>,
-  zkCert: ZkCertificate<Record<string, unknown>>,
+export async function generateZkCertProof<
+  Params extends Record<string, FieldElement | FieldElement[]>,
+  Content extends Record<string, unknown>,
+>(
+  params: GenZkProofParams<Params>,
+  zkCert: ZkCertificate<Content>,
   holderEddsaKey: EddsaPrivateKey,
   merkleProof: MerkleProof,
 ): Promise<ZkCertProof> {
-  const { inputs } = await prepareZkCertProofInputs(
+  const inputs = await prepareZkCertProofInputs(
     params,
     zkCert,
     holderEddsaKey,
     merkleProof,
   );
+
   return generateProof(inputs, params.prover);
 }
 
@@ -199,7 +231,7 @@ async function preprocessProver(prover: ProverData): Promise<ProverData> {
   const curve = await getCurveForSnarkJS(prover.zkeyHeader.curveName);
 
   // Create a new object to avoid mutating the input
-  const processedProver: ProverData = {
+  return {
     wasm: Uint8Array.from(Buffer.from(prover.wasm, 'base64')),
     zkeyHeader: {
       ...prover.zkeyHeader,
@@ -231,8 +263,6 @@ async function preprocessProver(prover: ProverData): Promise<ProverData> {
       Uint8Array.from(Buffer.from(section, 'base64')),
     ),
   };
-
-  return processedProver;
 }
 
 /**

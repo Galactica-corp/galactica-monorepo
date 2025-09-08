@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import type { FieldElement } from '@galactica-net/galactica-types';
+import type { PreparedZkCertProofInputs } from '@galactica-net/zk-certificates';
+
 import { RpcMethods } from './rpcEnums';
 import type { ProverData, ProverLink, ZkCertProof } from './types';
 import { sdkConfig } from '../config';
@@ -8,7 +15,10 @@ import { invokeSnap } from '../utils/invoke-snap';
  */
 export type BenchmarkZKPGenParams = {
   // Input for the ZKP generation.
-  input: Record<string, unknown>;
+  input: PreparedZkCertProofInputs<
+    Record<string, FieldElement | FieldElement[]>,
+    Record<string, unknown>
+  >;
 
   // Prover to generate the ZKP.
   prover: ProverData | ProverLink;

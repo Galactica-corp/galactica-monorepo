@@ -1,4 +1,6 @@
-/* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
 import type {
   FieldElement,
   ZkCertRegistered,
@@ -21,15 +23,17 @@ import { hashStringToFieldNumber } from './helpers';
  * @returns Object with the ZkCert content how it can be passed to the ZK circuit.
  * @throws Error if any of the required fields is missing.
  */
-export function prepareContentForCircuit(
+export function prepareContentForCircuit<
+  Content extends Record<string, unknown>,
+>(
   eddsa: Eddsa,
-  contentData: any,
+  contentData: Content,
   contentSchema: AnySchema,
-): Record<string, FieldElement> {
+): Record<keyof Content, FieldElement> {
   const contentFields: Record<string, FieldElement> = {};
 
   let schemaProperties: Record<string, Record<string, unknown>> = {};
-  let zkCertificateContentFields: string[] = [];
+  let zkCertificateContentFields: string[];
   if (
     typeof contentSchema === 'object' &&
     contentSchema !== null &&
@@ -144,7 +148,7 @@ export function prepareContentForCircuit(
     contentFields[field] = resValue;
   }
 
-  return contentFields;
+  return contentFields as Record<keyof Content, FieldElement>;
 }
 
 /**
@@ -204,7 +208,7 @@ export function hashZkCertificateContent(
  * @param data - ZkCert to pad.
  * @returns Encrypted zkCert.
  */
-export function padZkCertForEncryption<Content = any>(
+export function padZkCertForEncryption<Content extends Record<string, unknown>>(
   data: ZkCertRegistered<Content>,
 ): ZkCertRegistered<Content> {
   const dataWithPadding = {
