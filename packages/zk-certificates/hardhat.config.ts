@@ -248,6 +248,7 @@ const config: HardhatUserConfig = {
 /**
  * Gets the accounts for operation from the environment variables.
  * If they are not present, it will use random private keys (for example on the GitHub pipeline).
+ *
  * @returns Array of private keys.
  */
 function getAccounts(): string[] {

@@ -7,6 +7,7 @@ import type { IVerificationSBT } from '../typechain-types/contracts/interfaces/I
 /**
  * Finds verification SBTs for a user. Searches through logs of created verificationSBTs
  * and filters according to the userAddr, dAppAddr, and humanID provided.
+ *
  * @param sbtContractAddrs - List of addresses of the verification SBTs contract holding completed verifications.
  * @param userAddr - Address of the user to find verification SBTs for (default: undefined).
  * @param humanID - HumanID of the user the SBT was created for (default: undefined).

@@ -141,6 +141,7 @@ export class MimcEncrypt {
 
 /**
  * Build a mimc sponge instance.
+ *
  * @returns Promise of a mimc sponge instance.
  */
 export async function buildMimcSponge() {

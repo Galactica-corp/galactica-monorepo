@@ -9,6 +9,7 @@ subtask(
 
 /**
  * Overwrite the default circomTemplate task to change the destination path of Verifier contracts.
+ *
  * @param args - Task arguments.
  * @param hre - Hardhat runtime environment.
  * @param runSuper - Super function provided by snarkjs.

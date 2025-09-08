@@ -1,6 +1,5 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
-import { Buffer } from 'buffer';
 import chai from 'chai';
 import type { TransactionResponse } from 'ethers';
 import hre, { ethers } from 'hardhat';
@@ -50,9 +49,7 @@ describe('AirdropGateway', () => {
     mockGalacticaInstitutions = [];
     for (let i = 0; i < amountInstitutions; i++) {
       mockGalacticaInstitutions.push(
-        (await ethers.deployContract(
-          'MockGalacticaInstitution',
-        )) as MockGalacticaInstitution,
+        await ethers.deployContract('MockGalacticaInstitution'),
       );
     }
 
@@ -66,7 +63,7 @@ describe('AirdropGateway', () => {
       (await hre.ethers.provider.getBlock('latest'))?.timestamp ?? 0;
     amountPerEpoch = ethers.parseEther('1');
 
-    faucet = (await ethers.deployContract('Faucet', [
+    faucet = await ethers.deployContract('Faucet', [
       deployer.address,
       epochDuration,
       epochStartTime,
@@ -75,12 +72,12 @@ describe('AirdropGateway', () => {
       'test URI',
       'VerificationSBT',
       'VerificationSBT',
-    ])) as Faucet;
+    ]);
 
-    verificationSBT = (await ethers.getContractAt(
+    verificationSBT = await ethers.getContractAt(
       'VerificationSBT',
       await faucet.sbt(),
-    )) as VerificationSBT;
+    );
 
     // make zkKYC record for airdropGateway
     zkKYC = await generateSampleZkKYC();

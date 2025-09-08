@@ -1,4 +1,7 @@
-import { ZkCertStandard } from '@galactica-net/galactica-types';
+import {
+  getContentSchema,
+  KnownZkCertStandard,
+} from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
   ProverData,
@@ -7,12 +10,14 @@ import type {
 } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
-import hash from 'object-hash';
+import { MD5 } from 'object-hash';
 
+import zkCert from '../../../test/zkCert.json';
+import zkCert2 from '../../../test/zkCert2.json';
 import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
 import exclusionProver from '../../galactica-dapp/public/provers/exclusion3.json';
 import exclusionInput from '../../zk-certificates/circuits/input/exclusion3.json';
-import type { RpcArgs } from '../src/types';
+import type { RpcArgs, ZkCertStorage } from '../src/types';
 
 // Tell JSON how to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -66,8 +71,8 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
     countryExclusionList: [],
   },
   requirements: {
-    zkCertStandard: ZkCertStandard.ZkKYC,
-    registryAddress: '0x0276a85D8B63f0e66081c9749fdfB1547C2672Ed',
+    zkCertStandard: KnownZkCertStandard.ZkKYC,
+    registryAddress: '0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE',
   },
   prover,
   userAddress: testAddress,
@@ -115,4 +120,14 @@ export const merkleProofServiceURL =
 
 export const testProverURL =
   'https://prover.galactica.com/v1/galactica/exampleMockDApp/';
-export const proverHash = hash.MD5(testZkpParams.prover);
+export const proverHash = MD5(testZkpParams.prover);
+
+export const zkCertStorage: ZkCertStorage = {
+  zkCert,
+  schema: getContentSchema(KnownZkCertStandard.ZkKYC),
+};
+
+export const zkCertStorage2: ZkCertStorage = {
+  zkCert: zkCert2,
+  schema: getContentSchema(KnownZkCertStandard.ZkKYC),
+};

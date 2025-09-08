@@ -19,7 +19,7 @@ export class SBT {
     public userPubKey: string[2],
     public humanID: string,
     public providerPubKey: string[2],
-  ) {} // eslint-disable-line no-empty-function
+  ) {}
 }
 
 /**
@@ -45,6 +45,7 @@ export class SBTsPerAddress {
 
 /**
  * Finds verification SBT of a user.
+ *
  * @param sbtContractAddr - Address of the verification SBT contract holding the mapping of completed verifications.
  * @param provider - Provider to use to query logs.
  * @param userAddr - Address of the user to find verification SBTs for.
@@ -85,6 +86,13 @@ export async function queryVerificationSBT(
   );
 }
 
+/**
+ * Shows verification SBTs for a user.
+ *
+ * @param sbtIssuingContracts - List of addresses of the SBT issuing contracts.
+ * @param zkKYCRegistryAddr - Address of the KYC registry contract.
+ * @returns List of SBTs and a map of provider pubKey to name.
+ */
 export async function showVerificationSBTs(
   sbtIssuingContracts: string[],
   zkKYCRegistryAddr: string,
@@ -127,6 +135,13 @@ export async function showVerificationSBTs(
   return { sbts, guardianNameMap };
 }
 
+/**
+ * Formats verification SBTs for display.
+ *
+ * @param sbts - List of SBTs to format.
+ * @param providerNameMap - Map of provider pubKey to name.
+ * @returns Formatted string of SBTs.
+ */
 export function formatVerificationSBTs(
   sbts: SBT[],
   providerNameMap: Map<string[2], string>,
@@ -139,12 +154,12 @@ export function formatVerificationSBTs(
     res += `  expiration ${new Date(
       sbt.expirationTime * 1000,
     ).toDateString()}\n`;
-    /* eslint-disable @typescript-eslint/restrict-template-expressions */
+
     res += `  humanID ${sbt.humanID}\n`;
     res += `  provider ${JSON.stringify(
       providerNameMap.get(sbt.providerPubKey),
     )}\n`;
-    /* eslint-enable @typescript-eslint/restrict-template-expressions */
+
     res += `\n`;
 
     count += 1;
@@ -154,6 +169,7 @@ export function formatVerificationSBTs(
 
 /**
  * Query guardian name string from on-chain registry for being able to display a nice name.
+ *
  * @param pubKey - PubKey of the guardian pubKey in form [Ax, Ay].
  * @param registryAddr - Address of the registry contract where the zkCert is registered.
  * @param provider - Ethereum provider to use to query the registry.
@@ -185,6 +201,7 @@ export async function getGuardianName(
 
 /**
  * Constructs a map of guardian pubKey->name for a list of SBTs.
+ *
  * @param sbts - List of SBTs to get the guardian name for.
  * @param registryAddr - Address of the registry contract where the zkCert is registered.
  * @param provider - Ethereum provider to use to query the registry.

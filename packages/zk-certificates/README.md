@@ -86,13 +86,15 @@ yarn hardhat ignition deploy ignition/modules/CompleteTestSetup.m.ts --network c
 yarn hardhat ignition deploy ignition/modules/TwitterProofs.m.ts --network cassiopeia
 ```
 
+You can find the deployed addresses in the output and in `ignition/deployments/chain-id/deployed_addresses.json`.
+
 ## Create and issue zkCertificates
 
 First collect the certificate data and holder commitment from the user. For example as in [the zkKYC example](example/kycFields.json).
 Then you can sign it using the following hardhat task (replace holder commitment and file)
 
 ```shell
-yarn hardhat createZkCertificate --holder-file example/holderCommitment.json --kyc-data-file example/test.json --registry-address 0xD95efF72F06079DEcE33b18B165fc3A7a4bdc1fD --expiration-date 2344658820 --network reticulum
+yarn hardhat createZkCertificate --holder-file example/holderCommitment.json --zk-certificate-type zkKYC --data-file example/kycFields.json --registry-address 0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE --expiration-date 2344658820 --network cassiopeia
 ```
 
 The task issues the resulting zkCert on-chain and provides a merkle proof for it.

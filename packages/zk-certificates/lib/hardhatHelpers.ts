@@ -6,6 +6,7 @@ import type { FactoryOptions } from 'hardhat/types';
 
 /**
  * Helper function to deploy a smart contract and verify it on the block explorer.
+ *
  * @param name - Name of the smart contract.
  * @param verify - Whether to verify the contract on the block explorer.
  * @param signerOrOptions - Signer or options as taken by hardhat.
@@ -15,8 +16,8 @@ import type { FactoryOptions } from 'hardhat/types';
 export async function deploySC(
   name: string,
   verify?: boolean,
-  signerOrOptions?: Signer | FactoryOptions | undefined,
-  constructorArgs?: any[] | undefined,
+  signerOrOptions?: Signer | FactoryOptions,
+  constructorArgs?: any[],
 ): Promise<Contract> {
   console.log(`Deploying ${name}...`);
   const factory = await ethers.getContractFactory(name, signerOrOptions);
@@ -78,6 +79,7 @@ export async function deploySC(
 
 /**
  * Helper to try verifying a contract and log an error if it fails. If it fails, it will also log the command to run verification later.
+ *
  * @param address - Address of the contract.
  * @param constructorArguments - Constructor arguments used for deployment.
  * @param contract - Fully qualified name of the contract (e.g. "contracts/SBT_related/VerificationSBT.sol:VerificationSBT").

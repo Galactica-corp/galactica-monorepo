@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import csv from 'csvtojson';
 import { ethers } from 'hardhat';
 
@@ -12,12 +11,10 @@ async function main() {
 
   const dataPath = `/home/${process.env.USER}/Downloads/${SBTAddress}.csv`;
   console.log('dataPath', dataPath);
-  let data: any;
-
-  await csv({ delimiter: ',' })
+  const data = await csv({ delimiter: ',' })
     .fromFile(dataPath)
     .then((jsonObj) => {
-      data = jsonObj;
+      return jsonObj;
     });
 
   console.log('operating owner:', await owner.getAddress());

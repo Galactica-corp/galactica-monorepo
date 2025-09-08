@@ -22,7 +22,7 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/dev/generateZkKYCInput';
-import type { GuardianRegistry, MockToken } from '../../typechain-types';
+import type { GuardianRegistry } from '../../typechain-types';
 import type { MockDApp } from '../../typechain-types/contracts/mock/MockDApp';
 import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
@@ -64,24 +64,22 @@ describe('Verification SBT Smart contract', () => {
     }
 
     // set up KYCRegistry, ZkKYCVerifier, ZkKYC
-    mockZkCertificateRegistry = (await ethers.deployContract(
+    mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
     mockGalacticaInstitutions = [];
     for (let i = 0; i < amountInstitutions; i++) {
       mockGalacticaInstitutions.push(
-        (await ethers.deployContract(
-          'MockGalacticaInstitution',
-        )) as MockGalacticaInstitution,
+        await ethers.deployContract('MockGalacticaInstitution'),
       );
     }
 
-    exampleMockDAppVerifier = (await ethers.deployContract(
+    exampleMockDAppVerifier = await ethers.deployContract(
       'ExampleMockDAppVerifier',
-    )) as ExampleMockDAppVerifier;
+    );
 
-    ageProofZkKYC = (await ethers.deployContract('AgeCitizenshipKYC', [
+    ageProofZkKYC = await ethers.deployContract('AgeCitizenshipKYC', [
       deployer.address,
       await exampleMockDAppVerifier.getAddress(),
       await mockZkCertificateRegistry.getAddress(),
@@ -90,26 +88,26 @@ describe('Verification SBT Smart contract', () => {
         mockGalacticaInstitutions.map(async (inst) => inst.getAddress()),
       ),
       0,
-    ])) as AgeCitizenshipKYC;
+    ]);
 
-    mockDApp = (await ethers.deployContract('MockDApp', [
+    mockDApp = await ethers.deployContract('MockDApp', [
       await ageProofZkKYC.getAddress(),
       'https://example.com/metadata',
       'VerificationSBT',
       'VerificationSBT',
-    ])) as MockDApp;
+    ]);
 
-    verificationSBT = (await ethers.getContractAt(
+    verificationSBT = await ethers.getContractAt(
       'VerificationSBT',
       await mockDApp.sbt(),
-    )) as VerificationSBT;
+    );
 
-    token1 = (await ethers.deployContract('MockToken', [
+    token1 = await ethers.deployContract('MockToken', [
       await mockDApp.getAddress(),
-    ])) as MockToken;
-    token2 = (await ethers.deployContract('MockToken', [
+    ]);
+    token2 = await ethers.deployContract('MockToken', [
       await mockDApp.getAddress(),
-    ])) as MockToken;
+    ]);
 
     await mockDApp.setToken1(await token1.getAddress());
     await mockDApp.setToken2(await token2.getAddress());

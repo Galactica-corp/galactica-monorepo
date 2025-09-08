@@ -43,22 +43,22 @@ describe('twitterVerificationProof SC', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up zkCertificateRegistry, GalacticaInstitution, twitterVerificationProofVerifier, twitterVerificationProof
-    mockZkCertificateRegistry = (await ethers.deployContract(
+    mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
-    twitterVerificationProofVerifier = (await ethers.deployContract(
+    twitterVerificationProofVerifier = await ethers.deployContract(
       'TwitterVerificationProofVerifier',
-    )) as TwitterVerificationProofVerifier;
+    );
 
-    twitterVerificationProofContract = (await ethers.deployContract(
+    twitterVerificationProofContract = await ethers.deployContract(
       'TwitterVerificationProof',
       [
         deployer.address,
         await twitterVerificationProofVerifier.getAddress(),
         await mockZkCertificateRegistry.getAddress(),
       ],
-    )) as TwitterVerificationProof;
+    );
 
     twitterZkCertificate = await generateSampleTwitterZkCertificate();
     sampleInput =
@@ -381,13 +381,13 @@ describe('twitterVerificationProof SC', () => {
   it('unverified twitter account returns incorrect proof', async () => {
     const fields = {
       id: '23742384',
-      createdAt: '1726128494',
+      createdAt: '2024-06-19T17:24:53Z',
       followersCount: 85,
       followingCount: 28,
       listedCount: 10,
       tweetCount: 22,
       username: 'test',
-      verified: 0,
+      verified: false,
     };
 
     const twitterZkCertificateUnverified =

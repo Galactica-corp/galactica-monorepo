@@ -4,6 +4,7 @@ import type { BaseProvider } from '@metamask/providers';
 
 /**
  * Fetch with configurable timeout.
+ *
  * @param resource - URL to fetch from.
  * @param options - Fetch options, including timeout field.
  * @returns Fetch response.
@@ -23,6 +24,7 @@ export async function fetchWithTimeout(resource: string, options: any = {}) {
 /**
  * Remove the protocol from a URL.
  * Implemented because the snap blocks http:// in dialogs, breaking some confirmation messages when testing locally.
+ *
  * @param url - URL to prune.
  * @returns URL without protocol prefix.
  */
@@ -32,6 +34,7 @@ export function stripURLProtocol(url: string): string {
 
 /**
  * Set the active Ethereum chain for the Snap.
+ *
  * @param chainId - The chain ID to switch to.
  * @param ethereum - Ethereum provider to switch the chain for.
  */

@@ -43,9 +43,9 @@ describe('zkCertificate followers count proof', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up zkCertificateRegistry, GalacticaInstitution, twitterFollowersCountThresholdVerifier, twitterZkCertificate
-    mockZkCertificateRegistry = (await ethers.deployContract(
+    mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
     twitterFollowersCountThresholdVerifier = (await ethers.deployContract(
       'TwitterFollowersCountProofVerifier',

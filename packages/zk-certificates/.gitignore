@@ -44,3 +44,6 @@ ignition/deployments/*/build-info
 
 # external data
 data
+
+
+ignition/deployments/**/*
