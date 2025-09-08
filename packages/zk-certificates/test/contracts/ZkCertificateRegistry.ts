@@ -87,7 +87,7 @@ describe('ZkCertificateRegistry', () => {
     const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
     expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);
-    const merkleRoots = await ZkCertificateRegistry.getMerkleRoots();
+    const merkleRoots = await ZkCertificateRegistry.getMerkleRoots(0);
     // normal "expect" doesn't compare arrays so we need to compare length and iterate over elements
     expectEqualArrays(merkleRoots, [
       fromHexToBytes32(fromDecToHex(merkleTree.root)),
@@ -150,7 +150,7 @@ describe('ZkCertificateRegistry', () => {
 
     // check the merkle root array is correctly set
     const merkleRootsFromContract =
-      await ZkCertificateRegistry.getMerkleRoots();
+      await ZkCertificateRegistry.getMerkleRoots(0);
     expectEqualArrays(merkleRootsFromContract, merkleRoots);
     expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);
     for (let i = 0; i < merkleRoots.length; i++) {
@@ -360,5 +360,72 @@ describe('ZkCertificateRegistry', () => {
     expect(
       await ZkCertificateRegistry.ZkCertificateHashToQueueTime(leafHashes[0]),
     ).to.be.equal(blocktime + queueExpirationTime);
+  });
+
+  it('should return correct slice of merkle roots with startIndex', async function () {
+    const { ZkCertificateRegistry, GuardianRegistry } =
+      await loadFixture(deploy);
+
+    // add deployer as a Guardian
+    await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
+
+    const eddsa = await buildEddsa();
+    const treeDepth = 32;
+    const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
+
+    const leafHashes = generateRandomBytes32Array(5);
+    const leafIndices = generateRandomNumberArray(5);
+
+    // Add some certificates to build up merkle roots
+    for (let i = 0; i < 5; i += 1) {
+      const merkleProof = merkleTree.createProof(leafIndices[i]);
+      const merkleProofPath = merkleProof.pathElements.map((value) =>
+        fromHexToBytes32(fromDecToHex(value)),
+      );
+
+      await ZkCertificateRegistry.registerToQueue(leafHashes[i]);
+      await ZkCertificateRegistry.addZkCertificate(
+        leafIndices[i],
+        leafHashes[i],
+        merkleProofPath,
+      );
+      merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
+    }
+
+    // Get all merkle roots (should have initial root + 5 new roots = 6 total)
+    const allRoots = await ZkCertificateRegistry.getMerkleRoots(0);
+    expect(allRoots.length).to.be.equal(6);
+
+    // Test getMerkleRoots with startIndex = 0 (should return all roots)
+    const rootsFromZero = await ZkCertificateRegistry.getMerkleRoots(0);
+    expectEqualArrays(rootsFromZero, allRoots);
+
+    // Test getMerkleRoots with startIndex = 1 (should return roots from index 1 onwards)
+    const rootsFromOne = await ZkCertificateRegistry.getMerkleRoots(1);
+    expect(rootsFromOne.length).to.be.equal(5);
+    for (let i = 0; i < rootsFromOne.length; i++) {
+      expect(rootsFromOne[i]).to.equal(allRoots[i + 1]);
+    }
+
+    // Test getMerkleRoots with startIndex = 3 (should return roots from index 3 onwards)
+    const rootsFromThree = await ZkCertificateRegistry.getMerkleRoots(3);
+    expect(rootsFromThree.length).to.be.equal(3);
+    for (let i = 0; i < rootsFromThree.length; i++) {
+      expect(rootsFromThree[i]).to.equal(allRoots[i + 3]);
+    }
+
+    // Test getMerkleRoots with startIndex at the last valid index
+    const rootsFromLast = await ZkCertificateRegistry.getMerkleRoots(5);
+    expect(rootsFromLast.length).to.be.equal(1);
+    expect(rootsFromLast[0]).to.equal(allRoots[5]);
+
+    // Test that startIndex out of bounds reverts
+    await expect(
+      ZkCertificateRegistry.getMerkleRoots(6)
+    ).to.be.revertedWith('Start index out of bounds');
+
+    await expect(
+      ZkCertificateRegistry.getMerkleRoots(10)
+    ).to.be.revertedWith('Start index out of bounds');
   });
 });

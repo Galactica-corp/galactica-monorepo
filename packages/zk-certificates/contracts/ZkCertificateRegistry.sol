@@ -13,6 +13,7 @@ import {GuardianInfo} from './GuardianRegistry.sol';
 
 import {IGuardianRegistry} from './interfaces/IGuardianRegistry.sol';
 import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
+import {IReadableZkCertRegistry} from './interfaces/IReadableZkCertRegistry.sol';
 
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Fallback} from './helpers/Fallback.sol';
@@ -46,16 +47,15 @@ contract ZkCertificateRegistry is
     bytes32 public constant ZERO_VALUE =
         bytes32(uint256(keccak256('Galactica')) % SNARK_SCALAR_FIELD);
 
-    // Next leaf index (number of inserted leaves in the current tree)
-    uint256 public nextLeafIndex;
-
     // array of all merkle roots
     bytes32[] public merkleRoots;
     // and from which index the merkle roots are still valid
     // we start from 1 because nonexistant merkle roots return 0 in the merkleRootIndex mapping
-    uint256 public merkleRootValidIndex = 1;
+    uint256 public override(IReadableZkCertRegistry) merkleRootValidIndex = 1;
     // we will also store the merkle root index in a mapping for quicker lookup
-    mapping(bytes32 => uint) public merkleRootIndex;
+    mapping(bytes32 => uint)
+        public
+        override(IReadableZkCertRegistry) merkleRootIndex;
 
     // Block height at which the contract was initialized
     // You can use it to speed up finding all logs of the contract by starting from this block
@@ -70,17 +70,7 @@ contract ZkCertificateRegistry is
     mapping(bytes32 => uint) public ZkCertificateHashToQueueTime;
     mapping(bytes32 => address) public ZkCertificateHashToCommitedGuardian;
 
-    IGuardianRegistry public guardianRegistry;
-    event zkCertificateAddition(
-        bytes32 indexed zkCertificateLeafHash,
-        address indexed Guardian,
-        uint index
-    );
-    event zkCertificateRevocation(
-        bytes32 indexed zkCertificateLeafHash,
-        address indexed Guardian,
-        uint index
-    );
+    IGuardianRegistry public override(IReadableZkCertRegistry) guardianRegistry;
 
     constructor(
         address GuardianRegistry_,
@@ -95,15 +85,32 @@ contract ZkCertificateRegistry is
     /**
      * @notice return the current merkle root which is the last one in the merkleRoots array
      */
-    function merkleRoot() public view returns (bytes32) {
+    function merkleRoot()
+        public
+        view
+        override(IReadableZkCertRegistry)
+        returns (bytes32)
+    {
         return merkleRoots[merkleRoots.length - 1];
     }
 
     /**
-     * @notice return the whole merkle root array
+     * @notice return the merkle root array starting from _startIndex
+     * @param _startIndex The index to start returning roots from
      */
-    function getMerkleRoots() public view returns (bytes32[] memory) {
-        return merkleRoots;
+    function getMerkleRoots(
+        uint256 _startIndex
+    ) public view returns (bytes32[] memory) {
+        require(_startIndex < merkleRoots.length, 'Start index out of bounds');
+
+        uint256 length = merkleRoots.length - _startIndex;
+        bytes32[] memory roots = new bytes32[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            roots[i] = merkleRoots[_startIndex + i];
+        }
+
+        return roots;
     }
 
     /**
@@ -351,7 +358,9 @@ contract ZkCertificateRegistry is
         return leafHash;
     }
 
-    function verifyMerkleRoot(bytes32 _merkleRoot) public view returns (bool) {
+    function verifyMerkleRoot(
+        bytes32 _merkleRoot
+    ) public view override(IReadableZkCertRegistry) returns (bool) {
         uint _merkleRootIndex = merkleRootIndex[_merkleRoot];
         return _merkleRootIndex >= merkleRootValidIndex;
     }
@@ -378,12 +387,5 @@ contract ZkCertificateRegistry is
             ];
             return (startTime, expirationTime);
         }
-    }
-
-    /**
-     * @notice Depricated function to share interface with old contract version.
-     */
-    function _GuardianRegistry() public view returns (IGuardianRegistry) {
-        return guardianRegistry;
     }
 }
