@@ -115,7 +115,7 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
 };
 
 export const benchmarkZKPGenParams: BenchmarkZKPGenParams = {
-  input: exclusionInput as any, // It doesn't satisfy the type.
+  input: exclusionInput,
   prover: exclusionProver as ProverData,
 };
 

@@ -3,10 +3,9 @@
  */
 
 import type { FieldElement } from '@galactica-net/galactica-types';
-import type { PreparedZkCertProofInputs } from '@galactica-net/zk-certificates';
 
 import { RpcMethods } from './rpcEnums';
-import type { ProverData, ProverLink, ZkCertProof } from './types';
+import type { ProverData, ProverLink, ZkProof } from './types';
 import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
 
@@ -15,10 +14,7 @@ import { invokeSnap } from '../utils/invoke-snap';
  */
 export type BenchmarkZKPGenParams = {
   // Input for the ZKP generation.
-  input: PreparedZkCertProofInputs<
-    Record<string, FieldElement | FieldElement[]>,
-    Record<string, unknown>
-  >;
+  input: Record<string, FieldElement | FieldElement[]>;
 
   // Prover to generate the ZKP.
   prover: ProverData | ProverLink;
@@ -36,7 +32,7 @@ export const benchmarkZKPGen = async (
   params: BenchmarkZKPGenParams,
   snapOrigin: string = sdkConfig.defaultSnapOrigin,
 ) => {
-  const response: ZkCertProof = await invokeSnap(
+  const response: ZkProof = await invokeSnap(
     {
       method: RpcMethods.BenchmarkZKPGen,
       params,

@@ -31,7 +31,7 @@ export type ProverLink = {
   hash: string;
 };
 
-export type ZkCertProof = {
+export type ZkProof = {
   proof: {
     /* eslint-disable @typescript-eslint/naming-convention */
     pi_a: [string, string];
@@ -156,13 +156,10 @@ export async function prepareZkCertProofInputs<
  * @param proverOrLink - The prover data or a link to fetch the prover data.
  * @returns A promise that resolves to the generated proof and public signals.
  */
-export async function generateProof<
-  Params extends Record<string, FieldElement | FieldElement[]>,
-  Content extends Record<string, unknown>,
->(
-  inputs: PreparedZkCertProofInputs<Params, Content>,
+export async function generateProof(
+  inputs: Record<string, FieldElement | FieldElement[]>,
   proverOrLink: ProverData | ProverLink,
-): Promise<ZkCertProof> {
+): Promise<ZkProof> {
   let prover: ProverData;
   if ('wasm' in proverOrLink) {
     prover = proverOrLink;
@@ -205,7 +202,7 @@ export async function generateZkCertProof<
   zkCert: ZkCertificate<Content>,
   holderEddsaKey: EddsaPrivateKey,
   merkleProof: MerkleProof,
-): Promise<ZkCertProof> {
+): Promise<ZkProof> {
   const inputs = await prepareZkCertProofInputs(
     params,
     zkCert,
