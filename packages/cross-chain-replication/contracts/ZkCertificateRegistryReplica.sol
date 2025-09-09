@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.28;
 
-import {IReadableZkCertRegistry} from '@galactica-net/zk-certificates/contracts/interfaces/IReadableZkCertRegistry.sol';
+import {IZkCertificateRegistryReplica} from './interfaces/IZkCertificateRegistryReplica.sol';
 import {IGuardianRegistry} from '@galactica-net/zk-certificates/contracts/interfaces/IGuardianRegistry.sol';
 
 /**
@@ -11,7 +11,7 @@ import {IGuardianRegistry} from '@galactica-net/zk-certificates/contracts/interf
  * @dev This contract stores replicated state from the source registry and provides
  * the same view functions for ZK proof verification.
  */
-contract ZkCertificateRegistryReplica is IReadableZkCertRegistry {
+contract ZkCertificateRegistryReplica is IZkCertificateRegistryReplica {
   // State variables to be replicated
   bytes32[] public merkleRoots;
   uint256 public override merkleRootValidIndex;
@@ -29,7 +29,7 @@ contract ZkCertificateRegistryReplica is IReadableZkCertRegistry {
 
   // Authorization state
   address public authorizedUpdater; // The address authorized to call updateState, e.g. the bridge recipient contract
-  bool public initialized;
+  bool public isInitialized;
 
   // Events
   event StateUpdated(
@@ -74,14 +74,17 @@ contract ZkCertificateRegistryReplica is IReadableZkCertRegistry {
    * @dev This function can only be called once
    */
   function initialize(address _authorizedUpdater) external {
-    require(!initialized, 'ZkCertificateRegistryReplica: already initialized');
+    require(
+      !isInitialized,
+      'ZkCertificateRegistryReplica: already initialized'
+    );
     require(
       _authorizedUpdater != address(0),
       'ZkCertificateRegistryReplica: authorized updater cannot be zero address'
     );
 
     authorizedUpdater = _authorizedUpdater;
-    initialized = true;
+    isInitialized = true;
 
     emit Initialized(_authorizedUpdater);
   }

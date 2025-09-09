@@ -42,14 +42,14 @@ contract ZkCertificateRegistryReplicaTest is Test {
 
     // Check initial state before initialization
     assertEq(freshReplica.authorizedUpdater(), address(0));
-    assertFalse(freshReplica.initialized());
+    assertFalse(freshReplica.isInitialized());
 
     // Initialize
     freshReplica.initialize(authorizedUpdater);
 
     // Check state after initialization
     assertEq(freshReplica.authorizedUpdater(), authorizedUpdater);
-    assertTrue(freshReplica.initialized());
+    assertTrue(freshReplica.isInitialized());
   }
 
   function testCannotInitializeTwice() public {
@@ -68,7 +68,7 @@ contract ZkCertificateRegistryReplicaTest is Test {
     freshReplica.initialize(nonAuthorized);
   }
 
-  function testDeployment() public {
+  function testDeployment() public view {
     // Check deployment
     assertEq(address(replica), address(replica));
 
@@ -85,7 +85,7 @@ contract ZkCertificateRegistryReplicaTest is Test {
 
     // Check initialization
     assertEq(replica.authorizedUpdater(), authorizedUpdater);
-    assertTrue(replica.initialized());
+    assertTrue(replica.isInitialized());
   }
 
   function testAuthorizedUpdaterCanUpdateState() public {
