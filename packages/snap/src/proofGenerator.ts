@@ -8,7 +8,7 @@ import type {
   ProverData,
   ProverLink,
   ZkCertInputType,
-  ZkCertProof,
+  ZkProof,
 } from '@galactica-net/snap-api';
 import { GenZKPError } from '@galactica-net/snap-api';
 import { divider, heading, text } from '@metamask/snaps-ui';
@@ -26,7 +26,7 @@ import { stripURLProtocol } from './utils';
  */
 export function createProofConfirmationPrompt(
   params: GenZkProofParams<any>,
-  proof: ZkCertProof,
+  proof: ZkProof,
   origin: string,
 ): PanelContent {
   const proofConfirmDialog = [

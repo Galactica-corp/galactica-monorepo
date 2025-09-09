@@ -5,7 +5,7 @@ import type {
   EncryptedZkCert,
   MerkleProof,
   MerkleProofUpdateRequestParams,
-  ZkCertProof,
+  ZkProof,
   ZkCertRegistered,
   ZkCertSelectionParams,
   ProverData,
@@ -113,7 +113,7 @@ function createState(
  * @param vkey - The verification key to be used.
  */
 async function verifyProof(
-  result: ZkCertProof,
+  result: ZkProof,
   minPublicSignalsLength = 5,
   vkey: any = exampleMockDAppVKey,
 ) {
@@ -611,7 +611,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
@@ -638,7 +638,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice;
 
@@ -760,7 +760,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
@@ -793,7 +793,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testParamsWithUrl),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
@@ -890,7 +890,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testUnkownZkpParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
@@ -1529,7 +1529,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.BenchmarkZKPGen, benchmarkZKPGenParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
