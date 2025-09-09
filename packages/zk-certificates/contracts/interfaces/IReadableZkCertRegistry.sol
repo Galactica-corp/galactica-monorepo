@@ -10,6 +10,8 @@ interface IReadableZkCertRegistry {
     // Merkle tree state functions
     function merkleRoot() external view returns (bytes32);
 
+    function merkleRootsLength() external view returns (uint256);
+
     function merkleRootIndex(bytes32) external view returns (uint);
 
     function merkleRootValidIndex() external view returns (uint);
@@ -25,6 +27,11 @@ interface IReadableZkCertRegistry {
     // Merkle roots array functions
     function getMerkleRoots(
         uint256 _startIndex
+    ) external view returns (bytes32[] memory);
+
+    function getMerkleRoots(
+        uint256 _startIndex,
+        uint256 _endIndex
     ) external view returns (bytes32[] memory);
 
     // Queue state functions

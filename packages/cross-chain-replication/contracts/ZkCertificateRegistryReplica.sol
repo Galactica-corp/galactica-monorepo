@@ -98,6 +98,14 @@ contract ZkCertificateRegistryReplica is IReadableZkCertRegistry {
   }
 
   /**
+   * @notice Returns the length of the merkle roots array
+   * @return The length of the merkle roots array
+   */
+  function merkleRootsLength() public view override returns (uint256) {
+    return merkleRoots.length;
+  }
+
+  /**
    * @notice Returns a slice of the merkle roots array starting from _startIndex
    * @param _startIndex The index to start returning roots from
    * @return Array of merkle roots from the start index
@@ -107,7 +115,23 @@ contract ZkCertificateRegistryReplica is IReadableZkCertRegistry {
   ) public view override returns (bytes32[] memory) {
     require(_startIndex < merkleRoots.length, 'Start index out of bounds');
 
-    uint256 length = merkleRoots.length - _startIndex;
+    return getMerkleRoots(_startIndex, merkleRoots.length);
+  }
+
+  /**
+   * @notice Returns a slice of the merkle roots array starting from _startIndex and ending at _endIndex
+   * @param _startIndex The index to start returning roots from
+   * @param _endIndex The index to end returning roots at
+   * @return Array of merkle roots from the start index to the end index
+   */
+  function getMerkleRoots(
+    uint256 _startIndex,
+    uint256 _endIndex
+  ) public view override returns (bytes32[] memory) {
+    require(_startIndex < _endIndex, 'Start index must be less than end index');
+    require(_endIndex <= merkleRoots.length, 'End index out of bounds');
+
+    uint256 length = _endIndex - _startIndex;
     bytes32[] memory roots = new bytes32[](length);
 
     for (uint256 i = 0; i < length; i++) {

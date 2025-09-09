@@ -42,7 +42,15 @@ contract MockZkCertificateRegistry is IZkCertificateRegistry {
         guardianRegistry = IGuardianRegistry(_guardianRegistry);
     }
 
+    function setCurrentQueuePointer(uint256 _pointer) public {
+        currentQueuePointer = _pointer;
+    }
+
     // Additional functions required by IReadableZkCertRegistry
+    function merkleRootsLength() external view returns (uint256) {
+        return merkleRoots.length;
+    }
+
     function merkleRoot() external view returns (bytes32) {
         return merkleRoots[merkleRoots.length - 1];
     }
@@ -59,7 +67,20 @@ contract MockZkCertificateRegistry is IZkCertificateRegistry {
     ) external view returns (bytes32[] memory) {
         require(_startIndex < merkleRoots.length, 'Start index out of bounds');
 
-        uint256 length = merkleRoots.length - _startIndex;
+        return this.getMerkleRoots(_startIndex, merkleRoots.length);
+    }
+
+    function getMerkleRoots(
+        uint256 _startIndex,
+        uint256 _endIndex
+    ) external view returns (bytes32[] memory) {
+        require(
+            _startIndex < _endIndex,
+            'Start index must be less than end index'
+        );
+        require(_endIndex <= merkleRoots.length, 'End index out of bounds');
+
+        uint256 length = _endIndex - _startIndex;
         bytes32[] memory roots = new bytes32[](length);
 
         for (uint256 i = 0; i < length; i++) {
