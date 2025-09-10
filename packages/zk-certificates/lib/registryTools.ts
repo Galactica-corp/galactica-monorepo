@@ -1,6 +1,9 @@
-/* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
 
-import {
+import type {
+  KYCCertificateContent,
   KnownZkCertStandard,
   type MerkleProof,
   type ZkCertRegistration,
@@ -30,8 +33,8 @@ import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
  * @param provider - Provider to use for the transaction.
  * @returns MerkleProof of the new leaf in the tree and registration data.
  */
-export async function issueZkCert(
-  zkCert: ZkCertificate,
+export async function issueZkCert<Content extends Record<string, unknown>>(
+  zkCert: ZkCertificate<Content>,
   recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
   issuer: HardhatEthersSigner,
   merkleTree: SparseMerkleTree,
@@ -204,7 +207,7 @@ export async function waitOnIssuanceQueue(
  * @returns If the check was successful.
  */
 export async function checkZkKYCSaltHashCompatibility(
-  zkCert: ZkCertificate,
+  zkCert: ZkCertificate<KYCCertificateContent>,
   recordRegistry: ZkKYCRegistry,
   issuer: HardhatEthersSigner,
   ethers: HardhatEthersHelpers,
@@ -240,7 +243,7 @@ export async function checkZkKYCSaltHashCompatibility(
  * @returns List of SaltLockingZkCerts.
  */
 export async function listZkKYCsLockingTheSaltHash(
-  zkCert: ZkCertificate,
+  zkCert: ZkCertificate<KYCCertificateContent>,
   recordRegistry: ZkKYCRegistry,
   issuer: HardhatEthersSigner,
   ethers: HardhatEthersHelpers,
@@ -269,7 +272,7 @@ export async function listZkKYCsLockingTheSaltHash(
  * @param ethers - Ethers library from hre.
  */
 export async function resetSaltHash(
-  zkCert: ZkCertificate,
+  zkCert: ZkCertificate<KYCCertificateContent>,
   recordRegistry: ZkKYCRegistry,
   issuer: HardhatEthersSigner,
   ethers: HardhatEthersHelpers,
