@@ -2,6 +2,7 @@
 pragma solidity 0.8.28;
 
 import {IMailbox} from '@hyperlane-xyz/core/contracts/interfaces/IMailbox.sol';
+import {IMessageRecipient} from '@hyperlane-xyz/core/contracts/interfaces/IMessageRecipient.sol';
 import {TypeCasts} from '@hyperlane-xyz/core/contracts/libs/TypeCasts.sol';
 import {IZkCertificateRegistryReplica} from './interfaces/IZkCertificateRegistryReplica.sol';
 
@@ -10,8 +11,9 @@ import {IZkCertificateRegistryReplica} from './interfaces/IZkCertificateRegistry
  * @author Galactica dev team
  * @notice Contract responsible for receiving ZkCertificateRegistry state updates via Hyperlane
  * @dev This contract receives messages from the source chain and updates the replica registry
+ * @dev We do not specify a custom Hyperlane ISM for this contract because the multisig default should be sufficient.
  */
-contract RegistryStateReceiver {
+contract RegistryStateReceiver is IMessageRecipient {
   // Immutable configuration
   IMailbox public immutable mailbox;
   IZkCertificateRegistryReplica public immutable replicaRegistry;
@@ -78,14 +80,14 @@ contract RegistryStateReceiver {
    * @notice Handles incoming messages from the Hyperlane Mailbox
    * @param _origin The domain ID of the source chain
    * @param _sender The address of the sender contract (as bytes32)
-   * @param _messageBody The encoded message body containing state updates
+   * @param _message The encoded message body containing state updates
    * @dev This function authenticates the message source and triggers the state update on the replica
    */
   function handle(
     uint32 _origin,
     bytes32 _sender,
-    bytes calldata _messageBody
-  ) external onlyMailbox {
+    bytes calldata _message
+  ) external payable onlyMailbox {
     // Security check: Verify the message comes from the expected origin domain
     require(
       _origin == originDomain,
@@ -104,7 +106,7 @@ contract RegistryStateReceiver {
       bytes32[] memory newMerkleRoots,
       uint256 newMerkleRootValidIndex,
       uint256 newQueuePointer
-    ) = abi.decode(_messageBody, (bytes32[], uint256, uint256));
+    ) = abi.decode(_message, (bytes32[], uint256, uint256));
 
     // Update the replica registry state
     replicaRegistry.updateState(
