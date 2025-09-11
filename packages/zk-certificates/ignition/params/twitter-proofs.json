@@ -1,0 +1,20 @@
+{
+  "TwitterProofsModule": {
+    "recordRegistryAddr": "0xe262d4e095BAb2F6e32ED46C5bBec5Fe73f1a0eA",
+    "creationTimeBefore2020Uri": "ipfs://QmNQCnW9QTnveNHr9aNsGWsHz3HBkCZ7x2XzQ2wehAiyAh",
+    "creationTimeBefore2020Name": "X created before 2020",
+    "creationTimeBefore2020Symbol": "XOG",
+    "creationTimeIn2024Uri": "ipfs://QmWtncmCSLKJBmmpntrQbeMFpUyUJEPsASacQfaVCQJobr",
+    "creationTimeIn2024Name": "X created in 2024",
+    "creationTimeIn2024Symbol": "X2024",
+    "followersCount100Uri": "ipfs://Qmd8rVPsgdDa7ySCSnBbCYFFc6mGPzpX39rfLguWy8FQjQ",
+    "followersCount100Name": "X 100 followers",
+    "followersCount100Symbol": "X100F",
+    "followersCount1kUri": "ipfs://QmTt81xC3z9ZaYBV35rQAr3QkMNQD3wA5GaKE2JGf3FFxc",
+    "followersCount1kName": "X 1k followers",
+    "followersCount1kSymbol": "X1K",
+    "followersCount10kUri": "ipfs://QmVALCT5SmMwxbSVdc28RwtnTuTPSr6srUftQCRbJiPUxZ",
+    "followersCount10kName": "X 10k followers",
+    "followersCount10kSymbol": "X10K"
+  }
+}

@@ -141,9 +141,7 @@ export async function buildMerkleTreeFromRegistry(
   merkleDepth: number,
   onProgress?: (percent: string) => void,
 ): Promise<SparseMerkleTree> {
-  // Not using on-chain record because `block.number` works differently on L2.
-  // const firstBlock = Number(await recordRegistry.initBlockHeight());
-  const firstBlock = 0;
+  const firstBlock = Number(await recordRegistry.initBlockHeight());
 
   const leafLogResults = await queryOnChainLeaves(
     provider,

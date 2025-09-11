@@ -16,6 +16,7 @@ import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
 
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Fallback} from './helpers/Fallback.sol';
+import {ChainAgnosticCalls} from './helpers/ChainAgnosticCalls.sol';
 
 /**
  * @title ZkCertificateRegistry
@@ -27,7 +28,8 @@ contract ZkCertificateRegistry is
     Initializable,
     IZkCertificateRegistry,
     Ownable,
-    Fallback
+    Fallback,
+    ChainAgnosticCalls
 {
     // NOTE: The order of instantiation MUST stay the same across upgrades
     // add new variables to the bottom of the list and decrement the __gap
@@ -139,7 +141,7 @@ contract ZkCertificateRegistry is
         guardianRegistry = IGuardianRegistry(GuardianRegistry_);
 
         // Set the block height at which the contract was initialized
-        initBlockHeight = block.number;
+        initBlockHeight = getBlockNumber();
     }
 
     /**

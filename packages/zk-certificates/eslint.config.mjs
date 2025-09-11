@@ -51,9 +51,11 @@ const config = [
   },
 
   {
-    files: ['scripts/*/*.ts'],
+    files: ['scripts/**/*.ts'],
     rules: {
       'no-restricted-globals': 0, // allow local scripts to use the process global for error handling
+      'n/no-sync': 0, // allow local scripts to use sync methods
+      'n/no-process-exit': 0, // allow local scripts to use process.exit
     },
   },
 
