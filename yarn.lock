@@ -5639,7 +5639,9 @@ __metadata:
     "@nomicfoundation/hardhat-viem-assertions": ^3.0.1
     "@openzeppelin/contracts": ^5.3.0
     "@openzeppelin/contracts-upgradeable": ^5.3.0
+    "@types/circomlibjs": ^0.1.6
     "@types/node": ^22.8.5
+    circomlibjs: ^0.1.7
     eslint: ^9.11.0
     forge-std: "foundry-rs/forge-std#v1.9.4"
     hardhat: ^3.0.0

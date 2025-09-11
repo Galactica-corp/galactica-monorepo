@@ -1,36 +1,35 @@
-import assert from "node:assert/strict";
-import { describe, it } from "node:test";
-
-import { network } from "hardhat";
-import { buildEddsa } from "circomlibjs";
-import { encodeAbiParameters, padHex } from "viem";
-
 import {
   fromDecToHex,
   fromHexToBytes32,
   generateRandomBytes32Array,
   SparseMerkleTree,
-} from "@galactica-net/zk-certificates";
+} from '@galactica-net/zk-certificates';
+import { buildEddsa } from 'circomlibjs';
+import { network } from 'hardhat';
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
+import { encodeAbiParameters, padHex } from 'viem';
 
-import testSetupModule from "../ignition/modules/test/TestSetup.m.ts";
-import RegistryStateSenderModule from "../ignition/modules/RegistryStateSender.m.ts";
-import RegistryStateReceiverModule from "../ignition/modules/RegistryStateReceiver.m.ts";
+import registryStateReceiverModule from '../ignition/modules/RegistryStateReceiver.m.ts';
+import registryStateSenderModule from '../ignition/modules/RegistryStateSender.m.ts';
+import testSetupModule from '../ignition/modules/test/TestSetup.m.ts';
 
-
-describe("Cross-Chain Replication Integration Test", async function () {
+describe('Cross-Chain Replication Integration Test', async function () {
   // Test domains for Hyperlane
   const SOURCE_DOMAIN = 1; // Source chain domain
   const DESTINATION_DOMAIN = 2; // Destination chain domain
   const MERKLE_TREE_DEPTH = 8;
   const BATCH_SIZE = 5;
 
-  const { viem, ignition, networkHelpers } = await network.connect();
-  const publicClient = await viem.getPublicClient();
-  const loadFixture = networkHelpers.loadFixture;
+  const { ignition, networkHelpers } = await network.connect();
+  const { loadFixture } = networkHelpers;
 
-  const [deployer, otherAccount] = await viem.getWalletClients();
-
-  // Helper function to compare arrays
+  /**
+   * Helper function to compare arrays.
+   *
+   * @param a1 Array 1.
+   * @param a2 Array 2.
+   */
   function expectEqualArrays(a1: any[], a2: any[]) {
     const length1 = a1.length;
     const length2 = a2.length;
@@ -40,20 +39,29 @@ describe("Cross-Chain Replication Integration Test", async function () {
     }
   }
 
-  // Fixture function to deploy all contracts for testing
+  /**
+   * Fixture function to deploy all contracts for testing.
+   *
+   * @returns Object with contracts.
+   */
   async function deployContracts() {
-    const { guardianRegistry, zkCertificateRegistry: registry, senderMailbox, receiverMailbox } = await ignition.deploy(testSetupModule, {
+    const {
+      guardianRegistry,
+      zkCertificateRegistry: registry,
+      senderMailbox,
+      receiverMailbox,
+    } = await ignition.deploy(testSetupModule, {
       parameters: {
-        "TestSetupModule": {
+        TestSetupModule: {
           senderDomain: SOURCE_DOMAIN,
           receiverDomain: DESTINATION_DOMAIN,
           merkleDepth: MERKLE_TREE_DEPTH,
         },
       },
     });
-    const { sender } = await ignition.deploy(RegistryStateSenderModule, {
+    const { sender } = await ignition.deploy(registryStateSenderModule, {
       parameters: {
-        "RegistryStateSenderModule": {
+        RegistryStateSenderModule: {
           mailbox: senderMailbox.address,
           registry: registry.address,
           destinationDomain: DESTINATION_DOMAIN,
@@ -61,19 +69,22 @@ describe("Cross-Chain Replication Integration Test", async function () {
         },
       },
     });
-    const { replica, receiver } = await ignition.deploy(RegistryStateReceiverModule, {
-      parameters: {
-        "ZkCertificateRegistryReplicaModule": {
-          guardianRegistry: guardianRegistry.address,
-          treeDepth: MERKLE_TREE_DEPTH,
-        },
-        "RegistryStateReceiverModule": {
-          mailbox: receiverMailbox.address,
-          originDomain: SOURCE_DOMAIN,
-          senderAddress: sender.address,
+    const { replica, receiver } = await ignition.deploy(
+      registryStateReceiverModule,
+      {
+        parameters: {
+          ZkCertificateRegistryReplicaModule: {
+            guardianRegistry: guardianRegistry.address,
+            treeDepth: MERKLE_TREE_DEPTH,
+          },
+          RegistryStateReceiverModule: {
+            mailbox: receiverMailbox.address,
+            originDomain: SOURCE_DOMAIN,
+            senderAddress: sender.address,
+          },
         },
       },
-    });
+    );
 
     await sender.write.initialize([receiver.address]);
 
@@ -88,11 +99,19 @@ describe("Cross-Chain Replication Integration Test", async function () {
     };
   }
 
+  /**
+   * Helper function to add a certificate to the source registry.
+   *
+   * @param contracts Object with contracts.
+   * @param merkleTree Merkle tree.
+   * @param leafHash Leaf hash.
+   * @param leafIndex Leaf index.
+   */
   async function addCertificateToSource(
     contracts: any,
     merkleTree: SparseMerkleTree,
     leafHash: string,
-    leafIndex: number
+    leafIndex: number,
   ) {
     const { registry } = contracts;
 
@@ -100,24 +119,31 @@ describe("Cross-Chain Replication Integration Test", async function () {
 
     const merkleProof = merkleTree.createProof(leafIndex);
     const merkleProofPath = merkleProof.pathElements.map((value) =>
-      fromHexToBytes32(fromDecToHex(value))
+      fromHexToBytes32(fromDecToHex(value)),
     );
 
     await registry.write.addZkCertificate([
       leafIndex,
       leafHash,
-      merkleProofPath
+      merkleProofPath,
     ]);
 
     merkleTree.insertLeaves([leafHash], [leafIndex]);
   }
 
-  // Helper function to revoke a certificate from the source registry
+  /**
+   * Helper function to revoke a certificate from the source registry.
+   *
+   * @param contracts Object with contracts.
+   * @param merkleTree Merkle tree.
+   * @param leafHash Leaf hash.
+   * @param leafIndex Leaf index.
+   */
   async function revokeCertificateFromSource(
     contracts: any,
     merkleTree: SparseMerkleTree,
     leafHash: string,
-    leafIndex: number
+    leafIndex: number,
   ) {
     const { registry } = contracts;
 
@@ -125,19 +151,23 @@ describe("Cross-Chain Replication Integration Test", async function () {
 
     const merkleProof = merkleTree.createProof(leafIndex);
     const merkleProofPath = merkleProof.pathElements.map((value) =>
-      fromHexToBytes32(fromDecToHex(value))
+      fromHexToBytes32(fromDecToHex(value)),
     );
 
     await registry.write.revokeZkCertificate([
       leafIndex,
       leafHash,
-      merkleProofPath
+      merkleProofPath,
     ]);
 
     merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndex]);
   }
 
-  // Helper function to trigger state relay
+  /**
+   * Helper function to trigger state relay.
+   *
+   * @param contracts Object with contracts.
+   */
   async function relayState(contracts: any) {
     const { sender, receiverMailbox } = contracts;
 
@@ -148,32 +178,52 @@ describe("Cross-Chain Replication Integration Test", async function () {
     await receiverMailbox.write.processNextInboundMessage();
   }
 
-  // Helper function to verify replica state matches source
+  /**
+   * Helper function to verify replica state matches source.
+   *
+   * @param contracts Object with contracts.
+   */
   async function verifyReplicaState(contracts: any) {
     const { registry, replica } = contracts;
 
     const sourceMerkleRoot = await registry.read.merkleRoot();
     const replicaMerkleRoot = await replica.read.merkleRoot();
-    assert.equal(sourceMerkleRoot, replicaMerkleRoot, "Merkle roots don't match");
+    assert.equal(
+      sourceMerkleRoot,
+      replicaMerkleRoot,
+      "Merkle roots don't match",
+    );
 
     const sourceValidIndex = await registry.read.merkleRootValidIndex();
     const replicaValidIndex = await replica.read.merkleRootValidIndex();
-    assert.equal(sourceValidIndex, replicaValidIndex, "Merkle root valid indices don't match");
+    assert.equal(
+      sourceValidIndex,
+      replicaValidIndex,
+      "Merkle root valid indices don't match",
+    );
 
     const sourceQueuePointer = await registry.read.currentQueuePointer();
     const replicaQueuePointer = await replica.read.currentQueuePointer();
-    assert.equal(sourceQueuePointer, replicaQueuePointer, "Queue pointers don't match");
+    assert.equal(
+      sourceQueuePointer,
+      replicaQueuePointer,
+      "Queue pointers don't match",
+    );
 
     const sourceRootsLength = await registry.read.merkleRootsLength();
     const replicaRootsLength = await replica.read.merkleRootsLength();
-    assert.equal(sourceRootsLength, replicaRootsLength, "Merkle roots array lengths don't match");
+    assert.equal(
+      sourceRootsLength,
+      replicaRootsLength,
+      "Merkle roots array lengths don't match",
+    );
 
     const sourceRoots = await registry.read.getMerkleRoots([0]);
     const replicaRoots = await replica.read.getMerkleRoots([0]);
     expectEqualArrays(sourceRoots, replicaRoots);
   }
 
-  it("should successfully replicate certificate addition from source to replica", async function () {
+  it('should successfully replicate certificate addition from source to replica', async function () {
     const contracts = await loadFixture(deployContracts);
 
     const eddsa = await buildEddsa();
@@ -183,12 +233,17 @@ describe("Cross-Chain Replication Integration Test", async function () {
     const leafHashes = generateRandomBytes32Array(1);
     const leafIndices = [Math.floor(Math.random() * 256)];
 
-    await addCertificateToSource(contracts, merkleTree, leafHashes[0], leafIndices[0]);
+    await addCertificateToSource(
+      contracts,
+      merkleTree,
+      leafHashes[0],
+      leafIndices[0],
+    );
     await relayState(contracts);
     await verifyReplicaState(contracts);
   });
 
-  it("should successfully replicate certificate revocation from source to replica", async function () {
+  it('should successfully replicate certificate revocation from source to replica', async function () {
     const contracts = await loadFixture(deployContracts);
 
     const eddsa = await buildEddsa();
@@ -198,16 +253,26 @@ describe("Cross-Chain Replication Integration Test", async function () {
     const leafHashes = generateRandomBytes32Array(1);
     const leafIndices = [Math.floor(Math.random() * 256)];
 
-    await addCertificateToSource(contracts, merkleTree, leafHashes[0], leafIndices[0]);
+    await addCertificateToSource(
+      contracts,
+      merkleTree,
+      leafHashes[0],
+      leafIndices[0],
+    );
     await relayState(contracts);
     await verifyReplicaState(contracts);
 
-    await revokeCertificateFromSource(contracts, merkleTree, leafHashes[0], leafIndices[0]);
+    await revokeCertificateFromSource(
+      contracts,
+      merkleTree,
+      leafHashes[0],
+      leafIndices[0],
+    );
     await relayState(contracts);
     await verifyReplicaState(contracts);
   });
 
-  it("should successfully replicate batch certificate additions", async function () {
+  it('should successfully replicate batch certificate additions', async function () {
     const contracts = await loadFixture(deployContracts);
 
     const eddsa = await buildEddsa();
@@ -216,11 +281,18 @@ describe("Cross-Chain Replication Integration Test", async function () {
     // Generate test data for 3 batches
     const certificateAmount = BATCH_SIZE * 3 - 1; // -1 because the first root also needs to be replicated
     const leafHashes = generateRandomBytes32Array(certificateAmount);
-    const leafIndices = Array.from({ length: certificateAmount }, () => Math.floor(Math.random() * 256));
+    const leafIndices = Array.from({ length: certificateAmount }, () =>
+      Math.floor(Math.random() * 256),
+    );
 
     // Add certificates in batch
     for (let i = 0; i < certificateAmount; i++) {
-      await addCertificateToSource(contracts, merkleTree, leafHashes[i], leafIndices[i]);
+      await addCertificateToSource(
+        contracts,
+        merkleTree,
+        leafHashes[i],
+        leafIndices[i],
+      );
     }
 
     // Relay state to replica, needs to be called 3 times to ensure all certificates are replicated
@@ -232,7 +304,7 @@ describe("Cross-Chain Replication Integration Test", async function () {
     await verifyReplicaState(contracts);
   });
 
-  it("should handle multiple state updates correctly", async function () {
+  it('should handle multiple state updates correctly', async function () {
     const contracts = await loadFixture(deployContracts);
 
     const eddsa = await buildEddsa();
@@ -240,30 +312,52 @@ describe("Cross-Chain Replication Integration Test", async function () {
 
     // Generate test data
     const leafHashes = generateRandomBytes32Array(3);
-    const leafIndices = Array.from({ length: 3 }, () => Math.floor(Math.random() * 256));
+    const leafIndices = Array.from({ length: 3 }, () =>
+      Math.floor(Math.random() * 256),
+    );
 
     // Add first certificate
-    await addCertificateToSource(contracts, merkleTree, leafHashes[0], leafIndices[0]);
+    await addCertificateToSource(
+      contracts,
+      merkleTree,
+      leafHashes[0],
+      leafIndices[0],
+    );
     await relayState(contracts);
     await verifyReplicaState(contracts);
 
     // Add second certificate
-    await addCertificateToSource(contracts, merkleTree, leafHashes[1], leafIndices[1]);
+    await addCertificateToSource(
+      contracts,
+      merkleTree,
+      leafHashes[1],
+      leafIndices[1],
+    );
     await relayState(contracts);
     await verifyReplicaState(contracts);
 
     // Revoke first certificate
-    await revokeCertificateFromSource(contracts, merkleTree, leafHashes[0], leafIndices[0]);
+    await revokeCertificateFromSource(
+      contracts,
+      merkleTree,
+      leafHashes[0],
+      leafIndices[0],
+    );
     await relayState(contracts);
     await verifyReplicaState(contracts);
 
     // Add third certificate
-    await addCertificateToSource(contracts, merkleTree, leafHashes[2], leafIndices[2]);
+    await addCertificateToSource(
+      contracts,
+      merkleTree,
+      leafHashes[2],
+      leafIndices[2],
+    );
     await relayState(contracts);
     await verifyReplicaState(contracts);
   });
 
-  it("should verify merkle root validity on replica", async function () {
+  it('should verify merkle root validity on replica', async function () {
     const contracts = await loadFixture(deployContracts);
     const { registry, replica } = contracts;
 
@@ -272,35 +366,65 @@ describe("Cross-Chain Replication Integration Test", async function () {
 
     // Generate test data
     const leafHashes = generateRandomBytes32Array(2);
-    const leafIndices = Array.from({ length: 2 }, () => Math.floor(Math.random() * 256));
+    const leafIndices = Array.from({ length: 2 }, () =>
+      Math.floor(Math.random() * 256),
+    );
 
     // Add first certificate
-    await addCertificateToSource(contracts, merkleTree, leafHashes[0], leafIndices[0]);
-    const firstRoot = await registry.read.merkleRoot() as `0x${string}`;
+    await addCertificateToSource(
+      contracts,
+      merkleTree,
+      leafHashes[0],
+      leafIndices[0],
+    );
+    const firstRoot = (await registry.read.merkleRoot()) as `0x${string}`;
 
-    assert.equal(await replica.read.verifyMerkleRoot([
-      firstRoot
-    ]), false, "Merkle root should not yet be valid on replica");
+    assert.equal(
+      await replica.read.verifyMerkleRoot([firstRoot]),
+      false,
+      'Merkle root should not yet be valid on replica',
+    );
 
     await relayState(contracts);
 
-    const isValidOnReplica = await replica.read.verifyMerkleRoot([
-      firstRoot
-    ]);
-    assert.equal(isValidOnReplica, true, "Merkle root should be valid on replica");
+    const isValidOnReplica = await replica.read.verifyMerkleRoot([firstRoot]);
+    assert.equal(
+      isValidOnReplica,
+      true,
+      'Merkle root should be valid on replica',
+    );
 
     // Add second certificate
-    await addCertificateToSource(contracts, merkleTree, leafHashes[1], leafIndices[1]);
-    const secondRoot = await registry.read.merkleRoot() as `0x${string}`;
+    await addCertificateToSource(
+      contracts,
+      merkleTree,
+      leafHashes[1],
+      leafIndices[1],
+    );
+    const secondRoot = (await registry.read.merkleRoot()) as `0x${string}`;
 
     await relayState(contracts);
 
-    assert.equal(await replica.read.verifyMerkleRoot([firstRoot]), true, "Old merkle root should still be valid");
-    assert.equal(await replica.read.verifyMerkleRoot([secondRoot]), true, "New merkle root should be valid");
+    assert.equal(
+      await replica.read.verifyMerkleRoot([firstRoot]),
+      true,
+      'Old merkle root should still be valid',
+    );
+    assert.equal(
+      await replica.read.verifyMerkleRoot([secondRoot]),
+      true,
+      'New merkle root should be valid',
+    );
 
     // Revoke first certificate
-    await revokeCertificateFromSource(contracts, merkleTree, leafHashes[0], leafIndices[0]);
-    const latestMerkleRoot = await registry.read.merkleRoot() as `0x${string}`;
+    await revokeCertificateFromSource(
+      contracts,
+      merkleTree,
+      leafHashes[0],
+      leafIndices[0],
+    );
+    const latestMerkleRoot =
+      (await registry.read.merkleRoot()) as `0x${string}`;
 
     await relayState(contracts);
 
@@ -310,33 +434,47 @@ describe("Cross-Chain Replication Integration Test", async function () {
     const replicaRootsLength = await replica.read.merkleRootsLength();
     const replicaValidIndex = await replica.read.merkleRootValidIndex();
 
-    assert.equal(sourceRootsLength, replicaRootsLength, "Source and replica should have same number of roots");
-    assert.equal(sourceValidIndex, replicaValidIndex, "Source and replica should have same valid index");
+    assert.equal(
+      sourceRootsLength,
+      replicaRootsLength,
+      'Source and replica should have same number of roots',
+    );
+    assert.equal(
+      sourceValidIndex,
+      replicaValidIndex,
+      'Source and replica should have same valid index',
+    );
 
     // After revocation, the merkleRootValidIndex is updated to the latest root index
     // So all roots up to the latest one should be valid
-    assert.equal(await replica.read.verifyMerkleRoot([
-      firstRoot
-    ]), false, "Old merkle root should be revoked");
-    assert.equal(await replica.read.verifyMerkleRoot([
-      secondRoot
-    ]), false, "Previous merkle root should be revoked");
-    assert.equal(await replica.read.verifyMerkleRoot([
-      latestMerkleRoot
-    ]), true, "Latest merkle root should be valid after revocation");
+    assert.equal(
+      await replica.read.verifyMerkleRoot([firstRoot]),
+      false,
+      'Old merkle root should be revoked',
+    );
+    assert.equal(
+      await replica.read.verifyMerkleRoot([secondRoot]),
+      false,
+      'Previous merkle root should be revoked',
+    );
+    assert.equal(
+      await replica.read.verifyMerkleRoot([latestMerkleRoot]),
+      true,
+      'Latest merkle root should be valid after revocation',
+    );
   });
 
-  describe("should prevent unauthorized updates to replica registry", async function () {
+  describe('should prevent unauthorized updates to replica registry', async function () {
     const newMerkleRoots = [generateRandomBytes32Array(1)[0] as `0x${string}`];
     const newMerkleRootValidIndex = 2n;
     const newQueuePointer = 1n;
 
     const message = encodeAbiParameters(
-      [{ type: "bytes32[]" }, { type: "uint256" }, { type: "uint256" }],
-      [newMerkleRoots, newMerkleRootValidIndex, newQueuePointer]
+      [{ type: 'bytes32[]' }, { type: 'uint256' }, { type: 'uint256' }],
+      [newMerkleRoots, newMerkleRootValidIndex, newQueuePointer],
     );
 
-    it("should prevent unauthorized direct updates to replica registry", async function () {
+    it('should prevent unauthorized direct updates to replica registry', async function () {
       const contracts = await loadFixture(deployContracts);
       const { replica } = contracts;
 
@@ -345,15 +483,15 @@ describe("Cross-Chain Replication Integration Test", async function () {
           await replica.write.updateState([
             newMerkleRoots,
             newMerkleRootValidIndex,
-            newQueuePointer
+            newQueuePointer,
           ]);
         },
-        /caller is not authorized updater/,
-        "Unauthorized user should not be able to update replica state directly"
+        /caller is not authorized updater/u,
+        'Unauthorized user should not be able to update replica state directly',
       );
     });
 
-    it("should prevent unauthorized calls to receiver handle function", async function () {
+    it('should prevent unauthorized calls to receiver handle function', async function () {
       const contracts = await loadFixture(deployContracts);
       const { receiver, sender } = contracts;
 
@@ -361,16 +499,16 @@ describe("Cross-Chain Replication Integration Test", async function () {
         async () => {
           await receiver.write.handle([
             SOURCE_DOMAIN,
-            padHex(sender.address as `0x${string}`, { size: 32 }),
-            message
+            padHex(sender.address, { size: 32 }),
+            message,
           ]);
         },
-        /caller is not the mailbox/,
-        "Unauthorized user should not be able to call receiver handle function"
+        /caller is not the mailbox/u,
+        'Unauthorized user should not be able to call receiver handle function',
       );
     });
 
-    it("should reject messages from invalid origin domain", async function () {
+    it('should reject messages from invalid origin domain', async function () {
       const contracts = await loadFixture(deployContracts);
       const { receiver, sender } = contracts;
 
@@ -379,32 +517,40 @@ describe("Cross-Chain Replication Integration Test", async function () {
       try {
         await receiver.write.handle([
           invalidOriginDomain,
-          padHex(sender.address as `0x${string}`, { size: 32 }),
-          message
+          padHex(sender.address, { size: 32 }),
+          message,
         ]);
-        assert.fail("Expected the call to revert, but it succeeded");
+        assert.fail('Expected the call to revert, but it succeeded');
       } catch (error: any) {
         // The onlyMailbox modifier is checked first, so we expect that error
-        assert(error.message.includes("caller is not the mailbox"), `Expected error to contain "caller is not the mailbox", but got: ${error.message}`);
+        assert(
+          error.message.includes('caller is not the mailbox'),
+          `Expected error to contain "caller is not the mailbox", but got: ${error.message}`,
+        );
       }
     });
 
-    it("should reject messages from unauthorized sender address", async function () {
+    it('should reject messages from unauthorized sender address', async function () {
       const contracts = await loadFixture(deployContracts);
       const { receiver, senderMailbox, receiverMailbox } = contracts;
 
       await senderMailbox.write.dispatch([
         DESTINATION_DOMAIN,
-        padHex(receiver.address as `0x${string}`, { size: 32 }),
-        message
+        padHex(receiver.address, { size: 32 }),
+        message,
       ]);
       try {
         // Process the message on the destination mailbox
         await receiverMailbox.write.processNextInboundMessage();
 
-        assert.fail("Expected the call to succeed (mailbox doesn't validate sender)");
+        assert.fail(
+          "Expected the call to succeed (mailbox doesn't validate sender)",
+        );
       } catch (error: any) {
-        assert(error.message.includes("invalid sender address"), `Expected error to contain "invalid sender address", but got: ${error.message}`);
+        assert(
+          error.message.includes('invalid sender address'),
+          `Expected error to contain "invalid sender address", but got: ${error.message}`,
+        );
       }
     });
   });

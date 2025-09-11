@@ -420,12 +420,12 @@ describe('ZkCertificateRegistry', () => {
     expect(rootsFromLast[0]).to.equal(allRoots[5]);
 
     // Test that startIndex out of bounds reverts
-    await expect(
-      ZkCertificateRegistry.getMerkleRoots(6)
-    ).to.be.revertedWith('Start index out of bounds');
+    await expect(ZkCertificateRegistry.getMerkleRoots(6)).to.be.revertedWith(
+      'Start index out of bounds',
+    );
 
-    await expect(
-      ZkCertificateRegistry.getMerkleRoots(10)
-    ).to.be.revertedWith('Start index out of bounds');
+    await expect(ZkCertificateRegistry.getMerkleRoots(10)).to.be.revertedWith(
+      'Start index out of bounds',
+    );
   });
 });

@@ -27,6 +27,23 @@ const config = [
     },
   },
 
+  {
+    files: ['test/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 0, // node tests still work
+      'import-x/extensions': 0, // did not found a better option for imports
+      'n/no-unpublished-import': 0, // allow importing dev dependencies in tests
+    },
+  },
+
+  {
+    files: ['ignition/**/*.ts'],
+    rules: {
+      'import-x/extensions': 0, // did not found a better option for imports
+      'n/no-unpublished-import': 0, // allow importing dev dependencies in tests
+    },
+  },
+
   globalIgnores([
     '.eslintrc.js',
     'cache/',
