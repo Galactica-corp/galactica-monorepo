@@ -51,6 +51,7 @@
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
   },
   "devDependencies": {
+    "@metamask/eth-sig-util": "^8.2.0",
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.0",
     "@nomicfoundation/hardhat-ignition": "^0.15.13",
@@ -59,7 +60,6 @@
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "@nomicfoundation/hardhat-verify": "^2.1.0",
     "@nomicfoundation/ignition-core": "^0.15.13",
-    "@metamask/eth-sig-util": "^8.2.0",
     "@typechain/ethers-v6": "^0.5.1",
     "@typechain/hardhat": "^9.1.0",
     "@types/circomlibjs": "^0.1.6",
@@ -71,8 +71,8 @@
     "chai-as-promised": "^7.1.2",
     "chalk": "^4.1.2",
     "download": "^8.0.0",
-    "hardhat": "^2.26.1",
     "eslint": "^9.11.0",
+    "hardhat": "^2.26.1",
     "hardhat-circom": "git+https://github.com/Galactica-corp/hardhat-circom.git#dd6ffd249cb174e504e3cbfb127503c6ef9155cc",
     "hardhat-gas-reporter": "^2.3.0",
     "solidity-coverage": "^0.8.16",

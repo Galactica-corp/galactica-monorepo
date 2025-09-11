@@ -14,7 +14,7 @@ export { KnownZkCertStandard } from '@galactica-net/galactica-types';
 export type {
   ProverData,
   ProverLink,
-  ZkCertProof,
+  ZkProof,
 } from '@galactica-net/zk-certificates';
 
 /**
