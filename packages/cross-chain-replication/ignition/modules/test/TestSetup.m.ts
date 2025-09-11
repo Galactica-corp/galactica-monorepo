@@ -8,6 +8,7 @@ import mockMailboxArtifact from "../../../artifacts/contracts/test/MockMailbox.s
 export default buildModule("TestSetupModule", (module) => {
   const senderDomain = module.getParameter("senderDomain", 1);
   const receiverDomain = module.getParameter("receiverDomain", 2);
+  const merkleDepth = module.getParameter("merkleDepth", 8);
 
   const guardianRegistry = module.contract('GuardianRegistry', guardianRegistryArtifact, ["Test Guardian Registry"]);
   module.call(guardianRegistry, "grantGuardianRole", [module.getAccount(0), [0, 0], "test"]);
@@ -17,7 +18,7 @@ export default buildModule("TestSetupModule", (module) => {
   const zkCertificateRegistry = module.contract(
     'ZkCertificateRegistry',
     zkCertificateRegistryArtifact,
-    [guardianRegistry, 32, "Test ZkCertificate Registry"],
+    [guardianRegistry, merkleDepth, "Test ZkCertificate Registry"],
     {
       libraries: {
         PoseidonT3: poseidon,

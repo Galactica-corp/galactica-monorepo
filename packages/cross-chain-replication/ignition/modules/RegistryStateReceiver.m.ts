@@ -14,5 +14,5 @@ export default buildModule("RegistryStateReceiverModule", (module) => {
   // Set the receiver as the authorized updater
   module.call(replica, "initialize", [receiver]);
 
-  return { receiver };
+  return { replica, receiver };
 });

@@ -31,9 +31,11 @@ contract RegistryStateSenderTest is Test {
       address(mockMailbox),
       address(mockRegistry),
       destinationDomain,
-      receiverAddress,
       maxMerkleRootsPerMessage
     );
+
+    // Initialize with receiver address
+    sender.initialize(receiverAddress);
 
     // Setup mailbox connection for testing
     mockMailbox.addRemoteMailbox(
@@ -67,7 +69,6 @@ contract RegistryStateSenderTest is Test {
       address(0),
       address(mockRegistry),
       destinationDomain,
-      receiverAddress,
       maxMerkleRootsPerMessage
     );
   }
@@ -78,7 +79,6 @@ contract RegistryStateSenderTest is Test {
       address(mockMailbox),
       address(0),
       destinationDomain,
-      receiverAddress,
       maxMerkleRootsPerMessage
     );
   }
@@ -89,20 +89,20 @@ contract RegistryStateSenderTest is Test {
       address(mockMailbox),
       address(mockRegistry),
       0,
-      receiverAddress,
       maxMerkleRootsPerMessage
     );
   }
 
-  function test_Constructor_Reverts_ZeroReceiverAddress() public {
-    vm.expectRevert('RegistryStateSender: receiver address cannot be zero');
-    new RegistryStateSender(
+  function test_Initialize_Reverts_ZeroReceiverAddress() public {
+    RegistryStateSender uninitializedSender = new RegistryStateSender(
       address(mockMailbox),
       address(mockRegistry),
       destinationDomain,
-      address(0),
       maxMerkleRootsPerMessage
     );
+
+    vm.expectRevert('RegistryStateSender: receiver address cannot be zero');
+    uninitializedSender.initialize(address(0));
   }
 
   function test_Constructor_Reverts_ZeroMaxMerkleRootsPerMessage() public {
@@ -113,7 +113,6 @@ contract RegistryStateSenderTest is Test {
       address(mockMailbox),
       address(mockRegistry),
       destinationDomain,
-      receiverAddress,
       0
     );
   }
@@ -339,7 +338,6 @@ contract RegistryStateSenderTest is Test {
       address(mockMailbox),
       address(mockRegistry),
       destinationDomain,
-      receiverAddress,
       0
     );
   }
@@ -351,9 +349,11 @@ contract RegistryStateSenderTest is Test {
       address(mockMailbox),
       address(mockRegistry),
       destinationDomain,
-      receiverAddress,
       lowMaxLimit
     );
+
+    // Initialize the low limit sender
+    lowLimitSender.initialize(receiverAddress);
     assertEq(lowLimitSender.maxMerkleRootsPerMessage(), lowMaxLimit);
 
     // relay initial state
@@ -390,5 +390,65 @@ contract RegistryStateSenderTest is Test {
     vm.expectEmit(true, true, true, true);
     emit RegistryStateSender.StateRelayed(expectedRoots3, 6, 4, 6);
     lowLimitSender.relayState{value: 1 ether}();
+  }
+
+  function test_Initialize_Success() public {
+    RegistryStateSender uninitializedSender = new RegistryStateSender(
+      address(mockMailbox),
+      address(mockRegistry),
+      destinationDomain,
+      maxMerkleRootsPerMessage
+    );
+
+    // Should not be initialized initially
+    assertFalse(uninitializedSender.initialized());
+    assertEq(uninitializedSender.receiverAddress(), address(0));
+
+    // Initialize
+    uninitializedSender.initialize(receiverAddress);
+
+    // Should be initialized now
+    assertTrue(uninitializedSender.initialized());
+    assertEq(uninitializedSender.receiverAddress(), receiverAddress);
+  }
+
+  function test_Initialize_Reverts_AlreadyInitialized() public {
+    RegistryStateSender uninitializedSender = new RegistryStateSender(
+      address(mockMailbox),
+      address(mockRegistry),
+      destinationDomain,
+      maxMerkleRootsPerMessage
+    );
+
+    // First initialization should succeed
+    uninitializedSender.initialize(receiverAddress);
+
+    // Second initialization should revert
+    vm.expectRevert('RegistryStateSender: already initialized');
+    uninitializedSender.initialize(receiverAddress);
+  }
+
+  function test_RelayState_Reverts_NotInitialized() public {
+    RegistryStateSender uninitializedSender = new RegistryStateSender(
+      address(mockMailbox),
+      address(mockRegistry),
+      destinationDomain,
+      maxMerkleRootsPerMessage
+    );
+
+    vm.expectRevert('RegistryStateSender: not initialized');
+    uninitializedSender.relayState{value: 1 ether}();
+  }
+
+  function test_QuoteRelayFee_Reverts_NotInitialized() public {
+    RegistryStateSender uninitializedSender = new RegistryStateSender(
+      address(mockMailbox),
+      address(mockRegistry),
+      destinationDomain,
+      maxMerkleRootsPerMessage
+    );
+
+    vm.expectRevert('RegistryStateSender: not initialized');
+    uninitializedSender.quoteRelayFee();
   }
 }

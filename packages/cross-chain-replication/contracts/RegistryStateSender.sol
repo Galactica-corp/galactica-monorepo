@@ -18,7 +18,8 @@ contract RegistryStateSender {
   uint32 public immutable destinationDomain;
 
   // State tracking
-  address public immutable receiverAddress;
+  address public receiverAddress;
+  bool public initialized;
   uint256 public lastSentMerkleRootsLength;
   uint256 public lastProcessedQueuePointer;
   uint256 public lastProcessedMerkleRootValidIndex;
@@ -39,14 +40,12 @@ contract RegistryStateSender {
    * @param _mailbox Address of the Hyperlane mailbox contract
    * @param _registry Address of the source ZkCertificateRegistry
    * @param _destinationDomain The Hyperlane domain ID of the destination chain
-   * @param _receiverAddress Address of the RegistryStateReceiver on the destination chain
    * @param _maxMerkleRootsPerMessage Maximum number of merkle roots to send in one message
    */
   constructor(
     address _mailbox,
     address _registry,
     uint32 _destinationDomain,
-    address _receiverAddress,
     uint256 _maxMerkleRootsPerMessage
   ) {
     require(
@@ -62,10 +61,6 @@ contract RegistryStateSender {
       'RegistryStateSender: destination domain cannot be zero'
     );
     require(
-      _receiverAddress != address(0),
-      'RegistryStateSender: receiver address cannot be zero'
-    );
-    require(
       _maxMerkleRootsPerMessage > 0,
       'RegistryStateSender: max merkle roots per message must be greater than zero'
     );
@@ -73,7 +68,6 @@ contract RegistryStateSender {
     mailbox = IMailbox(_mailbox);
     registry = IReadableZkCertRegistry(_registry);
     destinationDomain = _destinationDomain;
-    receiverAddress = _receiverAddress;
     maxMerkleRootsPerMessage = _maxMerkleRootsPerMessage;
 
     // Initialize state tracking - start from the beginning
@@ -84,11 +78,28 @@ contract RegistryStateSender {
   }
 
   /**
+   * @notice One-time initialization function to set the receiver address
+   * @param _receiverAddress Address of the RegistryStateReceiver on the destination chain
+   * @dev Can only be called once, must be called before using relayState or quoteRelayFee
+   */
+  function initialize(address _receiverAddress) external {
+    require(!initialized, 'RegistryStateSender: already initialized');
+    require(
+      _receiverAddress != address(0),
+      'RegistryStateSender: receiver address cannot be zero'
+    );
+
+    receiverAddress = _receiverAddress;
+    initialized = true;
+  }
+
+  /**
    * @notice Relays the latest state changes from the source registry to the destination chain
    * @dev Reads new merkle roots and state changes since the last relay, encodes them, and dispatches via Hyperlane
    *      Limits the number of merkle roots per message to avoid gas limit issues
    */
   function relayState() external payable {
+    require(initialized, 'RegistryStateSender: not initialized');
     (
       bytes memory messageBody,
       uint256 newSentMerkleRootsLength,
@@ -131,6 +142,7 @@ contract RegistryStateSender {
    * @return The estimated fee in wei
    */
   function quoteRelayFee() external view returns (uint256) {
+    require(initialized, 'RegistryStateSender: not initialized');
     (bytes memory messageBody, , , , ) = buildRelayStateMessage();
 
     bytes32 recipientBytes32 = TypeCasts.addressToBytes32(receiverAddress);
