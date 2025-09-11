@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import { network } from "hardhat";
 import { buildEddsa } from "circomlibjs";
+import { encodeAbiParameters, padHex } from "viem";
 
 import {
   fromDecToHex,
@@ -323,5 +324,88 @@ describe("Cross-Chain Replication Integration Test", async function () {
     assert.equal(await replica.read.verifyMerkleRoot([
       latestMerkleRoot
     ]), true, "Latest merkle root should be valid after revocation");
+  });
+
+  describe("should prevent unauthorized updates to replica registry", async function () {
+    const newMerkleRoots = [generateRandomBytes32Array(1)[0] as `0x${string}`];
+    const newMerkleRootValidIndex = 2n;
+    const newQueuePointer = 1n;
+
+    const message = encodeAbiParameters(
+      [{ type: "bytes32[]" }, { type: "uint256" }, { type: "uint256" }],
+      [newMerkleRoots, newMerkleRootValidIndex, newQueuePointer]
+    );
+
+    it("should prevent unauthorized direct updates to replica registry", async function () {
+      const contracts = await loadFixture(deployContracts);
+      const { replica } = contracts;
+
+      await assert.rejects(
+        async () => {
+          await replica.write.updateState([
+            newMerkleRoots,
+            newMerkleRootValidIndex,
+            newQueuePointer
+          ]);
+        },
+        /caller is not authorized updater/,
+        "Unauthorized user should not be able to update replica state directly"
+      );
+    });
+
+    it("should prevent unauthorized calls to receiver handle function", async function () {
+      const contracts = await loadFixture(deployContracts);
+      const { receiver, sender } = contracts;
+
+      await assert.rejects(
+        async () => {
+          await receiver.write.handle([
+            SOURCE_DOMAIN,
+            padHex(sender.address as `0x${string}`, { size: 32 }),
+            message
+          ]);
+        },
+        /caller is not the mailbox/,
+        "Unauthorized user should not be able to call receiver handle function"
+      );
+    });
+
+    it("should reject messages from invalid origin domain", async function () {
+      const contracts = await loadFixture(deployContracts);
+      const { receiver, sender } = contracts;
+
+      const invalidOriginDomain = 999; // Wrong domain
+
+      try {
+        await receiver.write.handle([
+          invalidOriginDomain,
+          padHex(sender.address as `0x${string}`, { size: 32 }),
+          message
+        ]);
+        assert.fail("Expected the call to revert, but it succeeded");
+      } catch (error: any) {
+        // The onlyMailbox modifier is checked first, so we expect that error
+        assert(error.message.includes("caller is not the mailbox"), `Expected error to contain "caller is not the mailbox", but got: ${error.message}`);
+      }
+    });
+
+    it("should reject messages from unauthorized sender address", async function () {
+      const contracts = await loadFixture(deployContracts);
+      const { receiver, senderMailbox, receiverMailbox } = contracts;
+
+      await senderMailbox.write.dispatch([
+        DESTINATION_DOMAIN,
+        padHex(receiver.address as `0x${string}`, { size: 32 }),
+        message
+      ]);
+      try {
+        // Process the message on the destination mailbox
+        await receiverMailbox.write.processNextInboundMessage();
+
+        assert.fail("Expected the call to succeed (mailbox doesn't validate sender)");
+      } catch (error: any) {
+        assert(error.message.includes("invalid sender address"), `Expected error to contain "invalid sender address", but got: ${error.message}`);
+      }
+    });
   });
 });
