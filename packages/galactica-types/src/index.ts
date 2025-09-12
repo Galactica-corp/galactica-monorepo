@@ -16,3 +16,10 @@ export type {
 } from './zkCertContent';
 export * from './fieldElement';
 export * from './schemas';
+export type {
+  ProverData,
+  ProverLink,
+  ZkProof,
+  GenZkProofParams,
+  PreparedZkCertProofInputs,
+} from './proofs';
