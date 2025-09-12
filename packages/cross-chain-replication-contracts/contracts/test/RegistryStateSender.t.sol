@@ -451,4 +451,39 @@ contract RegistryStateSenderTest is Test {
     vm.expectRevert('RegistryStateSender: not initialized');
     uninitializedSender.quoteRelayFee();
   }
+
+  function test_GetSyncStatus_InitialState_NoChanges() public {
+    // relay initial state
+    sender.relayState{value: 1 ether}();
+
+    (
+      uint256 merkleRootsLengthDiff,
+      bool hasNewRevocation,
+      uint256 queuePointerDiff
+    ) = sender.getSyncStatus();
+
+    assertEq(merkleRootsLengthDiff, 0);
+    assertFalse(hasNewRevocation);
+    assertEq(queuePointerDiff, 0);
+  }
+
+  function test_GetSyncStatus_WithAllChanges() public {
+    // Relay initial state
+    sender.relayState{value: 1 ether}();
+
+    bytes32 root1 = keccak256('root1');
+    mockRegistry.setMerkleRoot(root1);
+    mockRegistry.setMerkleRootValidIndex(2);
+    mockRegistry.setCurrentQueuePointer(3);
+
+    (
+      uint256 merkleRootsLengthDiff,
+      bool hasNewRevocation,
+      uint256 queuePointerDiff
+    ) = sender.getSyncStatus();
+
+    assertEq(merkleRootsLengthDiff, 1);
+    assertTrue(hasNewRevocation);
+    assertEq(queuePointerDiff, 3);
+  }
 }

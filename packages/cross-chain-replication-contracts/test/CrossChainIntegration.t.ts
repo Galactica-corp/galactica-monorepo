@@ -281,9 +281,7 @@ describe('Cross-Chain Replication Integration Test', async function () {
     // Generate test data for 3 batches
     const certificateAmount = BATCH_SIZE * 3 - 1; // -1 because the first root also needs to be replicated
     const leafHashes = generateRandomBytes32Array(certificateAmount);
-    const leafIndices = Array.from({ length: certificateAmount }, () =>
-      Math.floor(Math.random() * 256),
-    );
+    const leafIndices = Array.from({ length: certificateAmount }, (_, i) => i);
 
     // Add certificates in batch
     for (let i = 0; i < certificateAmount; i++) {
@@ -312,9 +310,7 @@ describe('Cross-Chain Replication Integration Test', async function () {
 
     // Generate test data
     const leafHashes = generateRandomBytes32Array(3);
-    const leafIndices = Array.from({ length: 3 }, () =>
-      Math.floor(Math.random() * 256),
-    );
+    const leafIndices = Array.from({ length: 3 }, (_, i) => i);
 
     // Add first certificate
     await addCertificateToSource(
@@ -366,9 +362,7 @@ describe('Cross-Chain Replication Integration Test', async function () {
 
     // Generate test data
     const leafHashes = generateRandomBytes32Array(2);
-    const leafIndices = Array.from({ length: 2 }, () =>
-      Math.floor(Math.random() * 256),
-    );
+    const leafIndices = Array.from({ length: 2 }, (_, i) => i);
 
     // Add first certificate
     await addCertificateToSource(

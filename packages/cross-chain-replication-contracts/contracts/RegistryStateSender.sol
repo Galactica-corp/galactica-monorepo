@@ -232,4 +232,31 @@ contract RegistryStateSender {
       lastSentMerkleRootsLength
     );
   }
+
+  /**
+   * @notice Gets the current synchronization status with the source registry
+   * @return merkleRootsLengthDiff The difference between current merkle roots array length and last sent length
+   * @return hasNewRevocation True if there is a new revocation indicated by merkleRootValidIndex change
+   * @return queuePointerDiff The difference between current queue pointer and last processed queue pointer
+   */
+  function getSyncStatus()
+    external
+    view
+    returns (
+      uint256 merkleRootsLengthDiff,
+      bool hasNewRevocation,
+      uint256 queuePointerDiff
+    )
+  {
+    uint256 currentMerkleRootsLength = registry.merkleRootsLength();
+    uint256 currentMerkleRootValidIndex = registry.merkleRootValidIndex();
+    uint256 currentQueuePointer = registry.currentQueuePointer();
+
+    merkleRootsLengthDiff =
+      currentMerkleRootsLength -
+      lastSentMerkleRootsLength;
+    hasNewRevocation =
+      currentMerkleRootValidIndex > lastProcessedMerkleRootValidIndex;
+    queuePointerDiff = currentQueuePointer - lastProcessedQueuePointer;
+  }
 }
