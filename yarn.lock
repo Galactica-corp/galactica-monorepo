@@ -5658,6 +5658,7 @@ __metadata:
     "@galactica-net/zk-certificates": "workspace:^"
     "@types/node": ^22.8.5
     dotenv: ^16.4.5
+    eslint: ^9.11.0
     ts-node: ^10.9.2
     typescript: ~5.8.0
     viem: ^2.30.0

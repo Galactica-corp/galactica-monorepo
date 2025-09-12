@@ -11,6 +11,7 @@ This package implements cross-chain state replication for the ZK Certificate Reg
 ## Setup
 
 Install dependencies:
+
 ```shell
 yarn install
 ```
@@ -18,6 +19,7 @@ yarn install
 ## Building
 
 Build the contracts:
+
 ```shell
 yarn build
 ```
@@ -25,11 +27,13 @@ yarn build
 ## Testing
 
 Run all tests:
+
 ```shell
 yarn test
 ```
 
 Run specific test types:
+
 ```shell
 yarn hardhat test solidity    # Solidity unit tests
 yarn hardhat test nodejs      # TypeScript integration tests
@@ -46,11 +50,13 @@ yarn hardhat run scripts/deployReplica.ts
 ```
 
 This script will:
+
 1. Deploy the `RegistryStateSender` contract to the origin chain
 2. Deploy the `ZkCertificateRegistryReplica` and `RegistryStateReceiver` contracts to the destination chain
 3. Initialize the sender with the receiver's address
 
 **Configuration**: Edit the script parameters at the top to configure:
+
 - Origin/destination chain names and types
 - Contract addresses (registry, guardian registry, mailboxes)
 - Domain IDs and deployment parameters
@@ -66,6 +72,7 @@ npx hardhat run scripts/relayUpdate.ts
 ```
 
 This script:
+
 1. Connects to the origin chain
 2. Calls `relayState()` on the RegistryStateSender contract
 3. Pays the required Hyperlane dispatch fee
@@ -76,6 +83,7 @@ This script:
 ## Networks
 
 The package supports deployment to various EVM networks via Hyperlane. Common configurations include:
+
 - **Origin**: Arbitrum Sepolia (Galactica Network)
 - **Destination**: Sepolia, Polygon, Optimism, etc.
 

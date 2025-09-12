@@ -37,7 +37,7 @@ const config = [
   },
 
   {
-    files: ['ignition/**/*.ts'],
+    files: ['ignition/**/*.ts', 'scripts/**/*.ts'],
     rules: {
       'import-x/extensions': 0, // did not found a better option for imports
       'n/no-unpublished-import': 0, // allow importing dev dependencies in tests

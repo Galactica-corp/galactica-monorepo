@@ -24,7 +24,9 @@ async function main() {
   await mockRegistry.setCurrentQueuePointer(currentQueuePointer);
   for (let i = 0; i < amountOfRootsToSet; i++) {
     console.log(`Setting merkle root ${i}`);
-    await mockRegistry.setMerkleRoot(ethers.keccak256(ethers.toUtf8Bytes(`root-${i}`)));
+    await mockRegistry.setMerkleRoot(
+      ethers.keccak256(ethers.toUtf8Bytes(`root-${i}`)),
+    );
   }
 
   console.log('Merkle roots set');

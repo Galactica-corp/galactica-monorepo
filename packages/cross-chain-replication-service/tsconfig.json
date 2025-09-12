@@ -1,20 +1,15 @@
 {
-    "extends": "../../tsconfig.json",
-    "compilerOptions": {
-        "outDir": "./dist",
-        "rootDir": "./src",
-        "module": "nodenext",
-        "moduleResolution": "nodenext",
-        "resolveJsonModule": true,
-        "noEmit": false,
-        "allowImportingTsExtensions": false,
-        "skipLibCheck": true
-    },
-    "include": [
-        "src/**/*"
-    ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "noEmit": false,
+    "allowImportingTsExtensions": false,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -91,13 +91,12 @@ yarn dev
 
 ### Production Mode
 
-Build and run the 
+Build and run the
 
 ```bash
 yarn build
 yarn start
 ```
-
 
 ### Relay Decision Logic
 

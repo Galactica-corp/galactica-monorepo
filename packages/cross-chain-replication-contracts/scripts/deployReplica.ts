@@ -1,10 +1,11 @@
 import { network } from 'hardhat';
-import registryStateSenderModule from '../ignition/modules/RegistryStateSender.m.ts';
+
 import registryStateReceiverModule from '../ignition/modules/RegistryStateReceiver.m.ts';
+import registryStateSenderModule from '../ignition/modules/RegistryStateSender.m.ts';
 
 /**
  * Script for deploying the replica and receiver contracts to the destination chain.
- * 
+ *
  * To be migrated to a task later.
  */
 
@@ -33,15 +34,14 @@ const destination = await network.connect({
   chainType: destinationChainType,
 });
 
-
 console.log('Deploying sender to origin chain');
 const { sender } = await origin.ignition.deploy(registryStateSenderModule, {
   parameters: {
     RegistryStateSenderModule: {
       mailbox: senderMailbox,
       registry: originRegistry,
-      destinationDomain: destinationDomain,
-      maxMerkleRootsPerMessage: maxMerkleRootsPerMessage,
+      destinationDomain,
+      maxMerkleRootsPerMessage,
     },
   },
   deploymentId: `${deploymentId}-${originChain}`,
@@ -49,21 +49,24 @@ const { sender } = await origin.ignition.deploy(registryStateSenderModule, {
 console.log('Sender deployed to', sender.address);
 
 console.log('Deploying replica and receiver to destination chain');
-const { replica, receiver } = await destination.ignition.deploy(registryStateReceiverModule, {
-  parameters: {
-    ZkCertificateRegistryReplicaModule: {
-      guardianRegistry: guardianRegistry,
-      treeDepth: treeDepth,
-      description: description,
+const { replica, receiver } = await destination.ignition.deploy(
+  registryStateReceiverModule,
+  {
+    parameters: {
+      ZkCertificateRegistryReplicaModule: {
+        guardianRegistry,
+        treeDepth,
+        description,
+      },
+      RegistryStateReceiverModule: {
+        mailbox: destinationMailbox,
+        originDomain,
+        senderAddress: sender.address,
+      },
     },
-    RegistryStateReceiverModule: {
-      mailbox: destinationMailbox,
-      originDomain: originDomain,
-      senderAddress: sender.address,
-    },
+    deploymentId: `${deploymentId}-${destinationChain}`,
   },
-  deploymentId: `${deploymentId}-${destinationChain}`,
-});
+);
 console.log('Replica deployed to', replica.address);
 console.log('Receiver deployed to', receiver.address);
 

@@ -1,11 +1,15 @@
-import { ReplicatorConfig, SenderConfig } from './types.js';
-import { createPublicClient, createWalletClient, http, Address } from 'viem';
-import { privateKeyToAccount } from 'viem/accounts';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import type { Address } from 'viem';
+import { createPublicClient, createWalletClient, http } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+
+import type { ReplicatorConfig, SenderConfig } from './types.js';
 
 /**
- * Load configuration from environment variables and JSON config
+ * Load configuration from environment variables and JSON config.
+ *
+ * @returns The configuration.
  */
 export function loadConfig(): ReplicatorConfig {
   const rpcUrl = process.env.RPC_URL;
@@ -29,13 +33,17 @@ export function loadConfig(): ReplicatorConfig {
     const sendersConfig = JSON.parse(readFileSync(sendersConfigPath, 'utf-8'));
     senders = sendersConfig.map((sender: any) => ({
       address: sender.address as Address,
-      pollingInterval: sender.pollingInterval || 5000,
-      merkleRootsLengthDiffThreshold: BigInt(sender.merkleRootsLengthDiffThreshold || 1),
-      queuePointerDiffThreshold: BigInt(sender.queuePointerDiffThreshold || 1),
-      maximumUpdateDelayMs: sender.maximumUpdateDelayMs || 300000,
+      pollingInterval: sender.pollingInterval ?? 5000,
+      merkleRootsLengthDiffThreshold: BigInt(
+        sender.merkleRootsLengthDiffThreshold ?? 1,
+      ),
+      queuePointerDiffThreshold: BigInt(sender.queuePointerDiffThreshold ?? 1),
+      maximumUpdateDelayMs: sender.maximumUpdateDelayMs ?? 300000,
     }));
   } catch (error) {
-    throw new Error(`Failed to load senders configuration from ${sendersConfigPath}: ${error}`);
+    throw new Error(
+      `Failed to load senders configuration from ${sendersConfigPath}: ${error}`,
+    );
   }
 
   if (senders.length === 0) {
@@ -50,7 +58,10 @@ export function loadConfig(): ReplicatorConfig {
 }
 
 /**
- * Create viem clients from configuration
+ * Create viem clients from configuration.
+ *
+ * @param config - The configuration.
+ * @returns The viem clients.
  */
 export function createClients(config: ReplicatorConfig): {
   publicClient: any;
