@@ -5342,6 +5342,42 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@galactica-net/galactica-dapp@workspace:packages/galactica-dapp":
+  version: 0.0.0-use.local
+  resolution: "@galactica-net/galactica-dapp@workspace:packages/galactica-dapp"
+  dependencies:
+    "@galactica-net/snap-api": "workspace:^"
+    "@metamask/providers": ^16.1.0
+    "@svgr/webpack": ^6.4.0
+    "@testing-library/dom": ^8.17.1
+    "@testing-library/jest-dom": ^5.16.4
+    "@testing-library/react": ^13.3.0
+    "@testing-library/user-event": ^13.5.0
+    "@types/jest": ^27.5.2
+    "@types/react": ^18.3.23
+    "@types/react-dom": ^18.3.7
+    "@types/styled-components": ^5.1.34
+    "@typescript-eslint/eslint-plugin": ^6.21.0
+    "@typescript-eslint/parser": ^6.21.0
+    bignumber.js: ^9.3.0
+    cross-env: ^7.0.3
+    eslint: ^9.11.0
+    ethers: ^5.8.0
+    gatsby: ^4.25.9
+    gatsby-plugin-manifest: ^4.25.0
+    gatsby-plugin-styled-components: ^5.25.0
+    gatsby-plugin-svgr: ^3.0.0-beta.0
+    prettier: ^3.5.3
+    prettier-plugin-packagejson: ^2.5.15
+    react: ^18.3.1
+    react-dom: ^18.3.1
+    react-is: ^18.3.1
+    rimraf: ^5.0.10
+    styled-components: 5.3.11
+    typescript: ^5.8.3
+  languageName: unknown
+  linkType: soft
+
 "@galactica-net/galactica-monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "@galactica-net/galactica-monorepo@workspace:."
@@ -5364,6 +5400,42 @@ __metadata:
     prettier-plugin-packagejson: ^2.2.18
     typescript: ^5.8.3
     typescript-eslint: ^8.6.0
+  languageName: unknown
+  linkType: soft
+
+"@galactica-net/galactica-passport-poc@workspace:packages/galactica-passport-poc":
+  version: 0.0.0-use.local
+  resolution: "@galactica-net/galactica-passport-poc@workspace:packages/galactica-passport-poc"
+  dependencies:
+    "@galactica-net/snap-api": "workspace:^"
+    "@metamask/providers": ^16.1.0
+    "@svgr/webpack": ^6.4.0
+    "@testing-library/dom": ^8.17.1
+    "@testing-library/jest-dom": ^5.16.4
+    "@testing-library/react": ^13.3.0
+    "@testing-library/user-event": ^13.5.0
+    "@types/jest": ^27.5.2
+    "@types/react": ^18.3.23
+    "@types/react-dom": ^18.3.7
+    "@types/styled-components": ^5.1.34
+    "@typescript-eslint/eslint-plugin": ^6.21.0
+    "@typescript-eslint/parser": ^6.21.0
+    bignumber.js: ^9.3.0
+    cross-env: ^7.0.3
+    eslint: ^9.11.0
+    ethers: ^5.8.0
+    gatsby: ^4.25.9
+    gatsby-plugin-manifest: ^4.25.0
+    gatsby-plugin-styled-components: ^5.25.0
+    gatsby-plugin-svgr: ^3.0.0-beta.0
+    prettier: ^3.5.3
+    prettier-plugin-packagejson: ^2.5.15
+    react: ^18.3.1
+    react-dom: ^18.3.1
+    react-is: ^18.3.1
+    rimraf: ^5.0.10
+    styled-components: 5.3.11
+    typescript: ^5.8.3
   languageName: unknown
   linkType: soft
 
@@ -17770,78 +17842,6 @@ __metadata:
   checksum: c3f1f5ba20f4e962efb71344ce0a40722163e85bee2101ce25f88214e78182d2d2476aa85ef37950c579eb6cf6ee811c17b3101bb84004bb75655f3e33f3fdb5
   languageName: node
   linkType: hard
-
-"galactica-dapp@workspace:packages/galactica-dapp":
-  version: 0.0.0-use.local
-  resolution: "galactica-dapp@workspace:packages/galactica-dapp"
-  dependencies:
-    "@galactica-net/snap-api": "workspace:^"
-    "@metamask/providers": ^16.1.0
-    "@svgr/webpack": ^6.4.0
-    "@testing-library/dom": ^8.17.1
-    "@testing-library/jest-dom": ^5.16.4
-    "@testing-library/react": ^13.3.0
-    "@testing-library/user-event": ^13.5.0
-    "@types/jest": ^27.5.2
-    "@types/react": ^18.3.23
-    "@types/react-dom": ^18.3.7
-    "@types/styled-components": ^5.1.34
-    "@typescript-eslint/eslint-plugin": ^6.21.0
-    "@typescript-eslint/parser": ^6.21.0
-    bignumber.js: ^9.3.0
-    cross-env: ^7.0.3
-    eslint: ^9.11.0
-    ethers: ^5.8.0
-    gatsby: ^4.25.9
-    gatsby-plugin-manifest: ^4.25.0
-    gatsby-plugin-styled-components: ^5.25.0
-    gatsby-plugin-svgr: ^3.0.0-beta.0
-    prettier: ^3.5.3
-    prettier-plugin-packagejson: ^2.5.15
-    react: ^18.3.1
-    react-dom: ^18.3.1
-    react-is: ^18.3.1
-    rimraf: ^5.0.10
-    styled-components: 5.3.11
-    typescript: ^5.8.3
-  languageName: unknown
-  linkType: soft
-
-"galactica-passport-poc@workspace:packages/galactica-passport-poc":
-  version: 0.0.0-use.local
-  resolution: "galactica-passport-poc@workspace:packages/galactica-passport-poc"
-  dependencies:
-    "@galactica-net/snap-api": "workspace:^"
-    "@metamask/providers": ^16.1.0
-    "@svgr/webpack": ^6.4.0
-    "@testing-library/dom": ^8.17.1
-    "@testing-library/jest-dom": ^5.16.4
-    "@testing-library/react": ^13.3.0
-    "@testing-library/user-event": ^13.5.0
-    "@types/jest": ^27.5.2
-    "@types/react": ^18.3.23
-    "@types/react-dom": ^18.3.7
-    "@types/styled-components": ^5.1.34
-    "@typescript-eslint/eslint-plugin": ^6.21.0
-    "@typescript-eslint/parser": ^6.21.0
-    bignumber.js: ^9.3.0
-    cross-env: ^7.0.3
-    eslint: ^9.11.0
-    ethers: ^5.8.0
-    gatsby: ^4.25.9
-    gatsby-plugin-manifest: ^4.25.0
-    gatsby-plugin-styled-components: ^5.25.0
-    gatsby-plugin-svgr: ^3.0.0-beta.0
-    prettier: ^3.5.3
-    prettier-plugin-packagejson: ^2.5.15
-    react: ^18.3.1
-    react-dom: ^18.3.1
-    react-is: ^18.3.1
-    rimraf: ^5.0.10
-    styled-components: 5.3.11
-    typescript: ^5.8.3
-  languageName: unknown
-  linkType: soft
 
 "gatsby-cli@npm:^4.25.0":
   version: 4.25.0
