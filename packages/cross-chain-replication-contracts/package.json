@@ -1,7 +1,7 @@
 {
-  "name": "@galactica-net/cross-chain-replication",
+  "name": "@galactica-net/cross-chain-replication-contracts",
   "version": "1.0.0",
-  "description": "Cross-Chain State Replication for Galactica Network",
+  "description": "Cross-Chain State Replication Contracts for Galactica Network",
   "homepage": "https://galactica.com",
   "repository": {
     "type": "git",

@@ -5622,9 +5622,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@galactica-net/cross-chain-replication@workspace:packages/cross-chain-replication":
+"@galactica-net/cross-chain-replication-contracts@workspace:^, @galactica-net/cross-chain-replication-contracts@workspace:packages/cross-chain-replication-contracts":
   version: 0.0.0-use.local
-  resolution: "@galactica-net/cross-chain-replication@workspace:packages/cross-chain-replication"
+  resolution: "@galactica-net/cross-chain-replication-contracts@workspace:packages/cross-chain-replication-contracts"
   dependencies:
     "@galactica-net/zk-certificates": "workspace:^"
     "@hyperlane-xyz/core": 3.16.0
@@ -5645,6 +5645,20 @@ __metadata:
     eslint: ^9.11.0
     forge-std: "foundry-rs/forge-std#v1.9.4"
     hardhat: ^3.0.0
+    typescript: ~5.8.0
+    viem: ^2.30.0
+  languageName: unknown
+  linkType: soft
+
+"@galactica-net/cross-chain-replication-service@workspace:packages/cross-chain-replication-service":
+  version: 0.0.0-use.local
+  resolution: "@galactica-net/cross-chain-replication-service@workspace:packages/cross-chain-replication-service"
+  dependencies:
+    "@galactica-net/cross-chain-replication-contracts": "workspace:^"
+    "@galactica-net/zk-certificates": "workspace:^"
+    "@types/node": ^22.8.5
+    dotenv: ^16.4.5
+    ts-node: ^10.9.2
     typescript: ~5.8.0
     viem: ^2.30.0
   languageName: unknown
@@ -16005,6 +16019,13 @@ __metadata:
   version: 5.1.0
   resolution: "dotenv-expand@npm:5.1.0"
   checksum: 8017675b7f254384915d55f9eb6388e577cf0a1231a28d54b0ca03b782be9501b0ac90ac57338636d395fa59051e6209e9b44b8ddf169ce6076dffb5dea227d3
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^16.4.5":
+  version: 16.6.1
+  resolution: "dotenv@npm:16.6.1"
+  checksum: e8bd63c9a37f57934f7938a9cf35de698097fadf980cb6edb61d33b3e424ceccfe4d10f37130b904a973b9038627c2646a3365a904b4406514ea94d7f1816b69
   languageName: node
   linkType: hard
 
