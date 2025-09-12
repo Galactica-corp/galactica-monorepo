@@ -29,7 +29,8 @@ async function main() {
       publicClient,
       walletClient,
       account,
-      config.senderAddress
+      config.senderAddress,
+      config.pollingInterval
     );
 
     // Handle graceful shutdown

@@ -1,19 +1,24 @@
 import {
   PublicClient,
   WalletClient,
-  WatchEventReturnType,
-  Log,
   Address,
-  decodeEventLog,
   zeroAddress
 } from 'viem';
 
-import zkCertificateRegistryArtifact from '@galactica-net/zk-certificates/artifacts/contracts/ZkCertificateRegistry.sol/ZkCertificateRegistry.json';
 import registryStateSenderArtifact from '@galactica-net/cross-chain-replication-contracts/artifacts/contracts/RegistryStateSender.sol/RegistryStateSender.json';
 
 /**
+ * Sync status returned by the RegistryStateSender contract
+ */
+interface SyncStatus {
+  merkleRootsLengthDiff: bigint;
+  hasNewRevocation: boolean;
+  queuePointerDiff: bigint;
+}
+
+/**
  * Cross-chain Replicator Service
- * Monitors ZkCertificateRegistry events and relays state changes to destination chains
+ * Periodically checks sync status and relays state changes to destination chains
  */
 export class CrossChainReplicator {
   private publicClient: PublicClient;
@@ -21,32 +26,35 @@ export class CrossChainReplicator {
   private account: any;
   private registryAddress: Address = zeroAddress;
   private senderAddress: Address;
-  private unwatch?: WatchEventReturnType;
+  private pollingInterval: number;
+  private pollTimer?: NodeJS.Timeout;
   private isRunning = false;
 
   constructor(
     publicClient: PublicClient,
     walletClient: WalletClient,
     account: any,
-    senderAddress: Address
+    senderAddress: Address,
+    pollingInterval: number = 5000
   ) {
     this.publicClient = publicClient;
     this.walletClient = walletClient;
     this.account = account;
     this.senderAddress = senderAddress;
+    this.pollingInterval = pollingInterval;
   }
 
   /**
    * Start the replicator service
    */
-  async start(startBlock?: bigint): Promise<void> {
+  async start(): Promise<void> {
     if (this.isRunning) {
       console.log('Replicator is already running');
       return;
     }
 
     this.isRunning = true;
-    console.log(`Starting Cross-chain Replicator`);
+    console.log(`Starting Cross-chain Replicator with ${this.pollingInterval}ms polling interval`);
 
     this.registryAddress = await this.publicClient.readContract({
       address: this.senderAddress,
@@ -55,61 +63,71 @@ export class CrossChainReplicator {
       args: [],
     }) as Address;
 
-    // Start watching for events
-    this.unwatch = this.publicClient.watchEvent({
-      address: this.registryAddress,
-      events: zkCertificateRegistryArtifact.abi.filter((event) => event.type === 'event' && (event.name === 'zkCertificateAddition' || event.name === 'zkCertificateRevocation')),
-      fromBlock: startBlock,
-      onLogs: (logs) => this.handleEvents(logs),
-      onError: (error) => {
-        console.error('Error watching events:', error);
+    // Start periodic polling
+    this.pollTimer = setInterval(async () => {
+      try {
+        await this.checkSyncStatus();
+      } catch (error) {
+        console.error('Error during sync status check:', error);
         // In a production service, you might want to implement retry logic here
-      },
-    });
+      }
+    }, this.pollingInterval);
+
+    // Perform initial check immediately
+    await this.checkSyncStatus();
   }
 
   /**
    * Stop the replicator service
    */
   async stop(): Promise<void> {
-    if (this.unwatch) {
-      this.unwatch();
-      this.unwatch = undefined;
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = undefined;
     }
     this.isRunning = false;
     console.log('Cross-chain Replicator stopped');
   }
 
   /**
-   * Handle incoming events from the registry
+   * Check sync status and relay state if needed
    */
-  private async handleEvents(logs: Log[]): Promise<void> {
-    console.log(`Received ${logs.length} event(s)`);
+  private async checkSyncStatus(): Promise<void> {
+    try {
+      // Get sync status from the RegistryStateSender contract
+      const syncResponse = await this.publicClient.readContract({
+        address: this.senderAddress,
+        abi: registryStateSenderArtifact.abi,
+        functionName: 'getSyncStatus',
+        args: [],
+      }) as [bigint, boolean, bigint];
 
-    for (const log of logs) {
-      try {
-        // Parse the log using viem's decodeEventLog
-        const decodedLog = decodeEventLog({
-          abi: zkCertificateRegistryArtifact.abi.filter((event) => event.type === 'event'),
-          data: log.data,
-          topics: log.topics,
-        }) as any;
+      const syncStatus: SyncStatus = {
+        merkleRootsLengthDiff: syncResponse[0],
+        hasNewRevocation: syncResponse[1],
+        queuePointerDiff: syncResponse[2],
+      };
 
-        if (decodedLog.eventName === 'zkCertificateAddition' || decodedLog.eventName === 'zkCertificateRevocation') {
-          console.log(`Processing ${decodedLog.eventName} event:`, {
-            hash: log.transactionHash,
-            block: log.blockNumber,
-            certificateHash: decodedLog.args.zkCertificateLeafHash,
-            guardian: decodedLog.args.Guardian,
-            index: decodedLog.args.index,
-          });
+      console.log('Sync status check:', {
+        merkleRootsLengthDiff: syncStatus.merkleRootsLengthDiff.toString(),
+        hasNewRevocation: syncStatus.hasNewRevocation,
+        queuePointerDiff: syncStatus.queuePointerDiff.toString(),
+      });
 
-          await this.relayState();
-        }
-      } catch (error) {
-        console.error('Error processing event:', error);
-        // In production, you might want to implement error handling and retry logic
+      // Check if there's anything to sync
+      const hasNewAdditions = syncStatus.merkleRootsLengthDiff > 0n;
+      const hasNewRevocations = syncStatus.hasNewRevocation;
+      const hasQueueUpdates = syncStatus.queuePointerDiff > 0n;
+
+      if (hasNewAdditions || hasNewRevocations || hasQueueUpdates) {
+        console.log('Detected changes in registry state, triggering relay...');
+        await this.relayState();
+      } else {
+        console.log('No new changes detected');
       }
+    } catch (error) {
+      console.error('Error checking sync status:', error);
+      // In production, you might want to implement error handling and retry logic
     }
   }
 

@@ -10,8 +10,8 @@ export interface ReplicatorConfig {
   privateKey: `0x${string}`;
   /** Address of the RegistryStateSender contract */
   senderAddress: Address;
-  /** Polling interval in milliseconds for checking new events */
-  pollingInterval?: number;
+  /** Polling interval in milliseconds for checking sync status */
+  pollingInterval: number;
 }
 
 /**
