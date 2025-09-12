@@ -1,9 +1,11 @@
-import { ReplicatorConfig } from './types.js';
+import { ReplicatorConfig, SenderConfig } from './types.js';
 import { createPublicClient, createWalletClient, http, Address } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 /**
- * Load configuration from environment variables
+ * Load configuration from environment variables and JSON config
  */
 export function loadConfig(): ReplicatorConfig {
   const rpcUrl = process.env.RPC_URL;
@@ -20,18 +22,27 @@ export function loadConfig(): ReplicatorConfig {
     throw new Error('PRIVATE_KEY must start with 0x');
   }
 
-  const senderAddress = process.env.SENDER_ADDRESS;
-  if (!senderAddress) {
-    throw new Error('SENDER_ADDRESS environment variable is required');
+  // Load senders configuration from JSON file
+  const sendersConfigPath = join(process.cwd(), 'config', 'senders.json');
+  let senders: SenderConfig[];
+  try {
+    const sendersConfig = JSON.parse(readFileSync(sendersConfigPath, 'utf-8'));
+    senders = sendersConfig.map((sender: any) => ({
+      address: sender.address as Address,
+      pollingInterval: sender.pollingInterval || 5000,
+    }));
+  } catch (error) {
+    throw new Error(`Failed to load senders configuration from ${sendersConfigPath}: ${error}`);
   }
 
-  const pollingInterval = process.env.POLLING_INTERVAL ? parseInt(process.env.POLLING_INTERVAL) : 5000;
+  if (senders.length === 0) {
+    throw new Error('At least one sender must be configured in senders.json');
+  }
 
   return {
     rpcUrl,
     privateKey: privateKey as `0x${string}`,
-    senderAddress: senderAddress as Address,
-    pollingInterval,
+    senders,
   };
 }
 

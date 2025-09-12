@@ -1,6 +1,16 @@
 import { Address } from 'viem';
 
 /**
+ * Configuration for a single sender
+ */
+export interface SenderConfig {
+  /** Address of the RegistryStateSender contract */
+  address: Address;
+  /** Polling interval in milliseconds for checking sync status */
+  pollingInterval: number;
+}
+
+/**
  * Configuration for the Cross-chain Replicator service
  */
 export interface ReplicatorConfig {
@@ -8,10 +18,8 @@ export interface ReplicatorConfig {
   rpcUrl: string;
   /** Private key for the account that will call relayState() */
   privateKey: `0x${string}`;
-  /** Address of the RegistryStateSender contract */
-  senderAddress: Address;
-  /** Polling interval in milliseconds for checking sync status */
-  pollingInterval: number;
+  /** Array of sender configurations */
+  senders: SenderConfig[];
 }
 
 /**

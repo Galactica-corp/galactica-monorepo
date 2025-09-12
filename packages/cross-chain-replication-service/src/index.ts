@@ -29,8 +29,7 @@ async function main() {
       publicClient,
       walletClient,
       account,
-      config.senderAddress,
-      config.pollingInterval
+      config.senders
     );
 
     // Handle graceful shutdown
@@ -50,7 +49,10 @@ async function main() {
     await replicator.start();
 
     console.log('Cross-chain Replicator Service started successfully');
-    console.log(`Will call relayState on: ${config.senderAddress}`);
+    console.log(`Configured ${config.senders.length} sender(s):`);
+    config.senders.forEach(sender => {
+      console.log(`  - ${sender.address} (polling: ${sender.pollingInterval}ms)`);
+    });
     console.log('Press Ctrl+C to stop the service');
 
     // Keep the process running
