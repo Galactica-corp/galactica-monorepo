@@ -6,8 +6,7 @@
   "scripts": {
     "build": "tsc && echo 'Build complete'",
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "test": "ts-node scripts/test-replicator.ts"
+    "dev": "ts-node src/index.ts"
   },
   "dependencies": {
     "@galactica-net/cross-chain-replication-contracts": "workspace:^",

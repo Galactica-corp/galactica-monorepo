@@ -6,7 +6,10 @@ The Cross-chain Replicator Service monitors the ZkCertificateRegistry on the sou
 
 - **Event Monitoring**: Listens for `zkCertificateAddition` and `zkCertificateRevocation` events on the source registry
 - **Automatic Relay**: Automatically calls `relayState()` on the RegistryStateSender contract when events are detected
-- **Configuration**: Environment-based configuration for easy deployment
+- **Threshold-Based Relaying**: Configurable thresholds for immediate vs delayed relay based on change magnitude
+- **Delayed Relay**: Small changes are automatically relayed after a configurable delay to ensure no state is lost
+- **Multi-Sender Support**: Can monitor multiple RegistryStateSender contracts simultaneously
+- **Configuration**: Environment-based and JSON-based configuration for easy deployment
 - **Fault Tolerant**: Includes error handling and logging for production use
 
 ## Prerequisites
@@ -25,32 +28,56 @@ The service is a separate package that depends on the cross-chain-replication-co
 yarn install
 
 # Build the service
-yarn service:build
+yarn build
 ```
 
 ## Configuration
 
-Create a `.env` file in the `service/` directory with the following variables (the service will automatically load it from the correct location):
+### Environment Variables
+
+Create a `.env` file from `.env.example` with the following variables (the service will automatically load it):
 
 ```env
 # RPC URL for the source chain
-RPC_URL=https://rpc.galactica.network
+RPC_URL=https://galactica-cassiopeia.g.alchemy.com/v2/<ALCHEMY_API_KEY>
 
 # Private key of the account that will call relayState()
 PRIVATE_KEY=0x...
-
-# Address of the source ZkCertificateRegistry contract
-REGISTRY_ADDRESS=0x...
-
-# Address of the RegistryStateSender contract
-SENDER_ADDRESS=0x...
-
-# Optional: Block number to start listening from (defaults to latest)
-START_BLOCK=12345678
-
-# Optional: Polling interval in milliseconds (defaults to 5000ms)
-POLLING_INTERVAL=5000
 ```
+
+### Sender Configuration
+
+The service uses a JSON configuration file `config/senders.json` to define which RegistryStateSender contracts to monitor and their relay behavior:
+
+```json
+[
+  {
+    "address": "0xa69ecE58d576F6249A30C9950F30Da2c214700A2",
+    "pollingInterval": 5000,
+    "merkleRootsLengthDiffThreshold": 1,
+    "queuePointerDiffThreshold": 1,
+    "maximumUpdateDelayMs": 60000
+  }
+]
+```
+
+Configuration options:
+
+- **`address`**: The address of the RegistryStateSender contract to monitor
+- **`pollingInterval`**: How often to check for changes in milliseconds (default: 5000)
+- **`merkleRootsLengthDiffThreshold`**: Minimum number of new Merkle roots required to trigger immediate relay (default: 1)
+- **`queuePointerDiffThreshold`**: Minimum number of new queue entries required to trigger immediate relay (default: 1)
+- **`maximumUpdateDelayMs`**: Maximum delay in milliseconds before relaying small changes (default: 300000 = 5 minutes)
+
+### Relay Behavior
+
+The service implements intelligent relay behavior based on the configured thresholds:
+
+- **Immediate Relay**: When changes meet or exceed the configured thresholds, the service relays immediately
+- **Delayed Relay**: Small changes below the thresholds are queued and automatically relayed after the `maximumUpdateDelayMs` period
+- **Revocation Priority**: Certificate revocations always trigger immediate relay regardless of thresholds
+
+This ensures that important state changes are relayed promptly while batching smaller updates for efficiency.
 
 ## Usage
 
@@ -59,89 +86,24 @@ POLLING_INTERVAL=5000
 Run the service in development mode with auto-restart:
 
 ```bash
-yarn service:dev
+yarn dev
 ```
 
 ### Production Mode
 
-Build and run the service:
+Build and run the 
 
 ```bash
-yarn service:build
-yarn service:start
+yarn build
+yarn start
 ```
 
-### Testing
 
-Run the test script that deploys contracts locally and verifies the service:
+### Relay Decision Logic
 
-```bash
-yarn service:test
-```
+The service implements intelligent relay decisions based on configurable thresholds:
 
-The test script will:
-1. Deploy all contracts to a local Hardhat node
-2. Start the replicator service
-3. Add a certificate to emit an event
-4. Verify that the service detects the event and calls `relayState()`
-5. Confirm that the state was properly replicated
-
-## Architecture
-
-The service consists of several key components:
-
-- **`index.ts`**: Main entry point that loads configuration and starts the service
-- **`config.ts`**: Configuration loading and client creation
-- **`replicator.ts`**: Core service logic for event monitoring and state relay
-- **`types.ts`**: TypeScript type definitions
-- **`contracts.ts`**: Contract ABI definitions
-
-## Event Handling
-
-The service monitors two types of events from the ZkCertificateRegistry:
-
-1. **`zkCertificateAddition`**: Triggered when a new certificate is added
-2. **`zkCertificateRevocation`**: Triggered when a certificate is revoked
-
-When either event is detected, the service will:
-1. Log the event details
-2. Query the RegistryStateSender for the required relay fee
-3. Call `relayState()` with the appropriate fee
-4. Wait for the transaction to be confirmed
-5. Log the result
-
-## Security Considerations
-
-- **Private Key Management**: Store the private key securely using environment variables or a key management service
-- **Funding**: Ensure the account has sufficient funds to pay Hyperlane relay fees
-- **Network Access**: The service needs reliable RPC access to the source chain
-- **Error Handling**: The service includes error handling but should be monitored in production
-
-## Production Deployment
-
-For production deployment, consider:
-
-1. **Containerization**: Package the service in a Docker container
-2. **Orchestration**: Use Kubernetes or similar for high availability
-3. **Monitoring**: Implement logging and alerting for the service
-4. **Backup**: Have fallback mechanisms if the service goes down
-5. **Load Balancing**: Run multiple instances for redundancy
-
-## Troubleshooting
-
-### Common Issues
-
-1. **"RPC_URL environment variable is required"**: Ensure your `.env` file is properly configured
-2. **"Event not detected"**: Check that the registry address is correct and events are being emitted
-3. **"Insufficient funds"**: Ensure the account has enough funds for Hyperlane fees
-4. **"Contract call failed"**: Verify contract addresses and network connectivity
-
-### Logs
-
-The service provides detailed logging for:
-- Service startup and configuration
-- Event detection
-- Transaction submissions and confirmations
-- Errors and failures
-
-Check the logs for troubleshooting information.
+1. **Threshold Check**: Compare current state changes against configured thresholds
+2. **Immediate Relay**: If changes meet/exceed thresholds, relay immediately
+3. **Delayed Relay**: If changes are below thresholds but exist, schedule delayed relay
+4. **Timer Management**: Only one delayed timer per sender, cleared on immediate relay
