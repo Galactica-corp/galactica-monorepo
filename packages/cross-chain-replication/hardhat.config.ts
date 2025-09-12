@@ -1,6 +1,7 @@
 import hardhatToolboxViemPlugin from '@nomicfoundation/hardhat-toolbox-viem';
 import type { HardhatUserConfig } from 'hardhat/config';
-import { configVariable } from 'hardhat/config';
+
+// import { deployReplica } from './tasks/deployReplica.ts';
 
 const config: HardhatUserConfig = {
   plugins: [hardhatToolboxViemPlugin],
@@ -32,8 +33,45 @@ const config: HardhatUserConfig = {
     sepolia: {
       type: 'http',
       chainType: 'l1',
-      url: configVariable('SEPOLIA_RPC_URL'),
-      accounts: [configVariable('SEPOLIA_PRIVATE_KEY')],
+      url: `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.GalaTestnetDeployerPrivateKey
+        ? [process.env.GalaTestnetDeployerPrivateKey]
+        : [],
+    },
+    arbitrumSepolia: {
+      type: 'http',
+      chainType: 'op',
+      url: `https://arb-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.GalaTestnetDeployerPrivateKey
+        ? [process.env.GalaTestnetDeployerPrivateKey]
+        : [],
+    },
+    cassiopeia: {
+      type: 'http',
+      chainType: 'l1',
+      url: `https://galactica-cassiopeia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.GalaTestnetDeployerPrivateKey
+        ? [process.env.GalaTestnetDeployerPrivateKey]
+        : [],
+    },
+  },
+  verify: {
+    etherscan: {
+      apiKey: process.env.EtherscanApiKey ?? '',
+    },
+  },
+  tasks: [
+    // deployReplica,
+  ],
+  chainDescriptors: {
+    421614: {
+      name: 'arbitrumSepolia',
+      blockExplorers: {
+        etherscan: {
+          apiUrl: 'https://api.etherscan.io/v2/api?chainid=421614',
+          url: 'https://sepolia.arbiscan.io/',
+        },
+      },
     },
   },
 };
