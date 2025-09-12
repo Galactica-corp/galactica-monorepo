@@ -23,6 +23,7 @@ console.log('Calling relayState function on sender');
 const sender = await origin.viem.getContractAt('RegistryStateSender', senderAddress);
 const dispatchFee = await sender.read.quoteRelayFee();
 console.log('Dispatch fee:', dispatchFee);
+
 const tx = await sender.write.relayState({ value: dispatchFee });
 console.log('Transaction sent:', tx);
 
