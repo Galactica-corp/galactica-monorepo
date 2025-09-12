@@ -4,7 +4,8 @@
   "private": true,
   "license": "(MIT-0 OR Apache-2.0)",
   "scripts": {
-    "build": "cross-env GATSBY_TELEMETRY_DISABLED=1 gatsby build",
+    "build": "yarn workspaces foreach --from @galactica-net/galactica-passport-poc --parallel --topological-dev --recursive --verbose run build:local",
+    "build:local": "cross-env GATSBY_TELEMETRY_DISABLED=1 gatsby build",
     "clean": "rimraf build",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,ts",

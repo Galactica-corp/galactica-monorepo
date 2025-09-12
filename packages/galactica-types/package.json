@@ -15,8 +15,9 @@
     "/dist/galactica-types"
   ],
   "scripts": {
+    "build": "yarn workspaces foreach --from @galactica-net/galactica-types --parallel --topological-dev --recursive --verbose run build:local",
+    "build:local": "yarn generate-types && tsc",
     "generate-types": "json2ts -i schema/ > ./src/zkCertContent.ts",
-    "build": "yarn generate-types && tsc",
     "debug": "eslint --print-config .eslintrc.js | grep -i sourceType",
     "start": "tsc --watch",
     "test": "mocha -r ts-node/register test/**/*.t.ts",
