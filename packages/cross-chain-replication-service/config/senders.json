@@ -1,6 +1,9 @@
 [
   {
     "address": "0xa69ecE58d576F6249A30C9950F30Da2c214700A2",
-    "pollingInterval": 5000
+    "pollingInterval": 5000,
+    "merkleRootsLengthDiffThreshold": 6,
+    "queuePointerDiffThreshold": 6,
+    "maximumUpdateDelayMs": 60000
   }
 ]

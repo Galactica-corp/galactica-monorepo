@@ -9,23 +9,23 @@ import type { MockZkCertificateRegistry } from '../../typechain-types';
 async function main() {
   // parameters
   const mockRegistryAddr = '0x52c985CA1fa41Ca36bebe543cbb5dC93219252C3';
-  const amountOfRootsToSet = 100;
-  const merkleRootValidIndex = 10;
-  const currentQueuePointer = 102;
+  const amountOfRootsToSet = 1;
+  const merkleRootValidIndex = 16;
+  const currentQueuePointer = 115;
 
   const mockRegistry = (await ethers.getContractAt(
     'MockZkCertificateRegistry',
     mockRegistryAddr,
   )) as unknown as MockZkCertificateRegistry;
 
-  for (let i = 0; i < amountOfRootsToSet; i++) {
-    console.log(`Setting merkle root ${i}`);
-    await mockRegistry.setMerkleRoot(ethers.keccak256(ethers.toUtf8Bytes(`root-${i}`)));
-  }
   console.log(`Setting merkle root valid index ${merkleRootValidIndex}`);
   await mockRegistry.setMerkleRootValidIndex(merkleRootValidIndex);
   console.log(`Setting current queue pointer ${currentQueuePointer}`);
   await mockRegistry.setCurrentQueuePointer(currentQueuePointer);
+  for (let i = 0; i < amountOfRootsToSet; i++) {
+    console.log(`Setting merkle root ${i}`);
+    await mockRegistry.setMerkleRoot(ethers.keccak256(ethers.toUtf8Bytes(`root-${i}`)));
+  }
 
   console.log('Merkle roots set');
 }

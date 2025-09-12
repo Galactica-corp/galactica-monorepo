@@ -30,6 +30,9 @@ export function loadConfig(): ReplicatorConfig {
     senders = sendersConfig.map((sender: any) => ({
       address: sender.address as Address,
       pollingInterval: sender.pollingInterval || 5000,
+      merkleRootsLengthDiffThreshold: BigInt(sender.merkleRootsLengthDiffThreshold || 1),
+      queuePointerDiffThreshold: BigInt(sender.queuePointerDiffThreshold || 1),
+      maximumUpdateDelayMs: sender.maximumUpdateDelayMs || 300000,
     }));
   } catch (error) {
     throw new Error(`Failed to load senders configuration from ${sendersConfigPath}: ${error}`);

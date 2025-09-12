@@ -8,6 +8,12 @@ export interface SenderConfig {
   address: Address;
   /** Polling interval in milliseconds for checking sync status */
   pollingInterval: number;
+  /** Minimum threshold for merkleRootsLengthDiff to trigger relay */
+  merkleRootsLengthDiffThreshold: bigint;
+  /** Minimum threshold for queuePointerDiff to trigger relay */
+  queuePointerDiffThreshold: bigint;
+  /** Maximum delay in milliseconds before relaying small changes */
+  maximumUpdateDelayMs: number;
 }
 
 /**

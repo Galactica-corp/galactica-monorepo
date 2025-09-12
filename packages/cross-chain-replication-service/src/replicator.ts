@@ -35,6 +35,7 @@ export class CrossChainReplicator {
   private account: any;
   private senders: SenderConfig[];
   private pollTimers: Map<Address, NodeJS.Timeout> = new Map();
+  private delayedRelayTimers: Map<Address, NodeJS.Timeout> = new Map();
   private isRunning = false;
   private transactionQueue: TransactionQueueItem[] = [];
   private processingPromise: Promise<void> | null = null;
@@ -99,6 +100,13 @@ export class CrossChainReplicator {
     }
     this.pollTimers.clear();
 
+    // Clear all delayed relay timers
+    for (const [address, timer] of this.delayedRelayTimers) {
+      clearTimeout(timer);
+      console.log(`Cleared delayed relay timer for sender ${address}`);
+    }
+    this.delayedRelayTimers.clear();
+
     this.isRunning = false;
     console.log('Cross-chain Replicator stopped');
   }
@@ -122,16 +130,27 @@ export class CrossChainReplicator {
         queuePointerDiff: syncResponse[2],
       };
 
-      // Check if there's anything to sync
-      const hasNewAdditions = syncStatus.merkleRootsLengthDiff > 0n;
+      // Check if there's anything to sync based on configured thresholds
+      const hasNewAdditions = syncStatus.merkleRootsLengthDiff >= sender.merkleRootsLengthDiffThreshold;
       const hasNewRevocations = syncStatus.hasNewRevocation;
-      const hasQueueUpdates = syncStatus.queuePointerDiff > 0n;
+      const hasQueueUpdates = syncStatus.queuePointerDiff >= sender.queuePointerDiffThreshold;
+      const hasAnyChanges = syncStatus.merkleRootsLengthDiff > 0n || syncStatus.hasNewRevocation || syncStatus.queuePointerDiff > 0n;
 
       if (hasNewAdditions || hasNewRevocations || hasQueueUpdates) {
-        console.log(`Detected changes in registry state for sender ${sender.address}, ${JSON.stringify(syncStatus)}, triggering relay...`);
+        console.log(`Detected changes meeting thresholds for sender ${sender.address}, ${this.syncStatusToLogString(syncStatus)}, triggering immediate relay...`);
+        // Clear any existing delayed timer since we're relaying now
+        this.clearDelayedTimer(sender.address);
         await this.relayState(sender);
+      } else if (hasAnyChanges) {
+        // Set up delayed relay timer if not already set
+        if (!this.delayedRelayTimers.has(sender.address)) {
+          console.log(`Changes detected but below thresholds for sender ${sender.address}, ${this.syncStatusToLogString(syncStatus)}, scheduling delayed relay in ${sender.maximumUpdateDelayMs}ms`);
+          this.scheduleDelayedRelay(sender);
+        }
       } else {
-        console.log(`No new changes detected for sender ${sender.address}`, JSON.stringify(syncStatus));
+        console.log(`No changes detected for sender ${sender.address}, ${this.syncStatusToLogString(syncStatus)}`);
+        // Clear any existing delayed timer since there are no changes
+        this.clearDelayedTimer(sender.address);
       }
     } catch (error) {
       console.error(`Error checking sync status for sender ${sender.address}:`, error);
@@ -223,5 +242,50 @@ export class CrossChainReplicator {
    */
   get isServiceRunning(): boolean {
     return this.isRunning;
+  }
+
+  /**
+   * Clear any existing delayed relay timer for a sender
+   */
+  private clearDelayedTimer(senderAddress: Address): void {
+    const existingTimer = this.delayedRelayTimers.get(senderAddress);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+      this.delayedRelayTimers.delete(senderAddress);
+      console.log(`Cleared existing delayed relay timer for sender ${senderAddress}`);
+    }
+  }
+
+  /**
+   * Schedule a delayed relay for a sender if not already scheduled
+   */
+  private scheduleDelayedRelay(sender: SenderConfig): void {
+    // Don't schedule if there's already a timer for this sender
+    if (this.delayedRelayTimers.has(sender.address)) {
+      return;
+    }
+
+    console.log(`Scheduling delayed relay for sender ${sender.address} in ${sender.maximumUpdateDelayMs}ms`);
+    const timer = setTimeout(async () => {
+      try {
+        console.log(`Delayed relay timer expired for sender ${sender.address}, triggering relay...`);
+        // Remove the timer from the map since it's firing
+        this.delayedRelayTimers.delete(sender.address);
+        await this.relayState(sender);
+      } catch (error) {
+        console.error(`Error during delayed relay for sender ${sender.address}:`, error);
+        // Remove the timer from the map even if there was an error
+        this.delayedRelayTimers.delete(sender.address);
+      }
+    }, sender.maximumUpdateDelayMs);
+
+    this.delayedRelayTimers.set(sender.address, timer);
+  }
+
+  /**
+   * Convert sync status to a string for logging
+   */
+  private syncStatusToLogString(syncStatus: SyncStatus): string {
+    return `rootsDiff: ${syncStatus.merkleRootsLengthDiff}, newRevocation: ${syncStatus.hasNewRevocation}, queueDiff: ${syncStatus.queuePointerDiff}`;
   }
 }

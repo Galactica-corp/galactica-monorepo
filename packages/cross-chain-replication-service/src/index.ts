@@ -51,7 +51,7 @@ async function main() {
     console.log('Cross-chain Replicator Service started successfully');
     console.log(`Configured ${config.senders.length} sender(s):`);
     config.senders.forEach(sender => {
-      console.log(`  - ${sender.address} (polling: ${sender.pollingInterval}ms)`);
+      console.log(`${sender.address} (polling: ${sender.pollingInterval}ms, merkleRootsLengthDiffThreshold: ${sender.merkleRootsLengthDiffThreshold}, queuePointerDiffThreshold: ${sender.queuePointerDiffThreshold}, maximumUpdateDelayMs: ${sender.maximumUpdateDelayMs})`);
     });
     console.log('Press Ctrl+C to stop the service');
 
