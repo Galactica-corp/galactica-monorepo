@@ -9,6 +9,7 @@ import registryStateReceiverModule from '../ignition/modules/RegistryStateReceiv
  */
 
 // arguments
+const deploymentId = 'cross-test-mock';
 const originRegistry = '0x60089F34C851D152f8B4cF4bc691e1Fc79ABA1F7';
 const guardianRegistry = '0x3C6d4E5bAf61b21267DE4181B1C4679c3c8441DB';
 const treeDepth = 32;
@@ -43,6 +44,7 @@ const { sender } = await origin.ignition.deploy(registryStateSenderModule, {
       maxMerkleRootsPerMessage: maxMerkleRootsPerMessage,
     },
   },
+  deploymentId: `${deploymentId}-${originChain}`,
 });
 console.log('Sender deployed to', sender.address);
 
@@ -60,6 +62,7 @@ const { replica, receiver } = await destination.ignition.deploy(registryStateRec
       senderAddress: sender.address,
     },
   },
+  deploymentId: `${deploymentId}-${destinationChain}`,
 });
 console.log('Replica deployed to', replica.address);
 console.log('Receiver deployed to', receiver.address);
