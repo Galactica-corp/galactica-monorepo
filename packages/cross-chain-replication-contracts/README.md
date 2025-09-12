@@ -1,57 +1,82 @@
-# Sample Hardhat 3 Beta Project (`node:test` and `viem`)
+# Cross-Chain Replication Contracts
 
-This project showcases a Hardhat 3 Beta project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+This package implements cross-chain state replication for the ZK Certificate Registry using the Hyperlane messaging bridge. It enables ZK proof verification on multiple EVM-compatible chains by replicating the registry's state (Merkle roots and queue pointer) from a source chain to destination chains.
 
-To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+## Components
 
-## Project Overview
+- **RegistryStateSender**: Reads state from source ZkCertificateRegistry and dispatches updates via Hyperlane
+- **RegistryStateReceiver**: Receives messages on destination chains and updates the replica registry
+- **ZkCertificateRegistryReplica**: Read-only replica providing the same verification interface as the source registry
 
-This example project includes:
+## Setup
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
-
-## Usage
-
-### Running Tests
-
-To run all the tests in the project, execute the following command:
-
+Install dependencies:
 ```shell
-npx hardhat test
+yarn install
 ```
 
-You can also selectively run the Solidity or `node:test` tests:
+## Building
 
+Build the contracts:
 ```shell
-npx hardhat test solidity
-npx hardhat test nodejs
+yarn build
 ```
 
-### Make a deployment to Sepolia
+## Testing
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
-
-To run the deployment to a local chain:
-
+Run all tests:
 ```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
+yarn test
 ```
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
-
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
-
+Run specific test types:
 ```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
+yarn hardhat test solidity    # Solidity unit tests
+yarn hardhat test nodejs      # TypeScript integration tests
 ```
 
-After setting the variable, you can run the deployment with the Sepolia network:
+## Deployment
+
+### Deploy Replica and Receiver Contracts
+
+Use the `deployReplica.ts` script to deploy the full replication setup:
 
 ```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
+yarn hardhat run scripts/deployReplica.ts
 ```
+
+This script will:
+1. Deploy the `RegistryStateSender` contract to the origin chain
+2. Deploy the `ZkCertificateRegistryReplica` and `RegistryStateReceiver` contracts to the destination chain
+3. Initialize the sender with the receiver's address
+
+**Configuration**: Edit the script parameters at the top to configure:
+- Origin/destination chain names and types
+- Contract addresses (registry, guardian registry, mailboxes)
+- Domain IDs and deployment parameters
+
+In the future this is going to be moved to a hardhat task with nice parameters.
+
+### Manual State Update
+
+To manually trigger a state replication from origin to destination:
+
+```shell
+npx hardhat run scripts/relayUpdate.ts
+```
+
+This script:
+1. Connects to the origin chain
+2. Calls `relayState()` on the RegistryStateSender contract
+3. Pays the required Hyperlane dispatch fee
+4. Triggers state synchronization to the destination chain
+
+**Configuration**: Update the origin chain, type, and sender address parameters in the script.
+
+## Networks
+
+The package supports deployment to various EVM networks via Hyperlane. Common configurations include:
+- **Origin**: Arbitrum Sepolia (Galactica Network)
+- **Destination**: Sepolia, Polygon, Optimism, etc.
+
+Ensure your Hardhat config includes the appropriate network configurations and private keys for deployment.
