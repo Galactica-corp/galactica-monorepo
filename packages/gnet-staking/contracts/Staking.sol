@@ -16,6 +16,7 @@ contract Staking is
   ReentrancyGuardUpgradeable,
   Fallback
 {
+  address public wGNET;
   mapping(address => uint) public stakes;
   uint public totalStake;
 
@@ -86,7 +87,8 @@ contract Staking is
     address _owner,
     uint emissionStart,
     uint firstCheckPoint,
-    uint _rewardPerSecond
+    uint _rewardPerSecond,
+    address _wGNET
   ) public initializer {
     if (_owner == address(0)) {
       revert InvalidOwnerAddress();
@@ -110,6 +112,7 @@ contract Staking is
     }
     __ReentrancyGuard_init();
     __Ownable_init(_owner);
+    wGNET = _wGNET;
   }
 
   /**
@@ -118,6 +121,18 @@ contract Staking is
    */
   function createStake() public payable nonReentrant updateReward(msg.sender) {
     uint stake = msg.value;
+    stakes[msg.sender] += stake;
+    totalStake += stake;
+
+    emit CreateStake(msg.sender, stake);
+  }
+
+  /**
+   * @notice Create a stake by depositing the wGNET token.
+   * @param stake The amount of tokens to stake.
+   */
+  function createStakeWithWGNET(uint stake) public nonReentrant updateReward(msg.sender) {
+    wGNET.transferFrom(msg.sender, address(this), stake);
     stakes[msg.sender] += stake;
     totalStake += stake;
 
@@ -143,6 +158,22 @@ contract Staking is
   }
 
   /**
+   * @notice Create a stake for another user by depositing the wGNET token.
+   * @param to The address of the user to create a stake for.
+   * @param stake The amount of tokens to stake.
+   */
+  function createStakeForWithWGNET(
+    address to,
+    uint stake
+  ) public nonReentrant updateReward(to) {
+    wGNET.transferFrom(msg.sender, address(this), stake);
+    wGNET.withdraw(stake);
+    stakes[to] += stake;
+    totalStake += stake;
+    emit CreateStake(to, stake);
+  }
+
+  /**
    * @notice Remove a stake by withdrawing the staking token.
    * @param stake The amount of tokens to withdraw.
    * @param maximumFee The maximum unstaking fee the user accepts.
@@ -164,6 +195,31 @@ contract Staking is
     totalCollectedFees += unstakingFee;
 
     payable(msg.sender).transfer(stakeWithoutFee);
+    emit RemoveStake(msg.sender, stake);
+  }
+
+  /**
+   * @notice Remove a stake by withdrawing the wGNET token.
+   * @param stake The amount of tokens to withdraw.
+   * @param maximumFee The maximum unstaking fee the user accepts.
+   */
+  function removeStakeWithWGNET(
+    uint stake,
+    uint maximumFee
+  ) public nonReentrant updateReward(msg.sender) {
+    uint unstakingFee = (stake * unstakingFeeRatio) / UNSTAKING_FEE_DENOMINATOR;
+    if (unstakingFee > maximumFee) {
+      revert FeeTooHigh();
+    }
+    uint stakeWithoutFee = stake - unstakingFee;
+    if (stakes[msg.sender] < stake) {
+      revert InsufficientStake();
+    }
+    stakes[msg.sender] -= stake;
+    totalStake -= stake;
+    totalCollectedFees += unstakingFee;
+
+    wGNET.transfer(msg.sender, stakeWithoutFee);
     emit RemoveStake(msg.sender, stake);
   }
 
