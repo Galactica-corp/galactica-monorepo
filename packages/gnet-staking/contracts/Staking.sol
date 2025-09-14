@@ -6,6 +6,7 @@ import {Ownable2StepUpgradeable} from '@openzeppelin/contracts-upgradeable/acces
 import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {Fallback} from '@galactica-net/zk-certificates/contracts/helpers/Fallback.sol';
+import {WGNET9} from './WGNET9.sol';
 
 /**
  * @title Staking
@@ -16,7 +17,7 @@ contract Staking is
   ReentrancyGuardUpgradeable,
   Fallback
 {
-  address public wGNET;
+  WGNET9 public wGNET;
   mapping(address => uint) public stakes;
   uint public totalStake;
 
@@ -128,11 +129,12 @@ contract Staking is
   }
 
   /**
-   * @notice Create a stake by depositing the wGNET token.
+   * @notice Create a stake by depositing the wGNET token, we convert them to GNET to store in the smart contract
    * @param stake The amount of tokens to stake.
    */
   function createStakeWithWGNET(uint stake) public nonReentrant updateReward(msg.sender) {
     wGNET.transferFrom(msg.sender, address(this), stake);
+    wGNET.withdraw(stake);
     stakes[msg.sender] += stake;
     totalStake += stake;
 
@@ -249,7 +251,7 @@ contract Staking is
   function getReward() public nonReentrant updateReward(msg.sender) {
     uint reward = rewards[msg.sender];
     if (reward > 0) {
-      if (reward > address(this).balance) {
+      if (reward > (address(this).balance - totalStake)) {
         revert InsufficientRewardTokens();
       }
       rewards[msg.sender] = 0;
@@ -283,6 +285,21 @@ contract Staking is
       ((rewardPerTokenStoredActual - userRewardPerTokenPaid[account]) *
         stakes[account]) /
       TOKEN_UNITS;
+  }
+    /** take reward and add it to the stake so it can also accrue rewards (public function)
+   */
+  function addRewardToStake(address user) public {
+    _addRewardToStake(user);
+  }
+  
+  /** take reward and add it to the stake so it can also accrue rewards (internal function)
+   */
+  function _addRewardToStake(address user) internal {
+    uint reward = rewards[user]
+    if (reward > 0) {
+      stakes[user] += reward;
+      rewards[user] = 0;
+    }
   }
 
   /**
