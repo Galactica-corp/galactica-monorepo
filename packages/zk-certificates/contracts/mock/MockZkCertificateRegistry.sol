@@ -7,7 +7,7 @@ import {IGuardianRegistry} from '../interfaces/IGuardianRegistry.sol';
 /// @author Galactica dev team
 contract MockZkCertificateRegistry is IZkCertificateRegistry {
     bytes32 public constant MERKLE_ROOT_INITIAL_VALUE = bytes32(0);
-    bytes32[] public merkleRoots = [MERKLE_ROOT_INITIAL_VALUE];
+    bytes32[] public merkleRoots = [bytes32(0), MERKLE_ROOT_INITIAL_VALUE];
     uint256 public merkleRootValidIndex = 1;
     IGuardianRegistry public guardianRegistry;
 

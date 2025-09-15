@@ -167,7 +167,9 @@ contract ZkCertificateRegistry is
         }
 
         // Set merkle root
-        merkleRoots.push(currentZero);
+        merkleRoots.push(bytes32(0)); // initial root at index 0, not valid because merkleRootIndex(unknown) yields 0
+        merkleRoots.push(currentZero); // first valid root at index 1
+        merkleRootIndex[currentZero] = 1;
         guardianRegistry = IGuardianRegistry(GuardianRegistry_);
 
         // Set the block height at which the contract was initialized
