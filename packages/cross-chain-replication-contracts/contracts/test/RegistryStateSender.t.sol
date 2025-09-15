@@ -194,36 +194,6 @@ contract RegistryStateSenderTest is Test {
     assertEq(lastSentMerkleRootsLength, 4);
   }
 
-  function test_RelayState_Success_NewQueuePointer() public {
-    // relay initial state
-    sender.relayState{value: 1 ether}();
-
-    // Update queue pointer
-    mockRegistry.setCurrentQueuePointer(5);
-
-    // Relay state
-    vm.expectEmit(true, true, true, true);
-    emit RegistryStateSender.StateRelayed(
-      new bytes32[](0), // No new merkle roots
-      2, // No change in sent merkle roots length
-      1, // No change in merkle root valid index
-      mockRegistry.merkleRoot(),
-      5
-    );
-
-    sender.relayState{value: 1 ether}();
-
-    // Check that state was updated
-    (
-      uint256 lastQueuePointer,
-      uint256 lastMerkleRootValidIndex,
-      uint256 lastSentMerkleRootsLength
-    ) = sender.getLastProcessedState();
-    assertEq(lastQueuePointer, 5);
-    assertEq(lastMerkleRootValidIndex, 1);
-    assertEq(lastSentMerkleRootsLength, 2);
-  }
-
   function test_RelayState_Success_BothStateChanges() public {
     // relay initial state
     sender.relayState{value: 1 ether}();

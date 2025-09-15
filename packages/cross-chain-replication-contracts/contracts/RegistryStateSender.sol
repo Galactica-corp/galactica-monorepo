@@ -112,9 +112,12 @@ contract RegistryStateSender {
 
     // Check if there are new state changes to relay
     require(
-      newQueuePointerToSend > lastProcessedQueuePointer ||
-        currentMerkleRootValidIndex > lastProcessedMerkleRootValidIndex ||
-        newSentMerkleRootsLength > lastSentMerkleRootsLength,
+      // We either need to send the initial state or new changes caused by the processed queue indicated by the newQueuePointerToSend
+      (((newQueuePointerToSend > lastProcessedQueuePointer ||
+        newQueuePointerToSend == 0) &&
+        // And there need to be some meaningful changes
+        (currentMerkleRootValidIndex > lastProcessedMerkleRootValidIndex)) ||
+        newSentMerkleRootsLength > lastSentMerkleRootsLength),
       'RegistryStateSender: no new state changes to relay'
     );
 
