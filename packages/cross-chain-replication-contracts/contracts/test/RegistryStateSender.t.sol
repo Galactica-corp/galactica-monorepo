@@ -127,11 +127,18 @@ contract RegistryStateSenderTest is Test {
   }
 
   function test_RelayState_InitialSyncOfEmptyRegistry() public {
-    bytes32[] memory expectedRoots = new bytes32[](1);
-    expectedRoots[0] = mockRegistry.merkleRoot();
+    bytes32[] memory expectedRoots = new bytes32[](2);
+    expectedRoots[0] = mockRegistry.merkleRoots(0);
+    expectedRoots[1] = mockRegistry.merkleRoots(1);
 
     vm.expectEmit(true, true, true, true);
-    emit RegistryStateSender.StateRelayed(expectedRoots, 1, 1, 0);
+    emit RegistryStateSender.StateRelayed(
+      expectedRoots,
+      2,
+      1,
+      expectedRoots[1],
+      0
+    );
 
     sender.relayState{value: 1 ether}();
 
@@ -143,7 +150,7 @@ contract RegistryStateSenderTest is Test {
     ) = sender.getLastProcessedState();
     assertEq(lastQueuePointer, 0);
     assertEq(lastMerkleRootValidIndex, 1);
-    assertEq(lastSentMerkleRootsLength, 1);
+    assertEq(lastSentMerkleRootsLength, 2);
   }
 
   function test_RelayState_Success_NewMerkleRoots() public {
@@ -157,7 +164,7 @@ contract RegistryStateSenderTest is Test {
     mockRegistry.setMerkleRoot(root2);
 
     // Update merkle root valid index
-    mockRegistry.setMerkleRootValidIndex(3);
+    mockRegistry.setMerkleRootValidIndex(1);
     mockRegistry.setCurrentQueuePointer(3);
 
     // Relay state
@@ -166,7 +173,13 @@ contract RegistryStateSenderTest is Test {
     expectedRoots[1] = root2;
 
     vm.expectEmit(true, true, true, true);
-    emit RegistryStateSender.StateRelayed(expectedRoots, 3, 3, 3);
+    emit RegistryStateSender.StateRelayed(
+      expectedRoots,
+      4,
+      1,
+      mockRegistry.merkleRoots(1),
+      3
+    );
 
     sender.relayState{value: 1 ether}();
 
@@ -177,8 +190,8 @@ contract RegistryStateSenderTest is Test {
       uint256 lastSentMerkleRootsLength
     ) = sender.getLastProcessedState();
     assertEq(lastQueuePointer, 3);
-    assertEq(lastMerkleRootValidIndex, 3);
-    assertEq(lastSentMerkleRootsLength, 3);
+    assertEq(lastMerkleRootValidIndex, 1);
+    assertEq(lastSentMerkleRootsLength, 4);
   }
 
   function test_RelayState_Success_NewQueuePointer() public {
@@ -192,8 +205,9 @@ contract RegistryStateSenderTest is Test {
     vm.expectEmit(true, true, true, true);
     emit RegistryStateSender.StateRelayed(
       new bytes32[](0), // No new merkle roots
-      1, // No change in sent merkle roots length
+      2, // No change in sent merkle roots length
       1, // No change in merkle root valid index
+      mockRegistry.merkleRoot(),
       5
     );
 
@@ -207,7 +221,7 @@ contract RegistryStateSenderTest is Test {
     ) = sender.getLastProcessedState();
     assertEq(lastQueuePointer, 5);
     assertEq(lastMerkleRootValidIndex, 1);
-    assertEq(lastSentMerkleRootsLength, 1);
+    assertEq(lastSentMerkleRootsLength, 2);
   }
 
   function test_RelayState_Success_BothStateChanges() public {
@@ -225,7 +239,7 @@ contract RegistryStateSenderTest is Test {
     expectedRoots2[0] = root1;
 
     vm.expectEmit(true, true, true, true);
-    emit RegistryStateSender.StateRelayed(expectedRoots2, 2, 2, 3);
+    emit RegistryStateSender.StateRelayed(expectedRoots2, 3, 2, root1, 3);
 
     sender.relayState{value: 1 ether}();
 
@@ -237,7 +251,7 @@ contract RegistryStateSenderTest is Test {
     ) = sender.getLastProcessedState();
     assertEq(lastQueuePointer, 3);
     assertEq(lastMerkleRootValidIndex, 2);
-    assertEq(lastSentMerkleRootsLength, 2);
+    assertEq(lastSentMerkleRootsLength, 3);
   }
 
   function test_RelayState_Success_IncrementalUpdates() public {
@@ -261,8 +275,9 @@ contract RegistryStateSenderTest is Test {
     vm.expectEmit(true, true, true, true);
     emit RegistryStateSender.StateRelayed(
       expectedRoots3, // Only the new root
+      4,
       3,
-      3,
+      root2,
       2
     );
 
@@ -276,7 +291,7 @@ contract RegistryStateSenderTest is Test {
     ) = sender.getLastProcessedState();
     assertEq(lastQueuePointer, 2);
     assertEq(lastMerkleRootValidIndex, 3);
-    assertEq(lastSentMerkleRootsLength, 3);
+    assertEq(lastSentMerkleRootsLength, 4);
   }
 
   function test_QuoteRelayFee_Success() public {
@@ -323,7 +338,7 @@ contract RegistryStateSenderTest is Test {
         'dispatch(uint32,bytes32,bytes)',
         destinationDomain,
         TypeCasts.addressToBytes32(receiverAddress),
-        abi.encode(expectedNewRoots, uint256(2), uint256(1))
+        abi.encode(expectedNewRoots, root1, uint256(1))
       )
     );
 
@@ -373,7 +388,7 @@ contract RegistryStateSenderTest is Test {
     expectedRoots1[0] = newRoots[0];
     expectedRoots1[1] = newRoots[1];
     vm.expectEmit(true, true, true, true);
-    emit RegistryStateSender.StateRelayed(expectedRoots1, 3, 4, 2);
+    emit RegistryStateSender.StateRelayed(expectedRoots1, 4, 4, newRoots[2], 2);
     lowLimitSender.relayState{value: 1 ether}();
 
     // first sync should send first 2 roots
@@ -381,14 +396,14 @@ contract RegistryStateSenderTest is Test {
     expectedRoots2[0] = newRoots[2];
     expectedRoots2[1] = newRoots[3];
     vm.expectEmit(true, true, true, true);
-    emit RegistryStateSender.StateRelayed(expectedRoots2, 5, 4, 4);
+    emit RegistryStateSender.StateRelayed(expectedRoots2, 6, 4, newRoots[2], 4);
     lowLimitSender.relayState{value: 1 ether}();
 
     // final sync
     bytes32[] memory expectedRoots3 = new bytes32[](1);
     expectedRoots3[0] = newRoots[4];
     vm.expectEmit(true, true, true, true);
-    emit RegistryStateSender.StateRelayed(expectedRoots3, 6, 4, 6);
+    emit RegistryStateSender.StateRelayed(expectedRoots3, 7, 4, newRoots[2], 6);
     lowLimitSender.relayState{value: 1 ether}();
   }
 

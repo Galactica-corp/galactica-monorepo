@@ -8,7 +8,7 @@ import { buildEddsa } from 'circomlibjs';
 import { network } from 'hardhat';
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { encodeAbiParameters, padHex } from 'viem';
+import { encodeAbiParameters, padHex, parseEther } from 'viem';
 
 import registryStateReceiverModule from '../ignition/modules/RegistryStateReceiver.m.ts';
 import registryStateSenderModule from '../ignition/modules/RegistryStateSender.m.ts';
@@ -171,8 +171,10 @@ describe('Cross-Chain Replication Integration Test', async function () {
   async function relayState(contracts: any) {
     const { sender, receiverMailbox } = contracts;
 
+    // Get the fee for the relayState call
+    const fee = await sender.read.quoteRelayFee();
     // Call relayState on sender
-    await sender.write.relayState();
+    await sender.write.relayState({ value: fee });
 
     // Process the message on the destination mailbox
     await receiverMailbox.write.processNextInboundMessage();
@@ -279,7 +281,7 @@ describe('Cross-Chain Replication Integration Test', async function () {
     const merkleTree = new SparseMerkleTree(MERKLE_TREE_DEPTH, eddsa.poseidon);
 
     // Generate test data for 3 batches
-    const certificateAmount = BATCH_SIZE * 3 - 1; // -1 because the first root also needs to be replicated
+    const certificateAmount = BATCH_SIZE * 3 - 2; // -2 because the initial roots also needs to be replicated
     const leafHashes = generateRandomBytes32Array(certificateAmount);
     const leafIndices = Array.from({ length: certificateAmount }, (_, i) => i);
 
@@ -458,14 +460,109 @@ describe('Cross-Chain Replication Integration Test', async function () {
     );
   });
 
+  it('should handle dropped messages robustly', async function () {
+    const contracts = await loadFixture(deployContracts);
+    const { registry, replica, sender, receiver, receiverMailbox } = contracts;
+
+    // Relay initial state
+    await relayState(contracts);
+
+    const eddsa = await buildEddsa();
+    const merkleTree = new SparseMerkleTree(MERKLE_TREE_DEPTH, eddsa.poseidon);
+
+    // Generate test data - more certificates to test batching
+    const leafHashes = generateRandomBytes32Array(5);
+    const leafIndices = Array.from({ length: 5 }, (_, i) => i);
+
+    // Add first 3 certificates (message to be dropped)
+    for (let i = 0; i < 3; i++) {
+      await addCertificateToSource(
+        contracts,
+        merkleTree,
+        leafHashes[i],
+        leafIndices[i],
+      );
+    }
+
+    // Add 2 more certificates (message to be sent)
+    for (let i = 3; i < 5; i++) {
+      await addCertificateToSource(
+        contracts,
+        merkleTree,
+        leafHashes[i],
+        leafIndices[i],
+      );
+    }
+
+    // Simulate dropped message
+    // Because the sender would send everything, we do not use it and instead directly calling the receiver handle function with the second message the sender would send
+    const firstValidMerkleRoot = leafHashes[2] as `0x${string}`;
+    const newMerkleRoots = (await registry.read.getMerkleRoots([
+      4, 7,
+    ])) as `0x${string}`[];
+    const newQueuePointer =
+      (await registry.read.currentQueuePointer()) as bigint;
+    const message = encodeAbiParameters(
+      [{ type: 'bytes32[]' }, { type: 'bytes32' }, { type: 'uint256' }],
+      [newMerkleRoots, firstValidMerkleRoot, newQueuePointer],
+    );
+
+    // Impersonate the mailbox so we can call handle as if from the mailbox
+    const mailboxAddress = receiverMailbox.address;
+    // Mint some native tokens to the mailboxAddress using hardhat_setBalance, since the contract has no payable function, we can use
+    await networkHelpers.setBalance(mailboxAddress, parseEther('1'));
+    await networkHelpers.impersonateAccount(mailboxAddress);
+
+    await receiver.write.handle(
+      [SOURCE_DOMAIN, padHex(sender.address, { size: 32 }), message],
+      { account: mailboxAddress },
+    );
+
+    // Verify that replica handled the dropped message correctly
+    assert.equal(
+      await replica.read.merkleRootsLength(),
+      2n + 3n + 1n,
+      'Replica should have all non-dropped roots + the initial roots + the oldest valid root',
+    );
+
+    assert.deepEqual(
+      await replica.read.getMerkleRoots([0n]),
+      [
+        ...((await registry.read.getMerkleRoots([0, 2])) as `0x${string}`[]),
+        firstValidMerkleRoot,
+        ...((await registry.read.getMerkleRoots([4, 7])) as `0x${string}`[]),
+      ],
+      'List of roots should be consistent',
+    );
+
+    assert.equal(
+      await replica.read.merkleRootValidIndex(),
+      2n,
+      'Valid index should be set to the oldest valid root when validMerkleRoot is missing',
+    );
+
+    assert.equal(
+      await replica.read.merkleRoot(),
+      await registry.read.merkleRoot(),
+      'Latest root should be the same',
+    );
+
+    assert.equal(
+      await replica.read.currentQueuePointer(),
+      await registry.read.currentQueuePointer(),
+      'CurrentQueuePointer should be the same',
+    );
+  });
+
   describe('should prevent unauthorized updates to replica registry', async function () {
     const newMerkleRoots = [generateRandomBytes32Array(1)[0] as `0x${string}`];
-    const newMerkleRootValidIndex = 2n;
+    const oldestValidMerkleRoot =
+      '0x022772935ac77fe7bf9fb9de8726b97e36fca7d8679f6c59bb8eda958d2993d6';
     const newQueuePointer = 1n;
 
     const message = encodeAbiParameters(
-      [{ type: 'bytes32[]' }, { type: 'uint256' }, { type: 'uint256' }],
-      [newMerkleRoots, newMerkleRootValidIndex, newQueuePointer],
+      [{ type: 'bytes32[]' }, { type: 'bytes32' }, { type: 'uint256' }],
+      [newMerkleRoots, oldestValidMerkleRoot, newQueuePointer],
     );
 
     it('should prevent unauthorized direct updates to replica registry', async function () {
@@ -476,7 +573,7 @@ describe('Cross-Chain Replication Integration Test', async function () {
         async () => {
           await replica.write.updateState([
             newMerkleRoots,
-            newMerkleRootValidIndex,
+            oldestValidMerkleRoot,
             newQueuePointer,
           ]);
         },

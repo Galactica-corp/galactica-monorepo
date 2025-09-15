@@ -9,7 +9,8 @@ Currently, the ZkCertificateRegistry smart contract exists on a single EVM chain
 The state to be replicated includes:
 
 1. **Valid Merkle Roots:** The list of historical and current Merkle roots (merkleRoots) that represent the state of all certificates in the registry.
-2. **Queue Processing Index:** An index (currentQueuePointer) that indicates how far the certificate processing queue has been synced. This is crucial for verifying that a specific certificate has been included in a given Merkle root.
+2. **Oldest Valid Merkle Root:** The Merkle root that marks the boundary from which all subsequent roots are considered valid for proof verification. This replaces the index-based approach to ensure robustness against dropped messages.
+3. **Queue Processing Index:** An index (currentQueuePointer) that indicates how far the certificate processing queue has been synced. This is crucial for verifying that a specific certificate has been included in a given Merkle root.
 
 An open-source, off-chain service named the "Cross-chain Replicator" will monitor the source registry contract for state changes. Upon detecting an update, this service will submit a transaction to the source chain to relay the new state to the destination chains via Hyperlane. While the official service will ensure timely updates, the code will be publicly available for anyone to run. Authentication of the relayed messages will be handled by the receiving smart contract on the destination chains to ensure data integrity and security.
 
@@ -18,11 +19,11 @@ An open-source, off-chain service named the "Cross-chain Replicator" will monito
 1. **Single Source of Truth:** The ZK Certificate Registry on the Galactica Network chain shall be the definitive source of truth. All state modifications, such as adding or revoking certificates, must occur only on this primary contract.
 2. **State Replication:** The following state variables must be replicated from the source registry to replica registries on destination chains:
    - The complete array of merkleRoots.
-   - The merkleRootValidIndex, which indicates the starting index of valid roots.
+   - The oldestValidMerkleRoot, which is the Merkle root that marks the boundary from which all subsequent roots are considered valid.
    - The currentQueuePointer, indicating the processing progress of the certificate queue.
 3. **State Update Logic:**
-   - Upon a certificate addition, the newly generated Merkle root shall be appended to the merkleRoots array on the replica.
-   - Upon a certificate revocation, the new Merkle root shall be appended, and the merkleRootValidIndex shall be updated to point to the index of this new root, effectively invalidating all prior roots for future verifications.
+   - Upon a certificate addition or revocation, the newly generated Merkle roots shall be appended to the merkleRoots array on the replica.
+   - The oldestValidMerkleRoot from the source is used to determine the merkleRootValidIndex on the replica. If this root exists in the replica's merkleRoots array, its index becomes the new merkleRootValidIndex. If it doesn't exist (due to dropped messages), the root is added to the array to recover the state, and then its index becomes the merkleRootValidIndex.
    - The currentQueuePointer shall be updated on the replica to match the source after every successful addition or revocation.
 4. **Interface Consistency:** Replicated registry contracts must expose the same read-only interface as the origin contract for ZK proof verification. This includes functions like verifyMerkleRoot(bytes32), getMerkleRoots(), and merkleRoot().
 5. **Functionality Segregation:** Write functions, including addZkCertificate, revokeZkCertificate, and registerToQueue, must be disabled or removed from the replicated registry contracts to prevent state divergence.
@@ -33,6 +34,7 @@ An open-source, off-chain service named the "Cross-chain Replicator" will monito
    - **Authorization:** The Receiver contract on destination chains must only accept state updates originating from its designated Sender contract on the Galactica Network chain.
    - **Data Integrity:** The cross-chain messaging protocol (Hyperlane) must guarantee that messages are not tampered with during transit.
    - **Order of Operations:** The system must ensure that state updates are applied on the replica in the same order they occurred on the source chain to maintain consistency.
+   - **Dropped Message Recovery:** The system must be robust against dropped or failed messages by using root-based validation instead of index-based validation, allowing the replica to recover missing state when possible.
 10. **Initialization:** A secure and verifiable process must be defined for deploying and initializing a new replicated registry with the complete and current state of the source registry.
 11. **Off-Chain Replicator Service:**
     - The "Cross-chain Replicator" service must reliably monitor the source registry for state-changing events.
@@ -104,6 +106,8 @@ function getMerkleRoots(uint256 \_startIndex) external view returns (bytes32\[\]
 // Reads the index from which Merkle roots are considered valid.  
 function merkleRootValidIndex() external view returns (uint256);
 
+// NOTE: For cross-chain replication, the actual valid Merkle root boundary is sent instead of the index to ensure robustness against dropped messages.
+
 // Reads the current processing position in the certificate queue.  
 function currentQueuePointer() external view returns (uint256);
 
@@ -131,7 +135,8 @@ function verifyMerkleRoot(bytes32 \_merkleRoot) external view returns (bool);
 // \--- State Update Function (Permissioned) \---
 
 // Updates the registry state. Can only be called by the RegistryStateReceiver.  
-function updateState(bytes32\[\] calldata newMerkleRoots, uint256 newMerkleRootValidIndex, uint256 newQueuePointer) external;
+// Uses oldestValidMerkleRoot instead of index for robustness against dropped messages.  
+function updateState(bytes32\[\] calldata newMerkleRoots, bytes32 oldestValidMerkleRoot, uint256 newQueuePointer) external;
 
 ### **4.3 RegistryStateSender (Sender)**
 
@@ -144,6 +149,7 @@ constructor(address \_mailbox, address \_registry, uint32 \_destinationDomain);
 function setReceiverAddress(address \_receiverAddress) external onlyOwner;
 
 // Reads the latest state from the registry and dispatches it to the configured destination chain.  
+// Sends the oldestValidMerkleRoot instead of the index for robustness against dropped messages.  
 // Called by the off-chain Cross-chain Replicator service.  
 function relayState() external payable;
 
@@ -156,6 +162,7 @@ constructor(address \_mailbox, address \_replicaRegistry, uint32 \_originDomain,
 
 // Handles incoming messages from the Hyperlane Mailbox.  
 // This function authenticates the message source and triggers the state update on the replica.  
+// The message contains oldestValidMerkleRoot instead of index for robustness against dropped messages.  
 function handle(uint32 \_origin, bytes32 \_sender, bytes calldata \_messageBody) external onlyMailbox;
 
 ## **5\. Implementation Details**
@@ -170,19 +177,22 @@ function handle(uint32 \_origin, bytes32 \_sender, bytes calldata \_messageBody)
 ### **5.2 ZkCertificateRegistryReplica (Replica)**
 
 - **Implementation:** This contract will implement the IReadableZkCertRegistry interface to ensure compatibility for ZK verifiers. It will also implement the permissioned updateState function.
+- **State Update Logic:** The updateState function receives oldestValidMerkleRoot instead of an index. It maps this root to the appropriate merkleRootValidIndex. If the root doesn't exist (due to dropped messages), it adds the root to recover the state and then sets the merkleRootValidIndex accordingly.
+- **Dropped Message Recovery:** When a message containing a oldestValidMerkleRoot that doesn't exist in the replica is received, the replica adds this root to its merkleRoots array to recover the missing state, ensuring that subsequent valid roots can still be verified.
 - **Guardian Registry Address:** The replica stores the address of the source chain's GuardianRegistry for informational purposes. However, it cannot make direct cross-chain calls to it. Any guardian metadata from the source chain required for verification on the destination chain must be either included in the ZK proof itself or replicated via a similar cross-chain mechanism.
 
 ### **5.3 RegistryStateSender (Sender)**
 
 - **State Fetching:** When relayState() is called, the contract will read the latest merkleRootValidIndex and currentQueuePointer from the source registry. It will also determine which new Merkle roots have been added since the last update and fetch them using getMerkleRoots(uint256 \_startIndex).
-- **Message Encoding:** The state update (new roots, valid index, queue pointer) will be ABI-encoded into a bytes payload for the message body.
+- **Oldest Valid Merkle Root:** Instead of sending the merkleRootValidIndex directly, the contract fetches the actual Merkle root at position `merkleRootValidIndex - 1` from the source registry's merkleRoots array. This root represents the boundary from which all subsequent roots are considered valid.
+- **Message Encoding:** The state update (new roots, oldestValidMerkleRoot, queue pointer) will be ABI-encoded into a bytes payload for the message body.
 - **Fee Handling:** The relayState() function is payable. The fee required by Hyperlane will be passed as msg.value by the Cross-chain Replicator service. The contract will use mailbox.quoteDispatch() to calculate the required fee and ensure the provided value is sufficient before calling mailbox.dispatch().
 
 ### **5.4 RegistryStateReceiver (Receiver)**
 
 - **Authentication:** The handle function will contain strict checks to ensure messages are only processed if they come from the Hyperlane Mailbox (onlyMailbox modifier), the configured origin domain, and the designated RegistryStateSender contract address.
-- **Message Decoding:** Upon successful authentication, the function will abi.decode() the \_messageBody to extract the state update.
-- **State Update:** It will then call replicaRegistry.updateState() with the decoded data to apply the changes.
+- **Message Decoding:** Upon successful authentication, the function will abi.decode() the \_messageBody to extract the state update, which includes the oldestValidMerkleRoot instead of an index.
+- **State Update:** It will then call replicaRegistry.updateState() with the decoded data to apply the changes. The replica will handle mapping the oldestValidMerkleRoot to the appropriate merkleRootValidIndex, including recovery from dropped messages.
 
 ### **5.5 Cross-chain Replicator (Off-chain Service)**
 
@@ -214,13 +224,13 @@ function handle(uint32 \_origin, bytes32 \_sender, bytes calldata \_messageBody)
 
 ### **6.4 Implement `ZkCertificateRegistryReplica`**
 
-- **Prompt:** "In the `cross-chain-replication` package, create `ZkCertificateRegistryReplica.sol`. It must implement the `IReadableZkCertRegistry` interface and the `updateState` function. Access to `updateState` must be restricted, initially to an owner. The contract should store `merkleRoots`, `merkleRootValidIndex`, and `currentQueuePointer`."
-- **Testing:** "Write unit tests to verify: 1\. The contract deploys successfully. 2\. `updateState` reverts when called by an unauthorized address. 3\. After a successful `updateState` call, all `IReadableZkCertRegistry` view functions return the new, correct values."
+- **Prompt:** "In the `cross-chain-replication` package, create `ZkCertificateRegistryReplica.sol`. It must implement the `IReadableZkCertRegistry` interface and the `updateState` function with signature `updateState(bytes32[] calldata newMerkleRoots, bytes32 oldestValidMerkleRoot, uint256 newQueuePointer)`. Access to `updateState` must be restricted, initially to an owner. The contract should store `merkleRoots`, `merkleRootValidIndex`, and `currentQueuePointer`. The updateState function must handle dropped message recovery by adding missing oldestValidMerkleRoot to the merkleRoots array when necessary."
+- **Testing:** "Write unit tests to verify: 1\. The contract deploys successfully. 2\. `updateState` reverts when called by an unauthorized address. 3\. After a successful `updateState` call, all `IReadableZkCertRegistry` view functions return the new, correct values. 4\. The contract correctly handles dropped messages by recovering missing oldestValidMerkleRoot."
 
 ### **6.5 Implement `RegistryStateSender`**
 
-- **Prompt:** "Create `RegistryStateSender.sol`. It should have the constructor and functions as defined in the interface in section 4.3. The `relayState` function must read the current state from the source registry, ABI-encode it into a bytes payload `(bytes32[] memory, uint256, uint256)`, and call `dispatch` on the mailbox address."
-- **Testing:** "Write unit tests using mock contracts for the registry and mailbox. Verify that `relayState` calls `dispatch` on the mock mailbox with the correctly encoded data payload. Test that `setReceiverAddress` can only be called by the owner."
+- **Prompt:** "Create `RegistryStateSender.sol`. It should have the constructor and functions as defined in the interface in section 4.3. The `relayState` function must read the current state from the source registry, determine the oldestValidMerkleRoot from the merkleRootValidIndex, ABI-encode it into a bytes payload `(bytes32[] memory, bytes32, uint256)`, and call `dispatch` on the mailbox address."
+- **Testing:** "Write unit tests using mock contracts for the registry and mailbox. Verify that `relayState` calls `dispatch` on the mock mailbox with the correctly encoded data payload containing the oldestValidMerkleRoot. Test that `setReceiverAddress` can only be called by the owner."
 
 ### **6.6 Implement `RegistryStateReceiver`**
 
@@ -230,7 +240,7 @@ function handle(uint32 \_origin, bytes32 \_sender, bytes calldata \_messageBody)
 ### **6.7 Create Smart Contract Integration Test**
 
 - **Prompt:** "Create a new integration test file. In the test setup, deploy the full suite of contracts: `ZkCertificateRegistry`, `ZkCertificateRegistryReplica`, `RegistryStateSender`, `RegistryStateReceiver`, and the `MockMailbox`."
-- **Testing:** "Write an end-to-end test that: 1\. Adds a certificate to the source `ZkCertificateRegistry`. 2\. Calls `relayState()` on the `RegistryStateSender`. 3\. Triggers message processing in the `MockMailbox`. 4\. Asserts that the `ZkCertificateRegistryReplica` state correctly reflects the change. 5\. Repeats this process for a revocation and a batch of multiple updates to ensure state consistency."
+- **Testing:** "Write an end-to-end test that: 1\. Adds a certificate to the source `ZkCertificateRegistry`. 2\. Calls `relayState()` on the `RegistryStateSender`. 3\. Triggers message processing in the `MockMailbox`. 4\. Asserts that the `ZkCertificateRegistryReplica` state correctly reflects the change. 5\. Repeats this process for a revocation and a batch of multiple updates to ensure state consistency. 6\. Includes a test for dropped message recovery where the replica correctly recovers missing state when oldestValidMerkleRoot is not found in its current merkleRoots array."
 
 ### **6.8 Create Hardhat Ignition Deployment Modules**
 
@@ -239,5 +249,5 @@ function handle(uint32 \_origin, bytes32 \_sender, bytes calldata \_messageBody)
 
 ### **6.9 Implement Off-Chain Replicator Service**
 
-- **Prompt:** "In a new `service/` directory, create a TypeScript application for the Cross-chain Replicator. Use Ethers.js. The service should: 1\. Load configuration from a file or environment variables (RPC URL, private key, contract addresses). 2\. Connect to the source chain and listen for `zkCertificateAddition` and `zkCertificateRevocation` events on the `ZkCertificateRegistry`. 3\. Upon detecting an event, call the `relayState()` function on the `RegistryStateSender` contract."
-- **Testing:** "Create a test script that runs the replicator service against a local Hardhat node. The script will first deploy the contracts, then make a transaction to the `ZkCertificateRegistry` to emit an event. Verify that the running service detects the event and successfully calls `relayState()`."
+- **Prompt:** "In a new `service/` directory, create a TypeScript application for the Cross-chain Replicator. Use Ethers.js. The service should: 1\. Load configuration from a file or environment variables (RPC URL, private key, contract addresses). 2\. Connect to the source chain and listen for `zkCertificateAddition` and `zkCertificateRevocation` events on the `ZkCertificateRegistry`. 3\. Upon detecting an event, call the `relayState()` function on the `RegistryStateSender` contract. 4\. Handle the updated message format that includes oldestValidMerkleRoot instead of merkleRootValidIndex."
+- **Testing:** "Create a test script that runs the replicator service against a local Hardhat node. The script will first deploy the contracts, then make a transaction to the `ZkCertificateRegistry` to emit an event. Verify that the running service detects the event and successfully calls `relayState()` with the correct message format."

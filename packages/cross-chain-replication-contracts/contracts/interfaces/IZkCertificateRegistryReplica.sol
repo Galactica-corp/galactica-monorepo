@@ -13,11 +13,11 @@ interface IZkCertificateRegistryReplica is IReadableZkCertRegistry {
 
   /// @notice Updates the registry state - only callable by authorized updater
   /// @param newMerkleRoots Array of new merkle roots to append
-  /// @param newMerkleRootValidIndex New valid index for merkle roots
+  /// @param validMerkleRoot The merkle root that marks the validity boundary (roots from this point onwards are valid)
   /// @param newQueuePointer New queue pointer value
   function updateState(
     bytes32[] calldata newMerkleRoots,
-    uint256 newMerkleRootValidIndex,
+    bytes32 validMerkleRoot,
     uint256 newQueuePointer
   ) external;
 

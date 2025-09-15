@@ -23,7 +23,8 @@ contract RegistryStateReceiverTest is Test {
     bytes32(0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0),
     bytes32(0xabcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789)
   ];
-  uint256 constant TEST_VALID_INDEX = 2;
+  bytes32 constant TEST_OLDEST_VALID_MERKLE_ROOT =
+    bytes32(0x123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0);
   uint256 constant TEST_QUEUE_POINTER = 10;
 
   function setUp() public {
@@ -59,7 +60,7 @@ contract RegistryStateReceiverTest is Test {
     // Create a valid message body
     bytes memory messageBody = abi.encode(
       testMerkleRoots,
-      TEST_VALID_INDEX,
+      TEST_OLDEST_VALID_MERKLE_ROOT,
       TEST_QUEUE_POINTER
     );
 
@@ -76,7 +77,7 @@ contract RegistryStateReceiverTest is Test {
     // Create a valid message body
     bytes memory messageBody = abi.encode(
       testMerkleRoots,
-      TEST_VALID_INDEX,
+      TEST_OLDEST_VALID_MERKLE_ROOT,
       TEST_QUEUE_POINTER
     );
 
@@ -94,7 +95,7 @@ contract RegistryStateReceiverTest is Test {
     // Create a valid message body
     bytes memory messageBody = abi.encode(
       testMerkleRoots,
-      TEST_VALID_INDEX,
+      TEST_OLDEST_VALID_MERKLE_ROOT,
       TEST_QUEUE_POINTER
     );
 
@@ -113,7 +114,7 @@ contract RegistryStateReceiverTest is Test {
     bytes32[] memory emptyRoots = new bytes32[](0);
     bytes memory messageBody = abi.encode(
       emptyRoots,
-      TEST_VALID_INDEX,
+      TEST_OLDEST_VALID_MERKLE_ROOT,
       TEST_QUEUE_POINTER
     );
 
@@ -131,7 +132,7 @@ contract RegistryStateReceiverTest is Test {
     // Create a valid message body
     bytes memory messageBody = abi.encode(
       testMerkleRoots,
-      TEST_VALID_INDEX,
+      TEST_OLDEST_VALID_MERKLE_ROOT,
       TEST_QUEUE_POINTER
     );
 
@@ -146,7 +147,11 @@ contract RegistryStateReceiverTest is Test {
     // Verify that updateState was called on the mock replica with correct parameters
     assertEq(replica.merkleRootsLength(), testMerkleRoots.length);
     assertEq(replica.merkleRoot(), testMerkleRoots[testMerkleRoots.length - 1]);
-    assertEq(replica.merkleRootValidIndex(), TEST_VALID_INDEX);
+    assertEq(replica.merkleRootValidIndex(), 0);
+    assertEq(
+      replica.merkleRoots(replica.merkleRootValidIndex()),
+      TEST_OLDEST_VALID_MERKLE_ROOT
+    );
     assertEq(replica.currentQueuePointer(), TEST_QUEUE_POINTER);
   }
 
@@ -154,7 +159,7 @@ contract RegistryStateReceiverTest is Test {
     // Create a valid message body
     bytes memory messageBody = abi.encode(
       testMerkleRoots,
-      TEST_VALID_INDEX,
+      TEST_OLDEST_VALID_MERKLE_ROOT,
       TEST_QUEUE_POINTER
     );
 
@@ -164,7 +169,7 @@ contract RegistryStateReceiverTest is Test {
       ORIGIN_DOMAIN,
       SENDER_ADDRESS,
       testMerkleRoots,
-      TEST_VALID_INDEX,
+      TEST_OLDEST_VALID_MERKLE_ROOT,
       TEST_QUEUE_POINTER
     );
 
@@ -183,7 +188,7 @@ contract RegistryStateReceiverTest is Test {
     singleRoot[0] = testMerkleRoots[0];
     bytes memory messageBody = abi.encode(
       singleRoot,
-      TEST_VALID_INDEX,
+      TEST_OLDEST_VALID_MERKLE_ROOT,
       TEST_QUEUE_POINTER
     );
 
@@ -198,7 +203,11 @@ contract RegistryStateReceiverTest is Test {
     // Verify that updateState was called with single root
     assertEq(replica.merkleRootsLength(), 1);
     assertEq(replica.merkleRoot(), testMerkleRoots[0]);
-    assertEq(replica.merkleRootValidIndex(), TEST_VALID_INDEX);
+    assertEq(replica.merkleRootValidIndex(), 0);
+    assertEq(
+      replica.merkleRoots(replica.merkleRootValidIndex()),
+      TEST_OLDEST_VALID_MERKLE_ROOT
+    );
     assertEq(replica.currentQueuePointer(), TEST_QUEUE_POINTER);
   }
 
@@ -210,7 +219,7 @@ contract RegistryStateReceiverTest is Test {
     }
     bytes memory messageBody = abi.encode(
       manyRoots,
-      TEST_VALID_INDEX,
+      manyRoots[0],
       TEST_QUEUE_POINTER
     );
 

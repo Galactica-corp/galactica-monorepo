@@ -25,7 +25,7 @@ contract RegistryStateReceiver is IMessageRecipient {
     uint32 origin,
     address sender,
     bytes32[] newMerkleRoots,
-    uint256 newMerkleRootValidIndex,
+    bytes32 oldestValidMerkleRoot,
     uint256 newQueuePointer
   );
 
@@ -104,14 +104,14 @@ contract RegistryStateReceiver is IMessageRecipient {
     // Decode the message body to extract state update parameters
     (
       bytes32[] memory newMerkleRoots,
-      uint256 newMerkleRootValidIndex,
+      bytes32 oldestValidMerkleRoot,
       uint256 newQueuePointer
-    ) = abi.decode(_message, (bytes32[], uint256, uint256));
+    ) = abi.decode(_message, (bytes32[], bytes32, uint256));
 
     // Update the replica registry state
     replicaRegistry.updateState(
       newMerkleRoots,
-      newMerkleRootValidIndex,
+      oldestValidMerkleRoot,
       newQueuePointer
     );
 
@@ -120,7 +120,7 @@ contract RegistryStateReceiver is IMessageRecipient {
       _origin,
       actualSender,
       newMerkleRoots,
-      newMerkleRootValidIndex,
+      oldestValidMerkleRoot,
       newQueuePointer
     );
   }

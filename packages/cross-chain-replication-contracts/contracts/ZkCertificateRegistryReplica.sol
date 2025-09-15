@@ -159,23 +159,39 @@ contract ZkCertificateRegistryReplica is IZkCertificateRegistryReplica {
   /**
    * @notice Updates the registry state - only callable by authorized updater
    * @param newMerkleRoots Array of new merkle roots to append
-   * @param newMerkleRootValidIndex New valid index for merkle roots
+   * @param oldestValidMerkleRoot The merkle root that marks the validity boundary from the source registry
    * @param newQueuePointer New queue pointer value
    */
   function updateState(
     bytes32[] calldata newMerkleRoots,
-    uint256 newMerkleRootValidIndex,
+    bytes32 oldestValidMerkleRoot,
     uint256 newQueuePointer
   ) external onlyAuthorizedUpdater {
     require(newMerkleRoots.length > 0, 'Must provide at least one merkle root');
     require(
-      newQueuePointer > currentQueuePointer,
+      newQueuePointer > currentQueuePointer || newQueuePointer == 0,
       'The queue pointer must increase with every update'
     );
-    require(
-      newMerkleRootValidIndex >= merkleRootValidIndex,
-      'The merkle root index may only increase'
-    );
+
+    // Update merkleRootValidIndex based on the oldestValidMerkleRoot from source
+    // We send the root instead of the index to make the system robust against dropped messages that might lead to a shorter merkleRoots array and different indexing.
+    uint256 newMerkleRootValidIndex = merkleRootIndex[oldestValidMerkleRoot];
+    if (newMerkleRootValidIndex == 0) {
+      // Check if the oldestValidMerkleRoot is a newly sent root that will get a index.
+      bool isNewlySentRoot = false;
+      for (uint256 i = 0; i < newMerkleRoots.length; i++) {
+        if (newMerkleRoots[i] == oldestValidMerkleRoot) {
+          isNewlySentRoot = true;
+          break;
+        }
+      }
+      if (!isNewlySentRoot) {
+        // The oldestValidMerkleRoot has been moved to a missing root due to a dropped message
+        // We include it now to recover and append additional valid roots afterwards.
+        merkleRoots.push(oldestValidMerkleRoot);
+        merkleRootIndex[oldestValidMerkleRoot] = merkleRoots.length - 1;
+      }
+    }
 
     // Append new merkle roots to the existing array
     for (uint256 i = 0; i < newMerkleRoots.length; i++) {
@@ -184,9 +200,10 @@ contract ZkCertificateRegistryReplica is IZkCertificateRegistryReplica {
     }
 
     // Update other state variables
+    newMerkleRootValidIndex = merkleRootIndex[oldestValidMerkleRoot];
     merkleRootValidIndex = newMerkleRootValidIndex;
     currentQueuePointer = newQueuePointer;
 
-    emit StateUpdated(newMerkleRoots, newMerkleRootValidIndex, newQueuePointer);
+    emit StateUpdated(newMerkleRoots, merkleRootValidIndex, newQueuePointer);
   }
 }

@@ -31,7 +31,8 @@ contract RegistryStateSender {
   event StateRelayed(
     bytes32[] newMerkleRoots,
     uint256 newSentMerkleRootsLength,
-    uint256 newMerkleRootValidIndex,
+    uint256 currentMerkleRootValidIndex,
+    bytes32 oldestValidMerkleRoot,
     uint256 newQueuePointer
   );
 
@@ -105,7 +106,8 @@ contract RegistryStateSender {
       uint256 newSentMerkleRootsLength,
       uint256 currentMerkleRootValidIndex,
       uint256 newQueuePointerToSend,
-      bytes32[] memory newMerkleRoots
+      bytes32[] memory newMerkleRoots,
+      bytes32 oldestValidMerkleRoot
     ) = buildRelayStateMessage();
 
     // Check if there are new state changes to relay
@@ -133,6 +135,7 @@ contract RegistryStateSender {
       newMerkleRoots,
       newSentMerkleRootsLength,
       currentMerkleRootValidIndex,
+      oldestValidMerkleRoot,
       newQueuePointerToSend
     );
   }
@@ -143,7 +146,7 @@ contract RegistryStateSender {
    */
   function quoteRelayFee() external view returns (uint256) {
     require(initialized, 'RegistryStateSender: not initialized');
-    (bytes memory messageBody, , , , ) = buildRelayStateMessage();
+    (bytes memory messageBody, , , , , ) = buildRelayStateMessage();
 
     bytes32 recipientBytes32 = TypeCasts.addressToBytes32(receiverAddress);
     return
@@ -158,7 +161,8 @@ contract RegistryStateSender {
       uint256 newSentMerkleRootsLength,
       uint256 currentMerkleRootValidIndex,
       uint256 newQueuePointerToSend,
-      bytes32[] memory newMerkleRoots
+      bytes32[] memory newMerkleRoots,
+      bytes32 oldestValidMerkleRoot
     )
   {
     // Read current state from the source registry
@@ -204,9 +208,15 @@ contract RegistryStateSender {
     }
 
     // ABI encode the state update message
+    // Instead of sending the merkleRootValidIndex directly, we send the actual merkle root
+    // that the index points to. This makes the system robust against dropped messages.
+    oldestValidMerkleRoot = registry.getMerkleRoots(
+      currentMerkleRootValidIndex,
+      currentMerkleRootValidIndex + 1
+    )[0];
     messageBody = abi.encode(
       newMerkleRoots,
-      currentMerkleRootValidIndex,
+      oldestValidMerkleRoot,
       newQueuePointerToSend
     );
   }
