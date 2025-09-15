@@ -186,7 +186,7 @@ export async function waitOnIssuanceQueue(
     lastBlockTime = (await provider.getBlock(currentBlock))?.timestamp ?? 0;
     const queueLength =
       (await recordRegistry.ZkCertificateHashToIndexInQueue(leafHashAsBytes)) -
-      (await recordRegistry.merkleRootsLength());
+      (await recordRegistry.currentQueuePointer());
     console.log(
       `waiting for ${Number(queueLength) - 1} other zkCerts in the queue...`,
     );
