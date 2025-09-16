@@ -63,12 +63,21 @@ This script will:
 
 In the future this is going to be moved to a hardhat task with nice parameters.
 
+### Verify contracts on the explorer
+
+Find the deployment id from the folders created in `ignition/deployments` and run the following commands for verification:
+
+```shell
+yarn hardhat ignition verify <deployment-id-origin> --network <origin-chain>
+yarn hardhat ignition verify <deployment-id-destination> --network <destination-chain>
+```
+
 ### Manual State Update
 
 To manually trigger a state replication from origin to destination:
 
 ```shell
-npx hardhat run scripts/relayUpdate.ts
+yarn hardhat run scripts/relayUpdate.ts
 ```
 
 This script:

@@ -7,10 +7,18 @@ const config: HardhatUserConfig = {
   plugins: [hardhatToolboxViemPlugin],
   solidity: {
     profiles: {
+      // used by hardhat script deploying with ignition
       default: {
         version: '0.8.28',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
       production: {
+        // used by `hardhat ignition deploy` should be the same as default
         version: '0.8.28',
         settings: {
           optimizer: {
