@@ -220,10 +220,13 @@ contract Staking is
     stakes[msg.sender] -= stake;
     totalStake -= stake;
     totalCollectedFees += unstakingFee;
-
+    
+    wGNET.deposit{value: stakeWithoutFee}();
     wGNET.transfer(msg.sender, stakeWithoutFee);
     emit RemoveStake(msg.sender, stake);
   }
+
+  
 
   /**
    * @notice Transfer stake to another user.
@@ -291,7 +294,7 @@ contract Staking is
   function addRewardToStake(address user) public {
     _addRewardToStake(user);
   }
-  
+
   /** take reward and add it to the stake so it can also accrue rewards (internal function)
    */
   function _addRewardToStake(address user) internal {
