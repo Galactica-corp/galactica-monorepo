@@ -45,6 +45,7 @@ const { sender } = await origin.ignition.deploy(registryStateSenderModule, {
     },
   },
   deploymentId: `${deploymentId}-${originChain}`,
+  strategy: 'create2',
 });
 console.log('Sender deployed to', sender.address);
 
@@ -65,6 +66,7 @@ const { replica, receiver } = await destination.ignition.deploy(
       },
     },
     deploymentId: `${deploymentId}-${destinationChain}`,
+    strategy: 'create2',
   },
 );
 console.log('Replica deployed to', replica.address);
