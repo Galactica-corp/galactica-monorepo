@@ -6,8 +6,6 @@ import { RpcMethods } from './rpcEnums';
 import type { ZkCertInputType } from './zkpInputTypes';
 import { invokeSnap } from '../utils/invoke-snap';
 
-export type { GenZkProofParams, ZkProof } from '@galactica-net/galactica-types';
-
 type GenZKPErrorName = 'MissingInputParams' | 'ProverFetchFailed';
 
 export class GenZKPError extends GalacticaErrorBase<GenZKPErrorName> {}
