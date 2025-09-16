@@ -5,10 +5,11 @@ import {IVerificationSBT} from '../interfaces/IVerificationSBT.sol';
 import {IVerifierWrapper} from '../interfaces/IVerifierWrapper.sol';
 import {IERC721} from '@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol';
 import {Fallback} from '../helpers/Fallback.sol';
+import {ChainAgnosticCalls} from '../helpers/ChainAgnosticCalls.sol';
 
 /// @author Galactica dev team
 /// @title Soul-bound NFTs representing passed ZK proof verification, minted by dApps for accounts submitting the proof.
-contract VerificationSBT is IVerificationSBT, Fallback {
+contract VerificationSBT is IVerificationSBT, Fallback, ChainAgnosticCalls {
     // mapping to store verification SBT
     mapping(uint256 => VerificationSBTInfo) public sbtData;
 
@@ -45,7 +46,7 @@ contract VerificationSBT is IVerificationSBT, Fallback {
         string memory _symbol,
         address _issuingDApp
     ) {
-        deploymentBlock = uint64(block.number);
+        deploymentBlock = uint64(getBlockNumber());
         baseURI = _uri;
         name = _name;
         symbol = _symbol;
