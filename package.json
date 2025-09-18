@@ -17,7 +17,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "yarn workspaces foreach --parallel --topological --verbose run build",
+    "build": "yarn workspaces foreach --parallel --topological-dev --verbose run build:local",
     "build:snap-api": "turbo run build --filter=snap-api...",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "NODE_OPTIONS='--max-old-space-size=8192'; eslint . --cache --flag v10_config_lookup_from_file",
