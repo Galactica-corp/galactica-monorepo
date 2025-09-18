@@ -19,9 +19,7 @@ import {
   checkZkKYCSaltHashCompatibility,
   issueZkCert,
   listZkKYCsLockingTheSaltHash,
-  registerZkCertToQueue,
   resetSaltHash,
-  waitOnIssuanceQueue,
 } from '../lib/registryTools';
 import { flagStandardMapping, ZkCertificate } from '../lib/zkCertificate';
 import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
@@ -156,38 +154,18 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       }
     }
 
-    console.log('Register zkCertificate to the queue...');
-    await registerZkCertToQueue(zkCertificate.leafHash, recordRegistry, issuer);
-
-    await waitOnIssuanceQueue(
-      recordRegistry,
-      zkCertificate.leafHash,
-      hre.ethers.provider,
-    );
-
-    console.log(
-      'Generating merkle proof. This might take a while because it needs to query on-chain data...',
-    );
-    const merkleTreeDepth = await recordRegistry.treeDepth();
-    // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
-    const merkleTree = await buildMerkleTreeFromRegistry(
-      recordRegistry as ZkCertificateRegistry,
-      hre.ethers.provider,
-      Number(merkleTreeDepth),
-      printProgress,
-    );
-
-    console.log('Issuing zkCertificate...');
+    console.log('Enqueueing zkCertificate issuance operation...');
     const { merkleProof, registration } = await issueZkCert(
       zkCertificate,
       recordRegistry,
       issuer,
-      merkleTree,
+      // Merkle tree is handled by the queue processor; not needed here.
+      ({} as any),
       hre.ethers.provider,
     );
     console.log(
       chalk.green(
-        `Issued the zkCertificate certificate ${zkCertificate.did} on chain at index ${registration.leafIndex}`,
+        `Queued issuance of zkCertificate ${zkCertificate.did} on-chain`,
       ),
     );
 

@@ -34,38 +34,27 @@ export async function issueZkCert(
   zkCert: ZkCertificate,
   recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
   issuer: HardhatEthersSigner,
-  merkleTree: SparseMerkleTree,
+  _merkleTree: SparseMerkleTree,
   provider: Provider,
 ): Promise<{ merkleProof: MerkleProof; registration: ZkCertRegistration }> {
+  // New flow: guardians enqueue an Add operation; a queue processor will update the Merkle tree.
   const leafBytes = fromHexToBytes32(fromDecToHex(zkCert.leafHash));
 
-  const chosenLeafIndex = merkleTree.getFreeLeafIndex();
-  const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
-  // now we have the merkle proof to add a new leaf
-
   let tx;
-  // if the zkCert is a zkKYC, we need to pass a few more parameters for the salt registry
   if (zkCert.zkCertStandard === KnownZkCertStandard.ZkKYC) {
-    tx = await (recordRegistry as ZkKYCRegistry).connect(issuer).addZkKYC(
-      chosenLeafIndex,
-      leafBytes,
-      leafEmptyMerkleProof.pathElements.map((value) =>
-        fromHexToBytes32(fromDecToHex(value)),
-      ),
-      getIdHash(zkCert),
-      zkCert.holderCommitment,
-      zkCert.expirationDate,
-    );
-  } else {
-    tx = await (recordRegistry as ZkCertificateRegistry)
+    tx = await (recordRegistry as any)
       .connect(issuer)
-      .addZkCertificate(
-        chosenLeafIndex,
+      .addOperationToQueue(
         leafBytes,
-        leafEmptyMerkleProof.pathElements.map((value) =>
-          fromHexToBytes32(fromDecToHex(value)),
-        ),
+        0, // RegistryOperation.Add
+        getIdHash(zkCert),
+        zkCert.holderCommitment,
+        zkCert.expirationDate,
       );
+  } else {
+    tx = await (recordRegistry as any)
+      .connect(issuer)
+      .addOperationToQueue(leafBytes, 0); // RegistryOperation.Add
   }
 
   await tx.wait();
@@ -74,17 +63,14 @@ export async function issueZkCert(
     throw Error('Transaction failed');
   }
 
-  // update the merkle tree according to the new leaf
-  merkleTree.insertLeaves([zkCert.leafHash], [chosenLeafIndex]);
-  const leafInsertedMerkleProof = merkleTree.createProof(chosenLeafIndex);
-
+  // Return placeholders for backward compatibility. Proof and leafIndex will be determined after processing by the queue service.
   return {
-    merkleProof: leafInsertedMerkleProof,
+    merkleProof: { leaf: '0', pathElements: [], leafIndex: 0 },
     registration: {
       address: await recordRegistry.getAddress(),
       chainID: Number((await provider.getNetwork()).chainId),
       revocable: true,
-      leafIndex: chosenLeafIndex,
+      leafIndex: 0,
     },
   };
 }
@@ -100,31 +86,16 @@ export async function issueZkCert(
  */
 export async function revokeZkCert(
   zkCertLeafHash: string,
-  leafIndex: number,
+  _leafIndex: number,
   recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
   issuer: HardhatEthersSigner,
-  merkleTree: SparseMerkleTree,
+  _merkleTree: SparseMerkleTree,
 ) {
-  if (merkleTree.retrieveLeaf(0, leafIndex) !== zkCertLeafHash) {
-    throw Error('Incorrect leaf hash at the input index.');
-  }
   const leafHashAsBytes = fromHexToBytes32(fromDecToHex(zkCertLeafHash));
-  if (
-    (await recordRegistry.ZkCertificateToGuardian(leafHashAsBytes)) !==
-    (await issuer.getAddress())
-  ) {
-    throw Error('Only the issuer of the zkCert can revoke it.');
-  }
-
-  const merkleProof = merkleTree.createProof(leafIndex);
-
-  const tx = await recordRegistry.connect(issuer).revokeZkCertificate(
-    leafIndex,
-    leafHashAsBytes,
-    merkleProof.pathElements.map((value) =>
-      fromHexToBytes32(fromDecToHex(value)),
-    ),
-  );
+  // New flow: guardians enqueue a Revoke operation; a queue processor will update the Merkle tree.
+  const tx = await (recordRegistry as any)
+    .connect(issuer)
+    .addOperationToQueue(leafHashAsBytes, 1); // RegistryOperation.Revoke
   await tx.wait();
 }
 
@@ -141,11 +112,11 @@ export async function registerZkCertToQueue(
   recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
   issuer: HardhatEthersSigner,
 ) {
+  // Backward compatibility shim: call addOperationToQueue(Add)
   const leafHashAsBytes = fromHexToBytes32(fromDecToHex(zkCertLeafHash));
-
-  const tx = await recordRegistry
+  const tx = await (recordRegistry as any)
     .connect(issuer)
-    .registerToQueue(leafHashAsBytes);
+    .addOperationToQueue(leafHashAsBytes, 0);
   await tx.wait();
 }
 
@@ -157,41 +128,12 @@ export async function registerZkCertToQueue(
  * @param provider - Provider to use for the transaction.
  */
 export async function waitOnIssuanceQueue(
-  recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
-  leafHash: string,
-  provider: Provider,
+  _recordRegistry: ZkCertificateRegistry | ZkKYCRegistry,
+  _leafHash: string,
+  _provider: Provider,
 ) {
-  const leafHashAsBytes = fromHexToBytes32(fromDecToHex(leafHash));
-  const [startTime, expirationTime] =
-    await recordRegistry.getTimeParameters(leafHashAsBytes);
-
-  const currentBlock = await provider.getBlockNumber();
-  let lastBlockTime = (await provider.getBlock(currentBlock))?.timestamp ?? 0;
-
-  console.log(
-    `Waiting on zkCert registration queue.\n`,
-    `Latest issuance start time: ${new Date(
-      Number(startTime) * 1000,
-    ).toLocaleString()}\n`,
-    `Expiration time: ${new Date(
-      Number(expirationTime) * 1000,
-    ).toLocaleString()}`,
-  );
-  let earliestIssueTime = startTime;
-  while (lastBlockTime < earliestIssueTime) {
-    await sleep(10);
-
-    [earliestIssueTime] =
-      await recordRegistry.getTimeParameters(leafHashAsBytes);
-    lastBlockTime = (await provider.getBlock(currentBlock))?.timestamp ?? 0;
-    const queueLength =
-      (await recordRegistry.ZkCertificateHashToIndexInQueue(leafHashAsBytes)) -
-      (await recordRegistry.currentQueuePointer());
-    console.log(
-      `waiting for ${Number(queueLength) - 1} other zkCerts in the queue...`,
-    );
-  }
-  console.log('Start time reached');
+  // Deprecated: no-op in new queue processing flow
+  await sleep(1);
 }
 
 /**

@@ -2,7 +2,6 @@
 import type { ZkCertStandard } from '@galactica-net/galactica-types';
 import { KnownZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
-import { randomInt } from 'crypto';
 import { task, types } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
@@ -59,10 +58,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.batcherAddress,
   )) as unknown as OwnableBatcher;
 
-  const fakeIDHashForSalt = randomInt(1000000, 100000000);
-
   // whitelist the batcher as guardian address
-  const guardianRegistryAddress = await recordRegistry._GuardianRegistry();
+  // @ts-expect-error dynamic access until typechain updates
+  const guardianRegistryAddress = await (recordRegistry as any).guardianRegistry();
   const guardianRegistry = (await hre.ethers.getContractAt(
     'GuardianRegistry',
     guardianRegistryAddress,
@@ -103,37 +101,20 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       const chosenLeafIndex = merkleTree.getFreeLeafIndex();
       const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
 
-      if (zkCertificateType === KnownZkCertStandard.ZkKYC) {
-        callData.push({
-          target: args.registryAddress,
-          callData: (
-            recordRegistry as ZkKYCRegistry
-          ).interface.encodeFunctionData('addZkKYC', [
+      // processNextOperation for both Add and Revoke operations; here we assume queued Add operations
+      callData.push({
+        target: args.registryAddress,
+        callData: (recordRegistry as ZkCertificateRegistry).interface.encodeFunctionData(
+          'processNextOperation',
+          [
             chosenLeafIndex,
             zkCertHashes[i],
             leafEmptyMerkleProof.pathElements.map((value) =>
               fromHexToBytes32(fromDecToHex(value)),
             ),
-            fakeIDHashForSalt,
-            fakeIDHashForSalt,
-            0,
-          ]),
-        });
-      } else {
-        callData.push({
-          target: args.registryAddress,
-          callData: recordRegistry.interface.encodeFunctionData(
-            'addZkCertificate',
-            [
-              chosenLeafIndex,
-              zkCertHashes[i],
-              leafEmptyMerkleProof.pathElements.map((value) =>
-                fromHexToBytes32(fromDecToHex(value)),
-              ),
-            ],
-          ),
-        });
-      }
+          ],
+        ),
+      });
 
       // update the local merkle tree so that the next zkCert will get a correct merkle proof again
       merkleTree.insertLeaf(
