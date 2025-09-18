@@ -1,13 +1,10 @@
-import type { GenZkProofParams, ZkProof } from '@galactica-net/zk-certificates';
+import type { GenZkProofParams, ZkProof } from '@galactica-net/galactica-types';
 
 import { sdkConfig } from '../config';
 import { GalacticaErrorBase } from './error';
 import { RpcMethods } from './rpcEnums';
 import type { ZkCertInputType } from './zkpInputTypes';
 import { invokeSnap } from '../utils/invoke-snap';
-
-// Re-export GenZkProofParams from zk-certificates to avoid circular dependency
-export type { GenZkProofParams } from '@galactica-net/zk-certificates';
 
 type GenZKPErrorName = 'MissingInputParams' | 'ProverFetchFailed';
 
