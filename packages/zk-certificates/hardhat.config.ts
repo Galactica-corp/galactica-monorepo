@@ -16,6 +16,14 @@ import './tasks/hashStringToField';
 import './tasks/reliefZkCertQueue';
 import './tasks/integrateCeremonyResults';
 
+const optimizerSettings = {
+  optimizer: {
+    enabled: true,
+    runs: 200,
+  },
+};
+
+
 const config: HardhatUserConfig = {
   mocha: {
     timeout: 100000000,
@@ -24,18 +32,23 @@ const config: HardhatUserConfig = {
     compilers: [
       {
         version: '0.6.11', // for Verifier created by hardhat-circom
+        settings: optimizerSettings,
       },
       {
         version: '0.8.17',
+        settings: optimizerSettings,
       },
       {
         version: '0.8.12',
+        settings: optimizerSettings,
       },
       {
         version: '0.8.20',
+        settings: optimizerSettings,
       },
       {
         version: '0.8.28',
+        settings: optimizerSettings,
       },
     ],
   },
