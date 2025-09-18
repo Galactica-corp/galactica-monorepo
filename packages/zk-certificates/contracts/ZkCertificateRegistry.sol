@@ -203,7 +203,7 @@ contract ZkCertificateRegistry is
         uint256 leafIndex,
         bytes32 zkCertificateHash,
         bytes32[] memory merkleProof
-    ) public virtual {
+    ) external {
         require(
             isZkCertificateInTurn(zkCertificateHash),
             'ZkCertificateRegistry: zkCertificate is not in turn to be processed'
@@ -274,7 +274,7 @@ contract ZkCertificateRegistry is
     function addOperationToQueue(
         bytes32 zkCertificateHash,
         RegistryOperation operation
-    ) public {
+    ) public virtual {
         require(
             guardianRegistry.isWhitelisted(msg.sender),
             'ZkCertificateRegistry: not a Guardian'

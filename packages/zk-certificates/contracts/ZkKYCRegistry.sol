@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import {ZkCertificateRegistry} from './ZkCertificateRegistry.sol';
 import {HumanIDSaltRegistry, SaltLockingZkCert} from './HumanIDSaltRegistry.sol';
+import {RegistryOperation} from './interfaces/IWritableZKCertRegistry.sol';
 
 /**
  * @title ZkCertificateRegistry
@@ -28,60 +29,50 @@ contract ZkKYCRegistry is ZkCertificateRegistry {
     }
 
     /**
-     * @notice addZkCertificate issues a zkCertificate record by adding it to the Merkle tree
+     * @notice Calling addOperationToQueue directly is not allowed, because the salt needs to be checked for sybil resistance.
      */
-    function addZkCertificate(
-        uint256,
+    function addOperationToQueue(
         bytes32,
-        bytes32[] memory
+        RegistryOperation
     ) public pure override {
         revert(
-            'ZkKYCRegistry: use addZkCertificate function with the parameters for the salt registry'
+            'ZkKYCRegistry: can not addOperationToQueue without the parameters for the salt registry'
         );
     }
 
     /**
-     * @notice addZkKYC issues a zkCertificate record by adding it to the Merkle tree
-     * @param leafIndex - leaf position of the zkCertificate in the Merkle tree
+     * @notice Register an operation about a zkKYC certificate to the queue.
      * @param zkCertificateHash - hash of the zkCertificate record leaf
-     * @param merkleProof - Merkle proof of the zkCertificate record leaf being free
-     * @param idHash - Hash identifying the user. It is supposed to be the poseidon Hash of the name, birthday and citizenship.
+     * @param operation - Operation to add to the queue.
+     * @param idHash - Hash identifying the user. It is supposed to be the poseidon hash of the name, birthday and citizenship.
      * @param saltHash - Hash of the salt, usually the commitment hash.
      * @param expirationTime - Expiration time of the zkKYC.
      */
-    function addZkKYC(
-        uint256 leafIndex,
+    function addOperationToQueue(
         bytes32 zkCertificateHash,
-        bytes32[] memory merkleProof,
+        RegistryOperation operation,
         uint256 idHash,
         uint256 saltHash,
         uint256 expirationTime
     ) public {
-        humanIDSaltRegistry.onZkCertIssuance(
-            SaltLockingZkCert({
-                zkCertId: leafIndex,
-                guardian: msg.sender,
-                expirationTime: expirationTime,
-                revoked: false
-            }),
-            idHash,
-            saltHash
-        );
-        super.addZkCertificate(leafIndex, zkCertificateHash, merkleProof);
-    }
+        if (operation == RegistryOperation.Add) {
+            // For privacy and sybil resistance, we need to register the salt hash for the user, so that a person can only have one salt.
+            humanIDSaltRegistry.onZkCertIssuance(
+                SaltLockingZkCert({
+                    zkCertId: uint256(zkCertificateHash),
+                    guardian: msg.sender,
+                    expirationTime: expirationTime,
+                    revoked: false
+                }),
+                idHash,
+                saltHash
+            );
+        } else if (operation == RegistryOperation.Revoke) {
+            humanIDSaltRegistry.onZkCertRevocation(uint256(zkCertificateHash));
+        } else {
+            revert('ZkKYCRegistry: invalid operation');
+        }
 
-    /**
-     * @notice revokeZkCertificate removes a previously issued zkCertificate from the registry by setting the content of the merkle leaf to zero.
-     * @param leafIndex - leaf position of the zkCertificate in the Merkle tree
-     * @param zkCertificateHash - hash of the zkCertificate record leaf
-     * @param merkleProof - Merkle proof of the zkCertificate record being in the tree
-     */
-    function revokeZkCertificate(
-        uint256 leafIndex,
-        bytes32 zkCertificateHash,
-        bytes32[] memory merkleProof
-    ) public override {
-        humanIDSaltRegistry.onZkCertRevocation(leafIndex);
-        super.revokeZkCertificate(leafIndex, zkCertificateHash, merkleProof);
+        super.addOperationToQueue(zkCertificateHash, operation);
     }
 }
