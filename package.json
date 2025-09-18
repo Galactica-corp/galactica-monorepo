@@ -28,11 +28,13 @@
     "test": "yarn workspaces foreach -vp run test"
   },
   "resolutions": {
-    "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch",
-    "ffjavascript": "0.3.0",
+    "@hyperlane-xyz/core@3.16.0": "patch:@hyperlane-xyz/core@npm:3.16.0#.yarn/patches/@hyperlane-xyz-core-npm-3.16.0-487f37098a.patch",
+    "@metamask/eth-sig-util@^8.2.0": "patch:@metamask/eth-sig-util@npm:^8.2.0#.yarn/patches/@metamask-eth-sig-util-npm-8.2.0-6005d801eb.patch",
+    "@typescript-eslint/typescript-estree": "8.40.0",
     "ejs": "patch:ejs@npm:3.1.9#.yarn/patches/ejs-npm-3.1.9-e201b2088c.patch",
     "fastfile@0.0.20": "patch:fastfile@npm:0.0.20#.yarn/patches/fastfile-npm-0.0.20-4263a2b353.patch",
-    "@typescript-eslint/typescript-estree": "8.40.0"
+    "ffjavascript": "0.3.0",
+    "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch"
   },
   "devDependencies": {
     "@metamask/eslint-config": "^14.0.0",
@@ -59,6 +61,6 @@
   },
   "packageManager": "yarn@3.2.1",
   "engines": {
-    "node": ">=18.6.0"
+    "node": ">=22"
   }
 }

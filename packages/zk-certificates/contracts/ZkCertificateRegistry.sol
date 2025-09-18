@@ -13,6 +13,7 @@ import {GuardianInfo} from './GuardianRegistry.sol';
 
 import {IGuardianRegistry} from './interfaces/IGuardianRegistry.sol';
 import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
+import {IReadableZkCertRegistry} from './interfaces/IReadableZkCertRegistry.sol';
 
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Fallback} from './helpers/Fallback.sol';
@@ -80,9 +81,11 @@ contract ZkCertificateRegistry is
     // and from which index the merkle roots are still valid
     // all previous ones are invalid because they contain revoked certificates
     // we start from 1 because nonexistant merkle roots return 0 in the merkleRootIndex mapping
-    uint256 public merkleRootValidIndex = 1;
+    uint256 public override(IReadableZkCertRegistry) merkleRootValidIndex = 1;
     // we will also store the merkle root index in a mapping for quicker lookup
-    mapping(bytes32 => uint) public merkleRootIndex;
+    mapping(bytes32 => uint)
+        public
+        override(IReadableZkCertRegistry) merkleRootIndex;
 
     // Block height at which the contract was initialized
     // You can use it to speed up finding all logs of the contract by starting from this block
@@ -93,7 +96,7 @@ contract ZkCertificateRegistry is
 
     mapping(bytes32 => CertificateData) public ZkCertificateHashToData;
 
-    IGuardianRegistry public guardianRegistry;
+    IGuardianRegistry public override(IReadableZkCertRegistry) guardianRegistry;
 
     event CertificateProcessed(
         bytes32 indexed zkCertificateLeafHash,
@@ -123,15 +126,57 @@ contract ZkCertificateRegistry is
     /**
      * @notice return the current merkle root which is the last one in the merkleRoots array
      */
-    function merkleRoot() public view returns (bytes32) {
+    function merkleRoot()
+        public
+        view
+        override(IReadableZkCertRegistry)
+        returns (bytes32)
+    {
         return merkleRoots[merkleRoots.length - 1];
     }
 
     /**
-     * @notice return the whole merkle root array
+     * @notice return the length of the merkleRoots array
      */
-    function getMerkleRoots() public view returns (bytes32[] memory) {
-        return merkleRoots;
+    function merkleRootsLength() external view returns (uint256) {
+        return merkleRoots.length;
+    }
+
+    /**
+     * @notice return the merkle root array starting from _startIndex
+     * @param _startIndex The index to start returning roots from
+     */
+    function getMerkleRoots(
+        uint256 _startIndex
+    ) public view returns (bytes32[] memory) {
+        require(_startIndex < merkleRoots.length, 'Start index out of bounds');
+
+        return getMerkleRoots(_startIndex, merkleRoots.length);
+    }
+
+    /**
+     * @notice return the merkle root array starting from _startIndex and ending at _endIndex
+     * @param _startIndex The index to start returning roots from
+     * @param _endIndex The index to end returning roots at
+     */
+    function getMerkleRoots(
+        uint256 _startIndex,
+        uint256 _endIndex
+    ) public view returns (bytes32[] memory) {
+        require(
+            _startIndex < _endIndex,
+            'Start index must be less than end index'
+        );
+        require(_endIndex <= merkleRoots.length, 'End index out of bounds');
+
+        uint256 length = _endIndex - _startIndex;
+        bytes32[] memory roots = new bytes32[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            roots[i] = merkleRoots[_startIndex + i];
+        }
+
+        return roots;
     }
 
     /**
@@ -163,7 +208,9 @@ contract ZkCertificateRegistry is
         }
 
         // Set merkle root
-        merkleRoots.push(currentZero);
+        merkleRoots.push(bytes32(0)); // initial root at index 0, not valid because merkleRootIndex(unknown) yields 0
+        merkleRoots.push(currentZero); // first valid root at index 1
+        merkleRootIndex[currentZero] = 1;
         guardianRegistry = IGuardianRegistry(GuardianRegistry_);
 
         // Set the block height at which the contract was initialized
@@ -369,7 +416,9 @@ contract ZkCertificateRegistry is
         return leafHash;
     }
 
-    function verifyMerkleRoot(bytes32 _merkleRoot) public view returns (bool) {
+    function verifyMerkleRoot(
+        bytes32 _merkleRoot
+    ) public view override(IReadableZkCertRegistry) returns (bool) {
         uint _merkleRootIndex = merkleRootIndex[_merkleRoot];
         return _merkleRootIndex >= merkleRootValidIndex;
     }
