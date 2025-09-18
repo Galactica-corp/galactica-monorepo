@@ -5,8 +5,6 @@ import { expect } from 'chai';
 import { toBigInt } from 'ethers';
 import hre, { ethers } from 'hardhat';
 
-import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
-
 describe('GuardianRegistry', () => {
   let deployer: SignerWithAddress;
   let guardian: SignerWithAddress;
@@ -18,6 +16,7 @@ describe('GuardianRegistry', () => {
 
   /**
    * Deploy fixtures to work with the same setup in an efficient way.
+   *
    * @returns Fixtures.
    */
   async function deploy() {
@@ -34,9 +33,9 @@ describe('GuardianRegistry', () => {
       metadata: 'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx',
     };
 
-    const GuardianRegistry = (await ethers.deployContract('GuardianRegistry', [
+    const GuardianRegistry = await ethers.deployContract('GuardianRegistry', [
       description,
-    ])) as GuardianRegistry;
+    ]);
 
     return {
       GuardianRegistry,

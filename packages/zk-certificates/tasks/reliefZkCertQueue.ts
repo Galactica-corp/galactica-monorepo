@@ -1,6 +1,6 @@
-/* eslint-disable prefer-const */
 /* Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import { ZkCertStandard } from '@galactica-net/galactica-types';
+import type { ZkCertStandard } from '@galactica-net/galactica-types';
+import { KnownZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
 import { randomInt } from 'crypto';
 import { task, types } from 'hardhat/config';
@@ -16,6 +16,7 @@ import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
 
 /**
  * Task for issuing all zkCerts that are stuck in the queue.
+ *
  * @param args - See task definition below or 'npx hardhat reliefZkCertQueue --help'.
  * @param hre - Hardhat runtime environment.
  */
@@ -33,7 +34,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     flagStandardMapping[args.zkCertificateType];
 
   const recordRegistry = (await hre.ethers.getContractAt(
-    zkCertificateType === ZkCertStandard.ZkKYC
+    zkCertificateType === KnownZkCertStandard.ZkKYC
       ? 'ZkKYCRegistry'
       : 'ZkCertificateRegistry',
     args.registryAddress,
@@ -53,12 +54,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // iterate over the queue until all zkCerts are issued
   let nextZkCertIndex = await recordRegistry.currentQueuePointer();
   let nextZkCertHash = await recordRegistry.ZkCertificateQueue(nextZkCertIndex);
-  let batcher = (await hre.ethers.getContractAt(
+  const batcher = (await hre.ethers.getContractAt(
     'OwnableBatcher',
     args.batcherAddress,
   )) as unknown as OwnableBatcher;
 
-  let fakeIDHashForSalt = randomInt(1000000, 100000000);
+  const fakeIDHashForSalt = randomInt(1000000, 100000000);
 
   // whitelist the batcher as guardian address
   const guardianRegistryAddress = await recordRegistry._GuardianRegistry();
@@ -97,12 +98,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     const zkCertHashes = await Promise.all(batchPromises);
 
     // collect merkle proofs and calls for the batch
-    let callData: Call[] = [];
+    const callData: Call[] = [];
     for (let i = 0; i < BATCH_SIZE; i++) {
       const chosenLeafIndex = merkleTree.getFreeLeafIndex();
       const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
 
-      if (zkCertificateType === ZkCertStandard.ZkKYC) {
+      if (zkCertificateType === KnownZkCertStandard.ZkKYC) {
         callData.push({
           target: args.registryAddress,
           callData: (
@@ -152,7 +153,9 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     try {
       nextZkCertHash = await recordRegistry.ZkCertificateQueue(nextZkCertIndex);
     } catch (error) {
-      console.log(chalk.red('Error getting next zkCert hash'));
+      console.log(
+        chalk.red(`Error getting next zkCert hash: ${JSON.stringify(error)}`),
+      );
       break;
     }
   }

@@ -29,6 +29,7 @@ export type CacheOptions = {
 
 /**
  * Query the on-chain Merkle tree leaves needed as input for the Merkle tree
+ *
  * @param ethers - Ethers instance
  * @param contractAddr - Address of the ZkCertificateRegistry contract
  * @param firstBlock - First block to query (ideally the contract creation block)
@@ -42,6 +43,7 @@ export type LeafLogResult = {
 
 /**
  * Check if file system operations are available.
+ *
  * @returns True if file system operations can be performed.
  */
 function isFileSystemAvailable(): boolean {
@@ -60,6 +62,7 @@ function isFileSystemAvailable(): boolean {
 
 /**
  * Get the cache file path for a specific chain and registry.
+ *
  * @param chainId - The chain ID.
  * @param registryAddress - The registry contract address.
  * @param cacheDir - Custom cache directory (optional).
@@ -97,6 +100,7 @@ function getCacheFilePath(
 
 /**
  * Load cached leaf logs if available.
+ *
  * @param chainId - The chain ID.
  * @param registryAddress - The registry contract address.
  * @param cacheDir - Custom cache directory (optional).
@@ -125,6 +129,7 @@ function loadCachedLeafLogs(
 
 /**
  * Save leaf logs to cache.
+ *
  * @param chainId - The chain ID.
  * @param registryAddress - The registry contract address.
  * @param lastBlockConsidered - The last block that was considered.
@@ -160,6 +165,7 @@ function saveCachedLeafLogs(
 
 /**
  * Get Merkle tree leaves by reading blockchain log.
+ *
  * @param provider - Ethers provider.
  * @param registry - Address of the RecordRegistry contract.
  * @param firstBlock - First block to query (optional, ideally the contract creation block).
@@ -322,6 +328,7 @@ export async function queryOnChainLeaves(
 
 /**
  * Constructs a merkle tree from the leaves stored in an on-chain registry.
+ *
  * @param recordRegistry - Contract of the registry storing the Merkle tree on-chain.
  * @param provider - Ethers provider.
  * @param merkleDepth - Depth of the Merkle tree.
@@ -336,7 +343,6 @@ export async function buildMerkleTreeFromRegistry(
   onProgress?: (percent: string) => void,
   cacheOptions: CacheOptions = {},
 ): Promise<SparseMerkleTree> {
-  // Not using on-chain record because `block.number` works differently on L2.
   const firstBlock = Number(await recordRegistry.initBlockHeight());
 
   const leafLogResults = await queryOnChainLeaves(

@@ -1,4 +1,11 @@
-import { ZkCertStandard } from '@galactica-net/galactica-types';
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import {
+  getContentSchema,
+  KnownZkCertStandard,
+} from '@galactica-net/galactica-types';
 import type {
   GenZkProofParams,
   ProverData,
@@ -7,12 +14,14 @@ import type {
 } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
-import hash from 'object-hash';
+import { MD5 } from 'object-hash';
 
+import zkCert from '../../../test/zkCert.json';
+import zkCert2 from '../../../test/zkCert2.json';
 import proverData from '../../galactica-dapp/public/provers/exampleMockDApp.json';
 import exclusionProver from '../../galactica-dapp/public/provers/exclusion3.json';
 import exclusionInput from '../../zk-certificates/circuits/input/exclusion3.json';
-import type { RpcArgs } from '../src/types';
+import type { RpcArgs, ZkCertStorage } from '../src/types';
 
 // Tell JSON how to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -66,8 +75,8 @@ export const testZkpParams: GenZkProofParams<ZkKYCAgeCitizenshipProofInput> = {
     countryExclusionList: [],
   },
   requirements: {
-    zkCertStandard: ZkCertStandard.ZkKYC,
-    registryAddress: '0x0276a85D8B63f0e66081c9749fdfB1547C2672Ed',
+    zkCertStandard: KnownZkCertStandard.ZkKYC,
+    registryAddress: '0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE',
   },
   prover,
   userAddress: testAddress,
@@ -115,4 +124,14 @@ export const merkleProofServiceURL =
 
 export const testProverURL =
   'https://prover.galactica.com/v1/galactica/exampleMockDApp/';
-export const proverHash = hash.MD5(testZkpParams.prover);
+export const proverHash = MD5(testZkpParams.prover);
+
+export const zkCertStorage: ZkCertStorage = {
+  zkCert,
+  schema: getContentSchema(KnownZkCertStandard.ZkKYC),
+};
+
+export const zkCertStorage2: ZkCertStorage = {
+  zkCert: zkCert2,
+  schema: getContentSchema(KnownZkCertStandard.ZkKYC),
+};

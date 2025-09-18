@@ -1,5 +1,4 @@
 /* eslint-disable require-atomic-updates */
-/* eslint-disable jest/no-if */
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { HardhatEthersSigner } from '@nomicfoundation/hardhat-ethers/signers';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
@@ -59,67 +58,65 @@ describe('SBTManager', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
-    mockZkCertificateRegistry = (await ethers.deployContract(
+    mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
-    twitterFollowersCountProofVerifier = (await ethers.deployContract(
+    twitterFollowersCountProofVerifier = await ethers.deployContract(
       'TwitterFollowersCountProofVerifier',
-    )) as TwitterFollowersCountProofVerifier;
+    );
 
-    twitterFollowersCountProof = (await ethers.deployContract(
+    twitterFollowersCountProof = await ethers.deployContract(
       'TwitterFollowersCountProof',
       [
         deployer.address,
         await twitterFollowersCountProofVerifier.getAddress(),
         await mockZkCertificateRegistry.getAddress(),
       ],
-    )) as TwitterFollowersCountProof;
+    );
 
-    twitterCreationTimeProofVerifier = (await ethers.deployContract(
+    twitterCreationTimeProofVerifier = await ethers.deployContract(
       'TwitterCreationTimeProofVerifier',
-    )) as TwitterCreationTimeProofVerifier;
+    );
 
-    twitterCreationTimeProof = (await ethers.deployContract(
+    twitterCreationTimeProof = await ethers.deployContract(
       'TwitterCreationTimeProof',
       [
         deployer.address,
         await twitterCreationTimeProofVerifier.getAddress(),
         await mockZkCertificateRegistry.getAddress(),
       ],
-    )) as TwitterCreationTimeProof;
+    );
 
     // set up airdropGateway and set up the client
-    SBTManager = (await ethers.deployContract('SBTManager', [
-      deployer.address,
-    ])) as SBTManager;
+    SBTManager = await ethers.deployContract('SBTManager', [deployer.address]);
 
     twitterZkCertificates = [];
-    const twitterExample1 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample1 = structuredClone(twitterExample);
     twitterExample1.followersCount = 110;
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample1),
     );
 
-    const twitterExample2 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample2 = structuredClone(twitterExample);
     twitterExample2.followersCount = 1100;
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample2),
     );
 
-    const twitterExample3 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample3 = structuredClone(twitterExample);
     twitterExample3.followersCount = 11000;
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample3),
     );
 
-    const twitterExample4 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample4 = structuredClone(twitterExample);
     twitterExample4.createdAt = '2018-06-19T17:24:53Z'; // before 2020-01-01
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample4),
     );
 
-    const twitterExample5 = JSON.parse(JSON.stringify(twitterExample));
+    const twitterExample5 = structuredClone(twitterExample);
     twitterExample5.createdAt = '2024-06-19T17:24:53Z'; // after 2024-01-01
     twitterZkCertificates.push(
       await generateSampleTwitterZkCertificate(twitterExample5),
@@ -163,12 +160,12 @@ describe('SBTManager', () => {
     SBTs = [];
     for (let i = 0; i < 5; i++) {
       SBTs.push(
-        (await ethers.deployContract('VerificationSBT', [
+        await ethers.deployContract('VerificationSBT', [
           `test_${i}`,
           `test_${i}`,
           `test_${i}`,
           await SBTManager.getAddress(),
-        ])) as VerificationSBT,
+        ]),
       );
     }
 

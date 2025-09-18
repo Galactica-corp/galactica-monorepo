@@ -1,5 +1,6 @@
+import type { FieldElement } from './fieldElement';
 import type { MerkleProof } from './merkleProof';
-import type { ZkCertStandard, ZkKYCContent } from './zkCertStandard';
+import type { AnyZkCertContent, ZkCertStandard } from './zkCertStandard';
 
 // / Data required for ZK ownership proofs
 export type OwnershipProofInput = {
@@ -51,13 +52,13 @@ export type HumanIDProofInput = {
 };
 
 // / Data contained in a ZK certificate
-export type ZkCertData = {
+export type ZkCertData<Content = AnyZkCertContent> = {
   holderCommitment: string;
   // identifier of the zkCert standard (e.g. zkKYC, zkDiploma, zkGymMembership, ...)
   zkCertStandard: ZkCertStandard;
   randomSalt: string;
   expirationDate: number;
-  content: ZkKYCContent | Record<string, any>;
+  content: Content;
   providerData: ProviderData;
   contentHash: string;
   leafHash: string;
@@ -75,15 +76,20 @@ export type ZkCertRegistration = {
   leafIndex: number;
 };
 
-export type ZkCertRegistered = ZkCertData & {
-  // Data about the registry the zkCert is issued on.
-  // Maybe we want to make this a list later if registering a zkCert on multiple registries becomes a thing (e.g. for multiple jurisdictions)
-  registration: ZkCertRegistration;
+export type ZkCertRegistered<Content = AnyZkCertContent> =
+  ZkCertData<Content> & {
+    // Data about the registry the zkCert is issued on.
+    // Maybe we want to make this a list later if registering a zkCert on multiple registries becomes a thing (e.g. for multiple jurisdictions)
+    registration: ZkCertRegistration;
 
-  // Proof showing that the zkCert is part of the Merkle tree
-  // Updating it helps to prevent tracking through finding uses of the same merkle root
-  merkleProof: MerkleProof;
-};
+    // Proof showing that the zkCert is part of the Merkle tree
+    // Updating it helps to prevent tracking through finding uses of the same merkle root
+    merkleProof: MerkleProof;
+
+    // Workaround for a bug in @metamask/eth-sig-util. With certain data sizes, the encryption fails to pad the data correctly.
+    // So we additionally inflate the data to make sure it is padded correctly.
+    paddingIssueWorkaround?: string;
+  };
 
 // Encryption used for zkCerts when being exported or passed from guardian to user
 export const ENCRYPTION_VERSION = 'x25519-xsalsa20-poly1305';
@@ -103,3 +109,5 @@ export declare type EthEncryptedData = {
   ephemPublicKey: string;
   ciphertext: string;
 };
+
+export type ProofInput = Record<string, FieldElement | FieldElement[]>;

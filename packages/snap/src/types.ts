@@ -5,6 +5,7 @@ import type { MetaMaskInpageProvider } from '@metamask/providers';
 import type { SnapsGlobalObject } from '@metamask/snaps-types';
 import type { NodeType } from '@metamask/snaps-ui';
 import type { JsonRpcRequest } from '@metamask/types';
+import type { AnySchema } from 'ajv/dist/2020';
 
 export type RpcArgs = {
   origin: string;
@@ -26,10 +27,19 @@ export type HolderData = {
   eddsaKey: EddsaPrivateKey;
 };
 
+/**
+ * Everything the snap needs to store about a zkCert.
+ */
+export type ZkCertStorage = {
+  zkCert: ZkCertRegistered<Record<string, unknown>>;
+  schema: AnySchema;
+};
+
 export type StorageState = {
   holders: HolderData[];
-  zkCerts: ZkCertRegistered[];
+  zkCerts: ZkCertStorage[];
   merkleServiceURL?: string;
+  storageLayoutVersion: number;
 };
 
 export type PanelContent = (

@@ -3,74 +3,22 @@ import type { HumanIDProofInput } from '@galactica-net/galactica-types';
 import {
   humanIDFieldOrder,
   personIDFieldOrder,
-  ZkCertStandard,
-  zkKYCContentFields,
-  zkKYCOptionalContent,
+  getContentSchema,
+  KnownZkCertStandard,
 } from '@galactica-net/galactica-types';
-import type { Eddsa } from 'circomlibjs';
 
-import { hashStringToFieldNumber } from './helpers';
 import type { ZkCertificate } from './zkCertificate';
-
-/**
- * Function preparing the inputs for a zkKYC certificate.
- * It hashes all string fields to be representable in zk circuits.
- * @param eddsa - Eddsa object from circomlibjs.
- * @param kycData - Input KYC data to be verified and hashed if necessary.
- * @returns Prepared KYC data.
- * @throws Error if any of the required fields is missing.
- */
-export function prepareKYCFields(
-  eddsa: Eddsa,
-  kycData: any,
-): Record<string, any> {
-  // verify that all the fields are present
-  const exceptions = ['holderCommitment'];
-  const stringFieldsForHashing = [
-    // TODO: standardize the definition of fields and which of those are hashed and read it from the standard instead of hardcoding it here
-    'surname',
-    'forename',
-    'middlename',
-    'streetAndNumber',
-    'postcode',
-    'town',
-    'region',
-    'country',
-    'citizenship',
-  ];
-  const zkKYCFields: Record<string, any> = {};
-  for (const field of zkKYCContentFields.filter(
-    (content) => !exceptions.includes(content),
-  )) {
-    if (kycData[field] === undefined) {
-      if (zkKYCOptionalContent.includes(field)) {
-        kycData[field] = '';
-      } else {
-        throw new Error(`Field ${field} missing in KYC data`);
-      }
-    }
-    if (stringFieldsForHashing.includes(field)) {
-      // hashing string data so that it fits into the field used by the circuit
-      zkKYCFields[field] = hashStringToFieldNumber(
-        kycData[field],
-        eddsa.poseidon,
-      );
-    } else {
-      zkKYCFields[field] = kycData[field];
-    }
-  }
-
-  return zkKYCFields;
-}
+import { prepareContentForCircuit } from './zkCertificateDataProcessing';
 
 /**
  * Calculate dApp specific human ID from zkKYC and dApp address.
+ *
  * @param zkKYC - The zkCertificate containing the KYC data.
  * @param dAppAddress - Address of the dApp.
  * @returns Human ID as string.
  */
 export function getHumanID(zkKYC: ZkCertificate, dAppAddress: string): string {
-  if (zkKYC.zkCertStandard !== ZkCertStandard.ZkKYC) {
+  if (zkKYC.zkCertStandard !== KnownZkCertStandard.ZkKYC) {
     throw new Error('zkKYC: can not get human ID from non-ZkKYC certificate');
   }
 
@@ -78,7 +26,9 @@ export function getHumanID(zkKYC: ZkCertificate, dAppAddress: string): string {
     zkKYC.poseidon(
       // fill needed fields from zkKYC with dAppAddress added at the correct place
       humanIDFieldOrder.map((field) =>
-        field === 'dAppAddress' ? dAppAddress : zkKYC.content[field],
+        field === 'dAppAddress'
+          ? dAppAddress
+          : (zkKYC.content as Record<string, any>)[field],
       ),
       undefined,
       1,
@@ -88,6 +38,7 @@ export function getHumanID(zkKYC: ZkCertificate, dAppAddress: string): string {
 
 /**
  * Get the ZKP input for the human ID proof.
+ *
  * @param dAppAddress - Address of the dApp.
  * @returns Human ID proof input.
  */
@@ -99,18 +50,27 @@ export function getHumanIDProofInput(dAppAddress: string): HumanIDProofInput {
 
 /**
  * Calculate the user identifying hash as it is needed to register a salt in the salt registry.
+ *
  * @param zkKYC - The zkCertificate containing the KYC data.
  * @returns ZkKYC ID hash.
  */
 export function getIdHash(zkKYC: ZkCertificate): string {
-  if (zkKYC.zkCertStandard !== ZkCertStandard.ZkKYC) {
+  if (zkKYC.zkCertStandard !== KnownZkCertStandard.ZkKYC) {
     throw new Error('zkKYC: can not get IdHash from non-ZkKYC certificate');
   }
+
+  const content = prepareContentForCircuit(
+    zkKYC.eddsa,
+    zkKYC.content,
+    getContentSchema(KnownZkCertStandard.ZkKYC),
+  );
 
   return zkKYC.poseidon.F.toObject(
     zkKYC.poseidon(
       // fill needed fields from zkKYC with dAppAddress added at the correct place
-      personIDFieldOrder.map((field) => zkKYC.content[field]),
+      personIDFieldOrder.map(
+        (field) => (content as Record<string, any>)[field],
+      ),
       undefined,
       1,
     ),

@@ -3,6 +3,7 @@ import type { HolderCommitmentData } from '@galactica-net/galactica-types';
 
 /**
  * Function checking the holderCommitment Input for consistency.
+ *
  * @param holderCommitmentData - Input data to be check if has everything a holderCommitment needs.
  * @returns Checked holderCommitment.
  * @throws Error if any of the required fields is missing

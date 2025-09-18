@@ -13,14 +13,6 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/dev/generateZkKYCInput';
-import type { GuardianRegistry } from '../../typechain-types';
-import type { AirdropGateway } from '../../typechain-types/contracts/dapps/AirdropGateway';
-import type { MockGalacticaInstitution } from '../../typechain-types/contracts/mock/MockGalacticaInstitution';
-import type { MockToken } from '../../typechain-types/contracts/mock/MockToken';
-import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
-import type { GalacticaOfficialSBT } from '../../typechain-types/contracts/SBT_related/GalacticaOfficialSBT';
-import type { ZkKYC } from '../../typechain-types/contracts/verifierWrappers/ZkKYC';
-import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
 
 chai.config.includeStack = true;
 
@@ -31,6 +23,7 @@ describe('AirdropGateway', () => {
 
   /**
    * Unittest fixture for fast tests.
+   *
    * @returns Fixture with smart contracts and accounts.
    */
   async function deployFixture() {
@@ -42,29 +35,25 @@ describe('AirdropGateway', () => {
       await hre.ethers.getSigners();
 
     // set up KYCRegistry, GalacticaInstitution, ZkKYCVerifier, ZkKYC
-    const mockZkCertificateRegistry = (await ethers.deployContract(
+    const mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
     const mockGalacticaInstitutions = [];
     for (let i = 0; i < amountInstitutions; i++) {
       mockGalacticaInstitutions.push(
-        (await ethers.deployContract(
-          'MockGalacticaInstitution',
-        )) as MockGalacticaInstitution,
+        await ethers.deployContract('MockGalacticaInstitution'),
       );
     }
 
-    const zkKYCVerifier = (await ethers.deployContract(
-      'ZkKYCVerifier',
-    )) as ZkKYCVerifier;
+    const zkKYCVerifier = await ethers.deployContract('ZkKYCVerifier');
 
-    const zkKYCContract = (await ethers.deployContract('ZkKYC', [
+    const zkKYCContract = await ethers.deployContract('ZkKYC', [
       deployer.address,
       await zkKYCVerifier.getAddress(),
       await mockZkCertificateRegistry.getAddress(),
       [],
-    ])) as ZkKYC;
+    ]);
 
     // set up airdropGateway and set up the client
     const airdropGateway = await ethers.deployContract('AirdropGateway', [
@@ -102,29 +91,29 @@ describe('AirdropGateway', () => {
     const circuitZkeyPath = './circuits/build/zkKYC.zkey';
 
     // set up requirement SBT contracts
-    const GalaSBT = (await ethers.deployContract('GalacticaOfficialSBT', [
+    const GalaSBT = await ethers.deployContract('GalacticaOfficialSBT', [
       deployer.address,
       '',
       deployer.address,
       '',
       '',
-    ])) as GalacticaOfficialSBT;
-    const GalaSBT2 = (await ethers.deployContract('GalacticaOfficialSBT', [
+    ]);
+    const GalaSBT2 = await ethers.deployContract('GalacticaOfficialSBT', [
       deployer.address,
       '',
       deployer.address,
       '',
       '',
-    ])) as GalacticaOfficialSBT;
+    ]);
 
-    const rewardToken = (await ethers.deployContract('MockToken', [
+    const rewardToken = await ethers.deployContract('MockToken', [
       deployer.address,
-    ])) as MockToken;
+    ]);
 
     // Deploy GuardianRegistry
-    const guardianRegistry = (await ethers.deployContract('GuardianRegistry', [
+    const guardianRegistry = await ethers.deployContract('GuardianRegistry', [
       'https://example.com/metadata',
-    ])) as GuardianRegistry;
+    ]);
     await guardianRegistry.waitForDeployment();
 
     // Set GuardianRegistry in MockZkCertificateRegistry
@@ -459,10 +448,10 @@ describe('AirdropGateway', () => {
     const mockZkKYC = await MockZkKYCFactory.deploy();
     await mockZkKYC.waitForDeployment();
 
-    const airdropGateway = (await ethers.deployContract('AirdropGateway', [
+    const airdropGateway = await ethers.deployContract('AirdropGateway', [
       deployer.address,
       await mockZkKYC.getAddress(),
-    ])) as AirdropGateway;
+    ]);
 
     // distribution parameters
     const requiredSBTs = [

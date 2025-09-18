@@ -9,26 +9,35 @@ import type {
   ZkCertData,
   ZkCertRegistration,
   EddsaPrivateKey,
+  AnyZkCertContent,
+  ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import {
-  ZkCertStandard,
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
+  parseContentJson,
+  KnownZkCertStandard,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
+import type { AnySchema } from 'ajv/dist/2020';
 import type { Eddsa, Point, Poseidon } from 'circomlibjs';
 import { buildEddsa } from 'circomlibjs';
 import { Scalar } from 'ffjavascript';
 
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import { encryptFraudInvestigationData } from './SBTData';
-import { hashZkCertificateContent } from './zkCertificateDataProcessing';
+import {
+  hashZkCertificateContent,
+  padZkCertForEncryption,
+} from './zkCertificateDataProcessing';
 
 /**
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
  * Specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac .
  */
-export class ZkCertificate implements ZkCertData {
+export class ZkCertificate<Content = AnyZkCertContent>
+  implements ZkCertData<Content>
+{
   // Field of the curve used by Poseidon
   public poseidon: Poseidon;
 
@@ -44,18 +53,22 @@ export class ZkCertificate implements ZkCertData {
 
   public expirationDate: number;
 
-  public content: Record<string, any>;
+  public content: Content;
+
+  public contentSchema: AnySchema;
 
   public providerData: ProviderData;
 
   /**
    * Create a ZkCertificate.
+   *
    * @param holderCommitment - Commitment fixing the holder eddsa key without revealing it to the provider.
    * @param zkCertStandard - ZkCert standard to use.
    * @param eddsa - EdDSA instance to use for signing.
    * @param randomSalt - Random salt randomizing the zkCert.
    * @param expirationDate - Expiration date of the zkCert.
-   * @param content - ZkCertificate parameters, can be set later.
+   * @param contentSchema - JSON Schema of the content containing information about the fields and how to provide them to the zk circuit.
+   * @param content - ZkCertificate content, this is the data being attested to.
    * @param providerData - Provider data, can be set later.
    */
   constructor(
@@ -64,7 +77,8 @@ export class ZkCertificate implements ZkCertData {
     eddsa: Eddsa,
     randomSalt: string,
     expirationDate: number,
-    content: Record<string, any> = {}, // standardize field definitions
+    contentSchema: AnySchema,
+    content: Record<string, unknown>,
     providerData: ProviderData = {
       ax: '0',
       ay: '0',
@@ -80,12 +94,17 @@ export class ZkCertificate implements ZkCertData {
     this.eddsa = eddsa;
     this.randomSalt = randomSalt;
     this.expirationDate = expirationDate;
-    this.content = content;
+    this.content = parseContentJson<Content>(content, contentSchema);
+    this.contentSchema = contentSchema;
     this.providerData = providerData;
   }
 
   get contentHash(): string {
-    return hashZkCertificateContent(this.eddsa, this.content);
+    return hashZkCertificateContent(
+      this.eddsa,
+      this.content,
+      this.contentSchema,
+    );
   }
 
   get leafHash(): string {
@@ -118,12 +137,13 @@ export class ZkCertificate implements ZkCertData {
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
 
-  public setContent(content: Record<string, any>) {
-    this.content = content;
+  public setContent(content: Record<string, unknown>) {
+    this.content = parseContentJson<Content>(content, this.contentSchema);
   }
 
   /**
    * Export the encrypted zkCert as a JSON string that can be imported in the Galactica Snap for Metamask.
+   *
    * @param encryptionPubKey - Public key of the holder used for encryption.
    * @param merkleProof - Merkle proof to attach to the zkCert (optional).
    * @param registration - Registration data to attach to the zkCert (optional).
@@ -141,6 +161,7 @@ export class ZkCertificate implements ZkCertData {
     if (registration) {
       dataToExport.registration = registration;
     }
+    padZkCertForEncryption(dataToExport);
 
     const encryptedData = encryptSafely({
       publicKey: encryptionPubKey,
@@ -156,9 +177,10 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Export the unencrypted zkCert as object containing only the fields relevant for import in a wallet.
+   *
    * @returns ZkCertData object.
    */
-  public exportRaw(): ZkCertData {
+  public exportRaw(): ZkCertData<Content> {
     const doc = {
       holderCommitment: this.holderCommitment,
       leafHash: this.leafHash,
@@ -175,6 +197,7 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Create the input for the ownership proof of this zkCert.
+   *
    * @param holderKey - EdDSA Private key of the holder.
    * @returns OwnershipProofInput struct.
    */
@@ -212,6 +235,7 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Create the input for the provider signature check of this zkCert.
+   *
    * @param providerKey - EdDSA Private key of the KYC provider.
    * @returns ProviderData struct.
    */
@@ -247,6 +271,7 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Create the input for the authorization proof of this zkCert.
+   *
    * @param holderKey - EdDSA Private key of the holder.
    * @param userAddress - User address to be signed.
    * @returns AuthorizationProofInput struct.
@@ -286,6 +311,7 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Create the input for the fraud investigation data encryption proof of this zkCert.
+   *
    * @param institutionPub - EdDSA Public encryption key of the institution.
    * @param userPrivKey - EdDSA Private encryption key of the holder.
    * @returns Input for FraudInvestigationProof.
@@ -319,10 +345,12 @@ export class ZkCertificate implements ZkCertData {
 /**
  * Mapping of zkCert standard names to their respective enum values.
  */
-export const flagStandardMapping: Record<string, ZkCertStandard> = {
-  zkKYC: ZkCertStandard.ZkKYC,
-  data: ZkCertStandard.ArbitraryData,
-  twitter: ZkCertStandard.Twitter,
-  rey: ZkCertStandard.Rey,
-  exchange: ZkCertStandard.Exchange,
+export const flagStandardMapping: Record<string, KnownZkCertStandard> = {
+  zkKYC: KnownZkCertStandard.ZkKYC,
+  data: KnownZkCertStandard.ArbitraryData,
+  twitter: KnownZkCertStandard.Twitter,
+  rey: KnownZkCertStandard.Rey,
+  cex: KnownZkCertStandard.CEX,
+  dex: KnownZkCertStandard.DEX,
+  telegram: KnownZkCertStandard.Telegram,
 };

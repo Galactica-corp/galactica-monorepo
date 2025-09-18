@@ -11,23 +11,15 @@ import {
   exportZkCert,
   generateZKProof,
   getHolderCommitment,
-  ZkCertStandard,
+  KnownZkCertStandard,
   updateMerkleProof,
   updateMerkleProofURL,
   benchmarkZKPGen,
 } from '@galactica-net/snap-api';
-
 import { ethers } from 'ethers';
 import { useContext } from 'react';
 import styled from 'styled-components';
-import {
-  shouldDisplayReconnectButton,
-  formatVerificationSBTs,
-  getUserAddress,
-  handleSnapConnectClick,
-  handleWalletConnectClick,
-  showVerificationSBTs,
-} from '../utils';
+
 import {
   ConnectSnapButton,
   InstallFlaskButton,
@@ -43,24 +35,35 @@ import addresses from '../../../galactica-dapp/src/config/addresses';
 import {
   defaultSnapOrigin,
   zkKYCAgeProofPublicInputDescriptions,
-  twitterFollowersCountProofPublicInputDescriptions
+  twitterFollowersCountProofPublicInputDescriptions,
 } from '../../../galactica-dapp/src/config/snap';
 import {
   MetamaskActions,
   MetaMaskContext,
 } from '../../../galactica-dapp/src/hooks';
-import { getCurrentBlockTime } from '../../../galactica-dapp/src/utils/metamask';
+import {
+  shouldDisplayReconnectButton,
+  handleSnapConnectClick,
+  handleWalletConnectClick,
+} from '../../../galactica-dapp/src/utils/button';
+import {
+  getCurrentBlockTime,
+  getUserAddress,
+} from '../../../galactica-dapp/src/utils/metamask';
 import {
   processProof,
-  processPublicSignals
+  processPublicSignals,
 } from '../../../galactica-dapp/src/utils/proofProcessing';
+import {
+  formatVerificationSBTs,
+  showVerificationSBTs,
+} from '../../../galactica-dapp/src/utils/zkCertTools';
 import {
   getProver,
   prepareProofInput,
 } from '../../../galactica-dapp/src/utils/zkp';
 // import benchmarkInput from '../benchmark/exampleMockDApp.json';
 import benchmarkInput from '../benchmark/input.json';
-
 
 const Container = styled.div`
   display: flex;
@@ -109,25 +112,6 @@ const CardContainer = styled.div`
   margin-top: 1.5rem;
 `;
 
-const Notice = styled.div`
-  background-color: ${({ theme }) => theme.colors.background.alternative};
-  border: 1px solid ${({ theme }) => theme.colors.border.default};
-  color: ${({ theme }) => theme.colors.text.alternative};
-  border-radius: ${({ theme }) => theme.radii.default};
-  padding: 2.4rem;
-  margin-top: 2.4rem;
-  max-width: 60rem;
-  width: 100%;
-
-  & > * {
-    margin: 0;
-  }
-  ${({ theme }) => theme.mediaQueries.small} {
-    margin-top: 1.2rem;
-    padding: 1.6rem;
-  }
-`;
-
 const ErrorMessage = styled.div`
   background-color: ${({ theme }) => theme.colors.error.muted};
   border: 1px solid ${({ theme }) => theme.colors.error.default};
@@ -173,20 +157,25 @@ const Index = () => {
    * @param res - Object returned by Snap.
    */
   const communicateResponse = (res: any) => {
-    const msg = res.message || JSON.stringify(res);
+    const message = res.message ?? JSON.stringify(res);
 
-    console.log('Response from snap', msg);
-    dispatch({ type: MetamaskActions.SetInfo, payload: `Response from snap: ${msg} ` });
-  }
+    console.log('Response from snap', message);
+    dispatch({
+      type: MetamaskActions.SetInfo,
+      payload: `Response from snap: ${message} `,
+    });
+  };
 
-  const handleSnapCallClick = async (method: (snapOrigin: string) => Promise<any>) => {
+  const handleSnapCallClick = async (
+    method: (snapOrigin: string) => Promise<any>,
+  ) => {
     try {
       console.log('sending request to snap...');
       const res = await method(defaultSnapOrigin);
       communicateResponse(res);
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
     }
   };
 
@@ -195,19 +184,22 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await exportZkCert({}, defaultSnapOrigin);
       console.log('Response from snap', JSON.stringify(res));
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Downloading zkCert...` });
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Downloading zkCert...`,
+      });
 
       // save to file
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(res, null, 2)
+        JSON.stringify(res, null, 2),
       )}`;
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = jsonString;
-      link.download = "zkCert.json";
+      link.download = 'zkCert.json';
       link.click();
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
     }
   };
 
@@ -216,20 +208,23 @@ const Index = () => {
       console.log('sending request to snap...');
       const holderCommitmentData = await getHolderCommitment(defaultSnapOrigin);
       console.log('Response from snap', JSON.stringify(holderCommitmentData));
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}` });
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Your holder commitent: ${holderCommitmentData.holderCommitment}`,
+      });
 
       // save to file as placeholder
       // In a non-test environment, the holder commitment would be passed to the guardian directly
       const jsonString = `data:text/json;chatset=utf-8,${encodeURIComponent(
-        JSON.stringify(holderCommitmentData, null, 2)
+        JSON.stringify(holderCommitmentData, null, 2),
       )}`;
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = jsonString;
-      link.download = "holderCommitment.json";
+      link.download = 'holderCommitment.json';
       link.click();
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
     }
   };
 
@@ -238,11 +233,14 @@ const Index = () => {
       const parsedFile = JSON.parse(fileContent);
 
       console.log('sending request to snap...');
-      const res = await importZkCert({ encryptedZkCert: parsedFile }, defaultSnapOrigin);
+      const res = await importZkCert(
+        { encryptedZkCert: parsedFile },
+        defaultSnapOrigin,
+      );
       communicateResponse(res);
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
     }
   };
 
@@ -250,18 +248,20 @@ const Index = () => {
     try {
       const parsedFile = JSON.parse(fileContent);
       const merkleUpdates: MerkleProofUpdateRequestParams = {
-        updates: [{
-          registryAddr: addresses.zkKYCRegistry,
-          proof: parsedFile,
-        }]
+        updates: [
+          {
+            registryAddr: addresses.zkKYCRegistry,
+            proof: parsedFile,
+          },
+        ],
       };
 
       console.log('sending request to snap...');
       const res = await updateMerkleProof(merkleUpdates, defaultSnapOrigin);
       communicateResponse(res);
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
     }
   };
 
@@ -274,15 +274,18 @@ const Index = () => {
       console.log('sending request to snap...');
       const res = await updateMerkleProofURL(update, defaultSnapOrigin);
       communicateResponse(res);
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
     }
   };
 
   const bigKYCProofGenClick = async () => {
     try {
-      dispatch({ type: MetamaskActions.SetInfo, payload: `ZK proof generation in Snap running...` });
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `ZK proof generation in Snap running...`,
+      });
 
       const dateNow = new Date();
       const ageProofInputs = {
@@ -293,48 +296,78 @@ const Index = () => {
         ageThreshold: '18',
       };
 
-      const proofInput = await prepareProofInput(addresses.mockDApp, addresses.galacticaInstitutions, ageProofInputs);
-      const res: any = await generateZKProof({
-        input: proofInput,
-        prover: await getProver("provers/exampleMockDApp.json"),
-        requirements: {
-          zkCertStandard: ZkCertStandard.ZkKYC,
-          registryAddress: addresses.zkKYCRegistry,
+      const proofInput = await prepareProofInput(
+        addresses.mockDApp,
+        addresses.galacticaInstitutions,
+        ageProofInputs,
+      );
+      const res: any = await generateZKProof(
+        {
+          input: proofInput,
+          prover: await getProver('provers/exampleMockDApp.json'),
+          requirements: {
+            zkCertStandard: KnownZkCertStandard.ZkKYC,
+            registryAddress: addresses.zkKYCRegistry,
+          },
+          userAddress: getUserAddress(),
+          description:
+            'This proof discloses that you hold a valid zkKYC and that your age is at least 18.',
+          publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
+          zkInputRequiresPrivKey: true,
         },
-        userAddress: getUserAddress(),
-        description: "This proof discloses that you hold a valid zkKYC and that your age is at least 18.",
-        publicInputDescriptions: zkKYCAgeProofPublicInputDescriptions,
-        zkInputRequiresPrivKey: true,
-      }, defaultSnapOrigin);
+        defaultSnapOrigin,
+      );
       console.log('Response from snap', JSON.stringify(res));
       const zkp = res as ZkCertProof;
 
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Proof generation successful.`,
+      });
       dispatch({ type: MetamaskActions.SetProofData, payload: zkp });
 
       // send proof directly on chain
-      let [a, b, c] = processProof(zkp.proof);
-      let publicInputs = processPublicSignals(zkp.publicSignals);
+      const [proofA, proofB, proofC] = processProof(zkp.proof);
+      const publicInputs = processPublicSignals(zkp.publicSignals);
 
       console.log(`Sending proof for on-chain verification...`);
       // this is the on-chain function that requires a ZKP
-      //@ts-ignore https://github.com/metamask/providers/issues/200
+      // @ts-expect-error https://github.com/metamask/providers/issues/200
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       // get contracts
-      const exampleDAppSC = new ethers.Contract(addresses.mockDApp, mockDAppABI.abi, signer);
-      let tx = await exampleDAppSC.airdropToken(1, a, b, c, publicInputs);
-      console.log("tx", tx);
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Sent proof for on-chain verification` });
+      const exampleDAppSC = new ethers.Contract(
+        addresses.mockDApp,
+        mockDAppABI.abi,
+        signer,
+      );
+      const tx = await exampleDAppSC.airdropToken(
+        1,
+        proofA,
+        proofB,
+        proofC,
+        publicInputs,
+      );
+      console.log('tx', tx);
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Sent proof for on-chain verification`,
+      });
       const receipt = await tx.wait();
-      console.log("receipt", receipt);
+      console.log('receipt', receipt);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
 
       console.log(`Updating verification SBTs...`);
-      dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) });
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
+      dispatch({
+        type: MetamaskActions.SetVerificationSBT,
+        payload: await showVerificationSBTs(
+          addresses.sbtIssuingContracts,
+          addresses.zkKYCRegistry,
+        ),
+      });
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
     }
   };
 
@@ -354,17 +387,13 @@ const Index = () => {
       const res: any = await generateZKProof(
         {
           input: proofInput,
-          prover: await getProver(
-            'provers/twitterFollowersCountProof.json',
-          ),
+          prover: await getProver('provers/twitterFollowersCountProof.json'),
           requirements: {
-            zkCertStandard: ZkCertStandard.Twitter,
-            // eslint-disable-next-line import/no-named-as-default-member
+            zkCertStandard: KnownZkCertStandard.Twitter,
             registryAddress: addresses.twitterZkCertificateRegistry,
           },
           userAddress: getUserAddress(),
-          description:
-            'This ZK proof shows: You have over 100 followers on X.',
+          description: 'This ZK proof shows: You have over 100 followers on X.',
           publicInputDescriptions:
             twitterFollowersCountProofPublicInputDescriptions,
           zkInputRequiresPrivKey: false,
@@ -390,12 +419,11 @@ const Index = () => {
       const signer = provider.getSigner();
 
       const twitterSBTManager = new ethers.Contract(
-        // eslint-disable-next-line import/no-named-as-default-member
         addresses.twitterSBTManager,
         twitterSBTManagerABI.abi,
         signer,
       );
-      let tx = await twitterSBTManager.mintSBT(
+      const tx = await twitterSBTManager.mintSBT(
         0, // index for followers count > 100
         a,
         b,
@@ -410,16 +438,19 @@ const Index = () => {
       const receipt = await tx.wait();
       console.log('receipt', receipt);
       dispatch({ type: MetamaskActions.SetInfo, payload: `Verified on-chain` });
-    } catch (e) {
+    } catch (error) {
       console.log('found an error');
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
     }
   };
 
   const benchmarkClick = async () => {
     try {
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Benchmark running...` });
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Benchmark running...`,
+      });
 
       const startTime = new Date();
       // const prover = await getProver("provers/exampleMockDApp.json");
@@ -427,24 +458,32 @@ const Index = () => {
       const prover: ProverLink = {
         url: 'http://localhost:8001/provers/reputationExperiment/',
         hash: 'df771e1905fe5b9936d3362cfae7b772',
-      }
+      };
 
-      const res: any = await benchmarkZKPGen({
-        input: benchmarkInput,
-        prover: prover,
-      }, defaultSnapOrigin);
+      const res: any = await benchmarkZKPGen(
+        {
+          input: benchmarkInput,
+          prover,
+        },
+        defaultSnapOrigin,
+      );
 
       const endTime = new Date();
       const duration = endTime.getTime() - startTime.getTime();
       console.log('Response from snap', JSON.stringify(res));
 
       console.log(`Total ZKP generation time: ${duration}ms`);
-      console.log(`Prover size: ${JSON.stringify(prover).length / 1024 / 1024} MB`);
+      console.log(
+        `Prover size: ${JSON.stringify(prover).length / 1024 / 1024} MB`,
+      );
 
-      dispatch({ type: MetamaskActions.SetInfo, payload: `Proof generation successful.` });
-    } catch (e) {
-      console.error(e);
-      dispatch({ type: MetamaskActions.SetError, payload: e });
+      dispatch({
+        type: MetamaskActions.SetInfo,
+        payload: `Proof generation successful.`,
+      });
+    } catch (error) {
+      console.error(error);
+      dispatch({ type: MetamaskActions.SetError, payload: error });
     }
   };
 
@@ -453,20 +492,14 @@ const Index = () => {
       <Heading>
         Welcome to the <Span>Galactica zkKYC</Span> proof of concept
       </Heading>
-      <Subtitle>
-        Galactica dApp features
-      </Subtitle>
+      <Subtitle>Galactica dApp features</Subtitle>
       <CardContainer>
         {state.error && (
           <ErrorMessage>
             <b>An error happened:</b> {state.error.message}
           </ErrorMessage>
         )}
-        {state.info && (
-          <InfoMessage>
-            {state.info}
-          </InfoMessage>
-        )}
+        {state.info && <InfoMessage>{state.info}</InfoMessage>}
         {!state.isFlask && (
           <Card
             content={{
@@ -504,7 +537,7 @@ const Index = () => {
                 <ConnectSnapButton
                   onClick={async () => await handleSnapConnectClick(dispatch)}
                   disabled={!state.isFlask}
-                  text={"Connect Snap"}
+                  text={'Connect Snap'}
                 />
               ),
             }}
@@ -515,8 +548,7 @@ const Index = () => {
           <Card
             content={{
               title: 'Reconnect Snap',
-              description:
-                `You can reconnect to update the snap after making changes. Connected to snap "${state.installedSnap?.id}"`,
+              description: `You can reconnect to update the snap after making changes. Connected to snap "${state.installedSnap?.id}"`,
               button: (
                 <ReconnectButton
                   onClick={async () => await handleSnapConnectClick(dispatch)}
@@ -531,12 +563,11 @@ const Index = () => {
           <Card
             content={{
               title: 'Connect Wallet',
-              description:
-                `Standard Metamask connection to send transactions. Connected to address "${state.signer}"`,
+              description: `Standard Metamask connection to send transactions. Connected to address "${state.signer}"`,
               button: (
                 <ConnectWalletButton
                   onClick={async () => await handleWalletConnectClick(dispatch)}
-                  id={"connectMM"}
+                  id={'connectMM'}
                 />
               ),
             }}
@@ -609,10 +640,21 @@ const Index = () => {
         <Card
           content={{
             title: 'Show valid Verification SBTs',
-            description: formatVerificationSBTs(state.verificationSbts, state.guardianNameMap),
+            description: formatVerificationSBTs(
+              state.verificationSbts,
+              state.guardianNameMap,
+            ),
             button: (
               <GeneralButton
-                onClick={async () => dispatch({ type: MetamaskActions.SetVerificationSBT, payload: await showVerificationSBTs(addresses.sbtIssuingContracts, addresses.zkKYCRegistry) })}
+                onClick={async () =>
+                  dispatch({
+                    type: MetamaskActions.SetVerificationSBT,
+                    payload: await showVerificationSBTs(
+                      addresses.sbtIssuingContracts,
+                      addresses.zkKYCRegistry,
+                    ),
+                  })
+                }
                 disabled={false}
                 text="Query"
               />
@@ -628,7 +670,7 @@ const Index = () => {
               'Asks the Metamask snap to clear the zkCertificate and holder storage.',
             button: (
               <GeneralButton
-                onClick={() => handleSnapCallClick(clearStorage)}
+                onClick={async () => handleSnapCallClick(clearStorage)}
                 disabled={false}
                 text="Clear"
               />
@@ -645,7 +687,6 @@ const Index = () => {
             button: (
               <SelectAndImportButton
                 fileSelectAction={importSelectedZkCert}
-                disabled={false}
                 text="Select & Import"
               />
             ),
@@ -672,12 +713,13 @@ const Index = () => {
         <Card
           content={{
             title: 'Delete zkCert',
-            description:
-              'Delete a zkCert from the Metamask snap storage.',
+            description: 'Delete a zkCert from the Metamask snap storage.',
             button: (
               <GeneralButton
-                onClick={() =>
-                  handleSnapCallClick(() => deleteZkCert({}, defaultSnapOrigin))
+                onClick={async () =>
+                  handleSnapCallClick(async () =>
+                    deleteZkCert({}, defaultSnapOrigin),
+                  )
                 }
                 disabled={false}
                 text="Export"
@@ -690,12 +732,10 @@ const Index = () => {
         <Card
           content={{
             title: 'Update Merkle Proof',
-            description:
-              'Uploads a new Merkle Proof for a zkCert.',
+            description: 'Uploads a new Merkle Proof for a zkCert.',
             button: (
               <SelectAndImportButton
                 fileSelectAction={updateSelectedMerkleProof}
-                disabled={false}
                 text="Select & Import"
               />
             ),
@@ -737,9 +777,7 @@ const Index = () => {
         />
       </CardContainer>
       <br />
-      <Subtitle>
-        Creating zkKYC (part of zkKYC provider website)
-      </Subtitle>
+      <Subtitle>Creating zkKYC (part of zkKYC provider website)</Subtitle>
       <CardContainer>
         <Card
           content={{

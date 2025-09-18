@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REY Certificate Content",
+  "description": "Certificate content for REY verification data.",
+  "type": "object",
+  "properties": {
+    "xID": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "format": "decimal",
+      "description": "The numeric ID of the user on X (Twitter)."
+    },
+    "xUsername": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 15,
+      "description": "The username on X (Twitter), between 4 and 15 characters."
+    },
+    "reyScoreAll": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The overall REY score.",
+      "default": 0
+    },
+    "reyScoreGalactica": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The REY score specific to Galactica.",
+      "default": 0
+    },
+    "reyFaction": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The faction identifier for REY.",
+      "default": 0
+    }
+  },
+  "additionalProperties": false,
+  "required": ["xID", "xUsername"]
+}

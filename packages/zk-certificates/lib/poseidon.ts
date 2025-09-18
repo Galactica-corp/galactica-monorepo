@@ -18,6 +18,7 @@ const spongeInputs = 16;
 
 /**
  * Returns a sponge hash of a message split into blocks of 31 bytes.
+ *
  * @param poseidon - Poseidon instance to use for hashing.
  * @param message - Message to be hashed.
  * @param frameSize - Amount of 31-byte blocks to be included in one hashing frame. If string is longer than one frame,
@@ -52,7 +53,7 @@ export const hashMessage = (
     );
 
     if (k === frameSize - 1) {
-      hash = poseidon(inputs);
+      hash = Uint8Array.from(poseidon(inputs));
       dirty = false;
 
       inputs[0] = poseidon.F.toObject(hash);
@@ -82,14 +83,14 @@ export const hashMessage = (
 
   if (dirty) {
     // we haven't hashed something in the main sponge loop and need to do hash here
-    hash = poseidon(inputs);
+    hash = Uint8Array.from(poseidon(inputs));
   }
 
   if (hash.length === 0) {
     // If the hash is empty, we need to return the default value, so that poseidon.F.toObject(hash) === 1n
     // Sometimes this works also with hash === [], but there is a bug in poseidon.F.toObject([]) that returns the last field element on subsequent calls.
     // This is a workaround for that bug.
-    hash = poseidon.F.fromObject(1n);
+    hash = Uint8Array.from(poseidon.F.fromObject(1n));
   }
 
   return hash;
