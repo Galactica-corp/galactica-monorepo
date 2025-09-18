@@ -5,6 +5,7 @@
  * Index defining exports of lib functions to other packages using this module
  */
 
+export * from './encryption';
 export * from './helpers';
 export * from './holderCommitment';
 export * from './keyManagement';
