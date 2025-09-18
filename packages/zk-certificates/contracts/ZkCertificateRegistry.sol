@@ -14,6 +14,7 @@ import {GuardianInfo} from './GuardianRegistry.sol';
 import {IGuardianRegistry} from './interfaces/IGuardianRegistry.sol';
 import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
 import {IReadableZkCertRegistry} from './interfaces/IReadableZkCertRegistry.sol';
+import {IWritableZKCertRegistry, CertificateData, RegistryOperation, CertificateState} from './interfaces/IWritableZKCertRegistry.sol';
 
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Fallback} from './helpers/Fallback.sol';
@@ -32,33 +33,6 @@ contract ZkCertificateRegistry is
     Fallback,
     ChainAgnosticCalls
 {
-    /**
-     * @notice Enum to represent the operation of an action on the registry
-     */
-    enum RegistryOperation {
-        Add,
-        Revoke
-    }
-
-    /**
-     * @notice Enum to represent the state of a certificate. It flows from top to bottom.
-     * @dev Revoked certs (identified by the hash) can not be issued again. Instead the guardian can create a new one with a different expiration and therefore hash.
-     */
-    enum CertificateState {
-        NonExistent,
-        IssuanceQueued,
-        Issued,
-        RevocationQueued,
-        Revoked
-        // There is no state for expiration of the certificate itself because the registry does neither know nor need to know the certificate content.
-    }
-
-    struct CertificateData {
-        address guardian;
-        uint queueIndex;
-        CertificateState state;
-    }
-
     // NOTE: The order of instantiation MUST stay the same across upgrades
     // add new variables to the bottom of the list and decrement the __gap
     // variable at the end of this file
@@ -83,7 +57,7 @@ contract ZkCertificateRegistry is
     // we start from 1 because nonexistant merkle roots return 0 in the merkleRootIndex mapping
     uint256 public override(IReadableZkCertRegistry) merkleRootValidIndex = 1;
     // we will also store the merkle root index in a mapping for quicker lookup
-    mapping(bytes32 => uint)
+    mapping(bytes32 => uint256)
         public
         override(IReadableZkCertRegistry) merkleRootIndex;
 
@@ -94,7 +68,7 @@ contract ZkCertificateRegistry is
     bytes32[] public ZkCertificateQueue;
     uint256 public currentQueuePointer;
 
-    mapping(bytes32 => CertificateData) public ZkCertificateHashToData;
+    mapping(bytes32 => CertificateData) public zkCertificateHashToData;
 
     IGuardianRegistry public override(IReadableZkCertRegistry) guardianRegistry;
 
@@ -236,7 +210,7 @@ contract ZkCertificateRegistry is
         );
 
         if (
-            ZkCertificateHashToData[zkCertificateHash].state ==
+            zkCertificateHashToData[zkCertificateHash].state ==
             CertificateState.IssuanceQueued
         ) {
             // since we are adding a new zkCertificate record, we assume that the leaf is of zero value
@@ -248,18 +222,18 @@ contract ZkCertificateRegistry is
                 merkleProof
             );
 
-            ZkCertificateHashToData[zkCertificateHash].state = CertificateState
+            zkCertificateHashToData[zkCertificateHash].state = CertificateState
                 .Issued;
 
             emit CertificateProcessed(
                 zkCertificateHash,
-                ZkCertificateHashToData[zkCertificateHash].guardian,
+                zkCertificateHashToData[zkCertificateHash].guardian,
                 RegistryOperation.Add,
-                ZkCertificateHashToData[zkCertificateHash].queueIndex,
+                zkCertificateHashToData[zkCertificateHash].queueIndex,
                 leafIndex
             );
         } else if (
-            ZkCertificateHashToData[zkCertificateHash].state ==
+            zkCertificateHashToData[zkCertificateHash].state ==
             CertificateState.RevocationQueued
         ) {
             // since we are deleting the content of a leaf, the new value is the zero value
@@ -274,14 +248,14 @@ contract ZkCertificateRegistry is
             // Update the valid index. Previous ones are invalid because they contain the revoked certificate.
             merkleRootValidIndex = merkleRoots.length - 1;
 
-            ZkCertificateHashToData[zkCertificateHash].state = CertificateState
+            zkCertificateHashToData[zkCertificateHash].state = CertificateState
                 .Revoked;
 
             emit CertificateProcessed(
                 zkCertificateHash,
-                ZkCertificateHashToData[zkCertificateHash].guardian,
+                zkCertificateHashToData[zkCertificateHash].guardian,
                 RegistryOperation.Revoke,
-                ZkCertificateHashToData[zkCertificateHash].queueIndex,
+                zkCertificateHashToData[zkCertificateHash].queueIndex,
                 leafIndex
             );
         } else {
@@ -308,32 +282,32 @@ contract ZkCertificateRegistry is
 
         if (operation == RegistryOperation.Add) {
             require(
-                ZkCertificateHashToData[zkCertificateHash].state ==
+                zkCertificateHashToData[zkCertificateHash].state ==
                     CertificateState.NonExistent,
                 'ZkCertificateRegistry: zkCertificate already exists'
             );
-            ZkCertificateHashToData[zkCertificateHash].state = CertificateState
+            zkCertificateHashToData[zkCertificateHash].state = CertificateState
                 .IssuanceQueued;
         } else if (operation == RegistryOperation.Revoke) {
             require(
-                ZkCertificateHashToData[zkCertificateHash].state ==
+                zkCertificateHashToData[zkCertificateHash].state ==
                     CertificateState.Issued,
                 'ZkCertificateRegistry: zkCertificate is not issued and can therefore not be revoked'
             );
             require(
-                ZkCertificateHashToData[zkCertificateHash].guardian ==
+                zkCertificateHashToData[zkCertificateHash].guardian ==
                     msg.sender,
                 'ZkCertificateRegistry: not the corresponding Guardian'
             );
-            ZkCertificateHashToData[zkCertificateHash].state = CertificateState
+            zkCertificateHashToData[zkCertificateHash].state = CertificateState
                 .RevocationQueued;
         } else {
             revert('ZkCertificateRegistry: invalid operation');
         }
 
-        ZkCertificateHashToData[zkCertificateHash]
+        zkCertificateHashToData[zkCertificateHash]
             .queueIndex = ZkCertificateQueue.length;
-        ZkCertificateHashToData[zkCertificateHash].guardian = msg.sender;
+        zkCertificateHashToData[zkCertificateHash].guardian = msg.sender;
 
         ZkCertificateQueue.push(zkCertificateHash);
     }
@@ -346,7 +320,7 @@ contract ZkCertificateRegistry is
     function isZkCertificateInTurn(
         bytes32 zkCertificateHash
     ) public view returns (bool) {
-        return (ZkCertificateHashToData[zkCertificateHash].queueIndex ==
+        return (zkCertificateHashToData[zkCertificateHash].queueIndex ==
             currentQueuePointer);
     }
 
@@ -439,6 +413,17 @@ contract ZkCertificateRegistry is
     function getQueuePosition(
         bytes32 zkCertificateHash
     ) public view returns (uint256) {
-        return ZkCertificateHashToData[zkCertificateHash].queueIndex;
+        return zkCertificateHashToData[zkCertificateHash].queueIndex;
+    }
+
+    /**
+     * @notice Get the data of a zkCertificate needed to process it.
+     * @param zkCertificateHash - Hash of the zkCertificate record leaf.
+     * @return The data of the zkCertificate needed to process it.
+     */
+    function zkCertificateProcessingData(
+        bytes32 zkCertificateHash
+    ) public view returns (CertificateData memory) {
+        return zkCertificateHashToData[zkCertificateHash];
     }
 }
