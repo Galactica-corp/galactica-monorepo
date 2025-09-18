@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import type { HolderCommitmentData } from '@galactica-net/galactica-types';
 import { getContentSchema } from '@galactica-net/galactica-types';
 import type {
@@ -18,6 +22,7 @@ import {
 } from '@galactica-net/snap-api';
 import type { Poseidon } from '@galactica-net/zk-certificates';
 import {
+  encryptZkCert,
   fromDecToHex,
   getMerkleRootFromProof,
   subPathWasm,
@@ -57,7 +62,6 @@ import zkCert2 from '../../../test/zkCert2.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import exclusion3VKey from '../../galactica-dapp/public/provers/exclusion3.vkey.json';
 import { processRpcRequest } from '../src';
-import { encryptZkCert } from '../src/encryption';
 import { CURRENT_STORAGE_LAYOUT_VERSION } from '../src/stateManagement';
 import type { RpcArgs, ZkCertStorage } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
@@ -100,8 +104,8 @@ function createState(
   return {
     holders,
     zkCerts: zkCerts as unknown as Json[],
-    storageLayoutVersion,
     merkleServiceURL,
+    storageLayoutVersion,
   };
 }
 
@@ -316,22 +320,25 @@ describe('Test rpc handler function', function () {
       );
 
       // even with no holder configured before, the snap should add the holder from the getEntropy method
-      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+      const update = {
         operation: 'update',
         newState: createState(
           [
             {
-              eddsaEntropy: testEdDSAKey.toString('hex'),
               holderCommitment: expectedHolderCommitment,
-              encryptionPrivKey: testEntropyEncrypt.slice(2),
+              eddsaEntropy: testEdDSAKey.toString('hex'),
               encryptionPubKey: getEncryptionPublicKey(
                 testEntropyEncrypt.slice(2),
               ),
+              encryptionPrivKey: testEntropyEncrypt.slice(2),
             },
           ],
           [zkCertStorage],
         ),
-      });
+      };
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith(
+        update,
+      );
     });
   });
 
@@ -396,7 +403,7 @@ describe('Test rpc handler function', function () {
         ethereumProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
-        'The decrypted zkCert is invalid. It is missing the filed holderCommitment.',
+        'The zkCert is invalid. It is missing the filed holderCommitment.',
       );
     });
 
@@ -536,7 +543,7 @@ describe('Test rpc handler function', function () {
       );
 
       await expect(failingCallPromise).to.be.rejectedWith(
-        `Can not import zkCert with unknown standard ${unknownZkCert.zkCertStandard} without an attached JSON schema.`,
+        `Cannot import zkCert with unknown standard ${unknownZkCert.zkCertStandard} without an attached JSON schema.`,
       );
     });
 
