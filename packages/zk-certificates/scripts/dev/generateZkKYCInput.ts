@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import {
   getContentSchema,
-  ZkCertStandard,
+  KnownZkCertStandard,
 } from '@galactica-net/galactica-types';
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { buildEddsa } from 'circomlibjs';
@@ -20,6 +20,7 @@ import { getHumanIDProofInput } from '../../lib/zkKYC';
 
 /**
  * Generates a sample ZkKYC object with the given fields.
+ *
  * @returns ZkKYC object promise.
  */
 export async function generateSampleZkKYC(): Promise<ZkCertificate> {
@@ -35,11 +36,11 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
   const holderCommitment = createHolderCommitment(eddsa, holderEdDSAKey);
   const zkKYC = new ZkCertificate(
     holderCommitment,
-    ZkCertStandard.ZkKYC,
+    KnownZkCertStandard.ZkKYC,
     eddsa,
     '1773',
     1769736098,
-    getContentSchema(ZkCertStandard.ZkKYC),
+    getContentSchema(KnownZkCertStandard.ZkKYC),
     kycExample,
   );
 
@@ -53,6 +54,7 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
 
 /**
  * Generates the zkKYC proof input for the zkKYC smart contract.
+ *
  * @param zkKYC - The zkKYC object.
  * @param amountInstitutions - The amount of institutions to use for fraud investigation.
  * @param dAppAddress - The address of the DApp smart contract.
@@ -77,18 +79,13 @@ export async function generateZkKYCProofInput(
   // input
   // you can change the holder to another address, the script just needs to be able to sign a message with it
   const [_holder, _user, _encryptionAccount] = await ethers.getSigners();
-  if (holder === null) {
-    // eslint-disable-next-line no-param-reassign
-    holder = _holder;
-  }
-  if (user === null) {
-    // eslint-disable-next-line no-param-reassign
-    user = _user;
-  }
-  if (encryptionAccount === null) {
-    // eslint-disable-next-line no-param-reassign
-    encryptionAccount = _encryptionAccount;
-  }
+  // eslint-disable-next-line no-param-reassign
+  holder ??= _holder;
+  // eslint-disable-next-line no-param-reassign
+  user ??= _user;
+  // eslint-disable-next-line no-param-reassign
+  encryptionAccount ??= _encryptionAccount;
+
   const institutions = [];
   for (let i = 0; i < amountInstitutions; i++) {
     institutions.push((await ethers.getSigners())[4 + i]);
@@ -109,7 +106,7 @@ export async function generateZkKYCProofInput(
   const zkKYCInput: any = prepareContentForCircuit(
     eddsa,
     zkKYC.content,
-    getContentSchema(ZkCertStandard.ZkKYC),
+    getContentSchema(KnownZkCertStandard.ZkKYC),
   );
 
   zkKYCInput.providerAx = zkKYC.providerData.ax;

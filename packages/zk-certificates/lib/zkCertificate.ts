@@ -7,20 +7,20 @@ import type {
   EddsaPrivateKey,
   EncryptedZkCert,
   FraudInvestigationDataEncryptionProofInput,
-  JSONValue,
   MerkleProof,
   OwnershipProofInput,
   ProviderData,
   ZkCertData,
   ZkCertRegistered,
   ZkCertRegistration,
+  ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import {
   eddsaPrimeFieldMod,
   ENCRYPTION_VERSION,
   getContentSchema,
   parseContentJson,
-  ZkCertStandard,
+  KnownZkCertStandard,
 } from '@galactica-net/galactica-types';
 import { encryptSafely } from '@metamask/eth-sig-util';
 import type { AnySchema } from 'ajv/dist/2020';
@@ -36,7 +36,9 @@ import { hashZkCertificateContent } from './zkCertificateDataProcessing';
  * Class for managing and constructing zkCertificates, the generalized version of zkKYC.
  * Specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac .
  */
-export class ZkCertificate implements ZkCertData {
+export class ZkCertificate<Content = AnyZkCertContent>
+  implements ZkCertData<Content>
+{
   // Field of the curve used by Poseidon
   public poseidon: Poseidon;
 
@@ -52,7 +54,7 @@ export class ZkCertificate implements ZkCertData {
 
   public expirationDate: number;
 
-  public content: AnyZkCertContent;
+  public content: Content;
 
   public contentSchema: AnySchema;
 
@@ -60,6 +62,7 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Create a ZkCertificate.
+   *
    * @param holderCommitment - Commitment fixing the holder eddsa key without revealing it to the provider.
    * @param zkCertStandard - ZkCert standard to use.
    * @param eddsa - EdDSA instance to use for signing.
@@ -76,7 +79,7 @@ export class ZkCertificate implements ZkCertData {
     randomSalt: string,
     expirationDate: number,
     contentSchema: AnySchema,
-    content: Record<string, JSONValue>,
+    content: Record<string, unknown>,
     providerData: ProviderData = {
       ax: '0',
       ay: '0',
@@ -92,7 +95,7 @@ export class ZkCertificate implements ZkCertData {
     this.eddsa = eddsa;
     this.randomSalt = randomSalt;
     this.expirationDate = expirationDate;
-    this.content = parseContentJson(content, contentSchema);
+    this.content = parseContentJson<Content>(content, contentSchema);
     this.contentSchema = contentSchema;
     this.providerData = providerData;
   }
@@ -135,12 +138,13 @@ export class ZkCertificate implements ZkCertData {
     return `did:${this.zkCertStandard}:${this.leafHash}`;
   }
 
-  public setContent(content: Record<string, JSONValue>) {
-    this.content = parseContentJson(content, this.contentSchema);
+  public setContent(content: Record<string, unknown>) {
+    this.content = parseContentJson<Content>(content, this.contentSchema);
   }
 
   /**
    * Export the encrypted zkCert as a JSON string that can be imported in the Galactica Snap for Metamask.
+   *
    * @param encryptionPubKey - Public key of the holder used for encryption.
    * @param merkleProof - Merkle proof to attach to the zkCert (optional).
    * @param registration - Registration data to attach to the zkCert (optional).
@@ -158,10 +162,16 @@ export class ZkCertificate implements ZkCertData {
     if (registration) {
       dataToExport.registration = registration;
     }
-
+    // sort data to make it match the way it is parsed later
+    const sortedDataToExport = Object.keys(dataToExport)
+      .sort()
+      .reduce((acc: any, key: string) => {
+        acc[key] = dataToExport[key];
+        return acc;
+      }, {});
     const encryptedData = encryptSafely({
       publicKey: encryptionPubKey,
-      data: dataToExport,
+      data: sortedDataToExport,
       version: ENCRYPTION_VERSION,
     });
     const encryptedZkCert: EncryptedZkCert = {
@@ -173,25 +183,27 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Export the unencrypted zkCert as object containing only the fields relevant for import in a wallet.
+   *
    * @returns ZkCertData object.
    */
-  public exportRaw(): ZkCertData {
+  public exportRaw(): ZkCertData<Content> {
     const doc = {
-      holderCommitment: this.holderCommitment,
-      leafHash: this.leafHash,
-      did: this.did,
-      zkCertStandard: this.zkCertStandard,
       content: this.content,
       contentHash: this.contentHash,
+      did: this.did,
+      expirationDate: this.expirationDate,
+      holderCommitment: this.holderCommitment,
+      leafHash: this.leafHash,
       providerData: this.providerData,
       randomSalt: this.randomSalt,
-      expirationDate: this.expirationDate,
+      zkCertStandard: this.zkCertStandard,
     };
     return doc;
   }
 
   /**
    * Create the input for the ownership proof of this zkCert.
+   *
    * @param holderKey - EdDSA Private key of the holder.
    * @returns OwnershipProofInput struct.
    */
@@ -229,6 +241,7 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Create the input for the provider signature check of this zkCert.
+   *
    * @param providerKey - EdDSA Private key of the KYC provider.
    * @returns ProviderData struct.
    */
@@ -264,6 +277,7 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Create the input for the authorization proof of this zkCert.
+   *
    * @param holderKey - EdDSA Private key of the holder.
    * @param userAddress - User address to be signed.
    * @returns AuthorizationProofInput struct.
@@ -303,6 +317,7 @@ export class ZkCertificate implements ZkCertData {
 
   /**
    * Create the input for the fraud investigation data encryption proof of this zkCert.
+   *
    * @param institutionPub - EdDSA Public encryption key of the institution.
    * @param userPrivKey - EdDSA Private encryption key of the holder.
    * @returns Input for FraudInvestigationProof.
@@ -336,18 +351,19 @@ export class ZkCertificate implements ZkCertData {
 /**
  * Mapping of zkCert standard names to their respective enum values.
  */
-export const flagStandardMapping: Record<string, ZkCertStandard> = {
-  zkKYC: ZkCertStandard.ZkKYC,
-  data: ZkCertStandard.ArbitraryData,
-  twitter: ZkCertStandard.Twitter,
-  rey: ZkCertStandard.Rey,
-  cex: ZkCertStandard.CEX,
-  dex: ZkCertStandard.DEX,
-  telegram: ZkCertStandard.Telegram,
+export const flagStandardMapping: Record<string, KnownZkCertStandard> = {
+  zkKYC: KnownZkCertStandard.ZkKYC,
+  data: KnownZkCertStandard.ArbitraryData,
+  twitter: KnownZkCertStandard.Twitter,
+  rey: KnownZkCertStandard.Rey,
+  cex: KnownZkCertStandard.CEX,
+  dex: KnownZkCertStandard.DEX,
+  telegram: KnownZkCertStandard.Telegram,
 };
 
 /**
  * Choose the schema for a zkCert. If no custom schema is provided, the standard schema is used.
+ *
  * @param standard - The standard of the zkCert.
  * @param schema - Optional custom schema to use.
  * @returns The schema for the zkCert.
@@ -357,7 +373,11 @@ export function chooseSchema(
   standard: ZkCertStandard,
   schema?: AnySchema,
 ): AnySchema {
-  if (!Object.values(ZkCertStandard).includes(standard)) {
+  if (
+    !Object.values(KnownZkCertStandard).includes(
+      standard as KnownZkCertStandard,
+    )
+  ) {
     if (!schema) {
       throw new Error(
         `Cannot import zkCert with unknown standard ${standard} without an attached JSON schema.`,
@@ -367,11 +387,12 @@ export function chooseSchema(
     return schema;
   }
 
-  return getContentSchema(standard);
+  return getContentSchema(standard as KnownZkCertStandard);
 }
 
 /**
  * Parses {@link ZkCertRegistered} from raw data.
+ *
  * @param zkCert - The zkCert to check.
  * @param schema - The custom schema for the zkCert.
  * @throws If the format is not correct.
@@ -381,12 +402,13 @@ export function chooseSchema(
 export function parseZkCert(
   zkCert: Record<string, unknown>,
   schema: AnySchema,
-): ZkCertRegistered {
+): ZkCertRegistered<Record<string, unknown>> {
   if (!zkCert) {
     throw new Error('The zkCert is invalid.');
   }
   /**
    * Throws customized error for missing fields.
+   *
    * @param field - The missing field.
    */
   function complainMissingField(field: string) {
@@ -446,8 +468,8 @@ export function parseZkCert(
 
   try {
     return {
-      content: parseContentJson(
-        zkCert.content as Record<string, JSONValue>,
+      content: parseContentJson<Record<string, unknown>>(
+        zkCert.content as Record<string, unknown>,
         schema,
       ),
       contentHash: zkCert.contentHash,
@@ -460,9 +482,9 @@ export function parseZkCert(
       randomSalt: zkCert.randomSalt,
       registration: zkCert.registration,
       zkCertStandard: zkCert.zkCertStandard,
-    } as ZkCertRegistered; // BUG: This function must ensure that the type is correct in compile time.
+    } as ZkCertRegistered<Record<string, unknown>>; // BUG: This function must ensure that the type is correct in compile time.
   } catch (error) {
-    const message = error instanceof Error ? error.message : `${error}`;
+    const message = error instanceof Error ? error.message : `${String(error)}`;
     throw new Error(
       `The zkCert is invalid. The content does not fit to the schema: ${message}.`,
     );

@@ -3,9 +3,8 @@
  */
 
 import type { ZkCertRegistered } from '@galactica-net/galactica-types';
-import { ZkCertStandard } from '@galactica-net/galactica-types';
+import { KnownZkCertStandard } from '@galactica-net/galactica-types';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
-import { Buffer } from 'buffer';
 import { expect } from 'chai';
 import { buildEddsa } from 'circomlibjs';
 import { getRandomValues } from 'crypto';
@@ -30,7 +29,7 @@ describe('Encryption', () => {
 
     const content = {
       holderCommitment,
-      zkCertStandard: ZkCertStandard.Rey,
+      zkCertStandard: KnownZkCertStandard.Rey,
       randomSalt: '0',
       expirationDate: 1,
       content: {

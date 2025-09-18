@@ -11,6 +11,7 @@ export type Snap = {
 
 /**
  * Get the installed snaps in MetaMask.
+ *
  * @returns The snaps installed in MetaMask.
  */
 export const getSnaps = async (): Promise<GetSnapsResponse> => {
@@ -21,6 +22,7 @@ export const getSnaps = async (): Promise<GetSnapsResponse> => {
 
 /**
  * Connect a snap to MetaMask.
+ *
  * @param snapId - The ID of the snap.
  * @param params - The params to pass with the snap to connect.
  */
@@ -42,6 +44,7 @@ export const connectSnap = async (
 
 /**
  * Get the snap from MetaMask.
+ *
  * @param snapId - The ID of the snap.
  * @param version - The version of the snap to install (optional).
  * @returns The snap object returned by the extension.

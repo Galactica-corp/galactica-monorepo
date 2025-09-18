@@ -42,6 +42,7 @@ describe('Polynomial', () => {
 
   /**
    * Calculates the polynomial for a given x and coefficients.
+   *
    * @param xVal - The x value to evaluate at.
    * @param coef - The coefficients of the polynomial.
    * @returns The result of the polynomial at xVal.

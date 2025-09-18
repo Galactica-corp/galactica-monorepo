@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import csv from 'csvtojson';
 import { ethers } from 'hardhat';
 
@@ -11,12 +10,10 @@ async function main() {
   const SBTAddress = '0x0ff7190902556b4038506aA8810360889d0A4902';
 
   const dataPath = './data/Gulding SBTs MERGED - GG Participant.csv';
-  let data: any;
-
-  await csv({ delimiter: ',' })
+  const data = await csv({ delimiter: ',' })
     .fromFile(dataPath)
     .then((jsonObj) => {
-      data = jsonObj as any;
+      return jsonObj as any;
     });
 
   console.log('operating owner:', await owner.getAddress());
@@ -35,7 +32,6 @@ async function main() {
 
       const receipt = await tx.wait();
       console.log(
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         `receipt ${receipt.transactionHash}, gas used ${receipt.gasUsed}`,
       );
     } catch (error) {

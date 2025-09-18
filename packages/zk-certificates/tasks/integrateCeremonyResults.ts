@@ -12,6 +12,7 @@ import { postProcessSolidityVerifier } from './verifierPostProcessing';
 
 /**
  * Script taking the trusted setup ceremony results from the p0tion server, saving it in the repo and rebuilding the solidity verifiers.
+ *
  * @param args - Task arguments.
  * @param hre - Hardhat runtime environment.
  */
@@ -68,7 +69,7 @@ async function integrateCeremonyResults(
       await download(r1csUrl, proverTargetFolder);
       foundAnything = true;
       console.log(`Found ceremony results for circuit ${circuitName}`);
-    } catch (error) {
+    } catch {
       // console.warn(`Could not download zkey for circuit ${circuitName}: ${error}`);
       continue; // skip this circuit, apparently it is not included in the ceremony
     }

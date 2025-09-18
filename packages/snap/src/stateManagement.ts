@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 import type { ZkCertRegistered } from '@galactica-net/snap-api';
-import { GenericError } from '@galactica-net/snap-api';
+import { GenericError, RpcResponseErr } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import type { Json, SnapsGlobalObject } from '@metamask/snaps-types';
 
@@ -8,8 +8,11 @@ import { createEncryptionKeyPair } from './encryption';
 import type { HolderData, StorageState, ZkCertStorage } from './types';
 import { calculateHolderCommitment } from './zkCertHandler';
 
+export const CURRENT_STORAGE_LAYOUT_VERSION = 1;
+
 /**
  * Get the state from the snap storage in MetaMask's browser extension.
+ *
  * @param snap - The snap for interaction with Metamask.
  * @returns The state.
  */
@@ -23,10 +26,24 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
     stateRecord === null ||
     stateRecord === undefined ||
     (typeof stateRecord === 'object' &&
-      (stateRecord.zkCerts === undefined || stateRecord.holders === undefined))
+      (stateRecord.zkCerts === undefined ||
+        stateRecord.holders === undefined)) ||
+    stateRecord.storageLayoutVersion === undefined // not backwards compatible because so old zkCerts are missing raw content values
   ) {
-    state = { holders: [], zkCerts: [] };
+    state = {
+      holders: [],
+      zkCerts: [],
+      storageLayoutVersion: CURRENT_STORAGE_LAYOUT_VERSION,
+    };
   } else {
+    if (stateRecord.storageLayoutVersion !== CURRENT_STORAGE_LAYOUT_VERSION) {
+      // Placeholder for future storage migrations
+      throw new GenericError({
+        name: 'StorageMigrationError',
+        message: RpcResponseErr.StorageMigrationError,
+      });
+    }
+
     let holderJSONData = stateRecord.holders?.valueOf() as {
       holderCommitment: string;
       eddsaEntropy: string;
@@ -50,6 +67,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
         encryptionPrivKey: holder.encryptionPrivKey,
       })),
       zkCerts: stateRecord.zkCerts?.valueOf() as ZkCertStorage[],
+      storageLayoutVersion: stateRecord.storageLayoutVersion?.valueOf(),
     };
     if (
       stateRecord.merkleServiceURL !== undefined &&
@@ -92,6 +110,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
 
 /**
  * Save updated state to the snap storage in MetaMask's browser extension.
+ *
  * @param snap - The snap for interaction with Metamask.
  * @param newState - The new state.
  */
@@ -108,9 +127,8 @@ export async function saveState(
     })),
     // using unknown to avoid ts error converting ZkCert[] to Json[]
     zkCerts: newState.zkCerts as unknown as Json[],
-    merkleServiceURL: newState.merkleServiceURL
-      ? newState.merkleServiceURL
-      : '',
+    merkleServiceURL: newState.merkleServiceURL ?? '',
+    storageLayoutVersion: newState.storageLayoutVersion,
   };
   // The state is automatically encrypted behind the scenes by MetaMask using snap-specific keys
   await snap.request({
@@ -121,6 +139,7 @@ export async function saveState(
 
 /**
  * Get holder matching a holder commitment from the holderData array.
+ *
  * @param holderCommitment - The holder commitment to search for.
  * @param holders - The holderData array to search in.
  * @returns The holderData.
@@ -144,6 +163,7 @@ export function getHolder(
 
 /**
  * Get zkCert matching a leafHash from the zkCert array.
+ *
  * @param leafHash - The holder commitment to search for.
  * @param zkCerts - The holderData array to search in.
  * @returns The holderData.
@@ -151,8 +171,8 @@ export function getHolder(
  */
 export function getZkCert(
   leafHash: string,
-  zkCerts: ZkCertRegistered[],
-): ZkCertRegistered {
+  zkCerts: ZkCertRegistered<Record<string, unknown>>[],
+): ZkCertRegistered<Record<string, unknown>> {
   const res = zkCerts.find((zkCert) => zkCert.leafHash === leafHash);
   if (res === undefined) {
     throw new GenericError({

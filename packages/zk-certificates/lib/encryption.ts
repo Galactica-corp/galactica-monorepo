@@ -15,13 +15,14 @@ import { chooseSchema, parseZkCert } from './zkCertificate';
 
 /**
  * Encrypt a zkCert for exporting.
+ *
  * @param zkCert - The ZkCertRegistered to encrypt.
  * @param pubKey - The public key for encryption. Hex-encoded X25519 public key.
  * @param holderCommitment - The holder commitment to associate the zkCert with the holder who can decrypt it.
  * @returns The encrypted ZkCertRegistered as EthEncryptedData.
  */
 export function encryptZkCert(
-  zkCert: ZkCertRegistered,
+  zkCert: ZkCertRegistered<Record<string, unknown>>,
   pubKey: string,
   holderCommitment: string,
 ): EncryptedZkCert {
@@ -37,6 +38,7 @@ export function encryptZkCert(
 
 /**
  * Decrypt a zkCert. It takes the encrypted ZkCertRegistered as given by the guardian or exported from the Snap.
+ *
  * @param encryptedZkCert - The encrypted zkCert as EthEncryptedData.
  * @param privateKey - The private key for decryption. Hex-encoded X25519 private key that is 32 random bytes.
  * @param customSchema - Optional custom schema to use for parsing the zkCert.
@@ -47,7 +49,7 @@ export function decryptZkCert(
   encryptedZkCert: EncryptedZkCert,
   privateKey: string,
   customSchema?: AnySchema,
-): ZkCertRegistered {
+): ZkCertRegistered<Record<string, unknown>> {
   const decryptedMessage = decryptSafely({
     encryptedData: encryptedZkCert,
     privateKey,

@@ -6,7 +6,6 @@ import Ajv from 'ajv/dist/2020';
 import addFormats from 'ajv-formats';
 import { codes, subdivision } from 'iso-3166-2';
 
-import type { JSONValue } from './json';
 import { contentSchemas } from './schemas';
 import type {
   KYCCertificateContent,
@@ -18,9 +17,14 @@ import type {
 } from './zkCertContent';
 
 /**
+ * Type for zkCert standards. Can be a known standard or a custom standard that will be defined in the future.
+ */
+export type ZkCertStandard = KnownZkCertStandard | string;
+
+/**
  * Enum for zkCert standards
  */
-export enum ZkCertStandard {
+export enum KnownZkCertStandard {
   ZkKYC = 'gip1',
   ArbitraryData = 'gip2',
   Twitter = 'gip3',
@@ -55,32 +59,37 @@ export const zkCertCommonFields = [
 
 /**
  * Get the fields of a ZK certificate content object in the order it is used for hashing.
+ *
  * @param contentType - The type of zkCert standard to get the fields for.
  * @returns The fields of the zkCert content object in the order they are used for hashing.
  */
-export function getContentFields(contentType: ZkCertStandard): string[] {
+export function getContentFields(contentType: KnownZkCertStandard): string[] {
   let schema: any;
   switch (contentType) {
-    case ZkCertStandard.ZkKYC:
+    case KnownZkCertStandard.ZkKYC:
       schema = contentSchemas.kyc;
       break;
-    case ZkCertStandard.Twitter:
+    case KnownZkCertStandard.Twitter:
       schema = contentSchemas.twitter;
       break;
-    case ZkCertStandard.Rey:
+    case KnownZkCertStandard.Rey:
       schema = contentSchemas.rey;
       break;
-    case ZkCertStandard.CEX:
+    case KnownZkCertStandard.CEX:
       schema = contentSchemas.cex;
       break;
-    case ZkCertStandard.DEX:
+    case KnownZkCertStandard.DEX:
       schema = contentSchemas.dex;
       break;
-    case ZkCertStandard.Telegram:
+    case KnownZkCertStandard.Telegram:
       schema = contentSchemas.telegram;
       break;
+    case KnownZkCertStandard.ArbitraryData:
+      schema = contentSchemas.simpleJson;
+      break;
+    // In case someone passes an invalid value:
     default:
-      throw new Error(`Unknown zkCert standard: ${contentType}`);
+      throw new Error(`Unknown zkCert standard: ${String(contentType)}`);
   }
 
   return Object.keys(schema.properties).sort();
@@ -88,24 +97,25 @@ export function getContentFields(contentType: ZkCertStandard): string[] {
 
 /**
  * Get the schema for a zkCert standard.
+ *
  * @param contentType - The type of zkCert standard to get the schema for.
  * @returns The schema for the zkCert standard.
  */
-export function getContentSchema(contentType: ZkCertStandard): AnySchema {
+export function getContentSchema(contentType: KnownZkCertStandard): AnySchema {
   switch (contentType) {
-    case ZkCertStandard.ZkKYC:
+    case KnownZkCertStandard.ZkKYC:
       return contentSchemas.kyc;
-    case ZkCertStandard.Twitter:
+    case KnownZkCertStandard.Twitter:
       return contentSchemas.twitter;
-    case ZkCertStandard.Rey:
+    case KnownZkCertStandard.Rey:
       return contentSchemas.rey;
-    case ZkCertStandard.DEX:
+    case KnownZkCertStandard.DEX:
       return contentSchemas.dex;
-    case ZkCertStandard.CEX:
+    case KnownZkCertStandard.CEX:
       return contentSchemas.cex;
-    case ZkCertStandard.Telegram:
+    case KnownZkCertStandard.Telegram:
       return contentSchemas.telegram;
-    case ZkCertStandard.ArbitraryData:
+    case KnownZkCertStandard.ArbitraryData:
       return contentSchemas.simpleJson;
     default:
       throw new Error(
@@ -146,12 +156,13 @@ export const personIDFieldOrder = [
 
 /**
  * Parse a JSON object to a content object of a certain type. This does not convert any data types, it only validates the input data against the schema.
+ *
  * @param inputData - The JSON object to parse.
  * @param schema - The schema to use for parsing.
  * @returns The parsed content object.
  */
 export function parseContentJson<ContentType>(
-  inputData: Record<string, JSONValue>,
+  inputData: Record<string, unknown>,
   schema: AnySchema,
 ): ContentType {
   const ajv = new Ajv({
@@ -170,35 +181,13 @@ export function parseContentJson<ContentType>(
     );
   }
 
-  // Set default values for optional fields that are not provided
-  const res: Record<string, JSONValue> = structuredClone(inputData);
-  let schemaProperties: Record<string, { [key: string]: JSONValue }> = {};
-  if (typeof schema === 'object' && schema !== null && 'properties' in schema) {
-    schemaProperties = schema.properties as Record<
-      string,
-      { [key: string]: JSONValue }
-    >;
-  }
-  let requiredList: string[] = [];
-  if (typeof schema === 'object' && schema !== null && 'required' in schema) {
-    requiredList = schema.required as string[];
-  }
-  for (const field of Object.keys(schemaProperties)) {
-    if (inputData[field] === undefined && !requiredList.includes(field)) {
-      if (!('default' in schemaProperties[field])) {
-        throw new Error(
-          `Optional field ${field} is undefined and no default value is provided.`,
-        );
-      }
-      res[field] = schemaProperties[field].default;
-    }
-  }
-
+  const res: Record<string, unknown> = structuredClone(inputData);
   return res as unknown as ContentType;
 }
 
 /**
  * Add custom formats used in the zkCert standards to an Ajv instance.
+ *
  * @param ajv - The Ajv instance to add the formats to.
  */
 export function addAJVFormats(ajv: Ajv) {

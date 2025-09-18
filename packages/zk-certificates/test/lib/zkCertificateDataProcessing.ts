@@ -3,8 +3,8 @@
  */
 import {
   getContentSchema,
+  KnownZkCertStandard,
   parseContentJson,
-  ZkCertStandard,
 } from '@galactica-net/galactica-types';
 import { expect } from 'chai';
 import type { Eddsa } from 'circomlibjs';
@@ -27,8 +27,11 @@ describe('ZK Certificate Data Processing', () => {
     it('should process kyc example', async () => {
       const processed = prepareContentForCircuit(
         eddsa,
-        parseContentJson(kycExample, getContentSchema(ZkCertStandard.ZkKYC)),
-        getContentSchema(ZkCertStandard.ZkKYC),
+        parseContentJson(
+          kycExample,
+          getContentSchema(KnownZkCertStandard.ZkKYC),
+        ),
+        getContentSchema(KnownZkCertStandard.ZkKYC),
       );
 
       // check that all string fields have been hashed by checking that all remaining strings are numbers
@@ -44,9 +47,9 @@ describe('ZK Certificate Data Processing', () => {
         eddsa,
         parseContentJson(
           twitterExample,
-          getContentSchema(ZkCertStandard.Twitter),
+          getContentSchema(KnownZkCertStandard.Twitter),
         ),
-        getContentSchema(ZkCertStandard.Twitter),
+        getContentSchema(KnownZkCertStandard.Twitter),
       );
 
       expect(processed.username).to.match(/^[0-9]+$/u);
@@ -56,8 +59,8 @@ describe('ZK Certificate Data Processing', () => {
     it('should process rey example', async () => {
       const processed = prepareContentForCircuit(
         eddsa,
-        parseContentJson(reyExample, getContentSchema(ZkCertStandard.Rey)),
-        getContentSchema(ZkCertStandard.Rey),
+        parseContentJson(reyExample, getContentSchema(KnownZkCertStandard.Rey)),
+        getContentSchema(KnownZkCertStandard.Rey),
       );
 
       expect(processed.xUsername).to.match(/^[0-9]+$/u);
@@ -68,13 +71,55 @@ describe('ZK Certificate Data Processing', () => {
         eddsa,
         parseContentJson(
           dataExample,
-          getContentSchema(ZkCertStandard.ArbitraryData),
+          getContentSchema(KnownZkCertStandard.ArbitraryData),
         ),
-        getContentSchema(ZkCertStandard.ArbitraryData),
+        getContentSchema(KnownZkCertStandard.ArbitraryData),
       );
 
       expect(processed.type).to.match(/^[0-9]+$/u);
       expect(processed.example).to.match(/^[0-9]+$/u);
+    });
+
+    it('should handle gip2 case without properties field in schema', async () => {
+      const gip2Schema = {
+        type: 'object',
+        // No properties field - this is the gip2 case
+      };
+
+      const gip2Content: Record<string, unknown> = {
+        field1: 'value1',
+        field2: undefined, // This should throw a proper error about missing required field
+      };
+
+      // Should throw a proper error message about undefined field without default
+      // instead of the current TypeError about accessing properties of undefined
+      expect(() => {
+        prepareContentForCircuit(eddsa, gip2Content, gip2Schema);
+      }).to.throw(
+        'Certificate field field2 is undefined and no default value is provided in the schema.',
+      );
+    });
+
+    it('should handle gip2 case with valid content fields', async () => {
+      const gip2Schema = {
+        type: 'object',
+        // No properties field - this is the gip2 case
+      };
+
+      const gip2Content: Record<string, unknown> = {
+        // All fields provided - should work
+        field1: 'value1',
+        field2: 'value2',
+      };
+
+      const processed = prepareContentForCircuit(
+        eddsa,
+        gip2Content,
+        gip2Schema,
+      );
+
+      expect(processed.field1).to.match(/^[0-9]+$/u);
+      expect(processed.field2).to.match(/^[0-9]+$/u);
     });
   });
 

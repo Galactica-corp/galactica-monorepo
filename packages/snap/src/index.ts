@@ -25,6 +25,8 @@ import {
   chooseSchema,
   decryptZkCert,
   encryptZkCert,
+  generateProof,
+  generateZkCertProof,
 } from '@galactica-net/zk-certificates';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { divider, heading, panel, text } from '@metamask/snaps-ui';
@@ -36,10 +38,14 @@ import { getMerkleProof } from './merkleProofSelection';
 import {
   checkZkCertProofRequest,
   createProofConfirmationPrompt,
-  generateProof,
-  generateZkCertProof,
 } from './proofGenerator';
-import { getHolder, getState, getZkCert, saveState } from './stateManagement';
+import {
+  CURRENT_STORAGE_LAYOUT_VERSION,
+  getHolder,
+  getState,
+  getZkCert,
+  saveState,
+} from './stateManagement';
 import type { HolderData, PanelContent, SnapRpcProcessor } from './types';
 import { stripURLProtocol } from './utils';
 import {
@@ -51,6 +57,7 @@ import { filterZkCerts, selectZkCert } from './zkCertSelector';
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
  * It has all inputs as function parameters instead of relying on global variables.
+ *
  * @param args - The request handler args as object.
  * @param args.origin - The origin of the request, e.g., the website that invoked the snap.
  * @param args.request - A validated JSON-RPC request object.
@@ -117,7 +124,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const proof = await generateZkCertProof(
         genParams,
         zkCert,
-        holder,
+        holder.eddsaKey,
         merkleProof,
       );
 
@@ -163,7 +170,11 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
       }
 
-      await saveState(snap, { holders: [], zkCerts: [] });
+      await saveState(snap, {
+        holders: [],
+        zkCerts: [],
+        storageLayoutVersion: CURRENT_STORAGE_LAYOUT_VERSION,
+      });
       response = { message: RpcResponseMsg.StorageCleared };
       return response;
     }
@@ -620,6 +631,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
+ *
  * @param args - The request handler args as object.
  * @param args.origin - The origin of the request, e.g., the website that
  * invoked the snap.

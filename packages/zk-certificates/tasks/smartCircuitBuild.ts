@@ -11,6 +11,7 @@ import { postProcessSolidityVerifier } from './verifierPostProcessing';
 
 /**
  * Script (re)building circom circuits when needed.
+ *
  * @param args - Task arguments.
  * @param hre - Hardhat runtime environment.
  */
@@ -161,6 +162,7 @@ task(
 
 /**
  * Helper function to recursively find all imported files.
+ *
  * @param rootCircuit - Circuit file to start with.
  * @param visited - List of already visited files.
  * @returns List of all imported files.

@@ -49,7 +49,7 @@ const config: HardhatUserConfig = {
       accounts: getAccounts(),
     },
     cassiopeia: {
-      url: 'https://galactica-cassiopeia.g.alchemy.com/public',
+      url: `https://galactica-cassiopeia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: getAccounts(),
     },
     binanceTestnet: {
@@ -237,12 +237,18 @@ const config: HardhatUserConfig = {
   ignition: {
     // setting required confirmations to 1 because cassiopeia only creates new blocks when there is a transaction
     requiredConfirmations: 1,
+    strategyConfig: {
+      create2: {
+        salt: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      },
+    },
   },
 };
 
 /**
  * Gets the accounts for operation from the environment variables.
  * If they are not present, it will use random private keys (for example on the GitHub pipeline).
+ *
  * @returns Array of private keys.
  */
 function getAccounts(): string[] {

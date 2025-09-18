@@ -126,6 +126,7 @@ export const dark: DefaultTheme = {
 
 /**
  * Default style applied to the app.
+ *
  * @param props - Styled Components props.
  * @returns Global style React component.
  */

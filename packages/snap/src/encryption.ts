@@ -11,6 +11,7 @@ import type { SnapsGlobalObject } from '@metamask/snaps-types';
 
 /**
  * Create a new encryption key pair for the holder. It is used to encrypt personal details in ZK certificates, for example on the way from guardian to the holder.
+ *
  * @param snap - The snap for interaction with Metamask.
  * @returns The public and private key.
  */
@@ -32,6 +33,7 @@ export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
 
 /**
  * Checks if an imported EncryptedZkCert has the right format.
+ *
  * @param encryptedZkCert - The encrypted zkCert as EthEncryptedData.
  * @throws If the format is not correct.
  */

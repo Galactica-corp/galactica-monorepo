@@ -43,22 +43,22 @@ describe('zkCertificate SC', () => {
     [deployer, user, randomUser] = await hre.ethers.getSigners();
 
     // set up zkCertificateRegistry, GalacticaInstitution, twitterZkCertificateVerifier, twitterZkCertificate
-    mockZkCertificateRegistry = (await ethers.deployContract(
+    mockZkCertificateRegistry = await ethers.deployContract(
       'MockZkCertificateRegistry',
-    )) as MockZkCertificateRegistry;
+    );
 
-    twitterZkCertificateVerifier = (await ethers.deployContract(
+    twitterZkCertificateVerifier = await ethers.deployContract(
       'TwitterZkCertificateVerifier',
-    )) as TwitterZkCertificateVerifier;
+    );
 
-    twitterZkCertificateContract = (await ethers.deployContract(
+    twitterZkCertificateContract = await ethers.deployContract(
       'TwitterZkCertificate',
       [
         deployer.address,
         await twitterZkCertificateVerifier.getAddress(),
         await mockZkCertificateRegistry.getAddress(),
       ],
-    )) as TwitterZkCertificate;
+    );
 
     twitterZkCertificate = await generateSampleTwitterZkCertificate();
     sampleInput =

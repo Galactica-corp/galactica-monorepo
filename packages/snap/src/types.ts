@@ -31,7 +31,7 @@ export type HolderData = {
  * Everything the snap needs to store about a zkCert.
  */
 export type ZkCertStorage = {
-  zkCert: ZkCertRegistered;
+  zkCert: ZkCertRegistered<Record<string, unknown>>;
   schema: AnySchema;
 };
 
@@ -39,6 +39,7 @@ export type StorageState = {
   holders: HolderData[];
   zkCerts: ZkCertStorage[];
   merkleServiceURL?: string;
+  storageLayoutVersion: number;
 };
 
 export type PanelContent = (
