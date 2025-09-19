@@ -72,21 +72,6 @@ contract ZkCertificateRegistry is
 
     IGuardianRegistry public override(IReadableZkCertRegistry) guardianRegistry;
 
-    event CertificateProcessed(
-        bytes32 indexed zkCertificateLeafHash,
-        address indexed Guardian,
-        RegistryOperation operation,
-        uint queueIndex,
-        uint leafIndex
-    );
-
-    event OperationQueued(
-        bytes32 indexed zkCertificateLeafHash,
-        address indexed Guardian,
-        RegistryOperation operation,
-        uint queueIndex
-    );
-
     constructor(
         address GuardianRegistry_,
         uint256 treeDepth_,

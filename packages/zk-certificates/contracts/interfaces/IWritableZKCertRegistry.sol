@@ -37,6 +37,21 @@ struct CertificateData {
 /// @notice Interface for write functions of ZkCertificateRegistry
 /// @dev This interface contains all state-changing functions used by guardians
 interface IWritableZKCertRegistry is IReadableZkCertRegistry {
+    event CertificateProcessed(
+        bytes32 indexed zkCertificateLeafHash,
+        address indexed Guardian,
+        RegistryOperation operation,
+        uint queueIndex,
+        uint leafIndex
+    );
+
+    event OperationQueued(
+        bytes32 indexed zkCertificateLeafHash,
+        address indexed Guardian,
+        RegistryOperation operation,
+        uint queueIndex
+    );
+
     /**
      * @notice Process the next operation from the queue to add or revoke a zkCertificate.
      * @dev This function may be called by anyone to process certificates added to the queue by guardians.
