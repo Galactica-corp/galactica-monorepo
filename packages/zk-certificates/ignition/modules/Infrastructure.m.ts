@@ -2,6 +2,7 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
+import { defineUpgradableProxy } from './UpgradableProxy.m';
 
 import guardianRegistryModule from './GuardianRegistry.m';
 import poseidonModule from './Poseidon.m';
@@ -20,13 +21,12 @@ const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
   );
 
   // Deploy ZkKYCRegistry
-  const zkKYCRegistry = module.contract(
+  const { upgradableContract: zkKYCRegistry, proxyContracts } = defineUpgradableProxy(
+    module,
     'ZkKYCRegistry',
     [kycGuardianRegistry, merkleDepth, description],
     {
-      libraries: {
-        PoseidonT3: poseidon,
-      },
+      PoseidonT3: poseidon,
     },
   );
 
@@ -82,6 +82,7 @@ const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
     institution2,
     institution3,
     humanIDSaltRegistry,
+    ...proxyContracts,
   };
 });
 

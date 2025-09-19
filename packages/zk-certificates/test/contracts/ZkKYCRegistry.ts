@@ -3,7 +3,7 @@ import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers'
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 
 import {
   fromDecToHex,
@@ -15,6 +15,8 @@ import {
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
 import type { HumanIDSaltRegistry } from '../../typechain-types/contracts/HumanIDSaltRegistry';
 import type { ZkKYCRegistry } from '../../typechain-types/contracts/ZkKYCRegistry';
+import infrastructureModule from '../../ignition/modules/Infrastructure.m';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 describe('ZkKYCRegistry', () => {
   let deployer: SignerWithAddress;
@@ -41,29 +43,24 @@ describe('ZkKYCRegistry', () => {
     const PoseidonT3 = await ethers.getContractFactory('PoseidonT3');
     const poseidonT3 = await PoseidonT3.deploy();
 
-    const GuardianRegistryFactory =
-      await ethers.getContractFactory('GuardianRegistry');
-    const GuardianRegistry = await GuardianRegistryFactory.deploy(
-      'Test Guardian Registry',
-    );
-
-    const ZkKYCRegistryFactory = await ethers.getContractFactory(
-      'ZkKYCRegistry',
+    const { guardianRegistry: GuardianRegistry, zkKYCRegistry: ZkKYCRegistry } = await ignition.deploy(
+      infrastructureModule,
       {
-        libraries: {
-          PoseidonT3: await poseidonT3.getAddress(),
+        parameters: {
+          GuardianRegistryModule: {
+            description: 'Test Guardian Registry',
+          },
+          InfrastructureModule: {
+            merkleDepth: 32,
+            description: 'KYC Registry',
+          },
         },
       },
     );
-    const ZkKYCRegistry = (await ZkKYCRegistryFactory.deploy(
-      await GuardianRegistry.getAddress(),
-      32,
-      'KYC Registry',
-    )) as ZkKYCRegistry;
 
     return {
-      ZkKYCRegistry,
-      GuardianRegistry,
+      ZkKYCRegistry: ZkKYCRegistry as unknown as ZkKYCRegistry,
+      GuardianRegistry: GuardianRegistry as unknown as GuardianRegistry,
     };
   }
 

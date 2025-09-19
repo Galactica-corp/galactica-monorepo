@@ -50,7 +50,7 @@ contract ZkCertificateRegistry is
     // and from which index the merkle roots are still valid
     // all previous ones are invalid because they contain revoked certificates
     // we start from 1 because nonexistant merkle roots return 0 in the merkleRootIndex mapping
-    uint256 public override(IReadableZkCertRegistry) merkleRootValidIndex = 1;
+    uint256 public override(IReadableZkCertRegistry) merkleRootValidIndex;
     // we will also store the merkle root index in a mapping for quicker lookup
     mapping(bytes32 => uint256)
         public
@@ -85,6 +85,7 @@ contract ZkCertificateRegistry is
     ) public virtual initializer {
         treeDepth = treeDepth_;
         treeSize = 2 ** treeDepth;
+        merkleRootValidIndex = 1;
         initializeZkCertificateRegistry(GuardianRegistry_, description_);
         __Ownable_init(msg.sender);
     }
