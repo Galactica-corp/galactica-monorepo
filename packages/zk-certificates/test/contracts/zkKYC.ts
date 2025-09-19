@@ -2,7 +2,7 @@
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import type { BigNumberish } from 'ethers';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
 import {
@@ -21,6 +21,7 @@ import type { MockGalacticaInstitution } from '../../typechain-types/contracts/m
 import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/mock/MockZkCertificateRegistry';
 import type { ZkKYC } from '../../typechain-types/contracts/verifierWrappers/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 
 chai.config.includeStack = true;
 
@@ -53,11 +54,17 @@ describe('zkKYC SC', () => {
       'MockZkCertificateRegistry',
     );
 
-    // Deploy GuardianRegistry
-    guardianRegistry = await ethers.deployContract('GuardianRegistry', [
-      'https://example.com/metadata',
-    ]);
-    await guardianRegistry.waitForDeployment();
+    const ignitionContracts = await ignition.deploy(
+      guardianRegistryModule,
+      {
+        parameters: {
+          GuardianRegistryModule: {
+            description: 'https://example.com/metadata',
+          },
+        },
+      },
+    );
+    guardianRegistry = ignitionContracts.guardianRegistry as unknown as GuardianRegistry;
 
     await mockZkCertificateRegistry.setGuardianRegistry(
       await guardianRegistry.getAddress(),

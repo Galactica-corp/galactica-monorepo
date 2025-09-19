@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
 import {
@@ -21,6 +21,7 @@ import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/
 import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
 import type { ZkKYC } from '../../typechain-types/contracts/verifierWrappers/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -92,11 +93,17 @@ describe('BasicKYCExampleDApp', () => {
     circuitWasmPath = './circuits/build/zkKYC.wasm';
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
 
-    // Deploy GuardianRegistry
-    guardianRegistry = await ethers.deployContract('GuardianRegistry', [
-      'https://example.com/metadata',
-    ]);
-    await guardianRegistry.waitForDeployment();
+    const ignitionContracts = await ignition.deploy(
+      guardianRegistryModule,
+      {
+        parameters: {
+          GuardianRegistryModule: {
+            description: 'https://example.com/metadata',
+          },
+        },
+      },
+    );
+    guardianRegistry = ignitionContracts.guardianRegistry as unknown as GuardianRegistry;
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(
