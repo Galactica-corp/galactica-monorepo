@@ -9,7 +9,7 @@ import type {
 import { buildPoseidon } from 'circomlibjs';
 import { type AbstractProvider, Contract } from 'ethers';
 
-import { getMerkleRootFromProof } from '.';
+import { fromDecToHex, fromHexToBytes32, getMerkleRootFromProof } from '.';
 import { IReadableZkCertRegistry__factory as registryFactory } from '../typechain-types/factories/contracts/interfaces/IReadableZkCertRegistry__factory';
 
 const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
@@ -36,8 +36,9 @@ export async function getMerkleProof(
     // check if the existing merkle proof is still valid
     // if yes, we can reuse it
     const root = getMerkleRootFromProof(zkCert.merkleProof, poseidon);
+    const bytes32Root = fromHexToBytes32(fromDecToHex(root));
 
-    if (await registry.verifyMerkleRoot(root)) {
+    if (await registry.verifyMerkleRoot(bytes32Root)) {
       return zkCert.merkleProof;
     }
   }

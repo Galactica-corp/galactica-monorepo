@@ -49,7 +49,6 @@ describe('Encryption', () => {
         r8x: '0',
         r8y: '0',
       },
-      merkleProof: undefined,
       randomSalt: '0',
       registration: {
         address: '0',

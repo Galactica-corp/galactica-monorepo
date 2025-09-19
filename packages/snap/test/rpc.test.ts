@@ -24,6 +24,7 @@ import type { Poseidon } from '@galactica-net/zk-certificates';
 import {
   encryptZkCert,
   fromDecToHex,
+  fromHexToBytes32,
   getMerkleRootFromProof,
   SparseMerkleTree,
   subPathWasm,
@@ -190,9 +191,7 @@ describe('Test rpc handler function', function () {
       .onSecondCall()
       .resolves(testEntropyEncrypt);
     ethereumProvider.rpcStubs.eth_chainId.resolves('41233');
-    ethereumProvider.rpcStubs.eth_call.resolves(
-      fromDecToHex(getMerkleRootFromProof(merkleProof, poseidon), true),
-    );
+    ethereumProvider.rpcStubs.eth_call.resolves(fromHexToBytes32("01"));
     ethereumProvider.rpcStubs.wallet_switchEthereumChain.resolves();
 
     // setting up merkle proof service for testing
@@ -673,10 +672,9 @@ describe('Test rpc handler function', function () {
         404,
         { overwriteRoutes: true },
       );
+      ethereumProvider.rpcStubs.eth_call.resolves(fromHexToBytes32("00")); // make the chain tell the snap that the merkle proof is not valid anymore
 
-      const outdatedZkCert: ZkCertRegistered<Record<string, unknown>> = structuredClone(zkCert); // deep copy to not mess up original
-      outdatedZkCert.merkleProof = merkleProof;
-      outdatedZkCert.merkleProof.pathElements[0] = '01234';
+
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -685,7 +683,7 @@ describe('Test rpc handler function', function () {
             [testHolder],
             [
               {
-                zkCert: outdatedZkCert,
+                zkCert: structuredClone(zkCert),
                 schema: getContentSchema(KnownZkCertStandard.ZkKYC),
               },
             ],
@@ -707,6 +705,7 @@ describe('Test rpc handler function', function () {
     it('should automatically fetch new merkle proof from node', async function (this: Mocha.Context) {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
+      ethereumProvider.rpcStubs.eth_call.resolves(fromHexToBytes32("00")); // make the chain tell the snap that the merkle proof is not valid anymore
 
       const outdatedZkCert: ZkCertRegistered<Record<string, unknown>> =
         structuredClone(zkCert);
@@ -740,9 +739,11 @@ describe('Test rpc handler function', function () {
 
       // Merkle proof should have been updated and stored
       expect(fetchMock.calls().length).to.equal(1);
+      const expectedStorage = structuredClone(zkCertStorage);
+      expectedStorage.zkCert.merkleProof = merkleProof;
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
         operation: 'update',
-        newState: createState([testHolder], [zkCertStorage]),
+        newState: createState([testHolder], [expectedStorage]),
       });
     });
 

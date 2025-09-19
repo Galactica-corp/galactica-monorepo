@@ -465,8 +465,9 @@ export function parseZkCert(
     complainMissingField('registration.queuePosition');
   }
 
+
   try {
-    return {
+    const parsedCert = {
       content: parseContentJson<Record<string, unknown>>(
         zkCert.content as Record<string, unknown>,
         schema,
@@ -482,6 +483,12 @@ export function parseZkCert(
       registration: zkCert.registration,
       zkCertStandard: zkCert.zkCertStandard,
     } as ZkCertRegistered<Record<string, unknown>>; // BUG: This function must ensure that the type is correct in compile time.
+
+    if (!zkCert.merkleProof) {
+      // deleting the merkleProof field to avoid comparison errors between {} and {merkleProof: undefined}
+      delete parsedCert.merkleProof;
+    }
+    return parsedCert;
   } catch (error) {
     const message = error instanceof Error ? error.message : `${String(error)}`;
     throw new Error(
