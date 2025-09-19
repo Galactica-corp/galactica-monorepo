@@ -1,0 +1,13 @@
+diff --git a/dist/src/internal/reconciliation/helpers/compare.js b/dist/src/internal/reconciliation/helpers/compare.js
+index 3f98492a0749a014df5b94c5fa0f09dfdf19b5e4..b2fd55294a4b04ae4c07b28ee2df5bf7696136ba 100644
+--- a/dist/src/internal/reconciliation/helpers/compare.js
++++ b/dist/src/internal/reconciliation/helpers/compare.js
+@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.compare = void 0;
+ const utils_1 = require("../utils");
+ function compare(future, fieldName, existingValue, newValue, messageSuffix) {
+-    if (existingValue !== newValue) {
++    if (String(existingValue) !== String(newValue)) {
+         return (0, utils_1.fail)(future, `${fieldName} has been changed from ${existingValue?.toString() ?? '"undefined"'} to ${newValue?.toString() ?? '"undefined"'}${messageSuffix ?? ""}`);
+     }
+ }

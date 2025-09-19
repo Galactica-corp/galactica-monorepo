@@ -8445,6 +8445,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nomicfoundation/ignition-core@patch:@nomicfoundation/ignition-core@npm:^0.15.13#.yarn/patches/@nomicfoundation-ignition-core-npm-0.15.13-420c20cc1d.patch::locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A.":
+  version: 0.15.13
+  resolution: "@nomicfoundation/ignition-core@patch:@nomicfoundation/ignition-core@npm%3A0.15.13#.yarn/patches/@nomicfoundation-ignition-core-npm-0.15.13-420c20cc1d.patch::version=0.15.13&hash=5e00bf&locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A."
+  dependencies:
+    "@ethersproject/address": 5.6.1
+    "@nomicfoundation/solidity-analyzer": ^0.1.1
+    cbor: ^9.0.0
+    debug: ^4.3.2
+    ethers: ^6.14.0
+    fs-extra: ^10.0.0
+    immer: 10.0.2
+    lodash: 4.17.21
+    ndjson: 2.0.0
+  checksum: 37423a4930d81cf07125785e4a47333b8c38e015ab42660b29423edc557ab79bdff94c0703a8ede9995cf6f51795aa30645dfcf80bd4f20a03917832e6bc7a72
+  languageName: node
+  linkType: hard
+
 "@nomicfoundation/ignition-ui@npm:^0.15.12":
   version: 0.15.12
   resolution: "@nomicfoundation/ignition-ui@npm:0.15.12"
@@ -18753,7 +18770,7 @@ __metadata:
 "forge-std@foundry-rs/forge-std#v1.9.4":
   version: 1.9.4
   resolution: "forge-std@https://github.com/foundry-rs/forge-std.git#commit=1eea5bae12ae557d589f9f0f0edae2faa47cb262"
-  checksum: a765a8797fb46808f476db6504d4192489a723d26764be73dde4c583ecfef0d8a453ee4f51e7f22be360670827814e5ed6260e085f19d4d9e9b973fb011f563c
+  checksum: 07da6e8988d24f1c90e4c9d857a1003348d4d105d9257433793c79ad394ea530db8230a4eed286124637b4ed9a8207d0a7b4a6c3fb17f78cb0866d43da330c6a
   languageName: node
   linkType: hard
 
