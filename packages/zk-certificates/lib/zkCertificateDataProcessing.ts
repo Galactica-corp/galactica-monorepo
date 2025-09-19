@@ -1,13 +1,11 @@
-/* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type {
-  FieldElement,
-  ZkCertRegistered,
-} from '@galactica-net/galactica-types';
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+import type { FieldElement } from '@galactica-net/galactica-types';
 import { parseFieldElement } from '@galactica-net/galactica-types';
+import { Temporal } from '@js-temporal/polyfill';
 import type { AnySchema } from 'ajv';
-import { Buffer } from 'buffer';
 import type { Eddsa } from 'circomlibjs';
-import { Temporal } from 'temporal-polyfill';
 
 import { hashStringToFieldNumber } from './helpers';
 
@@ -21,15 +19,17 @@ import { hashStringToFieldNumber } from './helpers';
  * @returns Object with the ZkCert content how it can be passed to the ZK circuit.
  * @throws Error if any of the required fields is missing.
  */
-export function prepareContentForCircuit(
+export function prepareContentForCircuit<
+  Content extends Record<string, unknown>,
+>(
   eddsa: Eddsa,
-  contentData: Record<string, unknown>,
+  contentData: Content,
   contentSchema: AnySchema,
-): Record<string, FieldElement> {
+): Record<keyof Content, FieldElement> {
   const contentFields: Record<string, FieldElement> = {};
 
   let schemaProperties: Record<string, Record<string, unknown>> = {};
-  let zkCertificateContentFields: string[] = [];
+  let zkCertificateContentFields: string[];
   if (
     typeof contentSchema === 'object' &&
     contentSchema !== null &&
@@ -144,7 +144,7 @@ export function prepareContentForCircuit(
     contentFields[field] = resValue;
   }
 
-  return contentFields;
+  return contentFields as Record<keyof Content, FieldElement>;
 }
 
 /**
@@ -196,31 +196,4 @@ export function hashZkCertificateContent(
       1,
     ),
   ).toString();
-}
-
-/**
- * Workaround for a bug in the encryption library. With certain data sizes, the encryption fails to pad the data correctly. So we additionally inflate the data to make sure it is padded correctly.
- *
- * @param data - ZkCert to pad.
- * @returns Encrypted zkCert.
- */
-export function padZkCertForEncryption<Content = any>(
-  data: ZkCertRegistered<Content>,
-): ZkCertRegistered<Content> {
-  const dataWithPadding = {
-    data,
-    padding: '',
-  };
-  const dataLength = Buffer.byteLength(
-    JSON.stringify(dataWithPadding),
-    'utf-8',
-  );
-  const DEFAULT_PADDING_LENGTH = 2 ** 11;
-  const NACL_EXTRA_BYTES = 16;
-  const modVal = dataLength % DEFAULT_PADDING_LENGTH;
-  const padLength = DEFAULT_PADDING_LENGTH - modVal - NACL_EXTRA_BYTES;
-  if (padLength < 0) {
-    data.paddingIssueWorkaround = '0'.repeat(NACL_EXTRA_BYTES);
-  }
-  return data;
 }

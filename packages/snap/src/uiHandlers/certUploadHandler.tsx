@@ -5,15 +5,11 @@ import type { FileUploadEvent } from '@metamask/snaps-sdk';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
 
 import { StartPage } from '../components/startPage';
-import {
-  checkEncryptedZkCertFormat,
-  decryptMessageToObject,
-} from '../encryption';
+import { checkEncryptedZkCertFormat } from '../encryption';
 import { getHolder, getState, saveState } from '../stateManagement';
 import { activeTabStore } from '../stores';
 import { findCert } from '../utils/cert';
 import { getGuardianInfo } from '../utils/getGuardianInfo';
-import { choseSchema, parseZkCert } from '../zkCertHandler';
 
 type Params = {
   event: FileUploadEvent;

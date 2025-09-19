@@ -1,48 +1,54 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 // SPDX-License-Identifier: BUSL-1.1
 import type {
   HolderCommitmentData,
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import type {
-  ConfirmationResponse,
-  ImportZkCertParams,
-  GenZkProofParams,
-  MerkleProofUpdateRequestParams,
-  ZkCertSelectionParams,
-  MerkleProofURLUpdateParams,
   BenchmarkZKPGenParams,
+  ConfirmationResponse,
+  GenZkProofParams,
   GetZkCertStorageHashesRequest,
+  ImportZkCertParams,
+  MerkleProofUpdateRequestParams,
+  MerkleProofURLUpdateParams,
+  ZkCertSelectionParams,
 } from '@galactica-net/snap-api';
 import {
-  RpcResponseErr,
-  RpcMethods,
-  RpcResponseMsg,
+  ImportZkCertError,
   GenericError,
+  RpcMethods,
+  RpcResponseErr,
+  RpcResponseMsg,
   URLUpdateError,
 } from '@galactica-net/snap-api';
 import {
-  UserInputEventType,
-  type OnHomePageHandler,
-  type OnUserInputHandler,
+  chooseSchema,
+  decryptZkCert,
+  encryptZkCert,
+  generateProof,
+  generateZkCertProof,
+} from '@galactica-net/zk-certificates';
+import type {
+  OnHomePageHandler,
+  OnUserInputHandler,
 } from '@metamask/snaps-sdk';
+import { UserInputEventType } from '@metamask/snaps-sdk';
 import type { JSXElement } from '@metamask/snaps-sdk/jsx';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
-import { panel, text, heading } from '@metamask/snaps-ui';
+import { heading, panel, text } from '@metamask/snaps-ui';
 import type { AnySchema } from 'ajv/dist/2020';
 import { basicURLParse } from 'whatwg-url';
 
-import {
-  checkEncryptedZkCertFormat,
-  decryptMessageToObject,
-  encryptZkCert,
-} from './encryption';
+import { checkEncryptedZkCertFormat } from './encryption';
 import { getMerkleProof } from './merkleProofSelection';
 import {
   checkZkCertProofRequest,
   createProofConfirmationPrompt,
-  generateProof,
-  generateZkCertProof,
 } from './proofGenerator';
 import {
   CURRENT_STORAGE_LAYOUT_VERSION,
@@ -62,12 +68,10 @@ import { viewCertHandler } from './uiHandlers/viewCertHandler';
 import { getGuardianInfo } from './utils/getGuardianInfo';
 import { stripURLProtocol } from './utils/utils';
 import {
-  choseSchema,
   getZkCertStorageHashes,
   getZkCertStorageOverview,
-  parseZkCert,
 } from './zkCertHandler';
-import { selectZkCert, filterZkCerts } from './zkCertSelector';
+import { filterZkCerts, selectZkCert } from './zkCertSelector';
 
 /**
  * Handler for the rpc request that processes real requests and unit tests alike.
@@ -141,7 +145,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         // FIXME:
         // @ts-ignore
         zkCert,
-        holder,
+        holder.eddsaKey,
         merkleProof,
       );
 
@@ -206,16 +210,25 @@ export const processRpcRequest: SnapRpcProcessor = async (
         state.holders,
       );
 
-      const decrypted = decryptMessageToObject(
-        importParams.encryptedZkCert,
-        holder.encryptionPrivKey,
-      );
+      const customSchema = importParams.customSchema as unknown as AnySchema; // BUG: This is wrong, it might need to be parsed from string.
 
-      const schema = choseSchema(
-        decrypted.zkCertStandard,
-        importParams.customSchema as unknown as AnySchema,
-      );
-      const zkCert = parseZkCert(decrypted, schema);
+      const zkCert = (() => {
+        try {
+          return decryptZkCert(
+            importParams.encryptedZkCert,
+            holder.encryptionPrivKey,
+            customSchema,
+          );
+        } catch (error) {
+          const message = error instanceof Error ? error.message : `${error}`;
+          throw new ImportZkCertError({
+            name: 'FormatError',
+            message,
+          });
+        }
+      })();
+
+      const schema = chooseSchema(zkCert.zkCertStandard, customSchema);
 
       // prevent uploading the same zkCert again (it is fine on different registries though)
       const searchedZkCert = state.zkCerts
