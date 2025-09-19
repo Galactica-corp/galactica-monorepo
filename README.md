@@ -28,6 +28,7 @@ To interact with the Galactica Snap, you will need to install [MetaMask Flask](h
 
 ```shell
 yarn install
+nvm use 22
 yarn start
 ```
 

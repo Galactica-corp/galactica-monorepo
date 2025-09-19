@@ -222,7 +222,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
     );
 
     // increase the merkleRootValidIndex
-    await sc.mockZkCertificateRegistry.setMerkleRootValidIndex(2);
+    await sc.mockZkCertificateRegistry.setMerkleRootValidIndex(3);
 
     await expect(
       sc.ageCitizenshipKYC

@@ -24,7 +24,7 @@
     "/typechain-types"
   ],
   "scripts": {
-    "build": "hardhat smartCircuitBuild --verbose && hardhat compile && tsup --dts",
+    "build": "hardhat smartCircuitBuild --verbose && hardhat compile && hardhat run scripts/prepare-poseidon.ts && tsup --dts",
     "compile": "hardhat smartCircuitBuild --verbose",
     "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose",
     "start": "tsup --watch",

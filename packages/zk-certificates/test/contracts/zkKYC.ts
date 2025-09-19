@@ -211,7 +211,7 @@ describe('zkKYC SC', () => {
     );
 
     // increase the merkleRootValidIndex
-    await mockZkCertificateRegistry.setMerkleRootValidIndex(2);
+    await mockZkCertificateRegistry.setMerkleRootValidIndex(3);
 
     // set time to the public time
     await hre.network.provider.send('evm_setNextBlockTimestamp', [publicTime]);
