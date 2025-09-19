@@ -37,8 +37,7 @@ import { hashZkCertificateContent } from './zkCertificateDataProcessing';
  * Specification can be found here: https://docs.google.com/document/d/16R_CI7oj-OqRoIm6Ipo9vEpUQmgaVv7fL2yI4NTX9qw/edit?pli=1#heading=h.ah3xat5fhvac .
  */
 export class ZkCertificate<Content = AnyZkCertContent>
-  implements ZkCertData<Content>
-{
+  implements ZkCertData<Content> {
   // Field of the curve used by Poseidon
   public poseidon: Poseidon;
 
