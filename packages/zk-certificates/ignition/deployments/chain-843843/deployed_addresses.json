@@ -43,7 +43,7 @@
   "Gip4ZkCertRegistryModule#ProxyImplementationGuardianRegistry": "0xEd55438Acdf9d9449096844B7fe3B1e24F071359",
   "Gip4ZkCertRegistryModule#ProxyImplementationZkCertificateRegistry": "0x7F905f0E08058B92647dA44BCc763ea10A0ea71f",
   "Gip4ZkCertRegistryModule#TransparentUpgradeableProxyGuardianRegistry": "0x271050259E325Be9C39138A6aDFE4FCb76431042",
-  "Gip4ZkCertRegistryModule#UpgradableContractGuardianRegistry": "0x271050259E325Be9C39138A6aDFE4FCb76431042",
+  "Gip4ZkCertRegistryModule#UpgradableContractGuardianRegistry": "0x325c958189b10d61db04042d12a33875B84E4fdF",
   "Gip4ZkCertRegistryModule#ProxyAdminGuardianRegistry": "0x6786560939fDc596AD0aFB0B5dBE6291cB15C728",
   "Gip4ZkCertRegistryModule#TransparentUpgradeableProxyZkCertificateRegistry": "0x81F8f62A667B941E99A6F873833b389F63dd8C2F",
   "Gip4ZkCertRegistryModule#UpgradableContractZkCertificateRegistry": "0x81F8f62A667B941E99A6F873833b389F63dd8C2F",
@@ -71,5 +71,15 @@
   "Gip7ZkCertRegistryModule#ProxyAdminGuardianRegistry": "0x41095CC45FC96d0649b623d2A3Fbb00fabd4c419",
   "Gip7ZkCertRegistryModule#TransparentUpgradeableProxyZkCertificateRegistry": "0x4a4F5FeB7e5D0E2051B885D139E1adEE93052ec1",
   "Gip7ZkCertRegistryModule#UpgradableContractZkCertificateRegistry": "0x4a4F5FeB7e5D0E2051B885D139E1adEE93052ec1",
-  "Gip7ZkCertRegistryModule#ProxyAdminZkCertificateRegistry": "0xfCfFd8994f98d83e5510c46E97981cB629Eb8C65"
+  "Gip7ZkCertRegistryModule#ProxyAdminZkCertificateRegistry": "0xfCfFd8994f98d83e5510c46E97981cB629Eb8C65",
+  "TwitterProofsModule#SBTManager": "0x2A62552dc300D617ca4EbcC07c0d99500DD1BAda",
+  "TwitterProofsModule#TwitterCreationTimeProofVerifier": "0xDd2e7a28517D8ceDE52eceCEC7Bb081e78E2Dc02",
+  "TwitterProofsModule#TwitterFollowersCountProofVerifier": "0x2ee80d2AB4199b300539017022A537ce2F4AAF1C",
+  "TwitterProofsModule#DeployCreationTimeSBTBefore2020": "0x2A37c0B3a76Ed815079b9f54E7801cFD439dDE80",
+  "TwitterProofsModule#DeployCreationTimeSBTIn2024": "0xBC39110Ab4034D340E3B25E6fC562D63EC29A8dB",
+  "TwitterProofsModule#DeployFollowersCountSBT100": "0x73EA4f09Ce71Eadb2dAFEf272f60A8EBfD3B6Ec8",
+  "TwitterProofsModule#DeployFollowersCountSBT10k": "0x676e5ef75638C285f9A3342766637E2Bc0A9F779",
+  "TwitterProofsModule#DeployFollowersCountSBT1k": "0xB42d7bBCB23C63306fd6A07Ae26A67A234dbD019",
+  "TwitterProofsModule#TwitterCreationTimeProof": "0x5E3f89FdbAa3887e67EfEde933ef591B292E7b0A",
+  "TwitterProofsModule#TwitterFollowersCountProof": "0xAa2b7B56aD95B3a43aE0A46aAc16857325CD81B8"
 }
