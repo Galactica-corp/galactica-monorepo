@@ -87,7 +87,7 @@ describe('ZkKYCRegistry', () => {
     const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
     expect(await ZkKYCRegistry.merkleRootValidIndex()).to.be.equal(1);
-    const merkleRoots = await ZkKYCRegistry.getMerkleRoots(0);
+    const merkleRoots = await ZkKYCRegistry['getMerkleRoots(uint256)'](0);
     // normal "expect" doesn't compare arrays so we need to compare length and iterate over elements
     expectEqualArrays(merkleRoots, [
       0n,
@@ -117,22 +117,23 @@ describe('ZkKYCRegistry', () => {
       const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
-      await ZkKYCRegistry.registerToQueue(leafHashes[i]);
-      expect(
-        await ZkKYCRegistry.ZkCertificateHashToIndexInQueue(leafHashes[i]),
-      ).to.be.equal(i);
-      expect(await ZkKYCRegistry.currentQueuePointer()).to.be.equal(i);
-      expect(
-        await ZkKYCRegistry.checkZkCertificateHashInQueue(leafHashes[i]),
-      ).to.be.equal(true);
+      await ZkKYCRegistry['addOperationToQueue(bytes32,uint8)'](
+        leafHashes[i],
+        0, // Add
+      );
 
-      await ZkKYCRegistry.addZkKYC(
+      const operationData = await ZkKYCRegistry.zkCertificateProcessingData(
+        leafHashes[i],
+      );
+      expect(operationData.state).to.be.equal(1n); // 1 is IssuanceQueued
+      expect(operationData.queueIndex).to.be.equal(i);
+      expect(operationData.guardian).to.be.equal(deployer.address);
+      expect(await ZkKYCRegistry.currentQueuePointer()).to.be.equal(i);
+
+      await ZkKYCRegistry.processNextOperation(
         leafIndices[i],
         leafHashes[i],
         merkleProofPath,
-        testIdHash,
-        testHolderCommitment,
-        testExpirationTime,
       );
       expect(await ZkKYCRegistry.currentQueuePointer()).to.be.equal(i + 1);
 
@@ -146,7 +147,8 @@ describe('ZkKYCRegistry', () => {
     }
 
     // check the merkle root array is correctly set
-    const merkleRootsFromContract = await ZkKYCRegistry.getMerkleRoots(1);
+    const merkleRootsFromContract =
+      await ZkKYCRegistry['getMerkleRoots(uint256)'](1);
     expectEqualArrays(merkleRootsFromContract, merkleRoots);
     expect(await ZkKYCRegistry.merkleRootValidIndex()).to.be.equal(1);
     for (let i = 0; i < merkleRoots.length; i++) {
@@ -177,14 +179,13 @@ describe('ZkKYCRegistry', () => {
         fromHexToBytes32(fromDecToHex(value)),
       );
       // firstly we need to register the hash to the queue
-      await ZkKYCRegistry.registerToQueue(leafHashes[i]);
-      await ZkKYCRegistry.addZkKYC(
+      await ZkKYCRegistry[
+        'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
+      ](leafHashes[i], 0, testIdHash, testHolderCommitment, testExpirationTime);
+      await ZkKYCRegistry.processNextOperation(
         leafIndices[i],
         leafHashes[i],
         merkleProofPath,
-        testIdHash,
-        testHolderCommitment,
-        testExpirationTime,
       );
       merkleTree.insertLeaves([leafHashes[i]], [leafIndices[i]]);
     }
@@ -196,23 +197,25 @@ describe('ZkKYCRegistry', () => {
       fromHexToBytes32(fromDecToHex(value)),
     );
     // we need to register the zkCertificate hash to the queue
-    await ZkKYCRegistry.registerToQueue(leafHashes[leafIndex]);
-    expect(
-      await ZkKYCRegistry.ZkCertificateHashToIndexInQueue(
-        leafHashes[leafIndex],
-      ),
-    ).to.be.equal(loops);
-    expect(await ZkKYCRegistry.currentQueuePointer()).to.be.equal(loops);
-    expect(
-      await ZkKYCRegistry.checkZkCertificateHashInQueue(leafHashes[leafIndex]),
-    ).to.be.equal(true);
-
-    await ZkKYCRegistry.revokeZkCertificate(
+    await ZkKYCRegistry[
+      'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
+    ](leafHashes[leafIndex], 1, 0, 0, 0);
+    let operationData = await ZkKYCRegistry.zkCertificateProcessingData(
+      leafHashes[leafIndex],
+    );
+    expect(operationData.state).to.be.equal(2n); // 2 is RevocationQueued
+    expect(operationData.queueIndex).to.be.equal(loops);
+    expect(operationData.guardian).to.be.equal(deployer.address);
+    await ZkKYCRegistry.processNextOperation(
       leafIndices[leafIndex],
       leafHashes[leafIndex],
       merkleProofPath,
     );
     expect(await ZkKYCRegistry.currentQueuePointer()).to.be.equal(loops + 1);
+    operationData = await ZkKYCRegistry.zkCertificateProcessingData(
+      leafHashes[leafIndex],
+    );
+    expect(operationData.state).to.be.equal(3n); // 3 is Revoked
 
     merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[leafIndex]]);
 
@@ -240,29 +243,30 @@ describe('ZkKYCRegistry', () => {
     );
 
     await expect(
-      ZkKYCRegistry.registerToQueue(leafHashes[0]),
+      ZkKYCRegistry[
+        'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
+      ](leafHashes[0], 0, testIdHash, testHolderCommitment, testExpirationTime),
     ).to.be.revertedWith('ZkCertificateRegistry: not a Guardian');
 
     // add deployer as a Guardian
     await GuardianRegistry.grantGuardianRole(deployer.address, [0, 0], 'test');
 
     // now the deployer can register to the queue
-    await ZkKYCRegistry.registerToQueue(leafHashes[0]);
+    await ZkKYCRegistry[
+      'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
+    ](leafHashes[0], 0, testIdHash, testHolderCommitment, testExpirationTime);
 
     // but a random user cannot add ZkCertificate, even if it's already in the queue
     await expect(
-      ZkKYCRegistry.connect(user).addZkKYC(
+      ZkKYCRegistry.connect(user).processNextOperation(
         leafIndices[0],
         leafHashes[0],
         merkleProofPath,
-        testIdHash,
-        testHolderCommitment,
-        testExpirationTime,
       ),
     ).to.be.revertedWith('ZkCertificateRegistry: not a Guardian');
   });
 
-  it('elements in the queue cannot be skipped before expiration time', async function () {
+  it('elements in the queue cannot be skipped', async function () {
     // we also check that queue variables are updated correctly
     const loops = 5;
 
@@ -279,80 +283,45 @@ describe('ZkKYCRegistry', () => {
     const leafIndices = generateRandomNumberArray(5);
     // we register the ZkCertificateHashes to the queue but add them yet
     for (let i = 0; i < loops; i += 1) {
-      await ZkKYCRegistry.registerToQueue(leafHashes[i]);
-    }
-
-    const queueExpirationTime = await ZkKYCRegistry.queueExpirationTime();
-
-    // we check that the expiration time is set correctly
-    for (let i = 1; i < loops; i += 1) {
-      const expirationTime1 = await ZkKYCRegistry.ZkCertificateHashToQueueTime(
-        leafHashes[i - 1],
-      );
-      const expirationTime2 = await ZkKYCRegistry.ZkCertificateHashToQueueTime(
-        leafHashes[i],
-      );
-      expect(Number(expirationTime2) - Number(expirationTime1)).to.be.equal(
-        queueExpirationTime,
-      );
+      await ZkKYCRegistry[
+        'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
+      ](leafHashes[i], 0, testIdHash, testHolderCommitment, testExpirationTime);
     }
     // we don't intend to add the first (loops - 1) so we need to make a merkle proof without them
     merkleTree.insertLeaves([leafHashes[loops - 1]], [leafIndices[loops - 1]]);
 
-    let merkleProof = merkleTree.createProof(leafIndices[loops - 1]);
-    let merkleProofPath = merkleProof.pathElements.map((value) =>
+    const merkleProof = merkleTree.createProof(leafIndices[loops - 1]);
+    const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
 
     await expect(
-      ZkKYCRegistry.addZkKYC(
+      ZkKYCRegistry.processNextOperation(
         leafIndices[loops - 1],
         leafHashes[loops - 1],
         merkleProofPath,
-        testIdHash,
-        testHolderCommitment,
-        testExpirationTime,
       ),
     ).to.be.revertedWith('ZkCertificateRegistry: zkCertificate is not in turn');
 
-    // now we forward the time to make all earlier elements in the queue expire
-    const timestamp = await ZkKYCRegistry.ZkCertificateHashToQueueTime(
-      leafHashes[loops - 2],
-    );
-    await hre.network.provider.send('evm_setNextBlockTimestamp', [
-      Number(timestamp),
-    ]);
-    await hre.network.provider.send('evm_mine');
-    await ZkKYCRegistry.addZkKYC(
+    // process prior queued items
+    for (let j = 0; j < loops - 1; j += 1) {
+      const mpj = merkleTree.createProof(leafIndices[j]);
+      const mpjPath = mpj.pathElements.map((value) =>
+        fromHexToBytes32(fromDecToHex(value)),
+      );
+      await ZkKYCRegistry.processNextOperation(
+        leafIndices[j],
+        leafHashes[j],
+        mpjPath,
+      );
+    }
+    await ZkKYCRegistry.processNextOperation(
       leafIndices[loops - 1],
       leafHashes[loops - 1],
       merkleProofPath,
-      testIdHash,
-      testHolderCommitment,
-      testExpirationTime,
     );
     // we also check that the current pointer jumped correctly
     expect(await ZkKYCRegistry.currentQueuePointer()).to.be.equal(loops);
-    // since we reached the end of the queue we can also check that if we add another element the expiration time will not be dependent on earlier elements
-    const tx = await ZkKYCRegistry.registerToQueue(leafHashes[0]);
-    merkleTree.insertLeaves([leafHashes[0]], [leafIndices[0]]);
-
-    merkleProof = merkleTree.createProof(leafIndices[loops - 1]);
-    merkleProofPath = merkleProof.pathElements.map((value) =>
-      fromHexToBytes32(fromDecToHex(value)),
-    );
-    const { blockNumber } = tx;
-    if (!blockNumber) {
-      throw new Error('Block number is null');
-    }
-    const txBlock = await ethers.provider.getBlock(blockNumber);
-    if (!txBlock) {
-      throw new Error('Block is null');
-    }
-    const blocktime = Number(txBlock.timestamp);
-    expect(
-      await ZkKYCRegistry.ZkCertificateHashToQueueTime(leafHashes[0]),
-    ).to.be.equal(blocktime + Number(queueExpirationTime));
   });
 
   it('should integrate salt registry', async function () {
@@ -373,14 +342,13 @@ describe('ZkKYCRegistry', () => {
     let merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
-    await ZkKYCRegistry.registerToQueue(leafHashes[0]);
-    await ZkKYCRegistry.addZkKYC(
+    await ZkKYCRegistry[
+      'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
+    ](leafHashes[0], 0, testIdHash, testHolderCommitment, testExpirationTime);
+    await ZkKYCRegistry.processNextOperation(
       leafIndices[0],
       leafHashes[0],
       merkleProofPath,
-      testIdHash,
-      testHolderCommitment,
-      testExpirationTime,
     );
     merkleTree.insertLeaves([leafHashes[0]], [leafIndices[0]]);
 
@@ -402,8 +370,11 @@ describe('ZkKYCRegistry', () => {
     );
 
     // we need to register the zkCertificate hash to the queue
-    await ZkKYCRegistry.registerToQueue(leafHashes[leafIndex]);
-    await ZkKYCRegistry.revokeZkCertificate(
+    await ZkKYCRegistry['addOperationToQueue(bytes32,uint8)'](
+      leafHashes[leafIndex],
+      1,
+    );
+    await ZkKYCRegistry.processNextOperation(
       leafIndices[leafIndex],
       leafHashes[leafIndex],
       merkleProofPath,

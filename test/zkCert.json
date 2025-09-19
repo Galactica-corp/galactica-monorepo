@@ -67,7 +67,7 @@
     "address": "0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE",
     "chainID": 843843,
     "revocable": true,
-    "leafIndex": 1
+    "queuePosition": 1
   },
   "zkCertStandard": "gip1"
 }
