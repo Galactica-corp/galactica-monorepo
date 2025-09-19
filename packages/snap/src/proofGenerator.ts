@@ -3,8 +3,8 @@
  */
 
 // SPDX-License-Identifier: BUSL-1.1
+import type { GenZkProofParams } from '@galactica-net/galactica-types';
 import type {
-  GenZkProofParams,
   ProverData,
   ProverLink,
   ZkCertInputType,

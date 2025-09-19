@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
-import { type HolderCommitmentData } from '@galactica-net/galactica-types';
+import type {
+  HolderCommitmentData,
+  GenZkProofParams,
+} from '@galactica-net/galactica-types';
 import type {
   ConfirmationResponse,
   ImportZkCertParams,
-  GenZkProofParams,
   MerkleProofUpdateRequestParams,
   ZkCertSelectionParams,
   MerkleProofURLUpdateParams,
