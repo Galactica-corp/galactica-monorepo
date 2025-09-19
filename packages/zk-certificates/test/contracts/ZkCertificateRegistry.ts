@@ -202,10 +202,9 @@ describe('ZkCertificateRegistry', () => {
       leafHashes[leafIndex],
       1, // Revoke
     );
-    let operationData =
-      await ZkCertificateRegistry.zkCertificateProcessingData(
-        leafHashes[leafIndex],
-      );
+    let operationData = await ZkCertificateRegistry.zkCertificateProcessingData(
+      leafHashes[leafIndex],
+    );
     expect(operationData.state).to.be.equal(3n); // RevocationQueued
     expect(operationData.queueIndex).to.be.equal(loops);
     expect(operationData.guardian).to.be.equal(deployer.address);
@@ -221,10 +220,9 @@ describe('ZkCertificateRegistry', () => {
     expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(
       loops + 1,
     );
-    operationData =
-      await ZkCertificateRegistry.zkCertificateProcessingData(
-        leafHashes[leafIndex],
-      );
+    operationData = await ZkCertificateRegistry.zkCertificateProcessingData(
+      leafHashes[leafIndex],
+    );
     expect(operationData.state).to.be.equal(4n); // Revoked
 
     merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[leafIndex]]);
@@ -311,7 +309,9 @@ describe('ZkCertificateRegistry', () => {
         leafHashes[loops - 1],
         merkleProofPath,
       ),
-    ).to.be.revertedWith('ZkCertificateRegistry: zkCertificate is not in turn to be processed');
+    ).to.be.revertedWith(
+      'ZkCertificateRegistry: zkCertificate is not in turn to be processed',
+    );
 
     // process prior operations to advance pointer
     for (let j = 0; j < loops - 1; j += 1) {

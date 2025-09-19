@@ -14,7 +14,6 @@ const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
   );
 
   const merkleDepth = module.getParameter('merkleDepth', 32);
-  const queueExpirationTime = module.getParameter('queueExpirationTime', 60); // 1 min default
   const description = module.getParameter(
     'description',
     'ZkKYC RecordRegistry',

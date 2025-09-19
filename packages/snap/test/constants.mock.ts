@@ -12,7 +12,7 @@ import type {
   BenchmarkZKPGenParams,
   ZkKYCAgeCitizenshipProofInput,
 } from '@galactica-net/snap-api';
-import { getEddsaKeyFromEntropy, SparseMerkleTree } from '@galactica-net/zk-certificates';
+import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
 import { MD5 } from 'object-hash';
 

@@ -43,12 +43,12 @@ export async function issueZkCert(
       .getFunction(
         'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)',
       )(
-        leafBytes,
-        0, // RegistryOperation.Add
-        getIdHash(zkCert),
-        zkCert.holderCommitment,
-        zkCert.expirationDate,
-      );
+      leafBytes,
+      0, // RegistryOperation.Add
+      getIdHash(zkCert),
+      zkCert.holderCommitment,
+      zkCert.expirationDate,
+    );
   } else {
     tx = await (recordRegistry as ZkCertificateRegistry)
       .connect(issuer)

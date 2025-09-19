@@ -115,7 +115,10 @@ describe('Cross-Chain Replication Integration Test', async function () {
   ) {
     const { registry } = contracts;
 
-    await registry.write.addOperationToQueue([leafHash, 0 /* RegistryOperation.Add */]);
+    await registry.write.addOperationToQueue([
+      leafHash,
+      0 /* RegistryOperation.Add */,
+    ]);
 
     const merkleProof = merkleTree.createProof(leafIndex);
     const merkleProofPath = merkleProof.pathElements.map((value) =>
@@ -147,7 +150,10 @@ describe('Cross-Chain Replication Integration Test', async function () {
   ) {
     const { registry } = contracts;
 
-    await registry.write.addOperationToQueue([leafHash, 1 /* RegistryOperation.Revoke */]);
+    await registry.write.addOperationToQueue([
+      leafHash,
+      1 /* RegistryOperation.Revoke */,
+    ]);
 
     const merkleProof = merkleTree.createProof(leafIndex);
     const merkleProofPath = merkleProof.pathElements.map((value) =>

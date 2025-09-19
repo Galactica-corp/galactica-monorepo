@@ -1,17 +1,12 @@
 /* Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
-import type { ZkCertStandard } from '@galactica-net/galactica-types';
-import { KnownZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
 import { task, types } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
 import { fromDecToHex, fromHexToBytes32, printProgress } from '../lib/helpers';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import { flagStandardMapping } from '../lib/zkCertificate';
-import type { GuardianRegistry } from '../typechain-types/contracts/GuardianRegistry';
 import type { OwnableBatcher } from '../typechain-types/contracts/OwnableBatcher';
 import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
-import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
 
 /**
  * Task for issuing all zkCerts that are stuck in the queue.
@@ -29,7 +24,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     )} to sign the zkCertificate`,
   );
 
-
   const recordRegistry = (await hre.ethers.getContractAt(
     'ZkCertificateRegistry',
     args.registryAddress,
@@ -40,7 +34,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   const merkleTreeDepth = await recordRegistry.treeDepth();
   const merkleTree = await buildMerkleTreeFromRegistry(
-    recordRegistry as ZkCertificateRegistry,
+    recordRegistry,
     hre.ethers.provider,
     Number(merkleTreeDepth),
     printProgress,
@@ -65,14 +59,19 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   while (
     nextZkCertHash !==
-    '0x0000000000000000000000000000000000000000000000000000000000000000' && nextZkCertIndex < queueLength
+      '0x0000000000000000000000000000000000000000000000000000000000000000' &&
+    nextZkCertIndex < queueLength
   ) {
     // collect hashes for the next batch
     console.log(
       `Collecting queue item ${nextZkCertIndex} to ${nextZkCertIndex + BigInt(BATCH_SIZE)}`,
     );
     const batchPromises: Promise<string>[] = [];
-    for (let i = 0; i < BATCH_SIZE && nextZkCertIndex + BigInt(i) < queueLength; i++) {
+    for (
+      let i = 0;
+      i < BATCH_SIZE && nextZkCertIndex + BigInt(i) < queueLength;
+      i++
+    ) {
       batchPromises.push(
         recordRegistry.ZkCertificateQueue(nextZkCertIndex + BigInt(i)),
       );
@@ -81,18 +80,17 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
     // collect merkle proofs and calls for the batch
     const callData: Call[] = [];
-    for (let i = 0; i < zkCertHashes.length; i++) {
+    for (const hash of zkCertHashes) {
       const chosenLeafIndex = merkleTree.getFreeLeafIndex();
       const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
 
-      const operationData = await recordRegistry.zkCertificateProcessingData(
-        zkCertHashes[i],
-      );
+      const operationData =
+        await recordRegistry.zkCertificateProcessingData(hash);
       if (operationData.state !== 1n) {
         // 1 is IssuanceQueued
         console.error(
           chalk.red(
-            `ZkCert ${zkCertHashes[i]} is not queued for issuance. There is probably a revocation that can not be handled by this script yet.`,
+            `ZkCert ${hash} is not queued for issuance. There is probably a revocation that can not be handled by this script yet.`,
           ),
         );
         break;
@@ -101,22 +99,20 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       // processNextOperation for both Add and Revoke operations; here we assume queued Add operations
       callData.push({
         target: args.registryAddress,
-        callData: (
-          recordRegistry as ZkCertificateRegistry
-        ).interface.encodeFunctionData('processNextOperation', [
-          chosenLeafIndex,
-          zkCertHashes[i],
-          leafEmptyMerkleProof.pathElements.map((value) =>
-            fromHexToBytes32(fromDecToHex(value)),
-          ),
-        ]),
+        callData: recordRegistry.interface.encodeFunctionData(
+          'processNextOperation',
+          [
+            chosenLeafIndex,
+            hash,
+            leafEmptyMerkleProof.pathElements.map((value) =>
+              fromHexToBytes32(fromDecToHex(value)),
+            ),
+          ],
+        ),
       });
 
       // update the local merkle tree so that the next zkCert will get a correct merkle proof again
-      merkleTree.insertLeaf(
-        BigInt(zkCertHashes[i]).toString(),
-        chosenLeafIndex,
-      );
+      merkleTree.insertLeaf(BigInt(hash).toString(), chosenLeafIndex);
     }
 
     // execute the calls

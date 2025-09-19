@@ -117,7 +117,9 @@ describe('ZkKYCRegistry', () => {
       const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
-      await ZkKYCRegistry['addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'](
+      await ZkKYCRegistry[
+        'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
+      ](
         leafHashes[i],
         0, // Add
         testIdHash,
@@ -200,9 +202,10 @@ describe('ZkKYCRegistry', () => {
       fromHexToBytes32(fromDecToHex(value)),
     );
     // we need to register the zkCertificate hash to the queue
-    await ZkKYCRegistry[
-      'addOperationToQueue(bytes32,uint8)'
-    ](leafHashes[leafIndex], 1);
+    await ZkKYCRegistry['addOperationToQueue(bytes32,uint8)'](
+      leafHashes[leafIndex],
+      1,
+    );
     let operationData = await ZkKYCRegistry.zkCertificateProcessingData(
       leafHashes[leafIndex],
     );
@@ -302,7 +305,9 @@ describe('ZkKYCRegistry', () => {
         leafHashes[loops - 1],
         merkleProofPath,
       ),
-    ).to.be.revertedWith('ZkCertificateRegistry: zkCertificate is not in turn to be processed');
+    ).to.be.revertedWith(
+      'ZkCertificateRegistry: zkCertificate is not in turn to be processed',
+    );
 
     // process prior queued items
     for (let j = 0; j < loops - 1; j += 1) {
