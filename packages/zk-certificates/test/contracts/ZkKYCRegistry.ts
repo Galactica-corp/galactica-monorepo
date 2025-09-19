@@ -117,9 +117,12 @@ describe('ZkKYCRegistry', () => {
       const merkleProofPath = merkleProof.pathElements.map((value) =>
         fromHexToBytes32(fromDecToHex(value)),
       );
-      await ZkKYCRegistry['addOperationToQueue(bytes32,uint8)'](
+      await ZkKYCRegistry['addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'](
         leafHashes[i],
         0, // Add
+        testIdHash,
+        testHolderCommitment,
+        testExpirationTime,
       );
 
       const operationData = await ZkKYCRegistry.zkCertificateProcessingData(
@@ -198,12 +201,12 @@ describe('ZkKYCRegistry', () => {
     );
     // we need to register the zkCertificate hash to the queue
     await ZkKYCRegistry[
-      'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
-    ](leafHashes[leafIndex], 1, 0, 0, 0);
+      'addOperationToQueue(bytes32,uint8)'
+    ](leafHashes[leafIndex], 1);
     let operationData = await ZkKYCRegistry.zkCertificateProcessingData(
       leafHashes[leafIndex],
     );
-    expect(operationData.state).to.be.equal(2n); // 2 is RevocationQueued
+    expect(operationData.state).to.be.equal(3n); // 3 is RevocationQueued
     expect(operationData.queueIndex).to.be.equal(loops);
     expect(operationData.guardian).to.be.equal(deployer.address);
     await ZkKYCRegistry.processNextOperation(
@@ -215,7 +218,7 @@ describe('ZkKYCRegistry', () => {
     operationData = await ZkKYCRegistry.zkCertificateProcessingData(
       leafHashes[leafIndex],
     );
-    expect(operationData.state).to.be.equal(3n); // 3 is Revoked
+    expect(operationData.state).to.be.equal(4n); // 4 is Revoked
 
     merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[leafIndex]]);
 
@@ -256,14 +259,14 @@ describe('ZkKYCRegistry', () => {
       'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
     ](leafHashes[0], 0, testIdHash, testHolderCommitment, testExpirationTime);
 
-    // but a random user cannot add ZkCertificate, even if it's already in the queue
+    // A random user may process the operation
     await expect(
       ZkKYCRegistry.connect(user).processNextOperation(
         leafIndices[0],
         leafHashes[0],
         merkleProofPath,
       ),
-    ).to.be.revertedWith('ZkCertificateRegistry: not a Guardian');
+    ).to.be.fulfilled;
   });
 
   it('elements in the queue cannot be skipped', async function () {
@@ -287,11 +290,9 @@ describe('ZkKYCRegistry', () => {
         'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)'
       ](leafHashes[i], 0, testIdHash, testHolderCommitment, testExpirationTime);
     }
-    // we don't intend to add the first (loops - 1) so we need to make a merkle proof without them
-    merkleTree.insertLeaves([leafHashes[loops - 1]], [leafIndices[loops - 1]]);
 
-    const merkleProof = merkleTree.createProof(leafIndices[loops - 1]);
-    const merkleProofPath = merkleProof.pathElements.map((value) =>
+    let merkleProof = merkleTree.createProof(leafIndices[loops - 1]);
+    let merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
 
@@ -301,7 +302,7 @@ describe('ZkKYCRegistry', () => {
         leafHashes[loops - 1],
         merkleProofPath,
       ),
-    ).to.be.revertedWith('ZkCertificateRegistry: zkCertificate is not in turn');
+    ).to.be.revertedWith('ZkCertificateRegistry: zkCertificate is not in turn to be processed');
 
     // process prior queued items
     for (let j = 0; j < loops - 1; j += 1) {
@@ -314,7 +315,14 @@ describe('ZkKYCRegistry', () => {
         leafHashes[j],
         mpjPath,
       );
+      merkleTree.insertLeaves([leafHashes[j]], [leafIndices[j]]);
     }
+
+    // now the last element should be in turn to be processed
+    merkleProof = merkleTree.createProof(leafIndices[loops - 1]);
+    merkleProofPath = merkleProof.pathElements.map((value) =>
+      fromHexToBytes32(fromDecToHex(value)),
+    );
     await ZkKYCRegistry.processNextOperation(
       leafIndices[loops - 1],
       leafHashes[loops - 1],

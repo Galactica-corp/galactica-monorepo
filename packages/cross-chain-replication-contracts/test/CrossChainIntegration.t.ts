@@ -115,14 +115,14 @@ describe('Cross-Chain Replication Integration Test', async function () {
   ) {
     const { registry } = contracts;
 
-    await registry.write.registerToQueue([leafHash]);
+    await registry.write.addOperationToQueue([leafHash, 0 /* RegistryOperation.Add */]);
 
     const merkleProof = merkleTree.createProof(leafIndex);
     const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
 
-    await registry.write.addZkCertificate([
+    await registry.write.processNextOperation([
       leafIndex,
       leafHash,
       merkleProofPath,
@@ -147,14 +147,14 @@ describe('Cross-Chain Replication Integration Test', async function () {
   ) {
     const { registry } = contracts;
 
-    await registry.write.registerToQueue([leafHash]);
+    await registry.write.addOperationToQueue([leafHash, 1 /* RegistryOperation.Revoke */]);
 
     const merkleProof = merkleTree.createProof(leafIndex);
     const merkleProofPath = merkleProof.pathElements.map((value) =>
       fromHexToBytes32(fromDecToHex(value)),
     );
 
-    await registry.write.revokeZkCertificate([
+    await registry.write.processNextOperation([
       leafIndex,
       leafHash,
       merkleProofPath,

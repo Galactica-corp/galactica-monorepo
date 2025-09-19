@@ -202,11 +202,11 @@ describe('ZkCertificateRegistry', () => {
       leafHashes[leafIndex],
       1, // Revoke
     );
-    const operationData =
+    let operationData =
       await ZkCertificateRegistry.zkCertificateProcessingData(
         leafHashes[leafIndex],
       );
-    expect(operationData.state).to.be.equal(2n); // 2 is RevocationQueued
+    expect(operationData.state).to.be.equal(3n); // RevocationQueued
     expect(operationData.queueIndex).to.be.equal(loops);
     expect(operationData.guardian).to.be.equal(deployer.address);
     expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(
@@ -221,6 +221,11 @@ describe('ZkCertificateRegistry', () => {
     expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(
       loops + 1,
     );
+    operationData =
+      await ZkCertificateRegistry.zkCertificateProcessingData(
+        leafHashes[leafIndex],
+      );
+    expect(operationData.state).to.be.equal(4n); // Revoked
 
     merkleTree.insertLeaves([merkleTree.emptyLeaf], [leafIndices[leafIndex]]);
 
@@ -269,7 +274,7 @@ describe('ZkCertificateRegistry', () => {
     const operationData =
       await ZkCertificateRegistry.zkCertificateProcessingData(leafHashes[0]);
     expect(operationData.state).to.be.equal(2n); // 2 is Issued
-    expect(operationData.queueIndex).to.be.equal(1);
+    expect(operationData.queueIndex).to.be.equal(0);
     expect(operationData.guardian).to.be.equal(deployer.address);
     expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(1);
   });
@@ -294,8 +299,6 @@ describe('ZkCertificateRegistry', () => {
     for (let i = 0; i < loops; i += 1) {
       await ZkCertificateRegistry.addOperationToQueue(leafHashes[i], 0);
     }
-    // we don't intend to add the first (loops - 1) so we need to make a merkle proof without them
-    merkleTree.insertLeaves([leafHashes[loops - 1]], [leafIndices[loops - 1]]);
 
     let merkleProof = merkleTree.createProof(leafIndices[loops - 1]);
     let merkleProofPath = merkleProof.pathElements.map((value) =>
@@ -308,7 +311,7 @@ describe('ZkCertificateRegistry', () => {
         leafHashes[loops - 1],
         merkleProofPath,
       ),
-    ).to.be.revertedWith('ZkCertificateRegistry: zkCertificate is not in turn');
+    ).to.be.revertedWith('ZkCertificateRegistry: zkCertificate is not in turn to be processed');
 
     // process prior operations to advance pointer
     for (let j = 0; j < loops - 1; j += 1) {
@@ -321,35 +324,24 @@ describe('ZkCertificateRegistry', () => {
         leafHashes[j],
         mpjPath,
       );
+      merkleTree.insertLeaves([leafHashes[j]], [leafIndices[j]]);
     }
+
+    // now the last element should be in turn to be processed
+    merkleProof = merkleTree.createProof(leafIndices[loops - 1]);
+    merkleProofPath = merkleProof.pathElements.map((value) =>
+      fromHexToBytes32(fromDecToHex(value)),
+    );
     await ZkCertificateRegistry.processNextOperation(
       leafIndices[loops - 1],
       leafHashes[loops - 1],
       merkleProofPath,
     );
+
     // we also check that the current pointer jumped correctly
     expect(await ZkCertificateRegistry.currentQueuePointer()).to.be.equal(
       loops,
     );
-    // since we reached the end of the queue we can also check that if we add another element the expiration time will not be dependent on earlier elements
-    const tx = await ZkCertificateRegistry.addOperationToQueue(
-      leafHashes[0],
-      0,
-    );
-    merkleTree.insertLeaves([leafHashes[0]], [leafIndices[0]]);
-
-    merkleProof = merkleTree.createProof(leafIndices[loops - 1]);
-    merkleProofPath = merkleProof.pathElements.map((value) =>
-      fromHexToBytes32(fromDecToHex(value)),
-    );
-    const { blockNumber } = tx;
-    if (!blockNumber) {
-      throw new Error('Block number is null');
-    }
-    const txBlock = await ethers.provider.getBlock(blockNumber);
-    if (!txBlock) {
-      throw new Error('Block is null');
-    }
   });
 
   it('should return correct slice of merkle roots with startIndex', async function () {
