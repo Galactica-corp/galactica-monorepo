@@ -310,6 +310,13 @@ contract ZkCertificateRegistry is
         zkCertificateHashToData[zkCertificateHash].guardian = msg.sender;
 
         ZkCertificateQueue.push(zkCertificateHash);
+
+        emit OperationQueued(
+            zkCertificateHash,
+            msg.sender,
+            operation,
+            zkCertificateHashToData[zkCertificateHash].queueIndex
+        );
     }
 
     /**

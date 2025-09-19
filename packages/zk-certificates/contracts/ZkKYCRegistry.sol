@@ -29,15 +29,25 @@ contract ZkKYCRegistry is ZkCertificateRegistry {
     }
 
     /**
-     * @notice Calling addOperationToQueue directly is not allowed, because the salt needs to be checked for sybil resistance.
+     * @notice Register an operation about a zkCertificate to the queue.
+     * @dev Only for revocation in zkKYC. Addition needs more parameters.
+     * @param zkCertificateHash - Hash of the zkCertificate record leaf.
+     * @param operation - Operation to add to the queue.
      */
     function addOperationToQueue(
-        bytes32,
-        RegistryOperation
-    ) public pure override {
-        revert(
-            'ZkKYCRegistry: can not addOperationToQueue without the parameters for the salt registry'
-        );
+        bytes32 zkCertificateHash,
+        RegistryOperation operation
+    ) public override {
+        if (operation == RegistryOperation.Add) {
+            revert(
+                'ZkKYCRegistry: can not addOperationToQueue without the parameters for the salt registry'
+            );
+        } else if (operation == RegistryOperation.Revoke) {
+            humanIDSaltRegistry.onZkCertRevocation(uint256(zkCertificateHash));
+            super.addOperationToQueue(zkCertificateHash, operation);
+        } else {
+            revert('ZkKYCRegistry: invalid operation');
+        }
     }
 
     /**
@@ -68,7 +78,9 @@ contract ZkKYCRegistry is ZkCertificateRegistry {
                 saltHash
             );
         } else if (operation == RegistryOperation.Revoke) {
-            humanIDSaltRegistry.onZkCertRevocation(uint256(zkCertificateHash));
+            revert(
+                'ZkKYCRegistry: for revocation, use addOperationToQueue(bytes32, RegistryOperation)'
+            );
         } else {
             revert('ZkKYCRegistry: invalid operation');
         }
