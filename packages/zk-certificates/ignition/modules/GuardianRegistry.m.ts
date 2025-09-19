@@ -2,7 +2,6 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
-
 import { defineUpgradableProxy } from './UpgradableProxy.m';
 
 

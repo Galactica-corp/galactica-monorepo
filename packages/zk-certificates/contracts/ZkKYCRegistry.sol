@@ -14,14 +14,27 @@ import {RegistryOperation} from './interfaces/IWritableZKCertRegistry.sol';
 contract ZkKYCRegistry is ZkCertificateRegistry {
     HumanIDSaltRegistry public humanIDSaltRegistry;
 
-    constructor(
+    constructor() {
+        // not used because the contract is behind a proxy and needs to be initialized instead
+        _disableInitializers();
+    }
+
+    /**
+     * @notice Initialize the contract with this function because a smart contract behind a proxy can't have a constructor.
+     * @param GuardianRegistry_ Address of the guardian registry.
+     * @param treeDepth_ Depth of the Merkle tree.
+     * @param description_ Description of the zkCertificate registry.
+     */
+    function initialize(
         address GuardianRegistry_,
         uint256 treeDepth_,
         string memory description_
-    )
-        initializer
-        ZkCertificateRegistry(GuardianRegistry_, treeDepth_, description_)
-    {
+    ) public override initializer {
+        ZkCertificateRegistry.initialize(
+            GuardianRegistry_,
+            treeDepth_,
+            description_
+        );
         humanIDSaltRegistry = new HumanIDSaltRegistry(
             GuardianRegistry_,
             address(this)

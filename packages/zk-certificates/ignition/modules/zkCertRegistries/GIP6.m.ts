@@ -2,6 +2,7 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
+import { defineUpgradableProxy } from '../UpgradableProxy.m';
 
 import poseidonModule from '../Poseidon.m';
 
@@ -15,9 +16,11 @@ const Gip6ZkCertRegistryModule = buildModule(
       'ExchangeData Guardian Registry',
     );
 
-    const guardianRegistry = module.contract('GuardianRegistry', [
-      guardianRegistryDescription,
-    ]);
+    const { upgradableContract: guardianRegistry, proxyContracts: guardianRegistryProxyContracts } = defineUpgradableProxy(
+      module,
+      'GuardianRegistry',
+      [guardianRegistryDescription],
+    );
 
     const merkleDepth = module.getParameter('merkleDepth', 32);
     const zkCertRegistryDescription = module.getParameter(
@@ -25,17 +28,16 @@ const Gip6ZkCertRegistryModule = buildModule(
       'ExchangeData ZkCertificate Registry',
     );
 
-    const zkCertRegistry = module.contract(
+    const { upgradableContract: zkCertRegistry, proxyContracts: certificateRegistryProxyContracts } = defineUpgradableProxy(
+      module,
       'ZkCertificateRegistry',
       [guardianRegistry, merkleDepth, zkCertRegistryDescription],
       {
-        libraries: {
-          PoseidonT3: poseidon,
-        },
+        PoseidonT3: poseidon,
       },
     );
 
-    return { guardianRegistry, zkCertRegistry };
+    return { guardianRegistry, zkCertRegistry, ...certificateRegistryProxyContracts, ...guardianRegistryProxyContracts };
   },
 );
 

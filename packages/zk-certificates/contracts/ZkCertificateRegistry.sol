@@ -2,13 +2,8 @@
 pragma solidity 0.8.28;
 pragma abicoder v2;
 
-// OpenZeppelin v4
-import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-
 import {SNARK_SCALAR_FIELD} from './helpers/Globals.sol';
-
 import {PoseidonT3} from './helpers/Poseidon.sol';
-
 import {GuardianInfo} from './GuardianRegistry.sol';
 
 import {IGuardianRegistry} from './interfaces/IGuardianRegistry.sol';
@@ -16,7 +11,8 @@ import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
 import {IReadableZkCertRegistry} from './interfaces/IReadableZkCertRegistry.sol';
 import {IWritableZKCertRegistry, CertificateData, RegistryOperation, CertificateState} from './interfaces/IWritableZKCertRegistry.sol';
 
-import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {Ownable2StepUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol';
 import {Fallback} from './helpers/Fallback.sol';
 import {ChainAgnosticCalls} from './helpers/ChainAgnosticCalls.sol';
 
@@ -27,9 +23,8 @@ import {ChainAgnosticCalls} from './helpers/ChainAgnosticCalls.sol';
  * Relevant external contract calls should be in those functions, not here
  */
 contract ZkCertificateRegistry is
-    Initializable,
     IZkCertificateRegistry,
-    Ownable,
+    Ownable2StepUpgradeable,
     Fallback,
     ChainAgnosticCalls
 {
@@ -43,8 +38,8 @@ contract ZkCertificateRegistry is
     string public description;
 
     // The tree depth and size
-    uint256 public immutable treeDepth;
-    uint256 public immutable treeSize;
+    uint256 public treeDepth;
+    uint256 public treeSize;
 
     // Tree zero value
     bytes32 public constant ZERO_VALUE =
@@ -72,14 +67,26 @@ contract ZkCertificateRegistry is
 
     IGuardianRegistry public override(IReadableZkCertRegistry) guardianRegistry;
 
-    constructor(
+    constructor() {
+        // not used because the contract is behind a proxy and needs to be initialized instead
+        _disableInitializers();
+    }
+
+    /**
+     * @notice Initialize the contract with this function because a smart contract behind a proxy can't have a constructor.
+     * @param GuardianRegistry_ Address of the guardian registry.
+     * @param treeDepth_ Depth of the Merkle tree.
+     * @param description_ Description of the zkCertificate registry.
+     */
+    function initialize(
         address GuardianRegistry_,
         uint256 treeDepth_,
         string memory description_
-    ) initializer Ownable(msg.sender) {
+    ) public virtual initializer {
         treeDepth = treeDepth_;
         treeSize = 2 ** treeDepth;
         initializeZkCertificateRegistry(GuardianRegistry_, description_);
+        __Ownable_init(msg.sender);
     }
 
     /**
