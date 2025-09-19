@@ -2,6 +2,8 @@
 
 pragma solidity 0.8.28;
 
+import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import {Ownable2StepUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IGuardianRegistry.sol';
 import {Fallback} from './helpers/Fallback.sol';
@@ -28,7 +30,11 @@ struct GuardianIssuer {
 
 /// @author Galactica dev team
 /// @title Smart contract storing whitelist of GNET guardians, for example KYC provider guardians
-contract GuardianRegistry is Ownable, IGuardianRegistry, Fallback {
+contract GuardianRegistry is
+    Ownable2StepUpgradeable,
+    IGuardianRegistry,
+    Fallback
+{
     // a short description to describe which type of zkCertificate is managed by Guardians in this Registry
 
     string public description;
@@ -42,8 +48,9 @@ contract GuardianRegistry is Ownable, IGuardianRegistry, Fallback {
         _;
     }
 
-    constructor(string memory _description) Ownable(msg.sender) {
-        description = _description;
+    constructor() {
+        // not used because the contract is behind a proxy and needs to be initialized instead
+        _disableInitializers();
     }
 
     event GuardianAddition(
@@ -63,6 +70,15 @@ contract GuardianRegistry is Ownable, IGuardianRegistry, Fallback {
     event IssuerAddition(address indexed guardian, address indexed issuer);
 
     event IssuerRevocation(address indexed guardian, address indexed issuer);
+
+    /**
+     * @notice Initialize the contract with this function because a smart contract behind a proxy can't have a constructor.
+     * @param _description Description of the guardian registry.
+     */
+    function initialize(string memory _description) public initializer {
+        description = _description;
+        __Ownable_init(msg.sender);
+    }
 
     function _checkGuardian(address account) internal view {
         if (!guardians[account].whitelisted) {
