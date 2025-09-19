@@ -2,7 +2,6 @@
 import type { ZkCertStandard } from '@galactica-net/galactica-types';
 import { KnownZkCertStandard } from '@galactica-net/galactica-types';
 import chalk from 'chalk';
-import { randomInt } from 'crypto';
 import { task, types } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 
@@ -59,10 +58,8 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     args.batcherAddress,
   )) as unknown as OwnableBatcher;
 
-  const fakeIDHashForSalt = randomInt(1000000, 100000000);
-
   // whitelist the batcher as guardian address
-  const guardianRegistryAddress = await recordRegistry._GuardianRegistry();
+  const guardianRegistryAddress = await recordRegistry.guardianRegistry();
   const guardianRegistry = (await hre.ethers.getContractAt(
     'GuardianRegistry',
     guardianRegistryAddress,
@@ -103,37 +100,32 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       const chosenLeafIndex = merkleTree.getFreeLeafIndex();
       const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
 
-      if (zkCertificateType === KnownZkCertStandard.ZkKYC) {
-        callData.push({
-          target: args.registryAddress,
-          callData: (
-            recordRegistry as ZkKYCRegistry
-          ).interface.encodeFunctionData('addZkKYC', [
-            chosenLeafIndex,
-            zkCertHashes[i],
-            leafEmptyMerkleProof.pathElements.map((value) =>
-              fromHexToBytes32(fromDecToHex(value)),
-            ),
-            fakeIDHashForSalt,
-            fakeIDHashForSalt,
-            0,
-          ]),
-        });
-      } else {
-        callData.push({
-          target: args.registryAddress,
-          callData: recordRegistry.interface.encodeFunctionData(
-            'addZkCertificate',
-            [
-              chosenLeafIndex,
-              zkCertHashes[i],
-              leafEmptyMerkleProof.pathElements.map((value) =>
-                fromHexToBytes32(fromDecToHex(value)),
-              ),
-            ],
+      const operationData = await recordRegistry.zkCertificateProcessingData(
+        zkCertHashes[i],
+      );
+      if (operationData.state !== 1n) {
+        // 1 is IssuanceQueued
+        console.error(
+          chalk.red(
+            `ZkCert ${zkCertHashes[i]} is not queued for issuance. There is probably a revocation that can not be handled by this script yet.`,
           ),
-        });
+        );
+        break;
       }
+
+      // processNextOperation for both Add and Revoke operations; here we assume queued Add operations
+      callData.push({
+        target: args.registryAddress,
+        callData: (
+          recordRegistry as ZkCertificateRegistry
+        ).interface.encodeFunctionData('processNextOperation', [
+          chosenLeafIndex,
+          zkCertHashes[i],
+          leafEmptyMerkleProof.pathElements.map((value) =>
+            fromHexToBytes32(fromDecToHex(value)),
+          ),
+        ]),
+      });
 
       // update the local merkle tree so that the next zkCert will get a correct merkle proof again
       merkleTree.insertLeaf(

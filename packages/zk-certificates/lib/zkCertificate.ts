@@ -462,8 +462,8 @@ export function parseZkCert(
   if (registration.revocable === undefined) {
     complainMissingField('registration.revocable');
   }
-  if (registration.leafIndex === undefined) {
-    complainMissingField('registration.leafIndex');
+  if (registration.queuePosition === undefined) {
+    complainMissingField('registration.queuePosition');
   }
 
   try {

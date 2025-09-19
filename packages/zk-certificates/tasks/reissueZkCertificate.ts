@@ -15,12 +15,7 @@ import { hashStringToFieldNumber, printProgress } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
 import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
-import {
-  issueZkCert,
-  revokeZkCert,
-  registerZkCertToQueue,
-  waitOnIssuanceQueue,
-} from '../lib/registryTools';
+import { issueZkCert, revokeZkCert } from '../lib/registryTools';
 import { flagStandardMapping, ZkCertificate } from '../lib/zkCertificate';
 import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
 import type { ZkKYCRegistry } from '../typechain-types/contracts/ZkKYCRegistry';
@@ -94,7 +89,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   const merkleTreeDepth = await recordRegistry.treeDepth();
   // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
-  let merkleTree = await buildMerkleTreeFromRegistry(
+  const merkleTree = await buildMerkleTreeFromRegistry(
     recordRegistry as ZkCertificateRegistry,
     hre.ethers.provider,
     Number(merkleTreeDepth),
@@ -102,84 +97,30 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
   const leafHashToRevoke = merkleTree.retrieveLeaf(0, args.index);
 
-  console.log('Register zkCertificate to the queue to revoke...');
-  await registerZkCertToQueue(leafHashToRevoke, recordRegistry, issuer);
-
-  await waitOnIssuanceQueue(
-    recordRegistry,
-    leafHashToRevoke,
-    hre.ethers.provider,
-  );
-
-  console.log('Rebuild merkle tree after waiting for queue.');
-  merkleTree = await buildMerkleTreeFromRegistry(
-    recordRegistry as ZkCertificateRegistry,
-    hre.ethers.provider,
-    Number(merkleTreeDepth),
-    printProgress,
-  );
-
   // reissue = revoke + issue
   console.log('revoking previous entry...');
   await revokeZkCert(
     leafHashToRevoke,
-    args.index,
     recordRegistry as ZkCertificateRegistry,
     issuer,
-    merkleTree,
   );
-  console.log(
-    chalk.green(
-      `Revoked the zkCertificate ${args.leafHash} on-chain at index ${
-        args.index as number
-      }`,
-    ),
-  );
-
-  console.log('Register zkCertificate to the queue to readd...');
-  await registerZkCertToQueue(
-    newZkCertificate.leafHash,
-    recordRegistry,
-    issuer,
-  );
-
-  await waitOnIssuanceQueue(
-    recordRegistry,
-    newZkCertificate.leafHash,
-    hre.ethers.provider,
-  );
-
-  console.log(
-    'Generating merkle proof. This might take a while because it needs to query on-chain data...',
-  );
-
-  const merkleTree2 = await buildMerkleTreeFromRegistry(
-    recordRegistry as ZkCertificateRegistry,
-    hre.ethers.provider,
-    Number(merkleTreeDepth),
-    printProgress,
-  );
-
-  console.log('Issuing zkCertificate...');
-  const { merkleProof, registration } = await issueZkCert(
+  console.log('Queueing issuance for new zkCertificate...');
+  const { registration } = await issueZkCert(
     newZkCertificate,
     recordRegistry,
     issuer,
-    merkleTree2,
     hre.ethers.provider,
   );
   console.log(
     chalk.green(
-      `reissued the zkCertificate ${newZkCertificate.did} on chain at index ${
-        args.index as number
-      } with new expiration date ${args.expirationDate as number}`,
+      `Queued reissuance of zkCertificate ${newZkCertificate.did} with new expiration ${args.expirationDate as number} at queue position ${registration.queuePosition}`,
     ),
   );
 
   // print to console for developers and testers, not necessary for production
   const rawJSON = {
     ...newZkCertificate.exportRaw(),
-    merkleProof,
+    undefined, // merkleProof not available yet
     registration,
   };
   console.log(JSON.stringify(rawJSON, null, 2));
@@ -188,7 +129,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // write encrypted zkCertificate output to file
   const output = newZkCertificate.exportJson(
     holderCommitmentData.encryptionPubKey,
-    merkleProof,
+    undefined, // merkleProof not available yet
     registration,
   );
 

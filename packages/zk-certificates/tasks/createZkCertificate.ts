@@ -11,17 +11,14 @@ import { string } from 'hardhat/internal/core/params/argumentTypes';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
 import path from 'path';
 
-import { hashStringToFieldNumber, printProgress } from '../lib/helpers';
+import { hashStringToFieldNumber } from '../lib/helpers';
 import { parseHolderCommitment } from '../lib/holderCommitment';
 import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
-import { buildMerkleTreeFromRegistry } from '../lib/queryMerkleTree';
 import {
   checkZkKYCSaltHashCompatibility,
   issueZkCert,
   listZkKYCsLockingTheSaltHash,
-  registerZkCertToQueue,
   resetSaltHash,
-  waitOnIssuanceQueue,
 } from '../lib/registryTools';
 import { flagStandardMapping, ZkCertificate } from '../lib/zkCertificate';
 import type { ZkCertificateRegistry } from '../typechain-types/contracts/ZkCertificateRegistry';
@@ -156,45 +153,22 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       }
     }
 
-    console.log('Register zkCertificate to the queue...');
-    await registerZkCertToQueue(zkCertificate.leafHash, recordRegistry, issuer);
-
-    await waitOnIssuanceQueue(
-      recordRegistry,
-      zkCertificate.leafHash,
-      hre.ethers.provider,
-    );
-
-    console.log(
-      'Generating merkle proof. This might take a while because it needs to query on-chain data...',
-    );
-    const merkleTreeDepth = await recordRegistry.treeDepth();
-    // Note for developers: The slow part of building the Merkle tree can be skipped if you build a back-end service maintaining an updated Merkle tree
-    const merkleTree = await buildMerkleTreeFromRegistry(
-      recordRegistry as ZkCertificateRegistry,
-      hre.ethers.provider,
-      Number(merkleTreeDepth),
-      printProgress,
-    );
-
-    console.log('Issuing zkCertificate...');
-    const { merkleProof, registration } = await issueZkCert(
+    console.log('Enqueueing zkCertificate issuance operation...');
+    const { registration } = await issueZkCert(
       zkCertificate,
       recordRegistry,
       issuer,
-      merkleTree,
       hre.ethers.provider,
     );
     console.log(
       chalk.green(
-        `Issued the zkCertificate certificate ${zkCertificate.did} on chain at index ${registration.leafIndex}`,
+        `Queued issuance of zkCertificate ${zkCertificate.did} on-chain at queue position ${registration.queuePosition}`,
       ),
     );
 
     // print to console for developers and testers, not necessary for production
     const rawJSON = {
       ...zkCertificate.exportRaw(),
-      merkleProof,
       registration,
     };
     console.log(JSON.stringify(rawJSON, null, 2));
@@ -203,7 +177,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     // write encrypted zkCertificate output to file
     const output = zkCertificate.exportJson(
       holderCommitmentData.encryptionPubKey,
-      merkleProof,
+      undefined, // merkleProof not available yet
       registration,
     );
 
