@@ -75,14 +75,13 @@ function getCacheFilePath(
 ): string {
   try {
     // Use process.cwd() as fallback for browser environments where __dirname is not available
+    const g: { __dirname?: string } = globalThis as unknown as {
+      __dirname?: string;
+    };
     const defaultDataDir =
-      typeof globalThis.__dirname === 'undefined'
-        ? path.join(
-            // eslint-disable-next-line no-restricted-globals
-            process?.cwd ? process.cwd() : '.',
-            'data',
-          )
-        : path.join(globalThis.__dirname, '..', 'data');
+      typeof g.__dirname === 'undefined'
+        ? path.join(process?.cwd ? process.cwd() : '.', 'data')
+        : path.join(g.__dirname as string, '..', 'data');
 
     const dataDir = cacheDir ?? defaultDataDir;
     if (!fs.existsSync(dataDir)) {
@@ -236,18 +235,14 @@ export async function queryOnChainLeaves(
       );
     }
 
-    // go through all logs adding a verification SBT for the user
-    let leafAddedLogs, leafRevokedLogs;
+    // get processed certificate events (covers both add and revoke)
+    let processedLogs;
     // retry on failure
     for (let errorCounter = 0; errorCounter < 5; errorCounter++) {
       try {
-        leafAddedLogs = await registry.queryFilter(
-          registry.filters.zkCertificateAddition(),
-          i,
-          maxBlock,
-        );
-        leafRevokedLogs = await registry.queryFilter(
-          registry.filters.zkCertificateRevocation(),
+        const filter = registry.filters.CertificateProcessed();
+        processedLogs = await registry.queryFilter(
+          filter,
           i,
           maxBlock,
         );
@@ -257,24 +252,23 @@ export async function queryOnChainLeaves(
       }
       console.error(`retrying...`);
     }
-    if (!leafAddedLogs || !leafRevokedLogs) {
+    if (!processedLogs) {
       throw Error(
         `failed to get logs from ${i} to ${maxBlock} after 5 retries`,
       );
     }
 
-    for (const log of leafAddedLogs) {
-      resAdded.push({
-        leafHash: BigInt(log.args[0]).toString(),
-        index: BigInt(log.args[2].toString()),
-      });
-    }
-
-    for (const log of leafRevokedLogs) {
-      resRevoked.push({
-        leafHash: BigInt(log.args[0]).toString(),
-        index: BigInt(log.args[2].toString()),
-      });
+    for (const log of processedLogs) {
+      console.log("processed log merkle build", log);
+      const leafHash = BigInt(log.args[0]).toString();
+      // log.args[2] is RegistryOperation (0=Add,1=Revoke), log.args[4] is leafIndex
+      const operation = Number(log.args[2]);
+      const index = BigInt(log.args[4].toString());
+      if (operation === 0) {
+        resAdded.push({ leafHash, index });
+      } else if (operation === 1) {
+        resRevoked.push({ leafHash, index });
+      }
     }
   }
 
