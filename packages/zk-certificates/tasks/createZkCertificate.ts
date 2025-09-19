@@ -52,8 +52,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const zkCertificateType = flagStandardMapping[args.zkCertificateType];
   if (zkCertificateType === undefined) {
     throw new Error(
-      `ZkCertStandard type ${
-        args.zkCertificateType
+      `ZkCertStandard type ${args.zkCertificateType
       } is unsupported, available options: ${JSON.stringify(
         Object.keys(flagStandardMapping),
       )}`,
@@ -171,7 +170,15 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
       ...zkCertificate.exportRaw(),
       registration,
     };
-    console.log(JSON.stringify(rawJSON, null, 2));
+
+    // sort data to make it match the way it is parsed later
+    const sortedDataToExport = Object.keys(rawJSON)
+      .sort()
+      .reduce((acc: any, key: string) => {
+        acc[key] = (rawJSON as any)[key];
+        return acc;
+      }, {});
+    console.log(JSON.stringify(sortedDataToExport, null, 2));
 
     console.log(chalk.green('This ZkCertificate can be imported in a wallet'));
     // write encrypted zkCertificate output to file
