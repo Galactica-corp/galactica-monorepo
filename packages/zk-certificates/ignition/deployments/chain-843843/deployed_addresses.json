@@ -81,5 +81,19 @@
   "TwitterProofsModule#DeployFollowersCountSBT10k": "0x676e5ef75638C285f9A3342766637E2Bc0A9F779",
   "TwitterProofsModule#DeployFollowersCountSBT1k": "0xB42d7bBCB23C63306fd6A07Ae26A67A234dbD019",
   "TwitterProofsModule#TwitterCreationTimeProof": "0x5E3f89FdbAa3887e67EfEde933ef591B292E7b0A",
-  "TwitterProofsModule#TwitterFollowersCountProof": "0xAa2b7B56aD95B3a43aE0A46aAc16857325CD81B8"
+  "TwitterProofsModule#TwitterFollowersCountProof": "0xAa2b7B56aD95B3a43aE0A46aAc16857325CD81B8",
+  "KYCComplianceProofsModule#AgeCitizenshipKYCVerifier": "0xFe19E7e3d44DDE8b427117D5577BD7008Ec151a4",
+  "KYCComplianceProofsModule#Adult18PlusWrapper": "0xaE914977390EFaaAd6761505731861b2E34ebB6a",
+  "KYCComplianceProofsModule#NonSanctionedWrapper": "0x6120e4bE5c799A301d6bce8cDbFA4754f745275E",
+  "KYCComplianceProofsModule#NonUSWrapper": "0x29ac2D23F2E528385C4373eD9962bEbb7f8E8b1A",
+  "KYCComplianceProofsModule#Age18ProverDApp": "0xDf007Bc74d1Bec0AbE24Fa14C6225d423E9904aA",
+  "KYCComplianceProofsModule#NonSanctionedProverDApp": "0x895C19e27B58e99bDb51B90976807B02E8c8Eb2A",
+  "KYCComplianceProofsModule#NonUSProverDApp": "0xbF69C40fA1aca6b4456f47Aa86C9f558E2E999aA",
+  "KYCComplianceProofsModule#Adult18PlusSBT": "0x00ee1DE618DE798B175Fc754A7964d61C54131dd",
+  "KYCComplianceProofsModule#NonSanctionedSBT": "0xeD410826F315F6EA9A5CbFb5CD28c3B0C92ED123",
+  "KYCComplianceProofsModule#NonUSSBT": "0xE157A0a676D7af8a032bC9f86AD274053E526ae3",
+  "KYCRequirementsDemoModule#AgeCitizenshipKYCVerifier": "0x0950E78110c74aca4b51c83F634551C000Cc82AA",
+  "KYCRequirementsDemoModule#AgeCitizenshipKYC": "0x7782883b5a648c79853CC7228263CFbE9D66F2fD",
+  "KYCRequirementsDemoModule#KYCRequirementsDemoDApp": "0x8A6e866a40e0dA08728aa401F6A77A1137A11F8D",
+  "KYCRequirementsDemoModule#VerificationSBT": "0xF06f6f4aCca94a76D716a11f7D07bd8Fd9829ACB"
 }
