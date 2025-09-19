@@ -31,11 +31,6 @@ const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
     },
   );
 
-  // Change queue expiration time
-  module.call(zkKYCRegistry, 'changeQueueExpirationTime', [
-    queueExpirationTime,
-  ]);
-
   // Deploy institutional contracts
   const institution1 = module.contract('MockGalacticaInstitution', [], {
     id: 'Institution1',
