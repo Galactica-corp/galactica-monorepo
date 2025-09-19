@@ -2,9 +2,9 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
-import { defineUpgradableProxy } from '../UpgradableProxy.m';
 
 import poseidonModule from '../Poseidon.m';
+import { defineUpgradableProxy } from '../UpgradableProxy.m';
 
 const Gip3ZkCertRegistryModule = buildModule(
   'Gip3ZkCertRegistryModule',
@@ -16,11 +16,12 @@ const Gip3ZkCertRegistryModule = buildModule(
       'Twitter Guardian Registry',
     );
 
-    const { upgradableContract: guardianRegistry, proxyContracts: guardianRegistryProxyContracts } = defineUpgradableProxy(
-      module,
-      'GuardianRegistry',
-      [guardianRegistryDescription],
-    );
+    const {
+      upgradableContract: guardianRegistry,
+      proxyContracts: guardianRegistryProxyContracts,
+    } = defineUpgradableProxy(module, 'GuardianRegistry', [
+      guardianRegistryDescription,
+    ]);
 
     const merkleDepth = module.getParameter('merkleDepth', 32);
     const zkCertRegistryDescription = module.getParameter(
@@ -28,7 +29,10 @@ const Gip3ZkCertRegistryModule = buildModule(
       'Twitter ZkCertificate Registry',
     );
 
-    const { upgradableContract: zkCertRegistry, proxyContracts: certificateRegistryProxyContracts } = defineUpgradableProxy(
+    const {
+      upgradableContract: zkCertRegistry,
+      proxyContracts: certificateRegistryProxyContracts,
+    } = defineUpgradableProxy(
       module,
       'ZkCertificateRegistry',
       [guardianRegistry, merkleDepth, zkCertRegistryDescription],
@@ -37,7 +41,12 @@ const Gip3ZkCertRegistryModule = buildModule(
       },
     );
 
-    return { guardianRegistry, zkCertRegistry, ...certificateRegistryProxyContracts, ...guardianRegistryProxyContracts };
+    return {
+      guardianRegistry,
+      zkCertRegistry,
+      ...certificateRegistryProxyContracts,
+      ...guardianRegistryProxyContracts,
+    };
   },
 );
 

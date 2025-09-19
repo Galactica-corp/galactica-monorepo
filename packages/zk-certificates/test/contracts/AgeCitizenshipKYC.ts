@@ -6,6 +6,7 @@ import { buildPoseidon } from 'circomlibjs';
 import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import type { Poseidon } from '../../lib';
 import {
   fromDecToHex,
@@ -18,8 +19,6 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/dev/generateZkKYCInput';
-import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
-import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -78,16 +77,13 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       await kycRequirementsDemoDApp.sbt(),
     );
 
-    const { guardianRegistry } = await ignition.deploy(
-      guardianRegistryModule,
-      {
-        parameters: {
-          GuardianRegistryModule: {
-            description: "",
-          },
+    const { guardianRegistry } = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: '',
         },
       },
-    );
+    });
     await mockZkCertificateRegistry.setGuardianRegistry(
       await guardianRegistry.getAddress(),
     );
@@ -309,7 +305,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     const publicTime = parseInt(
       proof.publicInputs[
-      Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
       ],
       16,
     );
@@ -500,7 +496,7 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
 
     const publicTime = parseInt(
       proof.publicInputs[
-      Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
+        Number(await sc.ageCitizenshipKYC.INDEX_CURRENT_TIME())
       ],
       16,
     );

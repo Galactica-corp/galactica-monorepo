@@ -7,6 +7,7 @@ import type { BigNumberish } from 'ethers';
 import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -29,7 +30,6 @@ import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/
 import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
 import type { AgeCitizenshipKYC } from '../../typechain-types/contracts/verifierWrappers/AgeCitizenshipKYC';
 import type { ExampleMockDAppVerifier } from '../../typechain-types/contracts/zkpVerifiers/ExampleMockDAppVerifier';
-import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 
 use(chaiAsPromised);
 
@@ -139,17 +139,15 @@ describe('Verification SBT Smart contract', () => {
     circuitZkeyPath = './circuits/build/exampleMockDApp.zkey';
 
     // Deploy GuardianRegistry
-    const ignitionContracts = await ignition.deploy(
-      guardianRegistryModule,
-      {
-        parameters: {
-          GuardianRegistryModule: {
-            description: 'https://example.com/metadata',
-          },
+    const ignitionContracts = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: 'https://example.com/metadata',
         },
       },
-    );
-    guardianRegistry = ignitionContracts.guardianRegistry as unknown as GuardianRegistry;
+    });
+    guardianRegistry =
+      ignitionContracts.guardianRegistry as unknown as GuardianRegistry;
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(
@@ -315,7 +313,7 @@ describe('Verification SBT Smart contract', () => {
     // wait for SBT expiration
     const expirationTime = parseInt(
       publicSignals[
-      Number(await ageProofZkKYC.INDEX_VERIFICATION_EXPIRATION())
+        Number(await ageProofZkKYC.INDEX_VERIFICATION_EXPIRATION())
       ],
       10,
     );

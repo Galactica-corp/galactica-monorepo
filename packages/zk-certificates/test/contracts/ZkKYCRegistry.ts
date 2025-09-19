@@ -5,6 +5,7 @@ import { expect } from 'chai';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
 import hre, { ethers, ignition } from 'hardhat';
 
+import infrastructureModule from '../../ignition/modules/Infrastructure.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -13,10 +14,9 @@ import {
   overwriteArtifact,
 } from '../../lib/helpers';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { HumanIDSaltRegistry } from '../../typechain-types/contracts/HumanIDSaltRegistry';
 import type { ZkKYCRegistry } from '../../typechain-types/contracts/ZkKYCRegistry';
-import infrastructureModule from '../../ignition/modules/Infrastructure.m';
-import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 describe('ZkKYCRegistry', () => {
   let deployer: SignerWithAddress;
@@ -40,12 +40,8 @@ describe('ZkKYCRegistry', () => {
   async function deploy() {
     await overwriteArtifact(hre, 'PoseidonT3', poseidonContract.createCode(2));
 
-    const PoseidonT3 = await ethers.getContractFactory('PoseidonT3');
-    const poseidonT3 = await PoseidonT3.deploy();
-
-    const { guardianRegistry: GuardianRegistry, zkKYCRegistry: ZkKYCRegistry } = await ignition.deploy(
-      infrastructureModule,
-      {
+    const { guardianRegistry: GuardianRegistry, zkKYCRegistry: ZkKYCRegistry } =
+      await ignition.deploy(infrastructureModule, {
         parameters: {
           GuardianRegistryModule: {
             description: 'Test Guardian Registry',
@@ -55,8 +51,7 @@ describe('ZkKYCRegistry', () => {
             description: 'KYC Registry',
           },
         },
-      },
-    );
+      });
 
     return {
       ZkKYCRegistry: ZkKYCRegistry as unknown as ZkKYCRegistry,

@@ -4,6 +4,7 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { toBigInt } from 'ethers';
 import hre, { ignition } from 'hardhat';
+
 import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
@@ -35,16 +36,13 @@ describe('GuardianRegistry', () => {
       metadata: 'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx',
     };
 
-    const { guardianRegistry } = await ignition.deploy(
-      guardianRegistryModule,
-      {
-        parameters: {
-          GuardianRegistryModule: {
-            description,
-          },
+    const { guardianRegistry } = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description,
         },
       },
-    );
+    });
 
     return {
       GuardianRegistry: guardianRegistry as unknown as GuardianRegistry,

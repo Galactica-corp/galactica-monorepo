@@ -4,6 +4,7 @@ import chai from 'chai';
 import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -21,7 +22,6 @@ import type { MockZkCertificateRegistry } from '../../typechain-types/contracts/
 import type { VerificationSBT } from '../../typechain-types/contracts/SBT_related/VerificationSBT';
 import type { ZkKYC } from '../../typechain-types/contracts/verifierWrappers/ZkKYC';
 import type { ZkKYCVerifier } from '../../typechain-types/contracts/zkpVerifiers/ZkKYCVerifier';
-import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 
 chai.config.includeStack = true;
 const { expect } = chai;
@@ -93,17 +93,15 @@ describe('BasicKYCExampleDApp', () => {
     circuitWasmPath = './circuits/build/zkKYC.wasm';
     circuitZkeyPath = './circuits/build/zkKYC.zkey';
 
-    const ignitionContracts = await ignition.deploy(
-      guardianRegistryModule,
-      {
-        parameters: {
-          GuardianRegistryModule: {
-            description: 'https://example.com/metadata',
-          },
+    const ignitionContracts = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: 'https://example.com/metadata',
         },
       },
-    );
-    guardianRegistry = ignitionContracts.guardianRegistry as unknown as GuardianRegistry;
+    });
+    guardianRegistry =
+      ignitionContracts.guardianRegistry as unknown as GuardianRegistry;
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(

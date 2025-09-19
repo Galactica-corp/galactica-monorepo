@@ -2,10 +2,10 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
-import { defineUpgradableProxy } from '../UpgradableProxy.m';
 
 import guardianRegistryModule from '../GuardianRegistry.m';
 import poseidonModule from '../Poseidon.m';
+import { defineUpgradableProxy } from '../UpgradableProxy.m';
 
 const ZkCertRegistryModule = buildModule('ZkCertRegistryModule', (module) => {
   const { guardianRegistry } = module.useModule(guardianRegistryModule);
@@ -17,14 +17,15 @@ const ZkCertRegistryModule = buildModule('ZkCertRegistryModule', (module) => {
     'Test ZkCertificate Registry',
   );
 
-  const { upgradableContract: zkCertRegistry, proxyContracts } = defineUpgradableProxy(
-    module,
-    'ZkCertificateRegistry',
-    [guardianRegistry, merkleDepth, description],
-    {
-      PoseidonT3: poseidon,
-    },
-  );
+  const { upgradableContract: zkCertRegistry, proxyContracts } =
+    defineUpgradableProxy(
+      module,
+      'ZkCertificateRegistry',
+      [guardianRegistry, merkleDepth, description],
+      {
+        PoseidonT3: poseidon,
+      },
+    );
 
   return { zkCertRegistry, ...proxyContracts, guardianRegistry };
 });

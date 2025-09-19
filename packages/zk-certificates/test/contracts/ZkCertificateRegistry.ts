@@ -3,8 +3,9 @@ import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers'
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
-import hre, { ethers, ignition } from 'hardhat';
+import hre, { ignition } from 'hardhat';
 
+import certificateRegistryModule from '../../ignition/modules/zkCertRegistries/Generic.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -13,10 +14,8 @@ import {
   overwriteArtifact,
 } from '../../lib/helpers';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
-import certificateRegistryModule from '../../ignition/modules/zkCertRegistries/Generic.m';
 import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { ZkCertificateRegistry } from '../../typechain-types/contracts/ZkCertificateRegistry';
-
 
 describe('ZkCertificateRegistry', () => {
   let deployer: SignerWithAddress;
@@ -34,23 +33,24 @@ describe('ZkCertificateRegistry', () => {
   async function deploy() {
     await overwriteArtifact(hre, 'PoseidonT3', poseidonContract.createCode(2));
 
-    const { guardianRegistry: GuardianRegistry, zkCertRegistry: ZkCertificateRegistry } = await ignition.deploy(
-      certificateRegistryModule,
-      {
-        parameters: {
-          GuardianRegistryModule: {
-            description: 'Test Guardian Registry',
-          },
-          ZkCertRegistryModule: {
-            merkleDepth: 32,
-            description: 'Test Registry',
-          },
+    const {
+      guardianRegistry: GuardianRegistry,
+      zkCertRegistry: ZkCertificateRegistry,
+    } = await ignition.deploy(certificateRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: 'Test Guardian Registry',
+        },
+        ZkCertRegistryModule: {
+          merkleDepth: 32,
+          description: 'Test Registry',
         },
       },
-    );
+    });
 
     return {
-      ZkCertificateRegistry: ZkCertificateRegistry as unknown as ZkCertificateRegistry,
+      ZkCertificateRegistry:
+        ZkCertificateRegistry as unknown as ZkCertificateRegistry,
       GuardianRegistry: GuardianRegistry as unknown as GuardianRegistry,
     };
   }
@@ -68,15 +68,20 @@ describe('ZkCertificateRegistry', () => {
   }
 
   it('should initialize values correctly', async () => {
-    const { ZkCertificateRegistry, GuardianRegistry } = await loadFixture(deploy);
+    const { ZkCertificateRegistry, GuardianRegistry } =
+      await loadFixture(deploy);
 
     const eddsa = await buildEddsa();
     const treeDepth = 32;
     const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
-    expect(await ZkCertificateRegistry.description()).to.be.equal('Test Registry');
+    expect(await ZkCertificateRegistry.description()).to.be.equal(
+      'Test Registry',
+    );
     expect(await ZkCertificateRegistry.treeDepth()).to.be.equal(32);
-    expect(await ZkCertificateRegistry.guardianRegistry()).to.be.equal(await GuardianRegistry.getAddress());
+    expect(await ZkCertificateRegistry.guardianRegistry()).to.be.equal(
+      await GuardianRegistry.getAddress(),
+    );
     expect(await ZkCertificateRegistry.ZERO_VALUE()).to.not.be.equal(0n);
 
     expect(await ZkCertificateRegistry.merkleRootValidIndex()).to.be.equal(1);

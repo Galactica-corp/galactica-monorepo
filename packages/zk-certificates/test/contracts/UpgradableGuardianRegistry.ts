@@ -1,23 +1,18 @@
-import {
-  loadFixture,
-} from '@nomicfoundation/hardhat-toolbox/network-helpers';
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
+import { loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers';
 import { expect } from 'chai';
-import hre, { ethers, ignition } from 'hardhat';
 import { toBigInt } from 'ethers';
-
+import hre, { ignition } from 'hardhat';
 
 import updateTestGuardianRegistryModule from '../../ignition/modules/test/UpdateTestGuardianRegistry.m';
 import type { UpgradeTestGuardianRegistry } from '../../typechain-types/contracts/test/UpgradeTestGuardianRegistry';
 
-
 describe('Upgrade Guardian Registry', function () {
   let deployer: SignerWithAddress;
   let guardian: SignerWithAddress;
-  let additionalIssuer: SignerWithAddress;
 
   beforeEach(async () => {
-    [deployer, guardian, additionalIssuer] = await hre.ethers.getSigners();
+    [deployer, guardian] = await hre.ethers.getSigners();
   });
 
   /**
@@ -54,7 +49,8 @@ describe('Upgrade Guardian Registry', function () {
     );
 
     return {
-      upgradedGuardianRegistry: upgradedGuardianRegistry as unknown as UpgradeTestGuardianRegistry,
+      upgradedGuardianRegistry:
+        upgradedGuardianRegistry as unknown as UpgradeTestGuardianRegistry,
       description,
       testGuardian,
     };
@@ -62,7 +58,8 @@ describe('Upgrade Guardian Registry', function () {
 
   describe('Deployment', function () {
     it('Should keep previous parameters', async function () {
-      const { upgradedGuardianRegistry, description } = await loadFixture(deploy);
+      const { upgradedGuardianRegistry, description } =
+        await loadFixture(deploy);
 
       expect(await upgradedGuardianRegistry.description()).to.equal(
         description,
@@ -78,12 +75,13 @@ describe('Upgrade Guardian Registry', function () {
   });
 
   describe('Should work as before', function () {
-
     it('should whitelist guardians', async function () {
-      const { upgradedGuardianRegistry, testGuardian } = await loadFixture(deploy);
+      const { upgradedGuardianRegistry, testGuardian } =
+        await loadFixture(deploy);
 
       // before adding a guardian, the guardian should not be in the list
-      expect(await upgradedGuardianRegistry.isWhitelisted(guardian.address)).to.be.false;
+      expect(await upgradedGuardianRegistry.isWhitelisted(guardian.address)).to
+        .be.false;
 
       await upgradedGuardianRegistry.grantGuardianRole(
         guardian.address,
@@ -91,22 +89,25 @@ describe('Upgrade Guardian Registry', function () {
         testGuardian.metadata,
       );
 
-      expect(await upgradedGuardianRegistry.isWhitelisted(guardian.address)).to.be.true;
+      expect(await upgradedGuardianRegistry.isWhitelisted(guardian.address)).to
+        .be.true;
     });
 
     it('should fail when another address tries to add a guardian', async function () {
-      const { upgradedGuardianRegistry, testGuardian } = await loadFixture(deploy);
+      const { upgradedGuardianRegistry, testGuardian } =
+        await loadFixture(deploy);
       await expect(
-        upgradedGuardianRegistry.connect(guardian).grantGuardianRole(
-          guardian.address,
-          [testGuardian.pubkey[0], testGuardian.pubkey[1]],
-          testGuardian.metadata,
-        ),
+        upgradedGuardianRegistry
+          .connect(guardian)
+          .grantGuardianRole(
+            guardian.address,
+            [testGuardian.pubkey[0], testGuardian.pubkey[1]],
+            testGuardian.metadata,
+          ),
       ).to.be.revertedWithCustomError(
         upgradedGuardianRegistry,
         'OwnableUnauthorizedAccount',
       );
     });
-
   });
 });

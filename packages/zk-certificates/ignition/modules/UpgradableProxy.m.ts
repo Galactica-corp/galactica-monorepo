@@ -1,7 +1,7 @@
 // This setup uses Hardhat Ignition to manage smart contract deployments.
 // Learn more about it at https://hardhat.org/ignition
 
-import { Future } from "@nomicfoundation/ignition-core";
+import type { Future } from '@nomicfoundation/ignition-core';
 
 /**
  * Using the Transparent Proxy pattern from OpenZeppelin: https://docs.openzeppelin.com/contracts/5.x/api/proxy#TransparentUpgradeableProxy
@@ -10,6 +10,7 @@ import { Future } from "@nomicfoundation/ignition-core";
  * @param module - The IgnitionModuleBuilder instance.
  * @param contractName - The name of the contract to deploy.
  * @param initCallArgs - The arguments to pass to the initialize function of the contract.
+ * @param libraries - (Optional) libraries the implementation contract might use.
  * @returns The upgradable contract and the proxy contracts.
  */
 export function defineUpgradableProxy(
@@ -21,7 +22,7 @@ export function defineUpgradableProxy(
   // Deploying the staking logic contract
   const implementation = module.contract(contractName, [], {
     id: `ProxyImplementation${contractName}`,
-    libraries: libraries,
+    libraries,
   });
 
   // Call to initialize the staking contract when the proxy is deployed
@@ -44,7 +45,7 @@ export function defineUpgradableProxy(
     proxy,
     'AdminChanged',
     'newAdmin',
-    { id: `ProxyAdminAddress${contractName}` }
+    { id: `ProxyAdminAddress${contractName}` },
   );
 
   const proxyAdmin = module.contractAt('ProxyAdmin', proxyAdminAddress, {

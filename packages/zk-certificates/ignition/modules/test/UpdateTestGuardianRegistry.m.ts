@@ -2,6 +2,7 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
+
 import guardianRegistryModule from '../GuardianRegistry.m';
 
 /**
@@ -11,15 +12,18 @@ import guardianRegistryModule from '../GuardianRegistry.m';
 const UpgradedTestStakingModule = buildModule(
   'UpgradedTestStakingModule',
   (module) => {
-    const { proxyAdmin, proxy } =
-      module.useModule(guardianRegistryModule);
+    const { proxyAdmin, proxy } = module.useModule(guardianRegistryModule);
 
     const newVersion = module.getParameter('newVersion', '2.0.0');
 
     // Deploying the upgraded logic contract
-    const upgradedGuardianRegistryImpl = module.contract('UpgradeTestGuardianRegistry', [], {
-      id: 'UpgradeTestGuardianRegistryImplementation',
-    });
+    const upgradedGuardianRegistryImpl = module.contract(
+      'UpgradeTestGuardianRegistry',
+      [],
+      {
+        id: 'UpgradeTestGuardianRegistryImplementation',
+      },
+    );
 
     // Call to reinitialize the staking contract after the upgrade
     const encodedInitCall = module.encodeFunctionCall(
@@ -29,10 +33,17 @@ const UpgradedTestStakingModule = buildModule(
     );
 
     // Upgrade the proxy to the new implementation
-    module.call(proxyAdmin, 'upgradeAndCall', [proxy, upgradedGuardianRegistryImpl, encodedInitCall]);
+    module.call(proxyAdmin, 'upgradeAndCall', [
+      proxy,
+      upgradedGuardianRegistryImpl,
+      encodedInitCall,
+    ]);
 
     // V2 Staking interface using the proxy
-    const upgradedGuardianRegistry = module.contractAt('UpgradeTestGuardianRegistry', proxy);
+    const upgradedGuardianRegistry = module.contractAt(
+      'UpgradeTestGuardianRegistry',
+      proxy,
+    );
 
     return { upgradedGuardianRegistry, proxyAdmin, proxy };
   },

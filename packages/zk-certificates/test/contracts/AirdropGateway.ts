@@ -3,6 +3,7 @@ import chai from 'chai';
 import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -13,7 +14,6 @@ import {
   generateSampleZkKYC,
   generateZkKYCProofInput,
 } from '../../scripts/dev/generateZkKYCInput';
-import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 
 chai.config.includeStack = true;
 
@@ -112,16 +112,13 @@ describe('AirdropGateway', () => {
     ]);
 
     // Deploy GuardianRegistry
-    const { guardianRegistry } = await ignition.deploy(
-      guardianRegistryModule,
-      {
-        parameters: {
-          GuardianRegistryModule: {
-            description: 'https://example.com/metadata',
-          },
+    const { guardianRegistry } = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: 'https://example.com/metadata',
         },
       },
-    );
+    });
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(

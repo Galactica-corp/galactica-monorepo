@@ -2,10 +2,10 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
-import { defineUpgradableProxy } from './UpgradableProxy.m';
 
 import guardianRegistryModule from './GuardianRegistry.m';
 import poseidonModule from './Poseidon.m';
+import { defineUpgradableProxy } from './UpgradableProxy.m';
 import institutionPubkeys from '../params/institution_pubkeys.json';
 
 const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
@@ -21,14 +21,15 @@ const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
   );
 
   // Deploy ZkKYCRegistry
-  const { upgradableContract: zkKYCRegistry, proxyContracts } = defineUpgradableProxy(
-    module,
-    'ZkKYCRegistry',
-    [kycGuardianRegistry, merkleDepth, description],
-    {
-      PoseidonT3: poseidon,
-    },
-  );
+  const { upgradableContract: zkKYCRegistry, proxyContracts } =
+    defineUpgradableProxy(
+      module,
+      'ZkKYCRegistry',
+      [kycGuardianRegistry, merkleDepth, description],
+      {
+        PoseidonT3: poseidon,
+      },
+    );
 
   // Deploy institutional contracts
   const institution1 = module.contract('MockGalacticaInstitution', [], {

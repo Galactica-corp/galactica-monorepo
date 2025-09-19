@@ -2,8 +2,8 @@
 // Learn more about it at https://hardhat.org/ignition
 
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
-import { defineUpgradableProxy } from './UpgradableProxy.m';
 
+import { defineUpgradableProxy } from './UpgradableProxy.m';
 
 const GuardianRegistryModule = buildModule(
   'GuardianRegistryModule',
@@ -13,11 +13,8 @@ const GuardianRegistryModule = buildModule(
       'ZkKYC GuardianRegistry',
     );
 
-    const { upgradableContract: guardianRegistry, proxyContracts } = defineUpgradableProxy(
-      module,
-      'GuardianRegistry',
-      [description],
-    );
+    const { upgradableContract: guardianRegistry, proxyContracts } =
+      defineUpgradableProxy(module, 'GuardianRegistry', [description]);
 
     return { guardianRegistry, ...proxyContracts };
   },
