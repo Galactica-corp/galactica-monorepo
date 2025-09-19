@@ -231,7 +231,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const schema = chooseSchema(zkCert.zkCertStandard, customSchema);
 
       // prevent uploading the same zkCert again (it is fine on different registries though)
-      const searchedZkCert = state.zkCerts
+      const searchedZkCert:
+        | ZkCertRegistered<Record<string, unknown>>
+        | undefined = state.zkCerts
         .map((cert) => cert.zkCert)
         .find(
           (candidate) =>
@@ -294,7 +296,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         }
       }
 
-      const newCert: ZkCertRegistered = {
+      const newCert: ZkCertRegistered<Record<string, unknown>> = {
         ...zkCert,
       };
       if (!importParams.customSchema) {

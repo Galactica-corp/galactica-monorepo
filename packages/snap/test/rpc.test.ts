@@ -526,7 +526,7 @@ describe('Test rpc handler function', function () {
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], []));
 
-      const unknownZkCert: ZkCertRegistered = {
+      const unknownZkCert: ZkCertRegistered<Record<string, unknown>> = {
         ...zkCert,
       };
       unknownZkCert.zkCertStandard = 'gipUKNOWN';
@@ -718,7 +718,8 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const outdatedZkCert: ZkCertRegistered = structuredClone(zkCert);
+      const outdatedZkCert: ZkCertRegistered<Record<string, unknown>> =
+        structuredClone(zkCert);
       outdatedZkCert.merkleProof.pathElements[0] = '01234';
 
       snapProvider.rpcStubs.snap_manageState

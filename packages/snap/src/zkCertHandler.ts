@@ -33,7 +33,9 @@ type SharedZkCert = {
  * @param zkCertStorage - The list of zkCerts stored.
  * @returns ZkCerts metadata listed for each zkCertStandard.
  */
-export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
+export function getZkCertStorageOverview(
+  zkCertStorage: ZkCertRegistered<Record<string, unknown>>[],
+) {
   return zkCertStorage.map((zkCert) => {
     const data: SharedZkCert = {
       standard: zkCert.zkCertStandard as KnownZkCertStandard,
@@ -51,7 +53,7 @@ export function getZkCertStorageOverview(zkCertStorage: ZkCertRegistered[]) {
  * @returns Storage hash for each zkCertStandard.
  */
 export function getZkCertStorageHashes(
-  zkCertStorage: ZkCertRegistered[],
+  zkCertStorage: ZkCertRegistered<Record<string, unknown>>[],
   origin: string,
 ): any {
   const storageHashes: ZkCertStorageHashes = {};

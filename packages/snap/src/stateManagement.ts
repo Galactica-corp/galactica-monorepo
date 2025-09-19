@@ -169,7 +169,10 @@ export function getHolder(
  * @returns The holderData.
  * @throws Error if no holder is found.
  */
-export function getZkCert(leafHash: string, zkCerts: ZkCertRegistered[]) {
+export function getZkCert(
+  leafHash: string,
+  zkCerts: ZkCertRegistered<Record<string, unknown>>[],
+) {
   const res = zkCerts.find((zkCert) => zkCert.leafHash === leafHash);
   if (res === undefined) {
     throw new GenericError({

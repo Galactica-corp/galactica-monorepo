@@ -18,7 +18,7 @@ import { humanize } from '../utils/humanizeString';
 
 type Props = {
   title?: string;
-  cert: ZkCertRegistered;
+  cert: ZkCertRegistered<Record<string, unknown>>;
   withDeleteBanner?: boolean;
 };
 
@@ -57,7 +57,7 @@ export const Cert: SnapComponent<Props> = (props) => {
         {fields.map(([key, value]) => {
           return (
             <Row key={`${key}`} label={`${humanize(key)}`}>
-              <SnapText>{`${value ?? '-'}`}</SnapText>
+              <SnapText>{`${String(value).toString() || '-'}`}</SnapText>
             </Row>
           );
         })}

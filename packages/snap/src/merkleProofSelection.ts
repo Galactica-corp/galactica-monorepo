@@ -24,7 +24,7 @@ import { switchChain } from './utils/utils';
  * @returns A Merkle proof corresponding to the provided zkCert.
  */
 export async function getMerkleProof(
-  zkCert: ZkCertRegistered,
+  zkCert: ZkCertRegistered<Record<string, unknown>>,
   registryAddr: string,
   ethereum: BaseProvider,
   merkleServiceURL?: string,

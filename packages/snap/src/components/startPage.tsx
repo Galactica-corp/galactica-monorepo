@@ -21,7 +21,7 @@ type Props = {
   error?: string;
   activeTab: TabType;
   holders: { holderCommitment: string; encryptionPubKey: string }[];
-  zkCerts: ZkCertRegistered[];
+  zkCerts: ZkCertRegistered<Record<string, unknown>>[];
 };
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment

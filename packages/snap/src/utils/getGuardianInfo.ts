@@ -4,44 +4,41 @@ import type {
 } from '@galactica-net/galactica-types';
 import { GuardianRegistry__factory as GuardianRegistryFactory } from '@galactica-net/zk-certificates/typechain-types';
 import type { BaseProvider } from '@metamask/providers';
-import type { Address } from 'viem';
-import { getContract } from 'viem';
+import { BrowserProvider, Contract } from 'ethers';
 
-import { getWalletClient } from './getWalletClient';
 import { kycRecordRegistryABI } from '../config/abi/kycRecordRegistry';
 
 export const getGuardianInfo = async (
-  cert: ZkCertRegistered,
-  ethereum?: BaseProvider,
+  cert: ZkCertRegistered<Record<string, unknown>>,
+  ethereum: BaseProvider,
 ) => {
   try {
-    const wc = await getWalletClient(ethereum);
-
-    const kycRecordRegistryContract = getContract({
-      client: wc,
-      abi: kycRecordRegistryABI,
-      address: cert.registration.address as Address,
-    });
+    const provider = new BrowserProvider(ethereum);
+    const kycRecordRegistryContract = new Contract(
+      cert.registration.address,
+      kycRecordRegistryABI,
+      provider,
+    );
 
     const guardianRegistryAddress =
-      await kycRecordRegistryContract.read._GuardianRegistry();
+      await kycRecordRegistryContract._GuardianRegistry();
 
-    const guardianRegistryContract = getContract({
-      client: wc,
-      abi: GuardianRegistryFactory.abi,
-      address: guardianRegistryAddress,
-    });
+    const guardianRegistryContract = new Contract(
+      guardianRegistryAddress,
+      GuardianRegistryFactory.abi,
+      provider,
+    );
 
-    const guardianAddress = await guardianRegistryContract.read.pubKeyToAddress(
-      [BigInt(cert.providerData.ax), BigInt(cert.providerData.ay)],
+    const guardianAddress = await guardianRegistryContract.pubKeyToAddress(
+      BigInt(cert.providerData.ax),
+      BigInt(cert.providerData.ay),
     );
 
     const [isWhitelisted, metaUrl] =
-      await guardianRegistryContract.read.guardians([guardianAddress]);
+      await guardianRegistryContract.guardians(guardianAddress);
 
     if (metaUrl) {
       const response = await fetch(metaUrl);
-      // TODO: type
       const data = (await response.json()) as ProviderMeta;
 
       return { data: { ...data, address: guardianAddress }, isWhitelisted };

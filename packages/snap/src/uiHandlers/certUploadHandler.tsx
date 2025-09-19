@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import type { EncryptedZkCert } from '@galactica-net/galactica-types';
+import type {
+  EncryptedZkCert,
+  ZkCertRegistered,
+} from '@galactica-net/galactica-types';
 import { ImportZkCertError } from '@galactica-net/snap-api';
+import { chooseSchema, decryptZkCert } from '@galactica-net/zk-certificates';
 import type { FileUploadEvent } from '@metamask/snaps-sdk';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
 
@@ -8,7 +12,6 @@ import { StartPage } from '../components/startPage';
 import { checkEncryptedZkCertFormat } from '../encryption';
 import { getHolder, getState, saveState } from '../stateManagement';
 import { activeTabStore } from '../stores';
-import { findCert } from '../utils/cert';
 import { getGuardianInfo } from '../utils/getGuardianInfo';
 
 type Params = {
@@ -56,20 +59,36 @@ export const certUploadHandler = async (params: Params) => {
     checkEncryptedZkCertFormat(encryptedZkCert);
 
     const holder = getHolder(encryptedZkCert.holderCommitment, state.holders);
+    const zkCert = (() => {
+      try {
+        return decryptZkCert(encryptedZkCert, holder.encryptionPrivKey);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : `${error}`;
+        throw new ImportZkCertError({
+          name: 'FormatError',
+          message,
+        });
+      }
+    })();
 
-    const decrypted = decryptMessageToObject(
-      encryptedZkCert,
-      holder.encryptionPrivKey,
-    );
-    const schema = choseSchema(decrypted.zkCertStandard);
+    const schema = chooseSchema(zkCert.zkCertStandard);
 
-    const zkCert = parseZkCert(decrypted, schema);
-    const searchedZkCert = findCert(state, zkCert);
+    const searchedZkCert:
+      | ZkCertRegistered<Record<string, unknown>>
+      | undefined = state.zkCerts
+      .map((cert) => cert.zkCert)
+      .find(
+        (candidate) =>
+          candidate.leafHash === zkCert.leafHash &&
+          candidate.registration.address === zkCert.registration.address &&
+          candidate.zkCertStandard === zkCert.zkCertStandard,
+      );
+
     if (searchedZkCert) {
       throw new Error('This zkCert has already been imported');
     }
 
-    const guardianInfo = await getGuardianInfo(zkCert);
+    const guardianInfo = await getGuardianInfo(zkCert, ethereum);
 
     if (!guardianInfo?.isWhitelisted) {
       throw new Error(
@@ -77,9 +96,13 @@ export const certUploadHandler = async (params: Params) => {
       );
     }
 
-    zkCert.providerData.meta = guardianInfo.data;
-
-    state.zkCerts.push({ zkCert, schema });
+    state.zkCerts.push({
+      zkCert: {
+        ...zkCert,
+        providerData: { ...zkCert.providerData, meta: guardianInfo.data },
+      },
+      schema,
+    });
     await saveState(snap, state);
 
     const certs = state.zkCerts.map((cert) => cert.zkCert);

@@ -16,9 +16,10 @@ import {
 
 import { getCertTitle } from '../utils/getCertTitle';
 
-const getValue = (cert: ZkCertRegistered) => {
+const getValue = (cert: ZkCertRegistered<Record<string, unknown>>) => {
   if (cert.zkCertStandard === KnownZkCertStandard.ZkKYC) {
-    const certificate = cert as ZkCertRegistered<KYCCertificateContent>;
+    const certificate =
+      cert as unknown as ZkCertRegistered<KYCCertificateContent>;
     return `${`${certificate.content.forename} ${certificate.content.surname}`.slice(
       0,
       10,
@@ -35,7 +36,7 @@ const getValue = (cert: ZkCertRegistered) => {
 // @ts-ignore
 export const CertsSection: SnapComponent<{
   isLoading?: boolean;
-  certs: ZkCertRegistered[];
+  certs: ZkCertRegistered<Record<string, unknown>>[];
   holders: { holderCommitment: string; encryptionPubKey: string }[];
 }> = ({ certs, holders, isLoading }) => {
   if (!certs.length) {
