@@ -8,9 +8,9 @@ import type {
 } from '@galactica-net/galactica-types';
 import { buildPoseidon } from 'circomlibjs';
 import { type AbstractProvider, Contract } from 'ethers';
-import { IReadableZkCertRegistry__factory } from '../typechain-types/factories/contracts/interfaces/IReadableZkCertRegistry__factory';
-import { fromHexToDec, getMerkleRootFromProof } from '.';
 
+import { getMerkleRootFromProof } from '.';
+import { IReadableZkCertRegistry__factory as registryFactory } from '../typechain-types/factories/contracts/interfaces/IReadableZkCertRegistry__factory';
 
 const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 
@@ -29,11 +29,7 @@ export async function getMerkleProof(
   provider: AbstractProvider,
   merkleServiceURL?: string,
 ): Promise<MerkleProof> {
-  const registry = new Contract(
-    registryAddr,
-    IReadableZkCertRegistry__factory.abi,
-    provider,
-  );
+  const registry = new Contract(registryAddr, registryFactory.abi, provider);
   const poseidon = await buildPoseidon();
 
   if (zkCert.merkleProof) {

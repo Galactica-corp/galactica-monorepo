@@ -86,10 +86,8 @@ export async function issueZkCert(
  * New flow: guardians enqueue a Revoke operation; a queue processor will update the Merkle tree.
  *
  * @param zkCertLeafHash - Leaf hash of the zkCert to revoke.
- * @param leafIndex - Index of the zkCert to revoke.
  * @param recordRegistry - Record registry contract.
  * @param issuer - Issuer of the zkCert (= guardian allowed to revoke).
- * @param merkleTree - Merkle tree of the registry (passed to not reconstruct it repeatedly).
  */
 export async function revokeZkCert(
   zkCertLeafHash: string,

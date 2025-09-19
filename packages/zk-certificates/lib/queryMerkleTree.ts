@@ -75,13 +75,16 @@ function getCacheFilePath(
 ): string {
   try {
     // Use process.cwd() as fallback for browser environments where __dirname is not available
-    const g: { __dirname?: string } = globalThis as unknown as {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    const glob: { __dirname?: string } = globalThis as unknown as {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       __dirname?: string;
     };
     const defaultDataDir =
-      typeof g.__dirname === 'undefined'
-        ? path.join(process?.cwd ? process.cwd() : '.', 'data')
-        : path.join(g.__dirname as string, '..', 'data');
+      typeof glob.__dirname === 'undefined'
+        ? // eslint-disable-next-line no-restricted-globals
+          path.join(process?.cwd ? process.cwd() : '.', 'data')
+        : path.join(glob.__dirname, '..', 'data');
 
     const dataDir = cacheDir ?? defaultDataDir;
     if (!fs.existsSync(dataDir)) {
@@ -241,11 +244,7 @@ export async function queryOnChainLeaves(
     for (let errorCounter = 0; errorCounter < 5; errorCounter++) {
       try {
         const filter = registry.filters.CertificateProcessed();
-        processedLogs = await registry.queryFilter(
-          filter,
-          i,
-          maxBlock,
-        );
+        processedLogs = await registry.queryFilter(filter, i, maxBlock);
         break;
       } catch (error) {
         console.error(error);
@@ -259,7 +258,7 @@ export async function queryOnChainLeaves(
     }
 
     for (const log of processedLogs) {
-      console.log("processed log merkle build", log);
+      console.log('processed log merkle build', log);
       const leafHash = BigInt(log.args[0]).toString();
       // log.args[2] is RegistryOperation (0=Add,1=Revoke), log.args[4] is leafIndex
       const operation = Number(log.args[2]);
