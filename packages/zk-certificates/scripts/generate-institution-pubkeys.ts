@@ -3,7 +3,10 @@ import { writeFileSync } from 'fs';
 import hre from 'hardhat';
 import { join } from 'path';
 
-import { getEddsaKeyFromEthSigner } from '../lib/keyManagement';
+import {
+  convertPubkeyToDecimal,
+  getEddsaKeyFromEthSigner,
+} from '../lib/keyManagement';
 
 /**
  * Script to generate institution pubkeys and write them to a parameter file.
@@ -30,20 +33,13 @@ async function main() {
     console.log(`Institution ${idx + 1}: ${inst.signer.address}`);
   });
 
-  // Helper to convert pubkey to decimal strings
-  const convertPubkeyToDecimal = (pubKey: Uint8Array[]) => {
-    return pubKey.map((key: Uint8Array) =>
-      eddsa.poseidon.F.toObject(key).toString(),
-    );
-  };
-
   // Generate privkeys, pubkeys, and decimal pubkeys for each institution
   const institutionData: Record<string, { address: string; pubkey: string[] }> =
     {};
   for (const inst of institutions) {
     const privKey = await getEddsaKeyFromEthSigner(inst.signer);
     const pubKey = eddsa.prv2pub(privKey);
-    const pubKeyDecimal = convertPubkeyToDecimal(pubKey);
+    const pubKeyDecimal = convertPubkeyToDecimal(pubKey, eddsa);
 
     institutionData[inst.name] = {
       address: inst.signer.address,
