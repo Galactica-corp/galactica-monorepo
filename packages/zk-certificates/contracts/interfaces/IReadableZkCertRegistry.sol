@@ -12,9 +12,9 @@ interface IReadableZkCertRegistry {
 
     function merkleRootsLength() external view returns (uint256);
 
-    function merkleRootIndex(bytes32) external view returns (uint);
+    function merkleRootIndex(bytes32) external view returns (uint256);
 
-    function merkleRootValidIndex() external view returns (uint);
+    function merkleRootValidIndex() external view returns (uint256);
 
     function verifyMerkleRoot(bytes32) external view returns (bool);
 
