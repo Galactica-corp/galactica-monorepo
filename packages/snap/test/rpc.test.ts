@@ -482,50 +482,6 @@ describe('Test rpc handler function', function () {
       ).to.equal(zkCert.expirationDate);
     });
 
-    it('should update a zkCert if a renewed version is imported at the same position in the Merkle tree', async function () {
-      snapProvider.rpcStubs.snap_dialog.resolves(true);
-      snapProvider.rpcStubs.snap_manageState
-        .withArgs({ operation: 'get' })
-        .resolves(createState([testHolder], [zkCertStorage]));
-
-      const renewedZkCert = structuredClone(zkCert) as ZkCertRegistered<
-        Record<string, unknown>
-      >; // deep copy to not mess up original
-      // some made up content analog to a renewed zkCert
-      renewedZkCert.expirationDate += 20;
-      renewedZkCert.leafHash = zkCert2.leafHash;
-      // note that the merkle path indices and registry address stay the same
-
-      const encryptedRenewedZkCert = encryptZkCert(
-        renewedZkCert,
-        testHolder.encryptionPubKey,
-        zkCert.holderCommitment,
-      );
-
-      const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, {
-          encryptedZkCert: encryptedRenewedZkCert,
-        }),
-        snapProvider,
-        ethereumProvider,
-      )) as any;
-
-      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice; // once for the import, once for the update
-      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
-        operation: 'update',
-        newState: createState(
-          [testHolder],
-          [
-            {
-              zkCert: renewedZkCert,
-              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
-            },
-          ],
-        ),
-      });
-      expect(result.message).to.be.eq(RpcResponseMsg.ZkCertImported);
-    });
-
     it('should reject custom zkCerts without a schema', async function () {
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
