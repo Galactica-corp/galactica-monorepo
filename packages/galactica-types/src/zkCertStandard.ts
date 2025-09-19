@@ -182,7 +182,7 @@ export function parseContentJson<ContentType>(
   }
 
   // Set default values for optional fields that are not provided
-  const res: Record<string, any> = JSON.parse(JSON.stringify(inputData));
+  const res: Record<string, unknown> = structuredClone(inputData);
   let schemaProperties: Record<string, { [key: string]: any }> = {};
   if (typeof schema === 'object' && schema !== null && 'properties' in schema) {
     schemaProperties = schema.properties as Record<

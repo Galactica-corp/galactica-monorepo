@@ -4,6 +4,7 @@ import { ENCRYPTION_VERSION } from '@galactica-net/galactica-types';
 import type {
   EncryptedZkCert,
   ZkCertRegistered,
+  ZkCertStandard,
 } from '@galactica-net/snap-api';
 import { ImportZkCertError } from '@galactica-net/snap-api';
 import { padZkCertForEncryption } from '@galactica-net/zk-certificates';
@@ -79,7 +80,9 @@ export function decryptMessageToObject(
   // decryptSafely says it would return a string, but it actually returns what came out of JSON.parse().
   // (https://github.com/MetaMask/eth-sig-util/blob/10206bf2f16f0b47b1f2da9a9cfbb39c6a7a7800/src/encryption.ts#L234)
   // So we can cast it to ZkCertRegistered here.
-  const decrypted = decryptedMessage as unknown as { zkCertStandard: string };
+  const decrypted = decryptedMessage as unknown as {
+    zkCertStandard: ZkCertStandard;
+  };
   return decrypted;
 }
 

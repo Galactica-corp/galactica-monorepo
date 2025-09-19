@@ -13,7 +13,6 @@ import type {
   MerkleProofURLUpdateParams,
   BenchmarkZKPGenParams,
   GetZkCertStorageHashesRequest,
-  KnownZkCertStandard,
 } from '@galactica-net/snap-api';
 import {
   RpcResponseErr,
@@ -213,7 +212,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
       );
 
       const schema = choseSchema(
-        decrypted.zkCertStandard as KnownZkCertStandard,
+        decrypted.zkCertStandard,
         importParams.customSchema as unknown as AnySchema,
       );
       const zkCert = parseZkCert(decrypted, schema);
@@ -399,15 +398,17 @@ export const processRpcRequest: SnapRpcProcessor = async (
       // This method only returns a single hash of the storage state. It can be used to detect changes, for example if the user imported another zkCert in the meantime.
       // Because it does not leak any personal or tracking data, we do not ask for confirmation.
 
-      const chainID =
-        (request?.params as GetZkCertStorageHashesRequest)?.chainID ?? 843843;
+      const params = request.params as
+        | GetZkCertStorageHashesRequest
+        | undefined;
 
-      return getZkCertStorageHashes(
-        state.zkCerts
-          .filter((storage) => storage.zkCert.registration.chainID === chainID)
-          .map((storage) => storage.zkCert),
-        origin,
-      );
+      const chainID = params?.chainID;
+      const certs = state.zkCerts.map((storage) => storage.zkCert);
+      const filteredCerts = chainID
+        ? certs.filter((cert) => cert.registration.chainID === chainID)
+        : certs;
+
+      return getZkCertStorageHashes(filteredCerts, origin);
     }
 
     case RpcMethods.GetZkCertHash: {

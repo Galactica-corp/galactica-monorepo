@@ -2,12 +2,12 @@ import type {
   ProviderMeta,
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
+import { GuardianRegistry__factory as GuardianRegistryFactory } from '@galactica-net/zk-certificates/typechain-types';
 import type { BaseProvider } from '@metamask/providers';
 import type { Address } from 'viem';
 import { getContract } from 'viem';
 
 import { getWalletClient } from './getWalletClient';
-import { guardianRegistryABI } from '../config/abi/guardianRegistry';
 import { kycRecordRegistryABI } from '../config/abi/kycRecordRegistry';
 
 export const getGuardianInfo = async (
@@ -28,7 +28,7 @@ export const getGuardianInfo = async (
 
     const guardianRegistryContract = getContract({
       client: wc,
-      abi: guardianRegistryABI,
+      abi: GuardianRegistryFactory.abi,
       address: guardianRegistryAddress,
     });
 
