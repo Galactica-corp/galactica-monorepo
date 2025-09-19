@@ -1,7 +1,7 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 
 import { getIdHash } from '../../lib/zkKYC';
 import { generateSampleZkKYC } from '../../scripts/dev/generateZkKYCInput';
@@ -9,6 +9,7 @@ import type {
   HumanIDSaltRegistry,
   SaltLockingZkCertStruct,
 } from '../../typechain-types/contracts/HumanIDSaltRegistry';
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 
 describe('HumanIDSaltRegistry', () => {
   /**
@@ -20,11 +21,14 @@ describe('HumanIDSaltRegistry', () => {
     const [deployer, zkKYCRegistryMock, guardian] =
       await hre.ethers.getSigners();
 
-    const guardianRegistryFactory =
-      await ethers.getContractFactory('GuardianRegistry');
-    const guardianRegistry = await guardianRegistryFactory.deploy(
-      'Test Guardian Registry',
-    );
+    const { guardianRegistry } = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: 'Test Guardian Registry',
+        },
+      },
+    });
+
     await guardianRegistry.grantGuardianRole(
       guardian.address,
       [0, 0],
