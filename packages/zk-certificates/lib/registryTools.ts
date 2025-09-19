@@ -43,12 +43,12 @@ export async function issueZkCert(
       .getFunction(
         'addOperationToQueue(bytes32,uint8,uint256,uint256,uint256)',
       )(
-      leafBytes,
-      0, // RegistryOperation.Add
-      getIdHash(zkCert),
-      zkCert.holderCommitment,
-      zkCert.expirationDate,
-    );
+        leafBytes,
+        0, // RegistryOperation.Add
+        getIdHash(zkCert),
+        zkCert.holderCommitment,
+        zkCert.expirationDate,
+      );
   } else {
     tx = await (recordRegistry as ZkCertificateRegistry)
       .connect(issuer)
@@ -63,20 +63,14 @@ export async function issueZkCert(
   if (txReceipt?.status !== 1) {
     throw Error('Transaction failed');
   }
-  let queuePosition = 0;
-  txReceipt.logs.forEach((log) => {
-    console.log('insert queue log', log);
-    if (log.topics[0] === 'CertificateProcessed') {
-      queuePosition = Number(log.topics[1]);
-    }
-  });
+  const queuePosition = await recordRegistry.getQueuePosition(leafBytes);
 
   return {
     registration: {
       address: await recordRegistry.getAddress(),
       chainID: Number((await provider.getNetwork()).chainId),
       revocable: true,
-      queuePosition,
+      queuePosition: Number(queuePosition),
     },
   };
 }
