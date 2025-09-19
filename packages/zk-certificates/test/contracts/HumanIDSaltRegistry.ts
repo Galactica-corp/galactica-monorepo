@@ -3,13 +3,13 @@ import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import hre, { ethers, ignition } from 'hardhat';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import { getIdHash } from '../../lib/zkKYC';
 import { generateSampleZkKYC } from '../../scripts/dev/generateZkKYCInput';
 import type {
   HumanIDSaltRegistry,
   SaltLockingZkCertStruct,
 } from '../../typechain-types/contracts/HumanIDSaltRegistry';
-import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 
 describe('HumanIDSaltRegistry', () => {
   /**
