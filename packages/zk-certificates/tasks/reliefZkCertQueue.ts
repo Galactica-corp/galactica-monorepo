@@ -29,15 +29,11 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     )} to sign the zkCertificate`,
   );
 
-  const zkCertificateType: ZkCertStandard =
-    flagStandardMapping[args.zkCertificateType];
 
   const recordRegistry = (await hre.ethers.getContractAt(
-    zkCertificateType === KnownZkCertStandard.ZkKYC
-      ? 'ZkKYCRegistry'
-      : 'ZkCertificateRegistry',
+    'ZkCertificateRegistry',
     args.registryAddress,
-  )) as unknown as ZkCertificateRegistry | ZkKYCRegistry;
+  )) as unknown as ZkCertificateRegistry;
 
   console.log(
     'Reconstructing the Merkle tree. This might take a while because it needs to query on-chain data...',
@@ -53,23 +49,12 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   // iterate over the queue until all zkCerts are issued
   let nextZkCertIndex = await recordRegistry.currentQueuePointer();
   let nextZkCertHash = await recordRegistry.ZkCertificateQueue(nextZkCertIndex);
+  const queueLength = await recordRegistry.getZkCertificateQueueLength();
+
   const batcher = (await hre.ethers.getContractAt(
     'OwnableBatcher',
     args.batcherAddress,
   )) as unknown as OwnableBatcher;
-
-  // whitelist the batcher as guardian address
-  const guardianRegistryAddress = await recordRegistry.guardianRegistry();
-  const guardianRegistry = (await hre.ethers.getContractAt(
-    'GuardianRegistry',
-    guardianRegistryAddress,
-  )) as unknown as GuardianRegistry;
-  if (!(await guardianRegistry.isWhitelisted(args.batcherAddress))) {
-    // whitelist the batcher as guardian address
-    await guardianRegistry
-      .connect(issuer)
-      .addIssuerAccount(args.batcherAddress);
-  }
 
   type Call = {
     target: string;
@@ -80,14 +65,14 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   while (
     nextZkCertHash !==
-    '0x0000000000000000000000000000000000000000000000000000000000000000'
+    '0x0000000000000000000000000000000000000000000000000000000000000000' && nextZkCertIndex < queueLength
   ) {
     // collect hashes for the next batch
     console.log(
       `Collecting queue item ${nextZkCertIndex} to ${nextZkCertIndex + BigInt(BATCH_SIZE)}`,
     );
     const batchPromises: Promise<string>[] = [];
-    for (let i = 0; i < BATCH_SIZE; i++) {
+    for (let i = 0; i < BATCH_SIZE && nextZkCertIndex + BigInt(i) < queueLength; i++) {
       batchPromises.push(
         recordRegistry.ZkCertificateQueue(nextZkCertIndex + BigInt(i)),
       );
@@ -96,7 +81,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
     // collect merkle proofs and calls for the batch
     const callData: Call[] = [];
-    for (let i = 0; i < BATCH_SIZE; i++) {
+    for (let i = 0; i < zkCertHashes.length; i++) {
       const chosenLeafIndex = merkleTree.getFreeLeafIndex();
       const leafEmptyMerkleProof = merkleTree.createProof(chosenLeafIndex);
 
@@ -156,15 +141,6 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 }
 
 task('reliefZkCertQueue', 'Task to relieve a zkCertificate queue')
-  .addParam(
-    'zkCertificateType',
-    `type of zkCertificate, default to be kyc. Available options: ${JSON.stringify(
-      Object.keys(flagStandardMapping),
-    )}`,
-    undefined,
-    types.string,
-    false,
-  )
   .addParam(
     'registryAddress',
     'The smart contract address where zkCertificates are registered',
