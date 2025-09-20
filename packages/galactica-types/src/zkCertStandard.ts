@@ -181,7 +181,14 @@ export function parseContentJson<ContentType>(
     );
   }
 
-  const res: Record<string, unknown> = structuredClone(inputData);
+  try {
+    const res: Record<string, unknown> = structuredClone(inputData);
+    return res as unknown as ContentType;
+  } catch (error) {
+    console.warn(error);
+  }
+
+  const res: Record<string, unknown> = JSON.parse(JSON.stringify(inputData));
   return res as unknown as ContentType;
 }
 

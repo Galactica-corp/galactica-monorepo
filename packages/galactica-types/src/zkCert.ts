@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /*
  * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
@@ -30,6 +31,17 @@ export type AuthorizationProofInput = {
   r8y: string;
 };
 
+export type ProviderMeta = {
+  address?: string;
+  cert_background?: string;
+  certificate_name?: string;
+  certificate_type?: string;
+  description?: string;
+  icon?: string;
+  name?: string;
+  url?: string;
+};
+
 // / Data required for ZK fraud proofs
 export type ProviderData = {
   // public eddsa key of provider
@@ -39,6 +51,7 @@ export type ProviderData = {
   s: string;
   r8x: string;
   r8y: string;
+  meta?: ProviderMeta;
 };
 
 // / Data required for ZK fraud proofs

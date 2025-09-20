@@ -11,7 +11,7 @@ import { getMerkleProof as libGetMerkleProof } from '@galactica-net/zk-certifica
 import type { BaseProvider } from '@metamask/providers';
 import { BrowserProvider } from 'ethers';
 
-import { switchChain } from './utils';
+import { switchChain } from './utils/utils';
 
 /**
  * Get Merkle proof for a zkCert in a registry. Fetches the merkle proof if it is in a revocable registry.
