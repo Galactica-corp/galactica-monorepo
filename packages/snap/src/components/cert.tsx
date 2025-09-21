@@ -10,8 +10,7 @@ import {
   Text as SnapText,
   type SnapComponent,
 } from '@metamask/snaps-sdk/jsx';
-import type { Address as ViemAddress } from 'viem';
-import { zeroAddress } from 'viem';
+import { ethers } from 'ethers';
 
 import { getCertTitle } from '../utils/getCertTitle';
 import { humanize } from '../utils/humanizeString';
@@ -37,7 +36,8 @@ export const Cert: SnapComponent<Props> = (props) => {
   const fields = Object.entries(cert.content);
 
   const address =
-    (cert.providerData.meta?.address as ViemAddress) ?? zeroAddress;
+    (cert.providerData.meta?.address as `0x${string}`) ??
+    (ethers.ZeroAddress as `0x${string}`);
 
   return (
     <Box>

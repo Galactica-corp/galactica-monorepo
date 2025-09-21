@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
-import type { KnownZkCertStandard } from '@galactica-net/galactica-types';
-import { type EddsaPrivateKey } from '@galactica-net/galactica-types';
+import type {
+  KnownZkCertStandard,
+  EddsaPrivateKey,
+} from '@galactica-net/galactica-types';
 import type {
   ZkCertRegistered,
   ZkCertStorageHashes,
