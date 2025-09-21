@@ -216,7 +216,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
             importParams.encryptedZkCert,
             holder.encryptionPrivKey,
             customSchema,
-          );
+          ) as ZkCertRegistered<
+            Record<string, string | number | boolean | null>
+          >;
         } catch (error) {
           const message = error instanceof Error ? error.message : `${error}`;
           throw new ImportZkCertError({
@@ -232,13 +234,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const searchedZkCert:
         | ZkCertRegistered<Record<string, unknown>>
         | undefined = state.zkCerts
-          .map((cert) => cert.zkCert)
-          .find(
-            (candidate) =>
-              candidate.leafHash === zkCert.leafHash &&
-              candidate.registration.address === zkCert.registration.address &&
-              candidate.zkCertStandard === zkCert.zkCertStandard,
-          );
+        .map((cert) => cert.zkCert)
+        .find(
+          (candidate) =>
+            candidate.leafHash === zkCert.leafHash &&
+            candidate.registration.address === zkCert.registration.address &&
+            candidate.zkCertStandard === zkCert.zkCertStandard,
+        );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };
         return response;
@@ -294,7 +296,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
         }
       }
 
-      const newCert: ZkCertRegistered<Record<string, unknown>> = {
+      const newCert: ZkCertRegistered<
+        Record<string, string | number | boolean | null>
+      > = {
         ...zkCert,
       };
       if (!importParams.customSchema) {

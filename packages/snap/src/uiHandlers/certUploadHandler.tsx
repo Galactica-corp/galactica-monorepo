@@ -61,7 +61,10 @@ export const certUploadHandler = async (params: Params) => {
     const holder = getHolder(encryptedZkCert.holderCommitment, state.holders);
     const zkCert = (() => {
       try {
-        return decryptZkCert(encryptedZkCert, holder.encryptionPrivKey);
+        return decryptZkCert(
+          encryptedZkCert,
+          holder.encryptionPrivKey,
+        ) as ZkCertRegistered<Record<string, string | number | boolean | null>>;
       } catch (error) {
         const message = error instanceof Error ? error.message : `${error}`;
         throw new ImportZkCertError({
@@ -99,6 +102,7 @@ export const certUploadHandler = async (params: Params) => {
     state.zkCerts.push({
       zkCert: {
         ...zkCert,
+        content: zkCert.content,
         providerData: { ...zkCert.providerData, meta: guardianInfo.data },
       },
       schema,

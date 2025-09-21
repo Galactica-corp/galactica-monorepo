@@ -1,6 +1,8 @@
 import type { ZkCertRegistered } from '@galactica-net/galactica-types';
 
-export const zkCert: ZkCertRegistered<Record<string, unknown>> = {
+export const zkCert: ZkCertRegistered<
+  Record<string, string | number | boolean | null>
+> = {
   content: {
     surname: 'Doe',
     forename: 'John',

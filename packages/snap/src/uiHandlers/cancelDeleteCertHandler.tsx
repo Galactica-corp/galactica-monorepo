@@ -1,7 +1,7 @@
 import type { ButtonClickEvent } from '@metamask/snaps-sdk';
 
 import { Cert } from '../components/cert';
-import { getState } from '../stateManagement';
+import { getState, getZkCert } from '../stateManagement';
 
 type Params = {
   event: ButtonClickEvent;
@@ -24,5 +24,10 @@ export const cancelDeleteCertHandler = async (params: Params) => {
     throw new Error('cancelDeleteCertHandler. Cert is not found');
   }
 
-  return <Cert cert={foundCert} />;
+  const zkCertObject = getZkCert(
+    foundCert.leafHash,
+    state.zkCerts.map((cert) => cert.zkCert),
+  );
+
+  return <Cert cert={zkCertObject} />;
 };

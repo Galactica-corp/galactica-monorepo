@@ -171,7 +171,7 @@ export function getHolder(
  */
 export function getZkCert(
   leafHash: string,
-  zkCerts: ZkCertRegistered<Record<string, unknown>>[],
+  zkCerts: ZkCertRegistered<Record<string, string | number | boolean | null>>[],
 ) {
   const res = zkCerts.find((zkCert) => zkCert.leafHash === leafHash);
   if (res === undefined) {
