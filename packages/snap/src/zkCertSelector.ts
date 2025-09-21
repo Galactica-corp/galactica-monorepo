@@ -38,7 +38,7 @@ export function filterZkCerts(
         value.zkCert.providerData.ax === filter?.providerAx) &&
       (filter?.registryAddress === undefined ||
         value.zkCert.registration.address.toLowerCase() ===
-          filter?.registryAddress.toLowerCase()) &&
+        filter?.registryAddress.toLowerCase()) &&
       (filter?.chainID === undefined ||
         value.zkCert.registration.chainID === filter?.chainID)
     );
@@ -58,7 +58,7 @@ export async function selectZkCert(
   snap: SnapsGlobalObject,
   availableCerts: ZkCertStorage[],
   filter?: ZkCertSelectionParams,
-): Promise<ZkCertificate> {
+): Promise<ZkCertificate<Record<string, unknown>>> {
   if (availableCerts.length === 0) {
     throw new Error('No zkCerts available. Please import it first.');
   }
@@ -150,7 +150,7 @@ export async function selectZkCert(
     schema = selected.schema;
   }
 
-  const zkCert = new ZkCertificate(
+  const zkCert = new ZkCertificate<Record<string, unknown>>(
     selected.zkCert.holderCommitment,
     selected.zkCert.zkCertStandard,
     eddsa,

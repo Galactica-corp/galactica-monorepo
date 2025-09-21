@@ -142,8 +142,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
       const proof = await generateZkCertProof(
         genParams,
-        // FIXME:
-        // @ts-ignore
         zkCert,
         holder.eddsaKey,
         merkleProof,
@@ -234,13 +232,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const searchedZkCert:
         | ZkCertRegistered<Record<string, unknown>>
         | undefined = state.zkCerts
-        .map((cert) => cert.zkCert)
-        .find(
-          (candidate) =>
-            candidate.leafHash === zkCert.leafHash &&
-            candidate.registration.address === zkCert.registration.address &&
-            candidate.zkCertStandard === zkCert.zkCertStandard,
-        );
+          .map((cert) => cert.zkCert)
+          .find(
+            (candidate) =>
+              candidate.leafHash === zkCert.leafHash &&
+              candidate.registration.address === zkCert.registration.address &&
+              candidate.zkCertStandard === zkCert.zkCertStandard,
+          );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };
         return response;

@@ -17,13 +17,10 @@ import { humanize } from '../utils/humanizeString';
 
 type Props = {
   title?: string;
-  cert: ZkCertRegistered<Record<string, unknown>>;
+  cert: ZkCertRegistered<Record<string, string | number | boolean | null>>;
   withDeleteBanner?: boolean;
 };
 
-// FIXME
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 export const Cert: SnapComponent<Props> = (props) => {
   const {
     cert,
