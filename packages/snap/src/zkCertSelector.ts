@@ -149,6 +149,7 @@ export async function selectZkCert(
   } else {
     schema = selected.schema;
   }
+
   const zkCert = new ZkCertificate<Record<string, unknown>>(
     selected.zkCert.holderCommitment,
     selected.zkCert.zkCertStandard,
@@ -156,7 +157,7 @@ export async function selectZkCert(
     selected.zkCert.randomSalt,
     selected.zkCert.expirationDate,
     schema,
-    selected.zkCert.content,
+    selected.zkCert.content as unknown as Record<string, unknown>,
     selected.zkCert.providerData,
   );
 

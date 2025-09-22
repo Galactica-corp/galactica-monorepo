@@ -3,9 +3,9 @@
  */
 import type { FieldElement } from '@galactica-net/galactica-types';
 import { parseFieldElement } from '@galactica-net/galactica-types';
-import { Temporal } from '@js-temporal/polyfill';
 import type { AnySchema } from 'ajv';
 import type { Eddsa } from 'circomlibjs';
+import { Temporal } from 'temporal-polyfill';
 
 import { hashStringToFieldNumber } from './helpers';
 

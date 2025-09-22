@@ -3,11 +3,15 @@
  */
 
 // SPDX-License-Identifier: BUSL-1.1
-import { type HolderCommitmentData } from '@galactica-net/galactica-types';
+import type {
+  HolderCommitmentData,
+  ZkCertRegistered,
+} from '@galactica-net/galactica-types';
 import type {
   BenchmarkZKPGenParams,
   ConfirmationResponse,
   GenZkProofParams,
+  GetZkCertStorageHashesRequest,
   ImportZkCertParams,
   MerkleProofUpdateRequestParams,
   MerkleProofURLUpdateParams,
@@ -28,8 +32,14 @@ import {
   generateProof,
   generateZkCertProof,
 } from '@galactica-net/zk-certificates';
+import type {
+  OnHomePageHandler,
+  OnUserInputHandler,
+} from '@metamask/snaps-sdk';
+import { UserInputEventType } from '@metamask/snaps-sdk';
+import type { JSXElement } from '@metamask/snaps-sdk/jsx';
 import type { OnRpcRequestHandler } from '@metamask/snaps-types';
-import { divider, heading, panel, text } from '@metamask/snaps-ui';
+import { heading, panel, text } from '@metamask/snaps-ui';
 import type { AnySchema } from 'ajv/dist/2020';
 import { basicURLParse } from 'whatwg-url';
 
@@ -46,8 +56,16 @@ import {
   getZkCert,
   saveState,
 } from './stateManagement';
-import type { HolderData, PanelContent, SnapRpcProcessor } from './types';
-import { stripURLProtocol } from './utils';
+import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
+import { cancelDeleteCertHandler } from './uiHandlers/cancelDeleteCertHandler';
+import { certUploadHandler } from './uiHandlers/certUploadHandler';
+import { defaultHandler } from './uiHandlers/defaultHandler';
+import { deleteCertHandler } from './uiHandlers/deleteCertHandler';
+import { deletePreviewCertHandler } from './uiHandlers/deletePreviewCertHandler';
+import { goToTabHandler } from './uiHandlers/goToTabHandler';
+import { viewCertHandler } from './uiHandlers/viewCertHandler';
+import { getGuardianInfo } from './utils/getGuardianInfo';
+import { stripURLProtocol } from './utils/utils';
 import {
   getZkCertStorageHashes,
   getZkCertStorageOverview,
@@ -197,7 +215,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
             importParams.encryptedZkCert,
             holder.encryptionPrivKey,
             customSchema,
-          );
+          ) as ZkCertRegistered<
+            Record<string, string | number | boolean | null>
+          >;
         } catch (error) {
           const message = error instanceof Error ? error.message : `${error}`;
           throw new ImportZkCertError({
@@ -210,7 +230,9 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const schema = chooseSchema(zkCert.zkCertStandard, customSchema);
 
       // prevent uploading the same zkCert again (it is fine on different registries though)
-      const searchedZkCert = state.zkCerts
+      const searchedZkCert:
+        | ZkCertRegistered<Record<string, unknown>>
+        | undefined = state.zkCerts
         .map((cert) => cert.zkCert)
         .find(
           (candidate) =>
@@ -229,15 +251,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
           `With this action you are importing your ${zkCert.zkCertStandard} in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.`,
         ),
       ];
-      if (importParams.listZkCerts === true) {
-        prompt.push(
-          divider(),
-          text(
-            `The application also requests to get an overview of zkCertificates stored in your MetaMask.This overview does not contain personal information, only metadata(expiration date of the document, issue, and verification level).`,
-          ),
-        );
-      }
-
       confirm = await snap.request({
         method: 'snap_dialog',
         params: {
@@ -282,22 +295,35 @@ export const processRpcRequest: SnapRpcProcessor = async (
         }
       }
 
+      const newCert: ZkCertRegistered<
+        Record<string, string | number | boolean | null>
+      > = {
+        ...zkCert,
+      };
+      const guardianInfo = await getGuardianInfo(zkCert, ethereum);
+
+      if (!guardianInfo) {
+        throw new Error(`Failed to load information about issuer`);
+      }
+
+      if (!guardianInfo.isWhitelisted) {
+        throw new Error(
+          'The issuer of the provided zkCertificate is not currently whitelisted',
+        );
+      }
+
+      newCert.providerData = {
+        ...zkCert.providerData,
+        meta: guardianInfo?.data,
+      };
+
       state.zkCerts.push({
-        zkCert,
+        zkCert: newCert,
         schema,
       });
       await saveState(snap, state);
 
-      if (importParams.listZkCerts === true) {
-        const filteredCerts = filterZkCerts(state.zkCerts, {
-          chainID: importParams.chainID,
-        });
-        return getZkCertStorageOverview(
-          filteredCerts.map((cert) => cert.zkCert),
-        );
-      }
-      response = { message: RpcResponseMsg.ZkCertImported };
-      return response;
+      return getZkCertStorageOverview([zkCert])[0];
     }
 
     case RpcMethods.ExportZkCert: {
@@ -381,30 +407,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
     case RpcMethods.ListZkCerts: {
       const listParams = request.params as ZkCertSelectionParams;
 
-      // This method returns a list of zkCertificate details so that a front-end can help the user to identify imported zkCerts and whether they are still valid.
-      // The data contains expiration date, issuer and verification level. We ask for confirmation to prevent tracking of users.
-      confirm = await snap.request({
-        method: 'snap_dialog',
-        params: {
-          type: 'confirmation',
-          content: panel([
-            heading(
-              'Provide the list of your zkCertificates to the application',
-            ),
-            text(
-              `The application "${stripURLProtocol(
-                origin,
-              )}" requests to get an overview of zkCertificates stored in your MetaMask.This overview does not contain personal information, only metadata(expiration date of the document, issue, and verification level).`,
-            ),
-          ]),
-        },
-      });
-      if (!confirm) {
-        throw new GenericError({
-          name: 'RejectedConfirm',
-          message: RpcResponseErr.RejectedConfirm,
-        });
-      }
       const filteredCerts = filterZkCerts(state.zkCerts, listParams);
       return getZkCertStorageOverview(
         filteredCerts.map((zkCert) => zkCert.zkCert),
@@ -414,10 +416,18 @@ export const processRpcRequest: SnapRpcProcessor = async (
     case RpcMethods.GetZkCertStorageHashes: {
       // This method only returns a single hash of the storage state. It can be used to detect changes, for example if the user imported another zkCert in the meantime.
       // Because it does not leak any personal or tracking data, we do not ask for confirmation.
-      return getZkCertStorageHashes(
-        state.zkCerts.map((zkCert) => zkCert.zkCert),
-        origin,
-      );
+
+      const params = request.params as
+        | GetZkCertStorageHashesRequest
+        | undefined;
+
+      const chainID = params?.chainID;
+      const certs = state.zkCerts.map((storage) => storage.zkCert);
+      const filteredCerts = chainID
+        ? certs.filter((cert) => cert.registration.chainID === chainID)
+        : certs;
+
+      return getZkCertStorageHashes(filteredCerts, origin);
     }
 
     case RpcMethods.GetZkCertHash: {
@@ -649,4 +659,63 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
   // forward to common function shared with unit tests
   // passing global objects object from snap environment
   return await processRpcRequest({ origin, request }, snap, ethereum);
+};
+
+/**
+ * Handle incoming user events coming from the MetaMask clients open interfaces.
+ *
+ * @param params - The event parameters.
+ * @param params.id - The Snap interface ID where the event was fired.
+ * @param params.event - The event object containing the event type, name and value.
+ * @see https://docs.metamask.io/snaps/reference/exports/#onuserinput
+ */
+export const onUserInput: OnUserInputHandler = async (params) => {
+  const { event, id } = params;
+
+  let ui: JSXElement | null = null;
+
+  if (event.type === UserInputEventType.FileUploadEvent) {
+    ui = await certUploadHandler({ event, id });
+  }
+
+  if (event.type === UserInputEventType.ButtonClickEvent) {
+    if (event.name?.startsWith('go-to-tab')) {
+      ui = await goToTabHandler({ event });
+    }
+
+    if (event.name?.startsWith('delete-preview-cert-id')) {
+      ui = await deletePreviewCertHandler({ event });
+    }
+
+    if (event.name?.startsWith('delete-cert-id')) {
+      ui = await deleteCertHandler({ event });
+    }
+
+    if (event.name?.startsWith('cancel-delete-cert-id')) {
+      ui = await cancelDeleteCertHandler({ event });
+    }
+
+    if (event.name?.startsWith('view-cert-id')) {
+      ui = await viewCertHandler({ event });
+    }
+  }
+
+  ui ??= await defaultHandler();
+
+  await snap.request({
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    method: 'snap_updateInterface',
+    params: {
+      id,
+      ui,
+    },
+  });
+};
+
+export const onHomePage: OnHomePageHandler = async () => {
+  const ui = await defaultHandler();
+  return {
+    content: ui,
+  };
 };
