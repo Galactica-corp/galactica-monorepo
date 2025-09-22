@@ -63,9 +63,9 @@ export function getZkCertStorageHashes(
     storageHashes[zkCert.zkCertStandard] ??= keccak256(origin);
     storageHashes[zkCert.zkCertStandard] = keccak256(
       (storageHashes[zkCert.zkCertStandard] as string) +
-      zkCert.leafHash +
-      zkCert.registration.address +
-      zkCert.registration.chainID,
+        zkCert.leafHash +
+        zkCert.registration.address +
+        zkCert.registration.chainID,
     );
   }
   return storageHashes;

@@ -700,6 +700,8 @@ export const onUserInput: OnUserInputHandler = async (params) => {
   ui ??= await defaultHandler();
 
   await snap.request({
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     method: 'snap_updateInterface',
     params: {
       id,
