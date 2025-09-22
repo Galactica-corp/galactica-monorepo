@@ -9,10 +9,16 @@ import {
 import type { BaseProvider } from '@metamask/providers';
 import { BrowserProvider, Contract } from 'ethers';
 
-export const getGuardianInfo = async (
+/**
+ *
+ * @param cert - Zk Certificate
+ * @param ethereum - The Ethereum provider that is available as global in the snap.
+ * @returns - Information about guardian that issue certificate
+ */
+export async function getGuardianInfo(
   cert: ZkCertRegistered<Record<string, unknown>>,
   ethereum: BaseProvider,
-) => {
+) {
   try {
     const provider = new BrowserProvider(ethereum);
     const kycRecordRegistryContract = new Contract(
@@ -48,4 +54,4 @@ export const getGuardianInfo = async (
   }
 
   return undefined;
-};
+}
