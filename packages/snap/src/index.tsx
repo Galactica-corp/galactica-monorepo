@@ -233,13 +233,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const searchedZkCert:
         | ZkCertRegistered<Record<string, unknown>>
         | undefined = state.zkCerts
-        .map((cert) => cert.zkCert)
-        .find(
-          (candidate) =>
-            candidate.leafHash === zkCert.leafHash &&
-            candidate.registration.address === zkCert.registration.address &&
-            candidate.zkCertStandard === zkCert.zkCertStandard,
-        );
+          .map((cert) => cert.zkCert)
+          .find(
+            (candidate) =>
+              candidate.leafHash === zkCert.leafHash &&
+              candidate.registration.address === zkCert.registration.address &&
+              candidate.zkCertStandard === zkCert.zkCertStandard,
+          );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };
         return response;
@@ -703,8 +703,6 @@ export const onUserInput: OnUserInputHandler = async (params) => {
   ui ??= await defaultHandler();
 
   await snap.request({
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     method: 'snap_updateInterface',
     params: {
       id,

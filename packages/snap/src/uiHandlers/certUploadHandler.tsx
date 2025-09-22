@@ -32,9 +32,7 @@ export const certUploadHandler = async (params: Params) => {
 
   try {
     await snap.request({
-      // @ts-ignore
       method: 'snap_updateInterface',
-      // @ts-ignore
       params: {
         id,
         ui: (
@@ -79,13 +77,13 @@ export const certUploadHandler = async (params: Params) => {
     const searchedZkCert:
       | ZkCertRegistered<Record<string, unknown>>
       | undefined = state.zkCerts
-      .map((cert) => cert.zkCert)
-      .find(
-        (candidate) =>
-          candidate.leafHash === zkCert.leafHash &&
-          candidate.registration.address === zkCert.registration.address &&
-          candidate.zkCertStandard === zkCert.zkCertStandard,
-      );
+        .map((cert) => cert.zkCert)
+        .find(
+          (candidate) =>
+            candidate.leafHash === zkCert.leafHash &&
+            candidate.registration.address === zkCert.registration.address &&
+            candidate.zkCertStandard === zkCert.zkCertStandard,
+        );
 
     if (searchedZkCert) {
       throw new Error('This zkCert has already been imported');
