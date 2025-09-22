@@ -582,6 +582,7 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], []));
+      prepareMocksForGuardianCheck();
 
       const unknownZkCert: ZkCertRegistered<
         Record<string, string | number | boolean | null>
@@ -610,10 +611,10 @@ describe('Test rpc handler function', function () {
         newState: createState(
           [testHolder],
           [
-            {
+            addGuardianInfoToStorage({
               zkCert: unknownZkCert,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
-            },
+            }),
           ],
         ),
       });
