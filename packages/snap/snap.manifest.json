@@ -26,7 +26,9 @@
     "https://guardian.occam.fi": {},
     "https://reticulum.galactica.com": {},
     "https://swissborg.galactica.com": {},
-    "https://kyc.galactica.com": {}
+    "https://kyc.galactica.com": {},
+    "http://kyc.syntetika.io": {},
+    "http://guardian.syntetika.io": {}
   },
   "initialPermissions": {
     "endowment:page-home": {},
