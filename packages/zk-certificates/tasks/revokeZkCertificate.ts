@@ -57,13 +57,6 @@ task(
     false,
   )
   .addParam(
-    'index',
-    'index of the leaf in the merkle tree',
-    undefined,
-    types.int,
-    true,
-  )
-  .addParam(
     'registryAddress',
     'The smart contract address where zkCertificates are registered',
     undefined,
