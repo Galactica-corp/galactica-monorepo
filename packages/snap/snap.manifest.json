@@ -7,7 +7,7 @@
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
   "source": {
-    "shasum": "ticoceXVh2cPiNO282A5Ht7/En0a/kjQ3NoHwfrdVUY=",
+    "shasum": "zGEKqDHE22wOffmWnwB+1GDhL0ZEVYg/l8Uugz4m8Bs=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -28,7 +28,8 @@
     "https://swissborg.galactica.com": {},
     "https://kyc.galactica.com": {},
     "https://kyc.syntetika.io": {},
-    "https://guardian.syntetika.io": {}
+    "https://guardian.syntetika.io": {},
+    "https://guardian-cassiopeia.syntetika.io": {}
   },
   "initialPermissions": {
     "endowment:page-home": {},
