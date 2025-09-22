@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type {
   EncryptedZkCert,
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import { ImportZkCertError } from '@galactica-net/snap-api';
 import { chooseSchema, decryptZkCert } from '@galactica-net/zk-certificates';
-import type { FileUploadEvent } from '@metamask/snaps-sdk';
+import type { FileUploadEvent, Json } from '@metamask/snaps-sdk';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
 
 import { StartPage } from '../components/startPage';
