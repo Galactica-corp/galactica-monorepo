@@ -61,10 +61,10 @@ import {
   zkCertStorage2,
 } from './constants.mock';
 import { mockEthereumProvider, mockSnapProvider } from './wallet.mock';
-import { zkCert } from './zkCert';
-import { zkCert2 } from './zkCert2';
 import reyCert from '../../../test/reyCert.json';
 import updatedMerkleProof from '../../../test/updatedMerkleProof.json';
+import zkCert from '../../../test/zkCert.json';
+import zkCert2 from '../../../test/zkCert2.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import exclusion3VKey from '../../galactica-dapp/public/provers/exclusion3.vkey.json';
 import { processRpcRequest } from '../src';

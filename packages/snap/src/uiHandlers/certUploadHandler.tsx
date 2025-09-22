@@ -93,6 +93,10 @@ export const certUploadHandler = async (params: Params) => {
 
     const guardianInfo = await getGuardianInfo(zkCert, ethereum);
 
+    if (!guardianInfo) {
+      throw new Error(`Failed to load information about issuer`);
+    }
+
     if (!guardianInfo?.isWhitelisted) {
       throw new Error(
         'The issuer of the provided zkCertificate is not currently whitelisted',

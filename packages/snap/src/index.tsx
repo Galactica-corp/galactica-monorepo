@@ -300,19 +300,22 @@ export const processRpcRequest: SnapRpcProcessor = async (
       > = {
         ...zkCert,
       };
-      if (!importParams.customSchema) {
-        const guardianInfo = await getGuardianInfo(zkCert, ethereum);
-        if (!guardianInfo?.isWhitelisted) {
-          throw new Error(
-            'The issuer of the provided zkCertificate is not currently whitelisted',
-          );
-        }
+      const guardianInfo = await getGuardianInfo(zkCert, ethereum);
 
-        newCert.providerData = {
-          ...zkCert.providerData,
-          meta: guardianInfo?.data,
-        };
+      if (!guardianInfo) {
+        throw new Error(`Failed to load information about issuer`);
       }
+
+      if (!guardianInfo.isWhitelisted) {
+        throw new Error(
+          'The issuer of the provided zkCertificate is not currently whitelisted',
+        );
+      }
+
+      newCert.providerData = {
+        ...zkCert.providerData,
+        meta: guardianInfo?.data,
+      };
 
       state.zkCerts.push({
         zkCert: newCert,
