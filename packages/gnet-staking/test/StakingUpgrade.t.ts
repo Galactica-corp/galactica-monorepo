@@ -372,7 +372,7 @@ describe('Upgrade Staking', function () {
       ).to.equal(expectedUnstakingFee + depositedReward - withdrawnRewards);
     });
 
-    it.only('Should reward staking with multiple users and emission periods with WGNET', async function () {
+    it('Should reward staking with multiple users and emission periods with WGNET', async function () {
       const { upgradedStaking, staker, staker2, depositedReward } =
         await loadFixture(deployFixture);
 
