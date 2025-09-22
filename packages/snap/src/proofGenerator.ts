@@ -14,7 +14,7 @@ import { GenZKPError } from '@galactica-net/snap-api';
 import { divider, heading, text } from '@metamask/snaps-ui';
 
 import type { PanelContent } from './types';
-import { stripURLProtocol } from './utils';
+import { stripURLProtocol } from './utils/utils';
 
 /**
  * Generate proof confirmation prompt for the user.

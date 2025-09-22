@@ -31,7 +31,7 @@ export type HolderData = {
  * Everything the snap needs to store about a zkCert.
  */
 export type ZkCertStorage = {
-  zkCert: ZkCertRegistered<Record<string, unknown>>;
+  zkCert: ZkCertRegistered<Record<string, string | number | boolean | null>>;
   schema: AnySchema;
 };
 
