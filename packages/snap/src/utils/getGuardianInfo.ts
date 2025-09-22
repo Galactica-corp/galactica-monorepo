@@ -6,7 +6,7 @@ import { GuardianRegistry__factory as GuardianRegistryFactory } from '@galactica
 import type { BaseProvider } from '@metamask/providers';
 import { BrowserProvider, Contract } from 'ethers';
 
-import { kycRecordRegistryABI } from '../config/abi/kycRecordRegistry';
+import zkCertificateRegistryArtifact from '@galactica-net/zk-certificates/artifacts/contracts/ZkCertificateRegistry.sol/ZkCertificateRegistry.json';
 
 export const getGuardianInfo = async (
   cert: ZkCertRegistered<Record<string, unknown>>,
@@ -16,12 +16,12 @@ export const getGuardianInfo = async (
     const provider = new BrowserProvider(ethereum);
     const kycRecordRegistryContract = new Contract(
       cert.registration.address,
-      kycRecordRegistryABI,
+      zkCertificateRegistryArtifact.abi,
       provider,
     );
 
     const guardianRegistryAddress =
-      await kycRecordRegistryContract._GuardianRegistry();
+      await kycRecordRegistryContract.guardianRegistry();
 
     const guardianRegistryContract = new Contract(
       guardianRegistryAddress,
@@ -36,7 +36,7 @@ export const getGuardianInfo = async (
 
     const [isWhitelisted, metaUrl] =
       await guardianRegistryContract.guardians(guardianAddress);
-
+    console.log('trying to fetch guardian info for guardianAddress', metaUrl);
     if (metaUrl) {
       const response = await fetch(metaUrl);
       const data = (await response.json()) as ProviderMeta;
