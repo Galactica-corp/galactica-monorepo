@@ -31,7 +31,7 @@ import {
   subPathZkeySections,
 } from '@galactica-net/zk-certificates';
 import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
-import type { Json } from '@metamask/snaps-types';
+import type { Json } from '@metamask/snaps-sdk';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiFetchMock from 'chai-fetch-mock';
@@ -510,7 +510,7 @@ describe('Test rpc handler function', function () {
 
       const renewedZkCert = JSON.parse(
         JSON.stringify(zkCert),
-      ) as ZkCertRegistered<Record<string, string | number | boolean | null>>; // deep copy to not mess up original
+      ) as ZkCertRegistered<Record<string, Json>>; // deep copy to not mess up original
       // some made up content analog to a renewed zkCert
       renewedZkCert.expirationDate += 20;
       renewedZkCert.leafHash = zkCert2.leafHash;

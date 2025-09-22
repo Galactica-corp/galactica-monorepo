@@ -1,4 +1,5 @@
 import type { ZkCertRegistered } from '@galactica-net/galactica-types';
+import type { Json } from '@metamask/snaps-sdk';
 import {
   Address,
   Banner,
@@ -17,7 +18,7 @@ import { humanize } from '../utils/humanizeString';
 
 type Props = {
   title?: string;
-  cert: ZkCertRegistered<Record<string, string | number | boolean | null>>;
+  cert: ZkCertRegistered<Record<string, Json>>;
   withDeleteBanner?: boolean;
 };
 
@@ -52,9 +53,13 @@ export const Cert: SnapComponent<Props> = (props) => {
       <Divider />
       <Box>
         {fields.map(([key, value]) => {
+          const str =
+            typeof value === 'object'
+              ? JSON.stringify(value, null, 2)
+              : String(value).toString();
           return (
             <Row key={`${key}`} label={`${humanize(key)}`}>
-              <SnapText>{`${String(value).toString() || '-'}`}</SnapText>
+              <SnapText>{`${str || '-'}`}</SnapText>
             </Row>
           );
         })}

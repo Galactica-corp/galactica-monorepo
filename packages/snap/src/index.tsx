@@ -34,12 +34,11 @@ import {
 } from '@galactica-net/zk-certificates';
 import type {
   OnHomePageHandler,
+  OnRpcRequestHandler,
   OnUserInputHandler,
 } from '@metamask/snaps-sdk';
 import { UserInputEventType } from '@metamask/snaps-sdk';
-import type { JSXElement } from '@metamask/snaps-sdk/jsx';
-import type { OnRpcRequestHandler } from '@metamask/snaps-types';
-import { Heading, Panel, Text } from '@metamask/snaps-sdk/jsx';
+import { Box, Heading, Text, type JSXElement } from '@metamask/snaps-sdk/jsx';
 import type { AnySchema } from 'ajv/dist/2020';
 import { basicURLParse } from 'whatwg-url';
 
@@ -56,7 +55,7 @@ import {
   getZkCert,
   saveState,
 } from './stateManagement';
-import type { HolderData, SnapRpcProcessor, PanelContent } from './types';
+import type { HolderData, SnapRpcProcessor } from './types';
 import { cancelDeleteCertHandler } from './uiHandlers/cancelDeleteCertHandler';
 import { certUploadHandler } from './uiHandlers/certUploadHandler';
 import { defaultHandler } from './uiHandlers/defaultHandler';
@@ -155,7 +154,7 @@ export const processRpcRequest: SnapRpcProcessor = async (
         method: 'snap_dialog',
         params: {
           type: 'confirmation',
-          content: <Panel>{proofConfirmDialog}</Panel>,
+          content: <Box>{proofConfirmDialog}</Box>,
         },
       });
 
@@ -172,14 +171,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: (
-            <Panel>
+            <Box>
               <Heading>Clear zkCert and holder storage?</Heading>
               <Text>
-                Do you want to delete the zkCertificates stored in Metamask? (requested by {stripURLProtocol(
-                  origin,
-                )})
+                Do you want to delete the zkCertificates stored in Metamask?
+                (requested by {stripURLProtocol(origin)})
               </Text>
-            </Panel>
+            </Box>
           ),
         },
       });
@@ -235,25 +233,27 @@ export const processRpcRequest: SnapRpcProcessor = async (
       const searchedZkCert:
         | ZkCertRegistered<Record<string, unknown>>
         | undefined = state.zkCerts
-          .map((cert) => cert.zkCert)
-          .find(
-            (candidate) =>
-              candidate.leafHash === zkCert.leafHash &&
-              candidate.registration.address === zkCert.registration.address &&
-              candidate.zkCertStandard === zkCert.zkCertStandard,
-          );
+        .map((cert) => cert.zkCert)
+        .find(
+          (candidate) =>
+            candidate.leafHash === zkCert.leafHash &&
+            candidate.registration.address === zkCert.registration.address &&
+            candidate.zkCertStandard === zkCert.zkCertStandard,
+        );
       if (searchedZkCert) {
         response = { message: RpcResponseMsg.ZkCertAlreadyImported };
         return response;
       }
 
       const prompt = (
-        <Panel>
+        <Box>
           <Heading>Import your zkCertificate into your MetaMask</Heading>
           <Text>
-            With this action you are importing your {zkCert.zkCertStandard} in your MetaMask in order to generate ZK proofs. ZK proofs are generated using the Galactica Snap.
+            With this action you are importing your {zkCert.zkCertStandard} in
+            your MetaMask in order to generate ZK proofs. ZK proofs are
+            generated using the Galactica Snap.
           </Text>
-        </Panel>
+        </Box>
       );
       confirm = await snap.request({
         method: 'snap_dialog',
@@ -285,12 +285,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
           params: {
             type: 'confirmation',
             content: (
-              <Panel>
+              <Box>
                 <Text>
-                  This zkCert looks like a renewed version of an existing one({oldVersion.did}).
+                  This zkCert looks like a renewed version of an existing one(
+                  {oldVersion.did}).
                 </Text>
                 <Text>Do you want to replace the existing one ? </Text>
-              </Panel>
+              </Box>
             ),
           },
         });
@@ -340,14 +341,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: (
-            <Panel>
+            <Box>
               <Heading>Export zkCert?</Heading>
               <Text>
-                Do you want to export a zkCert ? (provided to {stripURLProtocol(
-                  origin,
-                )} for saving it to a file)
+                Do you want to export a zkCert ? (provided to{' '}
+                {stripURLProtocol(origin)} for saving it to a file)
               </Text>
-            </Panel>
+            </Box>
           ),
         },
       });
@@ -389,14 +389,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: (
-            <Panel>
+            <Box>
               <Heading>Provide holder commitment?</Heading>
               <Text>
-                Do you want to provide your holder commitment to {stripURLProtocol(
-                  origin,
-                )}?
+                Do you want to provide your holder commitment to{' '}
+                {stripURLProtocol(origin)}?
               </Text>
-            </Panel>
+            </Box>
           ),
         },
       });
@@ -446,17 +445,18 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: (
-            <Panel>
+            <Box>
               <Heading>Provide zkCert hash?</Heading>
               <Text>
-                Do you want to provide the leaf hashes of your zkCerts to {stripURLProtocol(
-                  origin,
-                )}?
+                Do you want to provide the leaf hashes of your zkCerts to{' '}
+                {stripURLProtocol(origin)}?
               </Text>
               <Text>
-                We suggest doing this only to update Merkle proofs.Only Do this on sites you trust to handle the unique ID of your zkCert confidentially.
+                We suggest doing this only to update Merkle proofs.Only Do this
+                on sites you trust to handle the unique ID of your zkCert
+                confidentially.
               </Text>
-            </Panel>
+            </Box>
           ),
         },
       });
@@ -480,14 +480,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: (
-            <Panel>
+            <Box>
               <Heading>Update Merkle proofs?</Heading>
               <Text>
-                Do you want to update the merkle proofs of your zkCerts as suggested by {stripURLProtocol(
-                  origin,
-                )}?
+                Do you want to update the merkle proofs of your zkCerts as
+                suggested by {stripURLProtocol(origin)}?
               </Text>
-            </Panel>
+            </Box>
           ),
         },
       });
@@ -538,11 +537,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: (
-            <Panel>
+            <Box>
               <Heading>Delete zkCert?</Heading>
-              <Text>Do you want to delete the following zkCert from MetaMask ? </Text>
+              <Text>
+                Do you want to delete the following zkCert from MetaMask ?{' '}
+              </Text>
               <Text>{zkCertToDelete.did} </Text>
-            </Panel>
+            </Box>
           ),
         },
       });
@@ -592,12 +593,13 @@ export const processRpcRequest: SnapRpcProcessor = async (
         params: {
           type: 'confirmation',
           content: (
-            <Panel>
+            <Box>
               <Heading>Update Merkle Proof Service?</Heading>
               <Text>
-                Do you want to update the URL to get Merkle Proofs from to '{urlUpdateParams.url}'?
+                Do you want to update the URL to get Merkle Proofs from to '
+                {urlUpdateParams.url}'?
               </Text>
-            </Panel>
+            </Box>
           ),
         },
       });
@@ -622,12 +624,14 @@ export const processRpcRequest: SnapRpcProcessor = async (
         method: 'snap_dialog',
         params: {
           type: 'confirmation',
-          content: panel([
-            heading('Allow Benchmark?'),
-            text(
-              'Do you allow the snap to run a benchmark of ZK proof generation?',
-            ),
-          ]),
+          content: (
+            <Box>
+              <Heading>Allow Benchmark?</Heading>
+              <Text>
+                Do you allow the snap to run a benchmark of ZK proof generation?
+              </Text>
+            </Box>
+          ),
         },
       });
 

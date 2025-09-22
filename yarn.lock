@@ -16717,7 +16717,7 @@ __metadata:
     undici: ^5.12.0
   peerDependencies:
     hardhat: ^2.0.0
-  checksum: f60c79a6e1289aac64c71e1a637da9b720483d6323f2fd468e77bc09c0646cee6a4fe944405539e52c4b8e4047a4186e7aa8d250fb37157b192bc3692bf9faea
+  checksum: 6c20dd27ca80c731f69e19fdff41488d523c7b4667f8ec654a520e270311f2251badbe44d1c700861a25147abbf51add84eb912752f4cc101dedd97b4f3fb2dd
   languageName: node
   linkType: hard
 

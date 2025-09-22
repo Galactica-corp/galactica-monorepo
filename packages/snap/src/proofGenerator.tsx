@@ -11,9 +11,8 @@ import type {
   ZkProof,
 } from '@galactica-net/snap-api';
 import { GenZKPError } from '@galactica-net/snap-api';
-import { divider, heading, text } from '@metamask/snaps-ui';
+import { Divider, Heading, Text } from '@metamask/snaps-sdk/jsx';
 
-import type { PanelContent } from './types';
 import { stripURLProtocol } from './utils/utils';
 
 /**
@@ -28,25 +27,21 @@ export function createProofConfirmationPrompt(
   params: GenZkProofParams<any>,
   proof: ZkProof,
   origin: string,
-): PanelContent {
+) {
   const proofConfirmDialog = [
-    heading('Disclosing zkCertificate Proof'),
-    text(
-      `With this action you will create a ${params.requirements.zkCertStandard.toUpperCase()} proof for ${stripURLProtocol(
-        origin,
-      )}.
-       This action tests whether your personal data fulfills the requirements of the proof.`,
-    ),
-    divider(),
+    <Heading>Disclosing zkCertificate Proof</Heading>,
+    <Text>{`With this action you will create a ${params.requirements.zkCertStandard.toUpperCase()} proof for ${stripURLProtocol(
+      origin,
+    )}.
+       This action tests whether your personal data fulfills the requirements of the proof.`}</Text>,
+    <Divider />,
   ];
 
   // Description of disclosures made by the proof have to be provided by the front-end because the snap can not analyze what the prover will do.
   if (params.description) {
     proofConfirmDialog.push(
-      text(
-        `Description of the proof (provided by ${stripURLProtocol(origin)}):`,
-      ),
-      text(params.description),
+      <Text>{`Description of the proof (provided by ${stripURLProtocol(origin)}):`}</Text>,
+      <Text>{params.description}</Text>,
     );
   } else {
     throw new Error('Description of ZKP is missing');
@@ -54,8 +49,8 @@ export function createProofConfirmationPrompt(
 
   // Generalize disclosure of inputs to any kind of inputs
   proofConfirmDialog.push(
-    divider(),
-    text(`The following proof parameters will be publicly visible:`),
+    <Divider />,
+    <Text>The following proof parameters will be publicly visible:</Text>,
   );
 
   if (params.publicInputDescriptions.length !== proof.publicSignals.length) {
@@ -63,11 +58,11 @@ export function createProofConfirmationPrompt(
       `Number of public input descriptions (${params.publicInputDescriptions.length}) does not match number of public inputs (${proof.publicSignals.length})`,
     );
   }
+
+  // FIXME: why any if publicSignals is string[]?
   proof.publicSignals.forEach((signal: any, index: number) => {
     proofConfirmDialog.push(
-      text(
-        `${params.publicInputDescriptions[index]}: ${JSON.stringify(signal)}`,
-      ),
+      <Text>{`${params.publicInputDescriptions[index]}: ${JSON.stringify(signal)}`}</Text>,
     );
   });
   return proofConfirmDialog;
