@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 import type {
-  KnownZkCertStandard,
+  ZkCertStandard,
   EddsaPrivateKey,
 } from '@galactica-net/galactica-types';
 import type {
@@ -25,7 +25,7 @@ export async function calculateHolderCommitment(
 }
 
 type SharedZkCert = {
-  standard: KnownZkCertStandard;
+  standard: ZkCertStandard;
   expirationDate: number;
 };
 /**
@@ -40,7 +40,7 @@ export function getZkCertStorageOverview(
 ) {
   return zkCertStorage.map((zkCert) => {
     const data: SharedZkCert = {
-      standard: zkCert.zkCertStandard as KnownZkCertStandard,
+      standard: zkCert.zkCertStandard,
       expirationDate: zkCert.expirationDate * 1000,
     };
     return data;
@@ -63,9 +63,9 @@ export function getZkCertStorageHashes(
     storageHashes[zkCert.zkCertStandard] ??= keccak256(origin);
     storageHashes[zkCert.zkCertStandard] = keccak256(
       (storageHashes[zkCert.zkCertStandard] as string) +
-        zkCert.leafHash +
-        zkCert.registration.address +
-        zkCert.registration.chainID,
+      zkCert.leafHash +
+      zkCert.registration.address +
+      zkCert.registration.chainID,
     );
   }
   return storageHashes;
