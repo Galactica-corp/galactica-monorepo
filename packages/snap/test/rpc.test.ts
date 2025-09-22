@@ -36,6 +36,7 @@ import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiFetchMock from 'chai-fetch-mock';
 import { buildPoseidon } from 'circomlibjs';
+import { ethers } from 'ethers';
 import fetchMock from 'fetch-mock';
 import { match } from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -46,9 +47,13 @@ import {
   defaultRPCRequest,
   merkleProofServiceURL,
   proverHash,
+  testAddress,
   testEdDSAKey,
   testEntropyEncrypt,
   testEntropyHolder,
+  testGuardianInfoEncoded,
+  testGuardianMetadata,
+  testGuardianMetadataURL,
   testHolder,
   testProverURL,
   testZkpParams,
@@ -150,10 +155,55 @@ function merkleProofToServiceResponse(merkleProof: MerkleProof): any {
   };
 }
 
+/**
+ * Helper to add guardian info to the zkCert storage object.
+ *
+ * @param zkCertStorageObject - The zkCert storage object to add guardian info to.
+ * @returns The zkCert storage object with guardian info.
+ */
+function addGuardianInfoToStorage(zkCertStorageObject: ZkCertStorage) {
+  const res = structuredClone(zkCertStorageObject);
+  res.zkCert.providerData.meta = {
+    ...testGuardianMetadata,
+    address: testAddress,
+  };
+  return res;
+}
+
 describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
   const ethereumProvider = mockEthereumProvider();
   let poseidon: Poseidon;
+
+  /**
+   * Helper to prepare mocks for guardian check.
+   */
+  function prepareMocksForGuardianCheck() {
+    // blockchain calls:
+    const encodedAddress = ethers.AbiCoder.defaultAbiCoder().encode(
+      ['address'],
+      [testAddress],
+    );
+    ethereumProvider.rpcStubs.eth_call
+      .onFirstCall()
+      .resolves(
+        encodedAddress, // guardianRegistry address
+      )
+      .onSecondCall()
+      .resolves(
+        encodedAddress, // guardian address
+      )
+      .onThirdCall()
+      .resolves(
+        testGuardianInfoEncoded, // guardian metadata URL
+      );
+    // json response:
+    fetchMock.get(
+      testGuardianMetadataURL,
+      JSON.stringify(testGuardianMetadata),
+      { overwriteRoutes: true },
+    );
+  }
 
   before(async function () {
     // prepare URL to fetch provers from
@@ -301,6 +351,8 @@ describe('Test rpc handler function', function () {
   describe('Add Holder method', function () {
     it('should add holder successfully', async function (this: Mocha.Context) {
       this.timeout(5000);
+      prepareMocksForGuardianCheck();
+      // user accepts the confirmation
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const expectedHolderCommitment =
@@ -334,7 +386,7 @@ describe('Test rpc handler function', function () {
               encryptionPrivKey: testEntropyEncrypt.slice(2),
             },
           ],
-          [zkCertStorage],
+          [addGuardianInfoToStorage(zkCertStorage)],
         ),
       };
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith(
@@ -409,6 +461,7 @@ describe('Test rpc handler function', function () {
     });
 
     it('should import zkCert successfully', async function () {
+      prepareMocksForGuardianCheck();
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const result = (await processRpcRequest(
@@ -419,7 +472,10 @@ describe('Test rpc handler function', function () {
 
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
         operation: 'update',
-        newState: createState([testHolder], [zkCertStorage]),
+        newState: createState(
+          [testHolder],
+          [addGuardianInfoToStorage(zkCertStorage)],
+        ),
       });
       expect(result.standard).to.be.eq(zkCert.zkCertStandard);
     });
@@ -446,6 +502,7 @@ describe('Test rpc handler function', function () {
     });
 
     it('should update a zkCert if a renewed version is imported at the same position in the Merkle tree', async function () {
+      prepareMocksForGuardianCheck();
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -479,10 +536,10 @@ describe('Test rpc handler function', function () {
         newState: createState(
           [testHolder],
           [
-            {
+            addGuardianInfoToStorage({
               zkCert: renewedZkCert,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
-            },
+            }),
           ],
         ),
       });

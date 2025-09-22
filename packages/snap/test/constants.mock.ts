@@ -14,6 +14,7 @@ import type {
 } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
+import { ethers } from 'ethers';
 import { MD5 } from 'object-hash';
 
 import { zkCert } from './zkCert';
@@ -42,7 +43,7 @@ export const defaultRPCRequest: RpcArgs = {
 export const testSeedPhrase =
   'host void flip concert spare few spin advice nuclear age cigar collect';
 
-export const testAddress = '0x53e173c619756eb6256d3ff4c7861bea5d739da1';
+export const testAddress = '0x53e173C619756eb6256D3Ff4C7861bea5D739dA1';
 
 export const testHolderCommitment =
   '7735727246471767370788268218008649659345393646775019247808120566463753454903';
@@ -135,3 +136,24 @@ export const zkCertStorage2: ZkCertStorage = {
   zkCert: zkCert2,
   schema: getContentSchema(KnownZkCertStandard.ZkKYC),
 };
+
+export const testGuardianMetadataURL = 'https://example.com/metadata';
+export const testGuardianMetadata = {
+  name: 'Cassiopeia Sample KYC Guardian',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  certificate_name: 'Test zkKYC',
+  icon: 'https://raw.githubusercontent.com/Galactica-corp/galactica-monorepo/main/packages/snap/images/logo_galactica.svg',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  cert_background: 'https://galactica.com/assets/images/home/bg-bottom-sm.webp',
+  description: 'Test zkKYC issued by Sample KYC Guardian on Cassiopeia Testnet',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  certificate_type: 'gip1',
+  url: 'https://kyc-cassiopeia.galactica.com/',
+};
+export const testGuardianInfoEncoded = ethers.AbiCoder.defaultAbiCoder().encode(
+  ['bool', /* 'uint256[2]',*/ 'string'],
+  [
+    true,
+    /* [zkCert.providerData.ax, zkCert.providerData.ay],*/ testGuardianMetadataURL,
+  ],
+);
