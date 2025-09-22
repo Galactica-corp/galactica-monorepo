@@ -6,7 +6,7 @@ import {Ownable2StepUpgradeable} from '@openzeppelin/contracts-upgradeable/acces
 import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {Fallback} from '@galactica-net/zk-certificates/contracts/helpers/Fallback.sol';
-import {WGNET9} from './WGNET9.sol';
+import {WGNET10} from './WGNET10.sol';
 
 /**
  * @title Staking
@@ -17,7 +17,7 @@ contract Staking is
   ReentrancyGuardUpgradeable,
   Fallback
 {
-  WGNET9 public wGNET;
+  WGNET10 public wGNET;
   mapping(address => uint) public stakes;
   uint public totalStake;
 
@@ -88,8 +88,7 @@ contract Staking is
     address _owner,
     uint emissionStart,
     uint firstCheckPoint,
-    uint _rewardPerSecond,
-    address _wGNET
+    uint _rewardPerSecond
   ) public initializer {
     if (_owner == address(0)) {
       revert InvalidOwnerAddress();
@@ -113,7 +112,10 @@ contract Staking is
     }
     __ReentrancyGuard_init();
     __Ownable_init(_owner);
-    wGNET = _wGNET;
+  }
+
+  function setWGNET(address payable _wGNET) public onlyOwner {
+    wGNET = WGNET10(_wGNET);
   }
 
   /**
@@ -298,7 +300,7 @@ contract Staking is
   /** take reward and add it to the stake so it can also accrue rewards (internal function)
    */
   function _addRewardToStake(address user) internal {
-    uint reward = rewards[user]
+    uint reward = rewards[user];
     if (reward > 0) {
       stakes[user] += reward;
       rewards[user] = 0;
