@@ -7,7 +7,7 @@
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
   "source": {
-    "shasum": "zGEKqDHE22wOffmWnwB+1GDhL0ZEVYg/l8Uugz4m8Bs=",
+    "shasum": "HlPO6pVzeg4wD/K2cR7GEEv32UOs2hXhHbHWMtwZoyA=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -22,14 +22,15 @@
     "https://kyc-reticulum.galactica.com": {},
     "https://app.galactica.com": {},
     "https://cassiopeia.galactica.com": {},
-    "https://guardian-cassiopeia.occam.fi": {},
-    "https://guardian.occam.fi": {},
     "https://reticulum.galactica.com": {},
     "https://swissborg.galactica.com": {},
     "https://kyc.galactica.com": {},
     "https://kyc.syntetika.io": {},
     "https://guardian.syntetika.io": {},
-    "https://guardian-cassiopeia.syntetika.io": {}
+    "https://guardian-cassiopeia.syntetika.io": {},
+    "https://guardian-cassiopeia.occam.fi": {},
+    "https://guardian-reticulum.occam.fi": {},
+    "https://guardian.occam.fi": {}
   },
   "initialPermissions": {
     "endowment:page-home": {},
