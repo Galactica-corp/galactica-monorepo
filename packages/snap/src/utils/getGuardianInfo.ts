@@ -6,7 +6,7 @@ import {
   GuardianRegistry__factory as GuardianRegistryFactory,
   ZkCertificateRegistry__factory as ZkCertificateRegistryFactory,
 } from '@galactica-net/zk-certificates/typechain-types';
-import type { BaseProvider } from '@metamask/providers';
+import type { SnapsEthereumProvider } from '@metamask/snaps-sdk';
 import { BrowserProvider, Contract } from 'ethers';
 
 /**
@@ -17,7 +17,7 @@ import { BrowserProvider, Contract } from 'ethers';
  */
 export async function getGuardianInfo(
   cert: ZkCertRegistered<Record<string, unknown>>,
-  ethereum: BaseProvider,
+  ethereum: SnapsEthereumProvider,
 ) {
   try {
     const provider = new BrowserProvider(ethereum);

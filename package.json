@@ -30,6 +30,7 @@
   "resolutions": {
     "@hyperlane-xyz/core@3.16.0": "patch:@hyperlane-xyz/core@npm:3.16.0#.yarn/patches/@hyperlane-xyz-core-npm-3.16.0-487f37098a.patch",
     "@metamask/eth-sig-util@^8.2.0": "patch:@metamask/eth-sig-util@npm:^8.2.0#.yarn/patches/@metamask-eth-sig-util-npm-8.2.0-6005d801eb.patch",
+    "@metamask/safe-event-emitter": "^3.1.2",
     "@typescript-eslint/typescript-estree": "8.40.0",
     "ejs": "patch:ejs@npm:3.1.9#.yarn/patches/ejs-npm-3.1.9-e201b2088c.patch",
     "fastfile@0.0.20": "patch:fastfile@npm:0.0.20#.yarn/patches/fastfile-npm-0.0.20-4263a2b353.patch",

@@ -2,7 +2,6 @@ import type { SnapConfig } from '@metamask/snaps-cli';
 import { resolve } from 'path';
 
 const config: SnapConfig = {
-  bundler: 'webpack',
   customizeWebpackConfig: (wPackConfig) => {
     // needed some hacky changes to the webpack config to make the snap pass through the webpack and SES compatibility checks
     const res = wPackConfig;
