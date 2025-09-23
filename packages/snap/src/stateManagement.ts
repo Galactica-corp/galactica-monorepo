@@ -2,7 +2,7 @@
 import type { ZkCertRegistered } from '@galactica-net/snap-api';
 import { GenericError, RpcResponseErr } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
-import type { Json, SnapsGlobalObject } from '@metamask/snaps-types';
+import type { Json, SnapsProvider } from '@metamask/snaps-sdk';
 
 import { createEncryptionKeyPair } from './encryption';
 import type { HolderData, StorageState, ZkCertStorage } from './types';
@@ -16,7 +16,7 @@ export const CURRENT_STORAGE_LAYOUT_VERSION = 1;
  * @param snap - The snap for interaction with Metamask.
  * @returns The state.
  */
-export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
+export async function getState(snap: SnapsProvider): Promise<StorageState> {
   const stateRecord = (await snap.request({
     method: 'snap_manageState',
     params: { operation: 'get' },
@@ -115,7 +115,7 @@ export async function getState(snap: SnapsGlobalObject): Promise<StorageState> {
  * @param newState - The new state.
  */
 export async function saveState(
-  snap: SnapsGlobalObject,
+  snap: SnapsProvider,
   newState: StorageState,
 ): Promise<void> {
   const stateRecord: Record<string, Json> = {
@@ -171,7 +171,7 @@ export function getHolder(
  */
 export function getZkCert(
   leafHash: string,
-  zkCerts: ZkCertRegistered<Record<string, string | number | boolean | null>>[],
+  zkCerts: ZkCertRegistered<Record<string, Json>>[],
 ) {
   const res = zkCerts.find((zkCert) => zkCert.leafHash === leafHash);
   if (res === undefined) {

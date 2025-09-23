@@ -6,8 +6,9 @@ import {
 import type { ZkCertSelectionParams } from '@galactica-net/snap-api';
 import { RpcResponseErr } from '@galactica-net/snap-api';
 import { ZkCertificate } from '@galactica-net/zk-certificates';
-import type { SnapsGlobalObject } from '@metamask/snaps-types';
-import { divider, heading, panel, text } from '@metamask/snaps-ui';
+import type { SnapsProvider } from '@metamask/snaps-sdk';
+import type { JSXElement } from '@metamask/snaps-sdk/jsx';
+import { Box, Divider, Heading, Text } from '@metamask/snaps-sdk/jsx';
 import { buildEddsa } from 'circomlibjs';
 
 import type { ZkCertStorage } from './types';
@@ -55,7 +56,7 @@ export function filterZkCerts(
  * @returns Selected zkCert.
  */
 export async function selectZkCert(
-  snap: SnapsGlobalObject,
+  snap: SnapsProvider,
   availableCerts: ZkCertStorage[],
   filter?: ZkCertSelectionParams,
 ): Promise<ZkCertificate<Record<string, unknown>>> {
@@ -79,14 +80,12 @@ export async function selectZkCert(
     selected = filteredCerts[0];
   } else {
     // build selection dialog
-    const options = [];
+    const options: JSXElement[] = [];
     for (let i = 0; i < filteredCerts.length; i++) {
       const { did } = filteredCerts[i].zkCert;
 
       const zkCertDisplay = [
-        text(
-          `**${i + 1}**: ${did.slice(0, 14)}...${did.slice(did.length - 4)}`,
-        ),
+        <Text>{`**${i + 1}**: ${did.slice(0, 14)}...${did.slice(did.length - 4)}`}</Text>,
       ];
 
       // custom information to display depending on the type of zkCert
@@ -94,11 +93,11 @@ export async function selectZkCert(
         filteredCerts[i].zkCert.expirationDate * 1000,
       );
       zkCertDisplay.push(
-        text(`Valid until: ${certExpirationDate.toDateString()}`),
+        <Text>{`Valid until: ${certExpirationDate.toDateString()}`}</Text>,
       );
 
-      options.push(panel(zkCertDisplay));
-      options.push(divider());
+      options.push(<Box>{zkCertDisplay}</Box>);
+      options.push(<Divider />);
     }
 
     let indexSelection = NaN;
@@ -107,13 +106,15 @@ export async function selectZkCert(
         method: 'snap_dialog',
         params: {
           type: 'prompt',
-          content: panel([
-            heading(`zkCertificate Selection`),
-            ...options,
-            text(
-              `Please enter the number of the zkCertificate you want to select (${1} to ${filteredCerts.length}):`,
-            ),
-          ]),
+          content: (
+            <Box>
+              <Heading>zkCertificate Selection</Heading>
+              {options}
+              <Text>
+                {`Please enter the number of the zkCertificate you want to select (${1} to ${filteredCerts.length}):`}
+              </Text>
+            </Box>
+          ),
         },
       });
 

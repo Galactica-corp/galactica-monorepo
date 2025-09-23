@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type {
   EncryptedZkCert,
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import { ImportZkCertError } from '@galactica-net/snap-api';
 import { chooseSchema, decryptZkCert } from '@galactica-net/zk-certificates';
-import type { FileUploadEvent } from '@metamask/snaps-sdk';
+import type { FileUploadEvent, Json } from '@metamask/snaps-sdk';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
 
 import { StartPage } from '../components/startPage';
@@ -62,7 +61,7 @@ export const certUploadHandler = async (params: Params) => {
         return decryptZkCert(
           encryptedZkCert,
           holder.encryptionPrivKey,
-        ) as ZkCertRegistered<Record<string, string | number | boolean | null>>;
+        ) as ZkCertRegistered<Record<string, Json>>;
       } catch (error) {
         const message = error instanceof Error ? error.message : `${error}`;
         throw new ImportZkCertError({
@@ -77,13 +76,13 @@ export const certUploadHandler = async (params: Params) => {
     const searchedZkCert:
       | ZkCertRegistered<Record<string, unknown>>
       | undefined = state.zkCerts
-        .map((cert) => cert.zkCert)
-        .find(
-          (candidate) =>
-            candidate.leafHash === zkCert.leafHash &&
-            candidate.registration.address === zkCert.registration.address &&
-            candidate.zkCertStandard === zkCert.zkCertStandard,
-        );
+      .map((cert) => cert.zkCert)
+      .find(
+        (candidate) =>
+          candidate.leafHash === zkCert.leafHash &&
+          candidate.registration.address === zkCert.registration.address &&
+          candidate.zkCertStandard === zkCert.zkCertStandard,
+      );
 
     if (searchedZkCert) {
       throw new Error('This zkCert has already been imported');

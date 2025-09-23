@@ -2,6 +2,7 @@ import {
   KnownZkCertStandard,
   type ZkCertRegistered,
 } from '@galactica-net/galactica-types';
+import type { Json } from '@metamask/snaps-sdk';
 import {
   Banner,
   Box,
@@ -21,7 +22,7 @@ type Props = {
   error?: string;
   activeTab: TabType;
   holders: { holderCommitment: string; encryptionPubKey: string }[];
-  zkCerts: ZkCertRegistered<Record<string, unknown>>[];
+  zkCerts: ZkCertRegistered<Record<string, Json>>[];
 };
 
 export const StartPage: SnapComponent<Props> = ({
