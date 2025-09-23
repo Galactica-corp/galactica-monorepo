@@ -3,6 +3,7 @@ import type {
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import { KnownZkCertStandard } from '@galactica-net/galactica-types';
+import type { Json } from '@metamask/snaps-sdk';
 import {
   Box,
   Button,
@@ -32,11 +33,9 @@ const getValue = (cert: ZkCertRegistered<Record<string, unknown>>) => {
   return 'Other Cert';
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 export const CertsSection: SnapComponent<{
   isLoading?: boolean;
-  certs: ZkCertRegistered<Record<string, unknown>>[];
+  certs: ZkCertRegistered<Record<string, Json>>[];
   holders: { holderCommitment: string; encryptionPubKey: string }[];
 }> = ({ certs, holders, isLoading }) => {
   if (!certs.length) {

@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type {
   EncryptedZkCert,
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import { ImportZkCertError } from '@galactica-net/snap-api';
 import { chooseSchema, decryptZkCert } from '@galactica-net/zk-certificates';
-import type { FileUploadEvent } from '@metamask/snaps-sdk';
+import type { FileUploadEvent, Json } from '@metamask/snaps-sdk';
 import { base64ToBytes, bytesToString } from '@metamask/utils';
 
 import { StartPage } from '../components/startPage';
@@ -32,9 +31,7 @@ export const certUploadHandler = async (params: Params) => {
 
   try {
     await snap.request({
-      // @ts-ignore
       method: 'snap_updateInterface',
-      // @ts-ignore
       params: {
         id,
         ui: (
@@ -64,7 +61,7 @@ export const certUploadHandler = async (params: Params) => {
         return decryptZkCert(
           encryptedZkCert,
           holder.encryptionPrivKey,
-        ) as ZkCertRegistered<Record<string, string | number | boolean | null>>;
+        ) as ZkCertRegistered<Record<string, Json>>;
       } catch (error) {
         const message = error instanceof Error ? error.message : `${error}`;
         throw new ImportZkCertError({
