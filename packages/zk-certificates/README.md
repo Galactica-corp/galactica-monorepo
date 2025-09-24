@@ -81,7 +81,6 @@ There are some scripts for deployment of the basic infrastructure and example dA
 Before running it, you need to configure the deployer wallet in the environment variables used in `hardhat.config.ts` adn fund the account.
 
 ```shell
-yarn hardhat run scripts/prepare-poseidon.ts
 yarn hardhat ignition deploy ignition/modules/CompleteTestSetup.m.ts --network cassiopeia
 yarn hardhat ignition deploy ignition/modules/TwitterProofs.m.ts --network cassiopeia
 ```
