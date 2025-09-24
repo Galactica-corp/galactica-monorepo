@@ -1,8 +1,16 @@
 {
   "extends": "../../tsconfig.json",
-  "files": [
-    "../../node_modules/@metamask/snaps-types/dist/types/global.d.ts",
-    "types/index.d.ts"
-  ],
+  "files": ["types/index.d.ts"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2020", "DOM"],
+    "jsxImportSource": "@metamask/snaps-sdk",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "strict": true,
+    "typeRoots": ["node_modules/@types", "packages/snap/types"]
+  },
   "include": ["src", "types", "test", "../snap-api/src/api/zkCertTypes.ts"]
 }

@@ -1,5 +1,5 @@
 {
-  "version": "0.8.5",
+  "version": "1.0.1",
   "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
   "proposedName": "Galactica ZK Vault",
   "repository": {
@@ -7,7 +7,7 @@
     "url": "https://github.com/Galactica-corp/galactica-snap.git"
   },
   "source": {
-    "shasum": "B3bS0fYt04z8EFUVejEXxCCgY6XwXEWfZgTKXmbwxvc=",
+    "shasum": "Eal69NUpQ3I/LbIDDKcdzlKJb7tsoYXj3YycCblGlJk=",
     "location": {
       "npm": {
         "filePath": "dist/bundle.js",
@@ -17,7 +17,22 @@
       }
     }
   },
+  "initialConnections": {
+    "https://kyc-cassiopeia.galactica.com": {},
+    "https://kyc-reticulum.galactica.com": {},
+    "https://app.galactica.com": {},
+    "https://cassiopeia.galactica.com": {},
+    "https://guardian-cassiopeia.occam.fi": {},
+    "https://guardian.occam.fi": {},
+    "https://reticulum.galactica.com": {},
+    "https://swissborg.galactica.com": {},
+    "https://kyc.galactica.com": {},
+    "https://kyc.syntetika.io": {},
+    "https://guardian.syntetika.io": {},
+    "https://guardian-cassiopeia.syntetika.io": {}
+  },
   "initialPermissions": {
+    "endowment:page-home": {},
     "endowment:rpc": {
       "dapps": true,
       "snaps": false,
@@ -31,6 +46,6 @@
     "snap_manageState": {},
     "snap_getEntropy": {}
   },
-  "platformVersion": "4.4.2",
+  "platformVersion": "9.3.0",
   "manifestVersion": "0.1"
 }

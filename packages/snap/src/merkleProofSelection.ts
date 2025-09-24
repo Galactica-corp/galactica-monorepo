@@ -8,10 +8,10 @@ import type {
   ZkCertRegistered,
 } from '@galactica-net/galactica-types';
 import { getMerkleProof as libGetMerkleProof } from '@galactica-net/zk-certificates';
-import type { BaseProvider } from '@metamask/providers';
+import type { SnapsEthereumProvider } from '@metamask/snaps-sdk';
 import { BrowserProvider } from 'ethers';
 
-import { switchChain } from './utils';
+import { switchChain } from './utils/utils';
 
 /**
  * Get Merkle proof for a zkCert in a registry. Fetches the merkle proof if it is in a revocable registry.
@@ -26,7 +26,7 @@ import { switchChain } from './utils';
 export async function getMerkleProof(
   zkCert: ZkCertRegistered<Record<string, unknown>>,
   registryAddr: string,
-  ethereum: BaseProvider,
+  ethereum: SnapsEthereumProvider,
   merkleServiceURL?: string,
 ): Promise<MerkleProof> {
   await switchChain(zkCert.registration.chainID, ethereum);
