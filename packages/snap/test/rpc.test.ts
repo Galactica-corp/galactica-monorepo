@@ -1314,7 +1314,7 @@ describe('Test rpc handler function', function () {
         ethereumProvider,
       )) as ConfirmationResponse;
 
-      const expectedUpdatedZkCert: ZkCertRegistered<Record<string, unknown>> = {
+      const expectedUpdatedZkCert: ZkCertRegistered<Record<string, Json>> = {
         ...zkCert,
       };
       expectedUpdatedZkCert.merkleProof = updatedMerkleProof;
