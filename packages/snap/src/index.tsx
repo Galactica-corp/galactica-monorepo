@@ -33,12 +33,13 @@ import {
   generateZkCertProof,
 } from '@galactica-net/zk-certificates';
 import type {
+  ComponentOrElement,
   OnHomePageHandler,
   OnRpcRequestHandler,
   OnUserInputHandler,
 } from '@metamask/snaps-sdk';
 import { UserInputEventType } from '@metamask/snaps-sdk';
-import { Box, Heading, Text, type JSXElement } from '@metamask/snaps-sdk/jsx';
+import { Box, Heading, Text } from '@metamask/snaps-sdk/jsx';
 import type { AnySchema } from 'ajv/dist/2020';
 import { basicURLParse } from 'whatwg-url';
 
@@ -694,7 +695,7 @@ export const onRpcRequest: OnRpcRequestHandler = async ({
 export const onUserInput: OnUserInputHandler = async (params) => {
   const { event, id } = params;
 
-  let ui: JSXElement | null = null;
+  let ui: ComponentOrElement | null = null;
 
   if (event.type === UserInputEventType.FileUploadEvent) {
     ui = await certUploadHandler({ event, id });
@@ -724,13 +725,15 @@ export const onUserInput: OnUserInputHandler = async (params) => {
 
   ui ??= await defaultHandler();
 
-  await snap.request({
-    method: 'snap_updateInterface',
-    params: {
-      id,
-      ui,
-    },
-  });
+  if (ui) {
+    await snap.request({
+      method: 'snap_updateInterface',
+      params: {
+        id,
+        ui,
+      },
+    });
+  }
 };
 
 export const onHomePage: OnHomePageHandler = async () => {
