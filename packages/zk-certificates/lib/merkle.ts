@@ -9,7 +9,8 @@ import type {
 import { buildPoseidon } from 'circomlibjs';
 import { type AbstractProvider, Contract } from 'ethers';
 
-import { fromHexToDec, getMerkleRootFromProof } from '.';
+import { fromDecToHex, fromHexToBytes32, getMerkleRootFromProof } from '.';
+import { IReadableZkCertRegistry__factory as registryFactory } from '../typechain-types/factories/contracts/interfaces/IReadableZkCertRegistry__factory';
 
 const MERKLE_PROOF_SERVICE_PATH = 'merkle/proof/';
 
@@ -28,38 +29,21 @@ export async function getMerkleProof(
   provider: AbstractProvider,
   merkleServiceURL?: string,
 ): Promise<MerkleProof> {
-  if (!zkCert.registration.revocable) {
-    return zkCert.merkleProof;
-  }
-
-  const registry = new Contract(
-    registryAddr,
-    ['function merkleRoot() external view returns (bytes32)'],
-    provider,
-  );
+  const registry = new Contract(registryAddr, registryFactory.abi, provider);
   const poseidon = await buildPoseidon();
 
-  if (
-    (zkCert.merkleProof as any).path !== undefined &&
-    zkCert.merkleProof.pathElements === undefined
-  ) {
-    zkCert.merkleProof.pathElements = (zkCert.merkleProof as any).path;
-  }
-  if (
-    (zkCert.merkleProof as any).index !== undefined &&
-    zkCert.merkleProof.leafIndex === undefined
-  ) {
-    zkCert.merkleProof.leafIndex = (zkCert.merkleProof as any).index;
+  if (zkCert.merkleProof) {
+    // check if the existing merkle proof is still valid
+    // if yes, we can reuse it
+    const root = getMerkleRootFromProof(zkCert.merkleProof, poseidon);
+    const bytes32Root = fromHexToBytes32(fromDecToHex(root));
+
+    if (await registry.verifyMerkleRoot(bytes32Root)) {
+      return zkCert.merkleProof;
+    }
   }
 
-  const currentRoot = await registry.merkleRoot();
-  if (
-    fromHexToDec(currentRoot) ===
-    getMerkleRootFromProof(zkCert.merkleProof, poseidon)
-  ) {
-    return zkCert.merkleProof;
-  }
-
+  // if the existing merkle proof is not valid, we need to fetch a new one
   let merkleProofFetchURL = merkleServiceURL ?? getDefaultMerkleServiceURL();
   merkleProofFetchURL += `${zkCert.registration.chainID.toString()}/${MERKLE_PROOF_SERVICE_PATH + zkCert.registration.address}/${zkCert.leafHash}`;
 

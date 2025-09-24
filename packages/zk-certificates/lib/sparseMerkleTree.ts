@@ -112,7 +112,55 @@ export class SparseMerkleTree {
   }
 
   /**
+   * Insert a single leaf at a specific index and efficiently update only the nodes along the path to the root.
+   * This is much more efficient than rebuilding the entire tree for single insertions.
+   *
+   * @param leaf - Hash of the leaf to insert.
+   * @param index - Index of the leaf to insert.
+   */
+  insertLeaf(leaf: string, index: number): void {
+    let currentLeaf = leaf;
+    if (index < 0 || index >= 2 ** this.depth) {
+      throw new Error(`invalid index ${index} for tree of depth ${this.depth}`);
+    }
+
+    // Insert the leaf at level 0
+    this.tree[0][index] = leaf;
+
+    // Update only the nodes along the path to the root
+    let currentIndex = index;
+    for (let level = 0; level < this.depth; level++) {
+      const parentIndex = Math.floor(currentIndex / 2);
+      const isLeftChild = currentIndex % 2 === 0;
+
+      if (isLeftChild) {
+        // Current node is left child, get right sibling
+        const rightSibling = this.retrieveLeaf(level, currentIndex + 1);
+        this.tree[level + 1][parentIndex] = this.calculateNodeHash(
+          currentLeaf,
+          rightSibling,
+        );
+      } else {
+        // Current node is right child, get left sibling
+        const leftSibling = this.retrieveLeaf(level, currentIndex - 1);
+        this.tree[level + 1][parentIndex] = this.calculateNodeHash(
+          leftSibling,
+          currentLeaf,
+        );
+      }
+
+      // Move up to parent level
+      currentIndex = parentIndex;
+      currentLeaf = this.tree[level + 1][parentIndex];
+    }
+  }
+
+  /**
    * Insert leaves on certain indices into the tree and rebuilds the tree hashes up to the root.
+   *
+   * For single leaf insertions, use insertLeaf() which is much more efficient.
+   * This method rebuilds the entire tree and is useful for building a tree from scratch.
+   *
    * A more efficient way would be inserting individual leaves
    * and updating hashes along the path to the root. This is not necessary for the current use case
    * because inserting new leaves into an existing tree is done in the smart contract.

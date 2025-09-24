@@ -90,7 +90,7 @@ export type ZkCertRegistration = {
   // EVM chain ID the registration smart contract is deployed on
   chainID: number;
   revocable: boolean;
-  leafIndex: number;
+  queuePosition: number;
 };
 
 export type ZkCertRegistered<Content = AnyZkCertContent> =
@@ -101,7 +101,7 @@ export type ZkCertRegistered<Content = AnyZkCertContent> =
 
     // Proof showing that the zkCert is part of the Merkle tree
     // Updating it helps to prevent tracking through finding uses of the same merkle root
-    merkleProof: MerkleProof;
+    merkleProof?: MerkleProof;
   };
 
 // Encryption used for zkCerts when being exported or passed from guardian to user
