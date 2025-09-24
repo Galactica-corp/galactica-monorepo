@@ -77,7 +77,7 @@ const config: HardhatUserConfig = {
       accounts: getAccounts(),
     },
     galacticaMainnet: {
-      url: 'https://galactica-mainnet.g.alchemy.com/public',
+      url: `https://galactica-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: [process.env.GnetMainnetDeployerPrivateKey || ""],
     },
 
