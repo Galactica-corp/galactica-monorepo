@@ -72,19 +72,24 @@ const config: HardhatUserConfig = {
       url: process.env.BSCTestnetRPCURL ?? 'default',
       accounts: getAccounts(),
     },
-    mainnet: {
+    ethMainnet: {
       url: process.env.MainnetInfuraAPI ?? 'default',
       accounts: getAccounts(),
-      /* gasPrice: 30000000000 */
     },
+    galacticaMainnet: {
+      url: 'https://galactica-mainnet.g.alchemy.com/public',
+      accounts: [process.env.GnetMainnetDeployerPrivateKey || ""],
+    },
+
   },
   etherscan: {
     apiKey: {
       galaAndromeda: 'something', // not needed for now
       reticulum: 'something', // not needed for now
       cassiopeia: process.env.ALCHEMY_API_KEY ?? '',
+      galacticaMainnet: process.env.ALCHEMY_API_KEY ?? '',
       bscTestnet: process.env.BSCScanApiKey ?? '',
-      mainnet: process.env.EtherscanApiKey ?? '',
+      ethMainnet: process.env.EtherscanApiKey ?? '',
       arbitrumSepolia: process.env.EtherscanApiKey ?? '',
     },
     customChains: [
@@ -120,6 +125,15 @@ const config: HardhatUserConfig = {
           browserURL: 'https://sepolia.arbiscan.io/',
         },
       },
+      {
+        network: 'galacticaMainnet',
+        chainId: 613419,
+        urls: {
+          apiURL: 'https://galactica-mainnet.explorer.alchemy.com/api',
+          browserURL: 'https://galactica-mainnet.explorer.alchemy.com/',
+        },
+      },
+
     ],
   },
   circom: {
