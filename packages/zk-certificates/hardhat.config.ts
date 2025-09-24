@@ -129,8 +129,8 @@ const config: HardhatUserConfig = {
         network: 'galacticaMainnet',
         chainId: 613419,
         urls: {
-          apiURL: 'https://galactica-mainnet.explorer.alchemy.com/api',
-          browserURL: 'https://galactica-mainnet.explorer.alchemy.com/',
+          apiURL: 'https://explorer.galactica.com/api',
+          browserURL: 'https://explorer.galactica.com/',
         },
       },
 
