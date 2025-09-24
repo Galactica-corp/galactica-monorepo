@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-import type { BaseProvider } from '@metamask/providers';
+import type { SnapsEthereumProvider } from '@metamask/snaps-sdk';
 
 /**
  * Fetch with configurable timeout.
@@ -38,7 +38,10 @@ export function stripURLProtocol(url: string): string {
  * @param chainId - The chain ID to switch to.
  * @param ethereum - Ethereum provider to switch the chain for.
  */
-export async function switchChain(chainId: number, ethereum: BaseProvider) {
+export async function switchChain(
+  chainId: number,
+  ethereum: SnapsEthereumProvider,
+) {
   await ethereum.request({
     method: 'wallet_switchEthereumChain',
     params: [{ chainId: `0x${chainId.toString(16)}` }],

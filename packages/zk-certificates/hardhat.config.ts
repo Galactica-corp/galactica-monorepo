@@ -13,7 +13,7 @@ import './tasks/revokeZkCertificate';
 import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
 import './tasks/hashStringToField';
-import './tasks/reliefZkCertQueue';
+import './tasks/simpleQueueProcessor';
 import './tasks/integrateCeremonyResults';
 
 const optimizerSettings = {

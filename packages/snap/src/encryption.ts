@@ -7,7 +7,7 @@
 import type { EncryptedZkCert } from '@galactica-net/snap-api';
 import { ImportZkCertError } from '@galactica-net/snap-api';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
-import type { SnapsGlobalObject } from '@metamask/snaps-types';
+import type { SnapsProvider } from '@metamask/snaps-sdk';
 
 /**
  * Create a new encryption key pair for the holder. It is used to encrypt personal details in ZK certificates, for example on the way from guardian to the holder.
@@ -15,7 +15,7 @@ import type { SnapsGlobalObject } from '@metamask/snaps-types';
  * @param snap - The snap for interaction with Metamask.
  * @returns The public and private key.
  */
-export async function createEncryptionKeyPair(snap: SnapsGlobalObject) {
+export async function createEncryptionKeyPair(snap: SnapsProvider) {
   // It is derived from the user's private key handled by Metamask. Meaning that HW wallets are not supported.
   // The plan to support HW wallets is to use the `eth_sign` method to derive the key from a signature.
   // However, this plan is currently not supported anymore as discussed here: https://github.com/MetaMask/snaps/discussions/1364#discussioncomment-5719039

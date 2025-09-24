@@ -1,6 +1,6 @@
 {
   "name": "@galactica-net/snap",
-  "version": "0.8.5",
+  "version": "1.0.1",
   "description": "A Metamask Snap for managing and using zkCertificates on the Galactica network.",
   "repository": {
     "type": "git",
@@ -35,7 +35,9 @@
     "@galactica-net/snap-api": "workspace:^",
     "@galactica-net/zk-certificates": "workspace:^",
     "@metamask/eth-sig-util": "^8.2.0",
-    "@metamask/snaps-sdk": "^4.4.2",
+    "@metamask/json-rpc-engine": "^10.0.3",
+    "@metamask/safe-event-emitter": "^3.1.2",
+    "@metamask/snaps-sdk": "^9.3.0",
     "circomlibjs": "^0.1.7",
     "ethers": "^6.14.3",
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
@@ -47,11 +49,9 @@
     "@metamask/eslint-config-jest": "^12.1.0",
     "@metamask/eslint-config-nodejs": "^12.1.0",
     "@metamask/eslint-config-typescript": "^12.1.0",
-    "@metamask/providers": "^13.1.0",
+    "@metamask/providers": "^22.1.0",
     "@metamask/rpc-methods": "^3.0.0",
-    "@metamask/snaps-cli": "^6.7.0",
-    "@metamask/snaps-types": "^3.1.0",
-    "@metamask/snaps-ui": "^3.1.0",
+    "@metamask/snaps-cli": "^8.3.0",
     "@metamask/utils": "^8.5.0",
     "@types/chai": "^4.3.20",
     "@types/chai-as-promised": "^7.1.8",
