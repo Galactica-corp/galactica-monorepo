@@ -78,9 +78,8 @@ const config: HardhatUserConfig = {
     },
     galacticaMainnet: {
       url: `https://galactica-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-      accounts: [process.env.GnetMainnetDeployerPrivateKey || ""],
+      accounts: [process.env.GnetMainnetDeployerPrivateKey ?? ''],
     },
-
   },
   etherscan: {
     apiKey: {
@@ -133,7 +132,6 @@ const config: HardhatUserConfig = {
           browserURL: 'https://explorer.galactica.com/',
         },
       },
-
     ],
   },
   circom: {
