@@ -186,6 +186,11 @@ export function hashZkCertificateContent(
     contentSchema,
   );
 
+  console.log('contentData', contentFields);
+  console.log('contentFields', Object.keys(contentFields)
+    .sort()
+    .map((field) => contentFields[field]));
+
   return eddsa.F.toObject(
     eddsa.poseidon(
       // sort the fields alphabetically to ensure the same order as in the circuit
