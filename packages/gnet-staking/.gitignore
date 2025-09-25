@@ -17,4 +17,5 @@ node_modules
 ignition/deployments/chain-31337
 # Ignition binaries (can be huge)
 ignition/deployments/*/build-info
+ignition/deployments/*/artifacts
 ignition/deployments/**/*.dbg.json
