@@ -96,20 +96,41 @@ export const processRpcRequest: SnapRpcProcessor = async (
 
   switch (request.method as RpcMethods) {
     case RpcMethods.GenZkCertProof: {
+      console.log('genZkCertProof request here');
       // parse ZKP inputs
       const genParams = request.params as unknown as GenZkProofParams<any>;
       checkZkCertProofRequest(genParams);
+
+      console.log(
+        'state.zkCerts',
+        JSON.stringify(
+          state.zkCerts.map((cert) => cert.zkCert),
+          (_, value) => (typeof value === 'bigint' ? value.toString() : value),
+          2,
+        ),
+      );
 
       const zkCert = await selectZkCert(snap, state.zkCerts, {
         zkCertStandard: genParams.requirements.zkCertStandard,
         registryAddress: genParams.requirements.registryAddress,
       });
+      console.log('selected zkCert');
+      console.log(`leaf hash: ${zkCert.leafHash}`);
+      console.log(`contentHash: ${JSON.stringify(zkCert.contentHash)}`);
+      console.log(`content: ${JSON.stringify(zkCert.content)}`);
+      console.log(`did: ${zkCert.did}`);
+      console.log(`expiration date: ${zkCert.expirationDate}`);
+      console.log(`holder commitment: ${zkCert.holderCommitment}`);
+      console.log(`zkCert standard: ${zkCert.zkCertStandard}`);
+      console.log(`provider data: ${JSON.stringify(zkCert.providerData)}`);
       holder = getHolder(zkCert.holderCommitment, state.holders);
 
+      console.log('getting leaf hash', zkCert.leafHash);
       const searchedZkCert = getZkCert(
         zkCert.leafHash,
         state.zkCerts.map((cert) => cert.zkCert),
       );
+      console.log('got it');
 
       const merkleProof = await getMerkleProof(
         searchedZkCert,
