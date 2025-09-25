@@ -104,7 +104,7 @@ task(
     'The deployment id of the staking contract',
     undefined,
     types.string,
-    false,
+    true,
   )
   .setAction(async (taskArgs, hre) => {
     await main(taskArgs, hre).catch((error) => {

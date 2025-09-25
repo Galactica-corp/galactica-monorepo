@@ -1,6 +1,8 @@
 import type { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 
+import './tasks/stakingUpdate';
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
