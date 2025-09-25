@@ -416,28 +416,29 @@ describe('Upgrade Staking', function () {
         'pending reward staker2, start',
       ).to.equal(expectedRewardsStaker2);
 
-
       // deploy WGNET
       const wGNETFactory = await hre.ethers.getContractFactory('WGNET10');
       const wGNET = await wGNETFactory.deploy();
 
       // stakers deposit GNET to get WGNET
       await wGNET.connect(staker).deposit({ value: ethers.parseEther('1000') });
-      await wGNET.connect(staker2).deposit({ value: ethers.parseEther('1000') });
+      await wGNET
+        .connect(staker2)
+        .deposit({ value: ethers.parseEther('1000') });
 
       // approve WGNET for the staking contract
-      await wGNET.connect(staker).approve(await upgradedStaking.getAddress(), ethers.parseEther('1000'));
-      await wGNET.connect(staker2).approve(await upgradedStaking.getAddress(), ethers.parseEther('1000'));
+      await wGNET
+        .connect(staker)
+        .approve(await upgradedStaking.getAddress(), ethers.parseEther('1000'));
+      await wGNET
+        .connect(staker2)
+        .approve(await upgradedStaking.getAddress(), ethers.parseEther('1000'));
 
       // set WGNET inside the staking contract
-      await upgradedStaking.setWGNET(wGNET.getAddress());``
-
+      await upgradedStaking.setWGNET(wGNET.getAddress());
 
       // first only the owner stakes
       await time.setNextBlockTimestamp(start + 100);
-
-
-
 
       const tx1 = await upgradedStaking
         .connect(staker)
