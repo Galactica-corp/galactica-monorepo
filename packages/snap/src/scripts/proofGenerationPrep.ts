@@ -12,7 +12,7 @@ import {
   subPathWasm,
   subPathZkeyHeader,
   subPathZkeySections,
-} from '../proofGenerator';
+} from '@galactica-net/zk-certificates';
 
 // Tell JSON how to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -153,8 +153,7 @@ async function writeCircuitDataToJSON(filePath: string, prover: ProverData) {
     zkeySections: prover.zkeySections,
   };
   console.log(
-    `resulting JSON has size: ${
-      JSON.stringify(jsContent).length / (1024 * 1024)
+    `resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)
     } MB`,
   );
 
@@ -286,15 +285,13 @@ async function main() {
     path.join(
       __dirname,
       `../../../zk-certificates/circuits/input/`,
-      args.circuitName,
-      `.json`,
+      `${args.circuitName}.json`
     );
 
   args.output ??= path.join(
     __dirname,
     `../../../galactica-dapp/public/provers/`,
-    args.circuitName,
-    `.json`,
+    `${args.circuitName}.json`,
   );
 
   if (!fs.existsSync(testInput)) {
