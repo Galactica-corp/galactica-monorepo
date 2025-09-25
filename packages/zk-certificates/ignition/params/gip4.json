@@ -1,8 +1,0 @@
-{
-  "GuardianRegistryModule": {
-    "description": "Rey Guardian Registry"
-  },
-  "ZkCertRegistryModule": {
-    "description": "Rey ZkCertificate Registry"
-  }
-}

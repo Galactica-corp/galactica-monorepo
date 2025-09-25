@@ -2,7 +2,7 @@
  * Method for unit testing with wallet mock inspired from https://github.com/ChainSafe/filsnap
  */
 import type { MetaMaskInpageProvider } from '@metamask/providers';
-import type { SnapsGlobalObject } from '@metamask/snaps-types';
+import type { SnapsProvider } from '@metamask/snaps-sdk';
 import { stub } from 'sinon';
 
 class ProviderMock {
@@ -20,12 +20,13 @@ class ProviderMock {
    * @returns A stubbed response.
    */
   public async request(
-    args: Parameters<SnapsGlobalObject['request']>[0],
+    args: Parameters<SnapsProvider['request']>[0],
   ): Promise<unknown> {
     const { method, params = [] } = args;
     if (Object.hasOwnProperty.call(this.rpcStubs, method)) {
-      // eslint-disable-next-line
-      return (this.rpcStubs)[method](...(Array.isArray(params) ? params : [params]));
+      return this.rpcStubs[method](
+        ...(Array.isArray(params) ? params : [params]),
+      );
     }
 
     return this.requestStub(args);
@@ -87,10 +88,10 @@ class EthereumMock extends ProviderMock {
  *
  * @returns The mock SnapProvider instance.
  */
-export function mockSnapProvider(): SnapsGlobalObject & SnapMock {
+export function mockSnapProvider(): SnapsProvider & SnapMock {
   const mock = new SnapMock();
   // risky hack but it's hard to stub all provider methods
-  return mock as any as SnapsGlobalObject & SnapMock;
+  return mock as any as SnapsProvider & SnapMock;
 }
 
 /**
