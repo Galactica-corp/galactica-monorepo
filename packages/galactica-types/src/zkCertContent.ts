@@ -203,7 +203,7 @@ export interface TwitterCertificateContent {
    */
   createdAt: string;
   /**
-   * The numeric ID of the Twitter account.
+   * The ID of the Twitter account, interpreted as string to be hashed.
    */
   id: string;
   /**

@@ -11,9 +11,7 @@
     },
     "id": {
       "type": "string",
-      "pattern": "^[0-9]+$",
-      "format": "decimal",
-      "description": "The numeric ID of the Twitter account."
+      "description": "The ID of the Twitter account, interpreted as string to be hashed."
     },
     "followersCount": {
       "type": "integer",
@@ -51,6 +49,10 @@
       "default": false
     }
   },
-  "required": ["createdAt", "id", "username"],
+  "required": [
+    "createdAt",
+    "id",
+    "username"
+  ],
   "additionalProperties": false
 }
