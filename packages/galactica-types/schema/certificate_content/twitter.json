@@ -51,10 +51,6 @@
       "default": false
     }
   },
-  "required": [
-    "createdAt",
-    "id",
-    "username"
-  ],
+  "required": ["createdAt", "id", "username"],
   "additionalProperties": false
 }
