@@ -125,6 +125,13 @@ export function prepareContentForCircuit<
         case 'decimal':
           resValue = parseFieldElement(sourceData);
           break;
+        case 'case-insensitive':
+          // convert to lower case before hashing, for example because 'AStar_Gala' and 'astar_gala' lead to the same X account
+          resValue = hashStringToFieldNumber(
+            sourceData.toLowerCase(),
+            eddsa.poseidon,
+          );
+          break;
         default:
           throw new Error(
             `No conversion for string format ${String(format)} to a ZK field element implemented. Required for field ${String(field)}: ${String(sourceData)}`,
