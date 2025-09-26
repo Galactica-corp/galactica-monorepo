@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
 import type { GenZkProofParams, ProverData } from '@galactica-net/snap-api';
 import { KnownZkCertStandard } from '@galactica-net/snap-api';
+import {
+  subPathWasm,
+  subPathZkeyHeader,
+  subPathZkeySections,
+} from '@galactica-net/zk-certificates';
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import * as fs from 'fs';
 import { MD5 } from 'object-hash';
 import path from 'path';
 import { groth16, zKey } from 'snarkjs';
 import { parse } from 'ts-command-line-args';
-
-import {
-  subPathWasm,
-  subPathZkeyHeader,
-  subPathZkeySections,
-} from '@galactica-net/zk-certificates';
 
 // Tell JSON how to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -153,7 +152,8 @@ async function writeCircuitDataToJSON(filePath: string, prover: ProverData) {
     zkeySections: prover.zkeySections,
   };
   console.log(
-    `resulting JSON has size: ${JSON.stringify(jsContent).length / (1024 * 1024)
+    `resulting JSON has size: ${
+      JSON.stringify(jsContent).length / (1024 * 1024)
     } MB`,
   );
 
@@ -285,7 +285,7 @@ async function main() {
     path.join(
       __dirname,
       `../../../zk-certificates/circuits/input/`,
-      `${args.circuitName}.json`
+      `${args.circuitName}.json`,
     );
 
   args.output ??= path.join(
