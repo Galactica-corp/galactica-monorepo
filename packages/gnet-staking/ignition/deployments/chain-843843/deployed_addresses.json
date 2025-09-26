@@ -1,7 +1,7 @@
 {
-  "StakingModule#ProxyImplementationStaking": "0xa461188cC4B532970Eba0B299fd903AeA48C994e",
-  "TimelockControllerModule#TimelockController": "0xD78d18B6cB38fAAA48B6869ABf879A64a8844e6f",
-  "StakingModule#TransparentUpgradeableProxyStaking": "0x18A5a6B941D1906DDB0bA5b98b0Ad45651A303e7",
-  "StakingModule#UpgradableContractStaking": "0x18A5a6B941D1906DDB0bA5b98b0Ad45651A303e7",
-  "StakingModule#ProxyAdminStaking": "0x3c5959E053C223Ff5dBF6055A16b75dCF902AeD3"
+  "StakingModule#ProxyImplementationStaking": "0xf45546423EdA9BFB11aFF605bCCf34b7C5A32308",
+  "TimelockControllerModule#TimelockController": "0xD9087e050E17c55483DAaab21E81Bb38D43630fe",
+  "StakingModule#TransparentUpgradeableProxyStaking": "0xC0F305b12a73c6c8c6fd0EE0459c93f5C73e1AB3",
+  "StakingModule#UpgradableContractStaking": "0xC0F305b12a73c6c8c6fd0EE0459c93f5C73e1AB3",
+  "StakingModule#ProxyAdminStaking": "0x834aBfD0F076D9adC4DD5c58CFFDC99C39350c17"
 }

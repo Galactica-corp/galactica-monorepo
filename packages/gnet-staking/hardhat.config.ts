@@ -1,6 +1,10 @@
 import type { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 
+// Import task files to make them available
+import './tasks/stakingUpdate';
+import './tasks/changeUnstakingFee';
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
