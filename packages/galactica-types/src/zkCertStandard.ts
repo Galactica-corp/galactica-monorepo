@@ -213,4 +213,7 @@ export function addAJVFormats(ajv: Ajv) {
   ajv.addFormat('iso3166_2_optional', (value: string) => {
     return value === '' || subdivision(value) !== null;
   });
+  ajv.addFormat('case-insensitive', (_: string) => {
+    return true; // any string is valid, it just needs to be converted to lower case before comparing it
+  });
 }
