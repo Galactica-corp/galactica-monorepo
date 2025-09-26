@@ -3,9 +3,10 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import chai from 'chai';
 import { buildPoseidon } from 'circomlibjs';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import type { Poseidon } from '../../lib';
 import {
   fromDecToHex,
@@ -76,9 +77,13 @@ describe('AgeCitizenshipKYCVerifier SC', () => {
       await kycRequirementsDemoDApp.sbt(),
     );
 
-    const guardianRegistry = await ethers.deployContract('GuardianRegistry', [
-      '',
-    ]);
+    const { guardianRegistry } = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: '',
+        },
+      },
+    });
     await mockZkCertificateRegistry.setGuardianRegistry(
       await guardianRegistry.getAddress(),
     );

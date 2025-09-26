@@ -1,8 +1,9 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import chai from 'chai';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -111,10 +112,13 @@ describe('AirdropGateway', () => {
     ]);
 
     // Deploy GuardianRegistry
-    const guardianRegistry = await ethers.deployContract('GuardianRegistry', [
-      'https://example.com/metadata',
-    ]);
-    await guardianRegistry.waitForDeployment();
+    const { guardianRegistry } = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: 'https://example.com/metadata',
+        },
+      },
+    });
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(
