@@ -105,23 +105,7 @@ export async function prepareZkCertProofInputs<
   const eddsa = await buildEddsa();
   const merkleRoot = getMerkleRootFromProof(merkleProof, eddsa.poseidon);
 
-  let userPrivateKey: string | undefined;
-  if (params.zkInputRequiresPrivKey) {
-    const encryptionHashBase = eddsa.poseidon.F.toObject(
-      eddsa.poseidon([
-        new Uint8Array(holderEddsaKey),
-        params.userAddress,
-        zkCert.randomSalt,
-      ]),
-    ).toString();
-
-    userPrivateKey = formatPrivKeyForBabyJub(
-      encryptionHashBase,
-      eddsa,
-    ).toString();
-  }
-
-  return {
+  const preparedInput: PreparedZkCertProofInputs<Params, Content> = {
     ...params.input,
 
     ...prepareContentForCircuit(eddsa, zkCert.content, zkCert.contentSchema),
@@ -144,9 +128,25 @@ export async function prepareZkCertProofInputs<
     root: merkleRoot,
     pathElements: merkleProof.pathElements,
     leafIndex: merkleProof.leafIndex,
-
-    userPrivKey: userPrivateKey,
   };
+
+  if (params.zkInputRequiresPrivKey) {
+    const encryptionHashBase = eddsa.poseidon.F.toObject(
+      eddsa.poseidon([
+        new Uint8Array(holderEddsaKey),
+        params.userAddress,
+        zkCert.randomSalt,
+      ]),
+    ).toString();
+
+    // only set this if required, because `{userPrivKey: undefined}` leads to errors in the circom code
+    preparedInput.userPrivKey = formatPrivKeyForBabyJub(
+      encryptionHashBase,
+      eddsa,
+    ).toString();
+  }
+
+  return preparedInput;
 }
 
 /**
