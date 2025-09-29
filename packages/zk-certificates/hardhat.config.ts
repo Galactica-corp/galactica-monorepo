@@ -7,14 +7,20 @@ import 'hardhat-circom';
 import { Wallet } from 'ethers';
 import type { HardhatUserConfig } from 'hardhat/config';
 
-import './tasks/createZkCertificate';
-import './tasks/smartCircuitBuild';
-import './tasks/revokeZkCertificate';
-import './tasks/reissueZkCertificate';
-import './tasks/circomTemplate';
-import './tasks/hashStringToField';
-import './tasks/reliefZkCertQueue';
-import './tasks/integrateCeremonyResults';
+const skipHeavyTasks = process.env.SKIP_HEAVY_TASKS === '1';
+if (!skipHeavyTasks) {
+  // Load heavy tasks only when not explicitly skipped
+  // Using require to make loading conditional at runtime
+  require('./tasks/createZkCertificate');
+  require('./tasks/smartCircuitBuild');
+  require('./tasks/revokeZkCertificate');
+  require('./tasks/reissueZkCertificate');
+  require('./tasks/circomTemplate');
+  require('./tasks/hashStringToField');
+  require('./tasks/reliefZkCertQueue');
+  require('./tasks/integrateCeremonyResults');
+}
+import './tasks/sbtMigrationGather';
 
 const config: HardhatUserConfig = {
   mocha: {
