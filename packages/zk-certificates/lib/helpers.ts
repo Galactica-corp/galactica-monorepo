@@ -211,9 +211,13 @@ export function processPublicSignals(publicSignals: any) {
  */
 export function printProgress(progress: string) {
   /* eslint-disable no-restricted-globals */
-  process.stdout.clearLine(-1);
-  process.stdout.cursorTo(0);
-  process.stdout.write(`${progress}%`);
+  if (process.stdout.clearLine && process.stdout.cursorTo) {
+    process.stdout.clearLine(-1);
+    process.stdout.cursorTo(0);
+    process.stdout.write(`${progress}%`);
+  } else {
+    console.log(`${progress}%`);
+  }
   /* eslint-enable no-restricted-globals */
 }
 
