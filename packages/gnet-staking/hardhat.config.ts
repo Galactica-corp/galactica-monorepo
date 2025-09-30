@@ -2,6 +2,8 @@ import type { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 
 import './tasks/stakingUpdate';
+import './tasks/changeUnstakingFee';
+import './tasks/registerUnstakingFeeChange';
 
 const config: HardhatUserConfig = {
   solidity: {
