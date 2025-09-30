@@ -1,4 +1,4 @@
-// import '@nomicfoundation/hardhat-ignition-ethers';
+import '@nomicfoundation/hardhat-ignition-ethers';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomicfoundation/hardhat-ethers';
@@ -15,6 +15,8 @@ import './tasks/circomTemplate';
 import './tasks/hashStringToField';
 import './tasks/reliefZkCertQueue';
 import './tasks/integrateCeremonyResults';
+import './tasks/sbtMigrationGather';
+import './tasks/sbtMigrationTransfer';
 
 const config: HardhatUserConfig = {
   mocha: {
