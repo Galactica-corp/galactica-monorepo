@@ -1,40 +1,103 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.28;
-import '@openzeppelin/contracts/token/ERC721/ERC721.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
+pragma solidity ^0.8.20;
 
-contract claimrSignedSBT is Ownable, ERC721 {
+/** EIP-5192 Minimal Soulbound NFTs */
+interface IERC5192 {
+    event Locked(uint256 tokenId);
+    event Unlocked(uint256 tokenId);
+
+    function locked(uint256 tokenId) external view returns (bool);
+}
+
+import {ECDSA} from '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
+import {MessageHashUtils} from '@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol';
+import {ERC721} from '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+
+contract claimrSMNFT is ERC721, Ownable, IERC5192 {
+    using ECDSA for bytes32;
+
+    // --------------------------- Versioning ------------------------------
+    string public constant CONTRACT_TEMPLATE = 'claimrSM';
+    uint64 public constant CONTRACT_TEMPLATE_VERSION = 2;
+
+    function templateVersion()
+        external
+        pure
+        returns (string memory name, uint64 version)
+    {
+        return (CONTRACT_TEMPLATE, CONTRACT_TEMPLATE_VERSION);
+    }
+
+    error NotSigned();
+    error TicketUsed();
+    error NonTransferable();
+    error NonexistentToken();
+    error NotOwningToken();
+
     uint256 private _nextTokenId;
     string private _baseTokenURI;
-    mapping(string => bool) private _usedTokens;
     address private _signee;
+    mapping(bytes32 => bool) private _usedTicket;
+
+    event SigneeSet(address indexed oldSignee, address indexed newSignee);
+    event ContractURISet(string newURI);
+    event TypeURISet(bytes32 indexed typeKey, string uri);
 
     constructor(
         string memory name,
         string memory symbol,
-        string memory baseTokenURI_,
-        address signee_
+        address initialSignee
     ) ERC721(name, symbol) Ownable(msg.sender) {
-        _baseTokenURI = baseTokenURI_;
-        _signee = signee_;
+        _signee = initialSignee;
     }
 
-    function mint(string memory token, bytes memory signature) public {
-        require(verify(token, signature, _signee), 'NOT_SIGNED_BY_SIGNEE');
-        require(!_usedTokens[token], 'TOKEN_USED');
-        _usedTokens[token] = true;
-        uint256 tokenId = _nextTokenId++;
-        _mint(msg.sender, tokenId);
+    // ---------------------------- Internal Mint --------------------------
+    function _mintWithType(address to) internal returns (uint256 tokenId) {
+        tokenId = _nextTokenId;
+        unchecked {
+            _nextTokenId = tokenId + 1;
+        }
+
+        _mint(to, tokenId);
+
+        emit Locked(tokenId);
     }
 
-    function setSignee(address newSignee) public onlyOwner {
-        _signee = newSignee;
+    // ---------------------------- Mint / Burn ----------------------------
+    function mint(string calldata token, bytes calldata signature) external {
+        bytes32 ticketHash = keccak256(
+            abi.encodePacked(address(this), msg.sender, token)
+        );
+        address recovered = ECDSA.recover(
+            MessageHashUtils.toEthSignedMessageHash(ticketHash),
+            signature
+        );
+        if (recovered != _signee) revert NotSigned();
+
+        if (_usedTicket[ticketHash]) revert TicketUsed();
+        _usedTicket[ticketHash] = true;
+
+        _mintWithType(msg.sender);
     }
 
-    function signee() public view virtual returns (address) {
-        return _signee;
+    function adminMint(address to) external onlyOwner {
+        _mintWithType(to);
     }
 
+    function adminMintBatch(address[] calldata to) external onlyOwner {
+        for (uint256 i; i < to.length; ++i) {
+            _mintWithType(to[i]);
+        }
+    }
+
+    function burn(uint256 tokenId) external {
+        _requireOwned(tokenId);
+        if (_ownerOf(tokenId) != msg.sender) revert NotOwningToken();
+        _burn(tokenId);
+    }
+
+    // --------------------------- Admin / Config --------------------------
     function setBaseURI(string calldata baseURI) external onlyOwner {
         _baseTokenURI = baseURI;
     }
@@ -50,72 +113,51 @@ contract claimrSignedSBT is Ownable, ERC721 {
             tokenId < _nextTokenId,
             'ERC721Metadata: URI query for nonexistent token'
         );
+
         return _baseTokenURI;
     }
 
-    function verify(
-        string memory message,
-        bytes memory signature,
-        address signer
-    ) public pure returns (bool) {
-        // Recreate the message that was originally signed, based on tokenId
-        bytes32 messageHash = keccak256(abi.encodePacked(message));
-        bytes32 ethSignedMessageHash = keccak256(
-            abi.encodePacked('\x19Ethereum Signed Message:\n32', messageHash)
-        );
-        // Recover the signer from the signature
-        return recoverSigner(ethSignedMessageHash, signature) == signer;
+    function setSignee(address newSignee) external onlyOwner {
+        address old = _signee;
+        _signee = newSignee;
+        emit SigneeSet(old, newSignee);
     }
 
-    // Function to recover the signer from a signature
-    function recoverSigner(
-        bytes32 ethSignedMessageHash,
-        bytes memory signature
-    ) internal pure returns (address) {
-        (bytes32 r, bytes32 s, uint8 v) = splitSignature(signature);
-        return ecrecover(ethSignedMessageHash, v, r, s);
+    function signee() external view returns (address) {
+        return _signee;
     }
 
-    // Helper function to split the signature into r, s and v
-    function splitSignature(
-        bytes memory sig
-    ) internal pure returns (bytes32 r, bytes32 s, uint8 v) {
-        require(sig.length == 65, 'Invalid signature length');
-        assembly {
-            // first 32 bytes, after the length prefix
-            r := mload(add(sig, 32))
-            // second 32 bytes
-            s := mload(add(sig, 64))
-            // final byte (first byte of the next 32 bytes)
-            v := byte(0, mload(add(sig, 96)))
-        }
+    // -------------------- SBT (non-transferable) rules -------------------
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal override(ERC721) returns (address from) {
+        address current = _ownerOf(tokenId);
+        if (current != address(0) && to != address(0)) revert NonTransferable();
+        return super._update(to, tokenId, auth);
     }
 
-    function burn(uint256 tokenId) external onlyOwner {
-        _requireOwned(tokenId);
-        _burn(tokenId);
-    }
-
-    /**
-     * @dev Transfers are rejected because the ClaimrSBT is soulbound.
-     */
-    function transferFrom(address, address, uint256) public pure override {
-        revert('ClaimrSBT: transfer is not allowed');
-    }
-
-    function safeTransferFrom(
-        address,
-        address,
-        uint256,
-        bytes memory
-    ) public pure override {
-        revert('ClaimrSBT: transfer is not allowed');
-    }
-
-    /**
-     * @dev Approve are rejected because the ClaimrSBT is soulbound.
-     */
     function approve(address, uint256) public pure override {
-        revert('ClaimrSBT: transfer approval is not allowed');
+        revert NonTransferable();
+    }
+
+    function setApprovalForAll(address, bool) public pure override {
+        revert NonTransferable();
+    }
+
+    // ------------------------------ EIP-5192 -----------------------------
+    function locked(uint256 tokenId) external view override returns (bool) {
+        if (_ownerOf(tokenId) == address(0)) revert NonexistentToken();
+        return true;
+    }
+
+    // ----------------------------- ERC165 --------------------------------
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721) returns (bool) {
+        return
+            interfaceId == type(IERC5192).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 }
