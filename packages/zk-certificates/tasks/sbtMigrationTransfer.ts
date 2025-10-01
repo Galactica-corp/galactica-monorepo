@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import csv from 'csvtojson';
 import { decodeHolders, removeEmptyColumns } from '../lib/csvUtils';
-import { GalacticaOfficialSBT__factory, ClaimrSignedSBT__factory } from '../typechain-types';
+import { GalacticaOfficialSBT__factory, ClaimrSMNFT__factory } from '../typechain-types';
 import chalk from 'chalk';
 
 type Row = {
@@ -77,8 +77,7 @@ async function deployGalacticaOfficialSBT(
   name: string,
   symbol: string,
   baseURI: string,
-  deployer: string,
-  verify: boolean = true
+  deployer: string
 ): Promise<string> {
   console.log(`Deploying GalacticaOfficialSBT: ${name} (${symbol})`);
 
@@ -97,18 +96,6 @@ async function deployGalacticaOfficialSBT(
 
   console.log(`Deployed GalacticaOfficialSBT at: ${address}`);
 
-  // Verify the contract if requested
-  if (verify) {
-    console.log(`Verifying GalacticaOfficialSBT at ${address}...`);
-    const constructorArgs = [deployer, baseURI, deployer, name, symbol];
-    await tryVerification(
-      hre,
-      address,
-      constructorArgs,
-      'contracts/SBT_related/GalacticaOfficialSBT.sol:GalacticaOfficialSBT'
-    );
-  }
-
   return address;
 }
 
@@ -117,36 +104,29 @@ async function deployClaimrSBT(
   name: string,
   symbol: string,
   baseURI: string,
-  deployer: string,
-  verify: boolean = true
+  deployer: string
 ): Promise<string> {
   console.log(`Deploying ClaimrSBT: ${name} (${symbol})`);
 
   const [signer] = await hre.ethers.getSigners();
-  const factory = new ClaimrSignedSBT__factory(signer);
+  const factory = new ClaimrSMNFT__factory(signer);
   const contract = await factory.deploy(
     name,     // name
     symbol,   // symbol
-    baseURI,  // baseTokenURI
-    deployer  // signee
+    deployer  // initialSignee
   );
 
   await contract.waitForDeployment();
   const address = await contract.getAddress();
 
-  console.log(`Deployed ClaimrSBT at: ${address}`);
-
-  // Verify the contract if requested
-  if (verify) {
-    console.log(`Verifying ClaimrSBT at ${address}...`);
-    const constructorArgs = [name, symbol, baseURI, deployer];
-    await tryVerification(
-      hre,
-      address,
-      constructorArgs,
-      'contracts/ClaimrSBT.sol:claimrSignedSBT'
-    );
+  // Set baseURI if provided
+  if (baseURI) {
+    console.log(`Setting baseURI to: ${baseURI}`);
+    const tx = await contract.setBaseURI(baseURI);
+    await tx.wait();
   }
+
+  console.log(`Deployed ClaimrSBT at: ${address}`);
 
   return address;
 }
@@ -172,6 +152,40 @@ async function batchMintGalacticaOfficialSBT(
   }
 
   console.log(`Successfully minted ${holders.length} tokens`);
+}
+
+async function batchMintClaimrSBT(
+  hre: HardhatRuntimeEnvironment,
+  contractAddress: string,
+  holders: string[]
+): Promise<void> {
+  console.log(`Batch minting ${holders.length} tokens for ClaimrSBT`);
+
+  const [signer] = await hre.ethers.getSigners();
+  const contract = new Contract(contractAddress, ClaimrSMNFT__factory.abi, signer);
+
+  // Mint in batches to avoid gas limit issues
+  const batchSize = 50; // Adjust based on gas limits
+  for (let i = 0; i < holders.length; i += batchSize) {
+    const batch = holders.slice(i, i + batchSize);
+    console.log(`Minting batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(holders.length / batchSize)} (${batch.length} tokens)`);
+
+    const tx = await contract.adminMintBatch(batch);
+    await tx.wait();
+  }
+
+  console.log(`Successfully minted ${holders.length} tokens`);
+}
+
+async function verifyContract(
+  hre: HardhatRuntimeEnvironment,
+  contractType: string,
+  address: string,
+  constructorArgs: any[],
+  contractPath: string
+): Promise<void> {
+  console.log(`Verifying ${contractType} at ${address}...`);
+  await tryVerification(hre, address, constructorArgs, contractPath);
 }
 
 task('sbt:migration:transfer', 'Deploy SBTs to mainnet and mint for holders')
@@ -217,6 +231,12 @@ task('sbt:migration:transfer', 'Deploy SBTs to mainnet and mint for holders')
 
     let processed = 0;
     const dataStart = headerIdx2 >= 0 ? headerIdx2 + 1 : 1;
+    const contractsToVerify: Array<{
+      contractType: string;
+      address: string;
+      constructorArgs: any[];
+      contractPath: string;
+    }> = [];
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -249,12 +269,8 @@ task('sbt:migration:transfer', 'Deploy SBTs to mainnet and mint for holders')
         continue;
       }
 
-      // Skip if issuance will continue after mainnet
-      if (row['issuance will continue after mainnet?']?.toLowerCase() === 'yes') {
-        console.log(`Skipping ${row.name} - issuance will continue after mainnet`);
-        outLines.push(originalRowLine + ',' + toCsvLine(['', 'skipped - issuance continues']));
-        continue;
-      }
+      // Check if issuance will continue after mainnet
+      const issuanceContinues = row['issuance will continue after mainnet?']?.toLowerCase() === 'yes';
 
       try {
         const name = row['name(chain)'] || row.name;
@@ -273,21 +289,58 @@ task('sbt:migration:transfer', 'Deploy SBTs to mainnet and mint for holders')
 
         if (contractType === 'GalacticaOfficialSBT') {
           // Deploy GalacticaOfficialSBT
-          mainnetAddress = await deployGalacticaOfficialSBT(hre, name, symbol, baseURI, deployerAddress, args.verify);
+          mainnetAddress = await deployGalacticaOfficialSBT(hre, name, symbol, baseURI, deployerAddress);
 
           // Batch mint for all holders
           if (holders.length > 0) {
             await batchMintGalacticaOfficialSBT(hre, mainnetAddress, holders);
           }
 
-        } else if (contractType === 'ClaimrSBT') {
-          // Deploy ClaimrSBT
-          mainnetAddress = await deployClaimrSBT(hre, name, symbol, baseURI, deployerAddress, args.verify);
+          // Add to verification queue
+          if (args.verify) {
+            contractsToVerify.push({
+              contractType: 'GalacticaOfficialSBT',
+              address: mainnetAddress,
+              constructorArgs: [deployerAddress, baseURI, deployerAddress, name, symbol],
+              contractPath: 'contracts/SBT_related/GalacticaOfficialSBT.sol:GalacticaOfficialSBT'
+            });
+          }
 
-          // Note: ClaimrSBT batch minting not implemented yet
-          console.log('Note: ClaimrSBT batch minting not implemented yet. Manual minting required.');
+        } else if (contractType === 'ClaimrSBT') {
+          // Determine signer address based on whether issuance continues
+          const signerAddress = issuanceContinues
+            ? '0x333e271244f12351b6056130AEC894EB8AAf05C2'
+            : deployerAddress;
+
+          if (issuanceContinues) {
+            console.log(`  Issuance continues after mainnet - using special signer: ${signerAddress}`);
+          }
+
+          // Deploy ClaimrSBT
+          mainnetAddress = await deployClaimrSBT(hre, name, symbol, baseURI, signerAddress);
+
+          // Batch mint for all holders
+          if (holders.length > 0) {
+            await batchMintClaimrSBT(hre, mainnetAddress, holders);
+          }
+
+          // Add to verification queue
+          if (args.verify) {
+            contractsToVerify.push({
+              contractType: 'ClaimrSBT',
+              address: mainnetAddress,
+              constructorArgs: [name, symbol, signerAddress],
+              contractPath: 'contracts/ClaimrSBT.sol:claimrSMNFT'
+            });
+          }
 
         } else {
+          // Skip non-ClaimrSBT contracts if issuance continues
+          if (issuanceContinues) {
+            console.log(`Skipping ${row.name} - issuance will continue after mainnet (not ClaimrSBT)`);
+            outLines.push(originalRowLine + ',' + toCsvLine(['', 'skipped - issuance continues (not ClaimrSBT)']));
+            continue;
+          }
           throw new Error(`Unknown contract type: ${contractType}`);
         }
 
@@ -300,6 +353,25 @@ task('sbt:migration:transfer', 'Deploy SBTs to mainnet and mint for holders')
       }
 
       processed += 1;
+    }
+
+    // Verify all deployed contracts
+    if (contractsToVerify.length > 0 && args.verify) {
+      console.log(`\n🔍 Verifying ${contractsToVerify.length} deployed contracts...`);
+      for (const contract of contractsToVerify) {
+        try {
+          await verifyContract(
+            hre,
+            contract.contractType,
+            contract.address,
+            contract.constructorArgs,
+            contract.contractPath
+          );
+        } catch (err) {
+          console.error(`❌ Failed to verify ${contract.contractType} at ${contract.address}:`, err);
+        }
+      }
+      console.log(`✅ Contract verification completed`);
     }
 
     // Preserve trailing lines beyond parsed rows, if any

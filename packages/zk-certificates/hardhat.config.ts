@@ -1,4 +1,4 @@
-import '@nomicfoundation/hardhat-ignition-ethers';
+// import '@nomicfoundation/hardhat-ignition-ethers';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
 import '@nomicfoundation/hardhat-ethers';
@@ -13,11 +13,15 @@ import './tasks/revokeZkCertificate';
 import './tasks/reissueZkCertificate';
 import './tasks/circomTemplate';
 import './tasks/hashStringToField';
-import './tasks/reliefZkCertQueue';
+import './tasks/simpleQueueProcessor';
 import './tasks/integrateCeremonyResults';
-import './tasks/sbtMigrationGather';
-import './tasks/sbtMigrationTransfer';
-import './tasks/snapshotNFT';
+
+const optimizerSettings = {
+  optimizer: {
+    enabled: true,
+    runs: 200,
+  },
+};
 
 const config: HardhatUserConfig = {
   mocha: {
@@ -27,18 +31,23 @@ const config: HardhatUserConfig = {
     compilers: [
       {
         version: '0.6.11', // for Verifier created by hardhat-circom
+        settings: optimizerSettings,
       },
       {
         version: '0.8.17',
+        settings: optimizerSettings,
       },
       {
         version: '0.8.12',
+        settings: optimizerSettings,
       },
       {
         version: '0.8.20',
+        settings: optimizerSettings,
       },
       {
         version: '0.8.28',
+        settings: optimizerSettings,
       },
     ],
   },
@@ -55,14 +64,21 @@ const config: HardhatUserConfig = {
       url: `https://galactica-cassiopeia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: getAccounts(),
     },
+    arbitrumSepolia: {
+      url: `https://api.zan.top/arb-sepolia`,
+      accounts: getAccounts(),
+    },
     binanceTestnet: {
       url: process.env.BSCTestnetRPCURL ?? 'default',
       accounts: getAccounts(),
     },
-    mainnet: {
+    ethMainnet: {
       url: process.env.MainnetInfuraAPI ?? 'default',
       accounts: getAccounts(),
-      /* gasPrice: 30000000000 */
+    },
+    galacticaMainnet: {
+      url: `https://galactica-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.GnetMainnetDeployerPrivateKey ? [process.env.GnetMainnetDeployerPrivateKey] : [],
     },
   },
   etherscan: {
@@ -70,8 +86,10 @@ const config: HardhatUserConfig = {
       galaAndromeda: 'something', // not needed for now
       reticulum: 'something', // not needed for now
       cassiopeia: process.env.ALCHEMY_API_KEY ?? '',
+      galacticaMainnet: process.env.ALCHEMY_API_KEY ?? '',
       bscTestnet: process.env.BSCScanApiKey ?? '',
-      mainnet: process.env.EtherscanApiKey ?? '',
+      ethMainnet: process.env.EtherscanApiKey ?? '',
+      arbitrumSepolia: process.env.EtherscanApiKey ?? '',
     },
     customChains: [
       {
@@ -96,6 +114,22 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://galactica-cassiopeia.explorer.alchemy.com/api',
           browserURL: 'https://galactica-cassiopeia.explorer.alchemy.com/',
+        },
+      },
+      {
+        network: 'arbitrumSepolia',
+        chainId: 421614,
+        urls: {
+          apiURL: 'https://api.etherscan.io/v2/api?chainid=421614',
+          browserURL: 'https://sepolia.arbiscan.io/',
+        },
+      },
+      {
+        network: 'galacticaMainnet',
+        chainId: 613419,
+        urls: {
+          apiURL: 'https://explorer.galactica.com/api',
+          browserURL: 'https://explorer.galactica.com/',
         },
       },
     ],

@@ -91,24 +91,44 @@ async function getAllTransferLogs(
   const firstBlock = 1;
 
   // Get logs in batches to handle API limits
-  for (let i = firstBlock; i <= toBlock; i += maxBlockInterval) {
-    const maxBlock = Math.min(i + maxBlockInterval - 1, toBlock);
+  let currentStartBlock = firstBlock;
+
+  while (currentStartBlock <= toBlock) {
+    const maxBlock = Math.min(currentStartBlock + maxBlockInterval - 1, toBlock);
 
     // Show progress
-    const progress = Math.round(((maxBlock - firstBlock) / (toBlock - firstBlock)) * 100);
-    printProgress(`Scanning blocks ${i}-${maxBlock} for ${nftAddress} (${progress}%)`);
+    const progress = Math.round(((currentStartBlock - firstBlock) / (toBlock - firstBlock)) * 100);
+    printProgress(`Scanning blocks ${currentStartBlock}-${maxBlock} for ${nftAddress} (${progress}%)`);
 
     let logs: BlockExplorerLog[] = [];
     try {
-      logs = await fetchLogsFromBlockExplorer(nftAddress, i, maxBlock);
+      logs = await fetchLogsFromBlockExplorer(nftAddress, currentStartBlock, maxBlock);
     } catch (error) {
-      console.error(`Error getting logs from ${i} to ${maxBlock}:`, error);
+      console.error(`Error getting logs from ${currentStartBlock} to ${maxBlock}:`, error);
+      currentStartBlock = maxBlock + 1;
       continue;
     }
 
     // Filter for Transfer events
     const transferLogs = logs.filter(log => log.topics[0] === transferTopic);
     allLogs.push(...transferLogs);
+
+    // Check if we got exactly 1000 events, which might indicate truncation
+    if (logs.length === 1000) {
+      // Find the highest block number in the response
+      const lastBlockNumber = Math.max(...logs.map(log => parseInt(log.blockNumber, 16)));
+
+      // If the last block in our range is higher than the last event's block,
+      // there might be more events. Continue from the next block.
+      if (lastBlockNumber < maxBlock) {
+        console.log(`Detected potential truncation at block ${lastBlockNumber}, continuing from block ${lastBlockNumber + 1}`);
+        currentStartBlock = lastBlockNumber + 1;
+        continue;
+      }
+    }
+
+    // Move to the next block range
+    currentStartBlock = maxBlock + 1;
   }
 
   return allLogs;
@@ -314,7 +334,7 @@ task('snapshot:NFT', 'Create a snapshot of NFT holdings')
       const balanceRow = [holder];
       for (const nftAddress of addressesToProcess) {
         const balance = allBalances[nftAddress][holder] || 0;
-        balanceRow.push(balance);
+        balanceRow.push(balance.toString());
       }
       csvLines.push(toCsvLine(balanceRow));
     }

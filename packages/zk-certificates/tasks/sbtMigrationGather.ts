@@ -118,20 +118,25 @@ async function gatherForAddress(hre: HardhatRuntimeEnvironment, address: string,
   const currentBlock = await provider.getBlockNumber();
   const firstBlock = 1;
   const holders = new Set<string>();
+  let countBurntSBTs = 0;
+  let countDuplicateSBTs = 0;
 
   // get logs in batches because of API call size limit
-  for (let i = firstBlock; i < currentBlock; i += maxBlockInterval) {
-    const maxBlock = Math.min(i + maxBlockInterval, currentBlock);
+  let currentStartBlock = firstBlock;
+
+  while (currentStartBlock < currentBlock) {
+    const maxBlock = Math.min(currentStartBlock + maxBlockInterval, currentBlock);
 
     // show progress
-    const progress = Math.round(((maxBlock - firstBlock) / (currentBlock - firstBlock)) * 100);
-    printProgress(`Scanning blocks ${i}-${maxBlock} (${progress}%)`);
+    const progress = Math.round(((currentStartBlock - firstBlock) / (currentBlock - firstBlock)) * 100);
+    printProgress(`Scanning blocks ${currentStartBlock}-${maxBlock} (${progress}%)`);
 
     let logs: BlockExplorerLog[] = [];
     try {
-      logs = await fetchLogsFromBlockExplorer(address, i, maxBlock);
+      logs = await fetchLogsFromBlockExplorer(address, currentStartBlock, maxBlock);
     } catch (error) {
-      console.error(`Error getting logs from ${i} to ${maxBlock}:`, error);
+      console.error(`Error getting logs from ${currentStartBlock} to ${maxBlock}:`, error);
+      currentStartBlock = maxBlock + 1;
       continue;
     }
 
@@ -156,8 +161,21 @@ async function gatherForAddress(hre: HardhatRuntimeEnvironment, address: string,
 
           const parsed = iface.parseLog(ethersLog);
           const to = (parsed?.args?.to as string);
-          holders.add(to);
-          anyId = parsed?.args?.tokenId as bigint;
+          const from = (parsed?.args?.from as string);
+
+          // Log when zero address is found as a holder (burn event)
+          if (to === ZeroAddress) {
+            // remove holder from the set
+            holders.delete(from);
+            countBurntSBTs++;
+          }
+          else {
+            if (holders.has(to)) {
+              countDuplicateSBTs++;
+            }
+            holders.add(to);
+            anyId = parsed?.args?.tokenId as bigint;
+          }
         } catch (error) {
           console.error(`Error parsing log:`, error);
         }
@@ -169,13 +187,32 @@ async function gatherForAddress(hre: HardhatRuntimeEnvironment, address: string,
           }
         }
       }
+
+      // Check if we got exactly 1000 events, which might indicate truncation
+      if (logs.length === 1000) {
+        // Find the highest block number in the response
+        const lastBlockNumber = Math.max(...logs.map(log => parseInt(log.blockNumber, 16)));
+
+        // If the last block in our range is higher than the last event's block,
+        // there might be more events. Continue from the next block.
+        if (lastBlockNumber < maxBlock) {
+          console.log(`Detected potential truncation at block ${lastBlockNumber}, continuing from block ${lastBlockNumber + 1}`);
+          currentStartBlock = lastBlockNumber + 1;
+          continue;
+        }
+      }
     }
+
+    // Move to the next block range
+    currentStartBlock = maxBlock + 1;
   }
 
   // clear progress line
   printProgress('100');
   console.log();
   console.log(`Found ${holders.size} holders for ${address}`);
+  console.log(`countBurntSBTs: ${countBurntSBTs}`);
+  console.log(`countDuplicateSBTs: ${countDuplicateSBTs}`);
   console.log();
 
   console.log(`got tokenURI: ${tokenURI}`);
