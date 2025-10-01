@@ -17,6 +17,7 @@ import './tasks/reliefZkCertQueue';
 import './tasks/integrateCeremonyResults';
 import './tasks/sbtMigrationGather';
 import './tasks/sbtMigrationTransfer';
+import './tasks/snapshotNFT';
 
 const config: HardhatUserConfig = {
   mocha: {
