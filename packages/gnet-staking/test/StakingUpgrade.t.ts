@@ -520,8 +520,8 @@ describe('Upgrade Staking', function () {
       // in the third period the other account withdraws his rewards
       await time.setNextBlockTimestamp(start + 2000);
       const staker2AccountBalanceBeforeReward =
-        await ethers.provider.getBalance(staker2.address);
-      const tx4 = await upgradedStaking.connect(staker2).getReward();
+        await wGNET.balanceOf(staker2.address);
+      const tx4 = await upgradedStaking.connect(staker2).getRewardWithWGNET();
       receipt = await tx4.wait();
       feesPaidStaker2 += receipt?.fee ?? 0n;
       expectedRewardsStaker +=
@@ -640,8 +640,8 @@ describe('Upgrade Staking', function () {
         await upgradedStaking.showPendingReward(staker2.address),
         'pending reward staker2, distant future',
       ).to.be.closeTo(expectedRewardsStaker2, 100n);
-      await upgradedStaking.connect(staker).getReward();
-      const tx7 = await upgradedStaking.connect(staker2).getReward();
+      await upgradedStaking.connect(staker).getRewardWithWGNET();
+      const tx7 = await upgradedStaking.connect(staker2).getRewardWithWGNET();
       receipt = await tx7.wait();
       feesPaidStaker2 += receipt?.fee ?? 0n;
       await upgradedStaking

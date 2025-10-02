@@ -265,6 +265,19 @@ contract Staking is
     }
   }
 
+  function getRewardWithWGNET() public nonReentrant updateReward(msg.sender) {
+    uint reward = rewards[msg.sender];
+    if (reward > 0) {
+    if (reward > (address(this).balance - totalStake)) {
+        revert InsufficientRewardTokens();
+      }
+      rewards[msg.sender] = 0;
+      wGNET.deposit{value: reward}();
+      wGNET.transfer(msg.sender, reward);
+      emit RewardPaid(msg.sender, reward);
+    }
+  }
+
   /**
    * @notice Show the pending reward for a user.
    * @param account The address of the user to show the pending reward for.
