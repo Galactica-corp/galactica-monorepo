@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import type { HolderCommitmentData } from '@galactica-net/galactica-types';
 import { getContentSchema } from '@galactica-net/galactica-types';
 import type {
@@ -5,10 +9,11 @@ import type {
   EncryptedZkCert,
   MerkleProof,
   MerkleProofUpdateRequestParams,
-  ZkCertProof,
+  ZkProof,
   ZkCertRegistered,
   ZkCertSelectionParams,
   ProverData,
+  ZkCertListItem,
 } from '@galactica-net/snap-api';
 import {
   RpcMethods,
@@ -18,15 +23,20 @@ import {
 } from '@galactica-net/snap-api';
 import type { Poseidon } from '@galactica-net/zk-certificates';
 import {
+  encryptZkCert,
   fromDecToHex,
   getMerkleRootFromProof,
+  subPathWasm,
+  subPathZkeyHeader,
+  subPathZkeySections,
 } from '@galactica-net/zk-certificates';
 import { decryptSafely, getEncryptionPublicKey } from '@metamask/eth-sig-util';
-import type { Json } from '@metamask/snaps-types';
+import type { Json } from '@metamask/snaps-sdk';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiFetchMock from 'chai-fetch-mock';
 import { buildPoseidon } from 'circomlibjs';
+import { ethers } from 'ethers';
 import fetchMock from 'fetch-mock';
 import { match } from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -37,9 +47,13 @@ import {
   defaultRPCRequest,
   merkleProofServiceURL,
   proverHash,
+  testAddress,
   testEdDSAKey,
   testEntropyEncrypt,
   testEntropyHolder,
+  testGuardianInfoEncoded,
+  testGuardianMetadata,
+  testGuardianMetadataURL,
   testHolder,
   testProverURL,
   testZkpParams,
@@ -54,12 +68,6 @@ import zkCert2 from '../../../test/zkCert2.json';
 import exampleMockDAppVKey from '../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import exclusion3VKey from '../../galactica-dapp/public/provers/exclusion3.vkey.json';
 import { processRpcRequest } from '../src';
-import { encryptZkCert } from '../src/encryption';
-import {
-  subPathWasm,
-  subPathZkeyHeader,
-  subPathZkeySections,
-} from '../src/proofGenerator';
 import { CURRENT_STORAGE_LAYOUT_VERSION } from '../src/stateManagement';
 import type { RpcArgs, ZkCertStorage } from '../src/types';
 import { calculateHolderCommitment } from '../src/zkCertHandler';
@@ -102,8 +110,8 @@ function createState(
   return {
     holders,
     zkCerts: zkCerts as unknown as Json[],
-    storageLayoutVersion,
     merkleServiceURL,
+    storageLayoutVersion,
   };
 }
 
@@ -115,7 +123,7 @@ function createState(
  * @param vkey - The verification key to be used.
  */
 async function verifyProof(
-  result: ZkCertProof,
+  result: ZkProof,
   minPublicSignalsLength = 5,
   vkey: any = exampleMockDAppVKey,
 ) {
@@ -147,10 +155,55 @@ function merkleProofToServiceResponse(merkleProof: MerkleProof): any {
   };
 }
 
+/**
+ * Helper to add guardian info to the zkCert storage object.
+ *
+ * @param zkCertStorageObject - The zkCert storage object to add guardian info to.
+ * @returns The zkCert storage object with guardian info.
+ */
+function addGuardianInfoToStorage(zkCertStorageObject: ZkCertStorage) {
+  const res = structuredClone(zkCertStorageObject);
+  res.zkCert.providerData.meta = {
+    ...testGuardianMetadata,
+    address: testAddress,
+  };
+  return res;
+}
+
 describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
   const ethereumProvider = mockEthereumProvider();
   let poseidon: Poseidon;
+
+  /**
+   * Helper to prepare mocks for guardian check.
+   */
+  function prepareMocksForGuardianCheck() {
+    // blockchain calls:
+    const encodedAddress = ethers.AbiCoder.defaultAbiCoder().encode(
+      ['address'],
+      [testAddress],
+    );
+    ethereumProvider.rpcStubs.eth_call
+      .onFirstCall()
+      .resolves(
+        encodedAddress, // guardianRegistry address
+      )
+      .onSecondCall()
+      .resolves(
+        encodedAddress, // guardian address
+      )
+      .onThirdCall()
+      .resolves(
+        testGuardianInfoEncoded, // guardian metadata URL
+      );
+    // json response:
+    fetchMock.get(
+      testGuardianMetadataURL,
+      JSON.stringify(testGuardianMetadata),
+      { overwriteRoutes: true },
+    );
+  }
 
   before(async function () {
     // prepare URL to fetch provers from
@@ -298,6 +351,8 @@ describe('Test rpc handler function', function () {
   describe('Add Holder method', function () {
     it('should add holder successfully', async function (this: Mocha.Context) {
       this.timeout(5000);
+      prepareMocksForGuardianCheck();
+      // user accepts the confirmation
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const expectedHolderCommitment =
@@ -318,22 +373,25 @@ describe('Test rpc handler function', function () {
       );
 
       // even with no holder configured before, the snap should add the holder from the getEntropy method
-      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
+      const update = {
         operation: 'update',
         newState: createState(
           [
             {
-              eddsaEntropy: testEdDSAKey.toString('hex'),
               holderCommitment: expectedHolderCommitment,
-              encryptionPrivKey: testEntropyEncrypt.slice(2),
+              eddsaEntropy: testEdDSAKey.toString('hex'),
               encryptionPubKey: getEncryptionPublicKey(
                 testEntropyEncrypt.slice(2),
               ),
+              encryptionPrivKey: testEntropyEncrypt.slice(2),
             },
           ],
-          [zkCertStorage],
+          [addGuardianInfoToStorage(zkCertStorage)],
         ),
-      });
+      };
+      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith(
+        update,
+      );
     });
   });
 
@@ -398,24 +456,28 @@ describe('Test rpc handler function', function () {
         ethereumProvider,
       );
       await expect(callPromise).to.be.rejectedWith(
-        'The decrypted zkCert is invalid. It is missing the filed holderCommitment.',
+        'The zkCert is invalid. It is missing the filed holderCommitment.',
       );
     });
 
     it('should import zkCert successfully', async function () {
+      prepareMocksForGuardianCheck();
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
       const result = (await processRpcRequest(
         buildRPCRequest(RpcMethods.ImportZkCert, { encryptedZkCert }),
         snapProvider,
         ethereumProvider,
-      )) as ConfirmationResponse;
+      )) as ZkCertListItem;
 
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
         operation: 'update',
-        newState: createState([testHolder], [zkCertStorage]),
+        newState: createState(
+          [testHolder],
+          [addGuardianInfoToStorage(zkCertStorage)],
+        ),
       });
-      expect(result.message).to.be.eq(RpcResponseMsg.ZkCertImported);
+      expect(result.standard).to.be.eq(zkCert.zkCertStandard);
     });
 
     it('should not import same zkCert again', async function () {
@@ -439,46 +501,16 @@ describe('Test rpc handler function', function () {
       });
     });
 
-    it('should provide zkCert list after import according to flag', async function () {
-      snapProvider.rpcStubs.snap_dialog.resolves(true);
-      snapProvider.rpcStubs.snap_manageState
-        .withArgs({ operation: 'get' })
-        .resolves(createState([testHolder], []));
-
-      const res: any = await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, {
-          encryptedZkCert,
-          listZkCerts: true,
-        }),
-        snapProvider,
-        ethereumProvider,
-      );
-
-      expect(res).to.have.key(zkCert.zkCertStandard);
-      expect(res[zkCert.zkCertStandard].length).to.equal(1);
-      expect(
-        res[zkCert.zkCertStandard][0].providerPubKey.ax,
-        'testing providerPubKey.ax',
-      ).to.equal(zkCert.providerData.ax);
-      expect(
-        res[zkCert.zkCertStandard][0].providerPubKey.ay,
-        'testing providerPubKey.ay',
-      ).to.equal(zkCert.providerData.ay);
-      expect(
-        res[zkCert.zkCertStandard][0].expirationDate,
-        'testing expiration date of 0',
-      ).to.equal(zkCert.expirationDate);
-    });
-
     it('should update a zkCert if a renewed version is imported at the same position in the Merkle tree', async function () {
+      prepareMocksForGuardianCheck();
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], [zkCertStorage]));
 
-      const renewedZkCert = structuredClone(zkCert) as ZkCertRegistered<
-        Record<string, unknown>
-      >; // deep copy to not mess up original
+      const renewedZkCert = JSON.parse(
+        JSON.stringify(zkCert),
+      ) as ZkCertRegistered<Record<string, Json>>; // deep copy to not mess up original
       // some made up content analog to a renewed zkCert
       renewedZkCert.expirationDate += 20;
       renewedZkCert.leafHash = zkCert2.leafHash;
@@ -504,14 +536,17 @@ describe('Test rpc handler function', function () {
         newState: createState(
           [testHolder],
           [
-            {
+            addGuardianInfoToStorage({
               zkCert: renewedZkCert,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
-            },
+            }),
           ],
         ),
       });
-      expect(result.message).to.be.eq(RpcResponseMsg.ZkCertImported);
+      expect(result.standard).to.be.eq(renewedZkCert.zkCertStandard);
+      expect(result.expirationDate).to.be.eq(
+        renewedZkCert.expirationDate * 1000,
+      );
     });
 
     it('should reject custom zkCerts without a schema', async function () {
@@ -538,7 +573,7 @@ describe('Test rpc handler function', function () {
       );
 
       await expect(failingCallPromise).to.be.rejectedWith(
-        `Can not import zkCert with unknown standard ${unknownZkCert.zkCertStandard} without an attached JSON schema.`,
+        `Cannot import zkCert with unknown standard ${unknownZkCert.zkCertStandard} without an attached JSON schema.`,
       );
     });
 
@@ -547,8 +582,11 @@ describe('Test rpc handler function', function () {
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
         .resolves(createState([testHolder], []));
+      prepareMocksForGuardianCheck();
 
-      const unknownZkCert: ZkCertRegistered<Record<string, unknown>> = {
+      const unknownZkCert: ZkCertRegistered<
+        Record<string, string | number | boolean | null>
+      > = {
         ...zkCert,
       };
       unknownZkCert.zkCertStandard = 'gipUKNOWN';
@@ -573,10 +611,10 @@ describe('Test rpc handler function', function () {
         newState: createState(
           [testHolder],
           [
-            {
+            addGuardianInfoToStorage({
               zkCert: unknownZkCert,
               schema: getContentSchema(KnownZkCertStandard.ZkKYC),
-            },
+            }),
           ],
         ),
       });
@@ -613,7 +651,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
@@ -640,7 +678,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice;
 
@@ -740,8 +778,9 @@ describe('Test rpc handler function', function () {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
 
-      const outdatedZkCert: ZkCertRegistered<Record<string, unknown>> =
-        structuredClone(zkCert);
+      const outdatedZkCert: ZkCertRegistered<
+        Record<string, string | number | boolean | null>
+      > = structuredClone(zkCert);
       outdatedZkCert.merkleProof.pathElements[0] = '01234';
 
       snapProvider.rpcStubs.snap_manageState
@@ -762,7 +801,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testZkpParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
@@ -795,7 +834,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testParamsWithUrl),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
@@ -892,7 +931,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.GenZkCertProof, testUnkownZkpParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;
@@ -926,23 +965,6 @@ describe('Test rpc handler function', function () {
   });
 
   describe('List zkCerts', function () {
-    it('should throw error if not confirmed', async function () {
-      snapProvider.rpcStubs.snap_dialog.resolves(false);
-      snapProvider.rpcStubs.snap_manageState
-        .withArgs({ operation: 'get' })
-        .resolves(createState([testHolder], [zkCertStorage]));
-
-      const callPromise = processRpcRequest(
-        buildRPCRequest(RpcMethods.ListZkCerts, {}),
-        snapProvider,
-        ethereumProvider,
-      );
-      await expect(callPromise).to.be.rejectedWith(
-        RpcResponseErr.RejectedConfirm,
-      );
-      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
-    });
-
     it('should show imported zkCert selection', async function () {
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -957,29 +979,13 @@ describe('Test rpc handler function', function () {
         ethereumProvider,
       );
 
-      expect(res).to.have.key(zkCert.zkCertStandard);
-      expect(res[zkCert.zkCertStandard].length).to.equal(2);
-      expect(
-        res[zkCert.zkCertStandard][0].providerPubKey.ax,
-        'testing providerPubKey.ax',
-      ).to.equal(zkCert.providerData.ax);
-      expect(
-        res[zkCert.zkCertStandard][0].providerPubKey.ay,
-        'testing providerPubKey.ay',
-      ).to.equal(zkCert.providerData.ay);
-      expect(
-        res[zkCert.zkCertStandard][0].expirationDate,
-        'testing expiration date of 0',
-      ).to.equal(zkCert.expirationDate);
-      expect(
-        res[zkCert.zkCertStandard][1].expirationDate,
-        'testing expiration date of 1',
-      ).to.equal(zkCert2.expirationDate);
-      expect(
-        res[zkCert.zkCertStandard][1].verificationLevel,
-        'testing verification level',
-      ).to.equal(zkCert2.content.verificationLevel);
-      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
+      expect(res.length).to.equal(2);
+      expect(res[0].expirationDate, 'testing expiration date of 0').to.equal(
+        zkCert.expirationDate * 1000,
+      );
+      expect(res[1].expirationDate, 'testing expiration date of 1').to.equal(
+        zkCert2.expirationDate * 1000,
+      );
     });
 
     it('should filter list according to parameters', async function () {
@@ -1013,7 +1019,7 @@ describe('Test rpc handler function', function () {
         snapProvider,
         ethereumProvider,
       );
-      expect(res[zkCert.zkCertStandard].length).to.equal(1);
+      expect(res.length).to.equal(1);
 
       // filter type to get both
       res = await processRpcRequest(
@@ -1023,7 +1029,7 @@ describe('Test rpc handler function', function () {
         snapProvider,
         ethereumProvider,
       );
-      expect(res[zkCert.zkCertStandard].length).to.equal(2);
+      expect(res.length).to.equal(2);
 
       // filter for garbage to get none
       res = await processRpcRequest(
@@ -1031,7 +1037,7 @@ describe('Test rpc handler function', function () {
         snapProvider,
         ethereumProvider,
       );
-      expect(res).to.not.have.key(zkCert.zkCertStandard);
+      expect(res.length).to.equal(0);
     });
 
     it('should ignore case when filtering', async function () {
@@ -1050,7 +1056,7 @@ describe('Test rpc handler function', function () {
         snapProvider,
         ethereumProvider,
       );
-      expect(res[zkCert.zkCertStandard].length).to.equal(1);
+      expect(res.length).to.equal(1);
 
       // filter with address in lower case
       res = await processRpcRequest(
@@ -1060,7 +1066,7 @@ describe('Test rpc handler function', function () {
         snapProvider,
         ethereumProvider,
       );
-      expect(res[zkCert.zkCertStandard].length).to.equal(1);
+      expect(res.length).to.equal(1);
     });
   });
 
@@ -1531,7 +1537,7 @@ describe('Test rpc handler function', function () {
         buildRPCRequest(RpcMethods.BenchmarkZKPGen, benchmarkZKPGenParams),
         snapProvider,
         ethereumProvider,
-      )) as ZkCertProof;
+      )) as ZkProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
       expect(snapProvider.rpcStubs.snap_notify).to.have.been.calledOnce;

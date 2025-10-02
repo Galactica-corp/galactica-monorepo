@@ -20,7 +20,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
 
   const contractAddr = await getDeploymentAddr(
     hre,
-    'StakingModule#Staking',
+    'StakingModule#TransparentUpgradeableProxyStaking',
     args.deploymentId,
   );
 

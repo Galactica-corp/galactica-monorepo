@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import {
   getContentSchema,
   KnownZkCertStandard,
@@ -10,6 +14,7 @@ import type {
 } from '@galactica-net/snap-api';
 import { getEddsaKeyFromEntropy } from '@galactica-net/zk-certificates';
 import { getEncryptionPublicKey } from '@metamask/eth-sig-util';
+import { ethers } from 'ethers';
 import { MD5 } from 'object-hash';
 
 import zkCert from '../../../test/zkCert.json';
@@ -38,7 +43,7 @@ export const defaultRPCRequest: RpcArgs = {
 export const testSeedPhrase =
   'host void flip concert spare few spin advice nuclear age cigar collect';
 
-export const testAddress = '0x53e173c619756eb6256d3ff4c7861bea5d739da1';
+export const testAddress = '0x53e173C619756eb6256D3Ff4C7861bea5D739dA1';
 
 export const testHolderCommitment =
   '7735727246471767370788268218008649659345393646775019247808120566463753454903';
@@ -131,3 +136,24 @@ export const zkCertStorage2: ZkCertStorage = {
   zkCert: zkCert2,
   schema: getContentSchema(KnownZkCertStandard.ZkKYC),
 };
+
+export const testGuardianMetadataURL = 'https://example.com/metadata';
+export const testGuardianMetadata = {
+  name: 'Cassiopeia Sample KYC Guardian',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  certificate_name: 'Test zkKYC',
+  icon: 'https://raw.githubusercontent.com/Galactica-corp/galactica-monorepo/main/packages/snap/images/logo_galactica.svg',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  cert_background: 'https://galactica.com/assets/images/home/bg-bottom-sm.webp',
+  description: 'Test zkKYC issued by Sample KYC Guardian on Cassiopeia Testnet',
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  certificate_type: 'gip1',
+  url: 'https://kyc-cassiopeia.galactica.com/',
+};
+export const testGuardianInfoEncoded = ethers.AbiCoder.defaultAbiCoder().encode(
+  ['bool', /* 'uint256[2]',*/ 'string'],
+  [
+    true,
+    /* [zkCert.providerData.ax, zkCert.providerData.ay],*/ testGuardianMetadataURL,
+  ],
+);

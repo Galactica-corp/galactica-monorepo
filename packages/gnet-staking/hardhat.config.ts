@@ -1,9 +1,9 @@
 import type { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 
-// Import task files to make them available
 import './tasks/stakingUpdate';
 import './tasks/changeUnstakingFee';
+import './tasks/registerUnstakingFeeChange';
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -21,10 +21,17 @@ const config: HardhatUserConfig = {
         ? [process.env.GalaTestnetDeployerPrivateKey]
         : [],
     },
+    galacticaMainnet: {
+      url: `https://galactica-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.GnetMainnetDeployerPrivateKey
+        ? [process.env.GnetMainnetDeployerPrivateKey]
+        : [],
+    },
   },
   etherscan: {
     apiKey: {
       cassiopeia: process.env.ALCHEMY_API_KEY ?? '',
+      galacticaMainnet: process.env.ALCHEMY_API_KEY ?? '',
     },
     customChains: [
       {
@@ -33,6 +40,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://galactica-cassiopeia.explorer.alchemy.com/api',
           browserURL: 'https://galactica-cassiopeia.explorer.alchemy.com/',
+        },
+      },
+      {
+        network: 'galacticaMainnet',
+        chainId: 613419,
+        urls: {
+          apiURL: 'https://explorer.galactica.com/api',
+          browserURL: 'https://explorer.galactica.com/',
         },
       },
     ],
