@@ -292,14 +292,17 @@ task('snapshot:NFT', 'Create a snapshot of NFT holdings')
         // Check random addresses
         const holders = Object.keys(balances);
         if (holders.length > 0) {
-          const randomHolders = getRandomSample(holders, Math.min(10, holders.length));
+          const randomHolders = getRandomSample(holders, Math.min(20, holders.length));
           console.log('Checking random holder balances:');
 
           for (const holder of randomHolders) {
             try {
               const contractBalance = await erc721.balanceOf(holder);
               const calculatedBalance = balances[holder] || 0;
-              console.log(`  ${holder}: contract=${contractBalance}, calculated=${calculatedBalance}, match=${contractBalance.toString() === calculatedBalance.toString()}`);
+              const match = contractBalance.toString() === calculatedBalance.toString();
+              if (!match) {
+                console.log(`  Mismatch for ${nftAddress}: ${holder}: contract=${contractBalance}, calculated=${calculatedBalance}, match=${match}`);
+              }
             } catch (error) {
               console.log(`  ${holder}: Error checking balance - ${error}`);
             }
