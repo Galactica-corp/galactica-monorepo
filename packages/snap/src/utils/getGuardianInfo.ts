@@ -9,6 +9,8 @@ import {
 import type { SnapsEthereumProvider } from '@metamask/snaps-sdk';
 import { BrowserProvider, Contract } from 'ethers';
 
+import { switchChain } from './utils';
+
 /**
  *
  * @param cert - Zk Certificate
@@ -20,6 +22,9 @@ export async function getGuardianInfo(
   ethereum: SnapsEthereumProvider,
 ) {
   try {
+    // we can only find the guardian info on the chain the certificate is issued on
+    await switchChain(cert.registration.chainID, ethereum);
+
     const provider = new BrowserProvider(ethereum);
     const kycRecordRegistryContract = new Contract(
       cert.registration.address,
