@@ -14,6 +14,7 @@ import type {
   DEXCertificateContent,
   CEXCertificateContent,
   TelegramCertificateContent,
+  BlumCertificateContent,
 } from './zkCertContent';
 
 /**
@@ -32,6 +33,7 @@ export enum KnownZkCertStandard {
   DEX = 'gip5',
   CEX = 'gip6',
   Telegram = 'gip7',
+  Blum = 'gip8',
 }
 
 export type AnyZkCertContent =
@@ -40,7 +42,8 @@ export type AnyZkCertContent =
   | REYCertificateContent
   | DEXCertificateContent
   | CEXCertificateContent
-  | TelegramCertificateContent;
+  | TelegramCertificateContent
+  | BlumCertificateContent;
 
 /**
  * Ordered list of fields common to all zkCerts.
@@ -84,6 +87,9 @@ export function getContentFields(contentType: KnownZkCertStandard): string[] {
     case KnownZkCertStandard.Telegram:
       schema = contentSchemas.telegram;
       break;
+    case KnownZkCertStandard.Blum:
+      schema = contentSchemas.blum;
+      break;
     case KnownZkCertStandard.ArbitraryData:
       schema = contentSchemas.simpleJson;
       break;
@@ -115,6 +121,8 @@ export function getContentSchema(contentType: KnownZkCertStandard): AnySchema {
       return contentSchemas.cex;
     case KnownZkCertStandard.Telegram:
       return contentSchemas.telegram;
+    case KnownZkCertStandard.Blum:
+      return contentSchemas.blum;
     case KnownZkCertStandard.ArbitraryData:
       return contentSchemas.simpleJson;
     default:

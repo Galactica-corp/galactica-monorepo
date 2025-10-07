@@ -1,3 +1,4 @@
+import blum from '../schema/certificate_content/blum.json';
 import cex from '../schema/certificate_content/cex.json';
 import dex from '../schema/certificate_content/dex.json';
 import kyc from '../schema/certificate_content/kyc.json';
@@ -16,5 +17,6 @@ export const contentSchemas = {
   telegram,
   dex,
   cex,
+  blum,
   simpleJson,
 };
