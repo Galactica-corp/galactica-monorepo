@@ -63,13 +63,24 @@ export function prepareContentForCircuit<
       sourceData = schemaProperties[field].default;
     }
 
-    if (
-      typeof sourceData === 'number' ||
-      typeof sourceData === 'bigint' ||
-      typeof sourceData === 'boolean'
-    ) {
+    if (typeof sourceData === 'boolean') {
       // we might be able to take the data 1 to 1 as field element
       resValue = parseFieldElement(sourceData);
+    } else if (typeof sourceData === 'bigint') {
+      // we might be able to take the data 1 to 1 as field element
+      resValue = parseFieldElement(sourceData);
+    } else if (typeof sourceData === 'number') {
+      // Check if the field type is 'number' in the schema (for float64 handling)
+      // JSON Schema uses 'number' for floats and 'integer' for integers
+      const fieldType = schemaProperties[field]?.type;
+      if (fieldType === 'number') {
+        // Convert float64 to big integer with 18 decimal places for blockchain compatibility
+        // This matches the Go implementation's scoreToFixedPoint function
+        resValue = floatToBigInt(sourceData, 18);
+      } else {
+        // Integer type ('integer' in schema), can be passed as is
+        resValue = parseFieldElement(sourceData);
+      }
     } else if (typeof sourceData === 'string') {
       // the meaning of the string depends on the format.
       const format = schemaProperties[field]?.format;
@@ -152,6 +163,34 @@ export function prepareContentForCircuit<
   }
 
   return contentFields as Record<keyof Content, FieldElement>;
+}
+
+/**
+ * Converts a float64 to a BigInt by multiplying by 10^decimals to preserve decimal precision.
+ * This matches the Go implementation's scoreToFixedPoint function for blockchain compatibility.
+ * Uses string manipulation to avoid floating point precision issues.
+ *
+ * @param value - The float64 value to convert.
+ * @param decimals - Number of decimal places to preserve (typically 18 for blockchain).
+ * @returns BigInt representation with preserved decimal precision.
+ */
+export function floatToBigInt(value: number, decimals: number): bigint {
+  // Convert to string to avoid floating point precision issues
+  const valueStr = value.toString();
+
+  // Split into integer and decimal parts
+  const [integerPart = '0', decimalPart = ''] = valueStr.split('.');
+
+  // Pad or truncate decimal part to desired length
+  const paddedDecimalPart = decimalPart
+    .padEnd(decimals, '0')
+    .slice(0, decimals);
+
+  // Combine integer and decimal parts
+  const combinedStr = integerPart + paddedDecimalPart;
+
+  // Convert to BigInt
+  return BigInt(combinedStr);
 }
 
 /**
