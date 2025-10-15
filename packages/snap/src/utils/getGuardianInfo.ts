@@ -1,7 +1,4 @@
-import type {
-  ProviderMeta,
-  ZkCertRegistered,
-} from '@galactica-net/galactica-types';
+import type { ZkCertRegistered } from '@galactica-net/galactica-types';
 import {
   GuardianRegistry__factory as GuardianRegistryFactory,
   ZkCertificateRegistry__factory as ZkCertificateRegistryFactory,
@@ -9,6 +6,7 @@ import {
 import type { SnapsEthereumProvider } from '@metamask/snaps-sdk';
 import { BrowserProvider, Contract } from 'ethers';
 
+import { fetchIpfsContent } from './fetchIpfsContent';
 import { switchChain } from './utils';
 
 /**
@@ -46,13 +44,12 @@ export async function getGuardianInfo(
       BigInt(cert.providerData.ay),
     );
 
-    const [isWhitelisted, metaUrl] =
+    const [isWhitelisted, metaUrl]: [boolean, string] =
       await guardianRegistryContract.guardians(guardianAddress);
     if (metaUrl) {
-      const response = await fetch(metaUrl);
-      const data = (await response.json()) as ProviderMeta;
+      const content = await fetchIpfsContent(metaUrl);
 
-      return { data: { ...data, address: guardianAddress }, isWhitelisted };
+      return { data: { ...content, address: guardianAddress }, isWhitelisted };
     }
   } catch (error) {
     console.error(error);
