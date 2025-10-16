@@ -56,6 +56,31 @@ describe('ZK Certificate Data Processing', () => {
       expect(processed.createdAt).to.match(/^[0-9]+$/u);
     });
 
+    it('should handle account names case insensitive', async () => {
+      const dataUpperCase = structuredClone(twitterExample);
+      dataUpperCase.username = 'AStar_Gala';
+      const dataLowerCase = structuredClone(twitterExample);
+      dataLowerCase.username = 'astar_gala';
+      const processedUpperCase = prepareContentForCircuit(
+        eddsa,
+        parseContentJson(
+          dataUpperCase,
+          getContentSchema(KnownZkCertStandard.Twitter),
+        ),
+        getContentSchema(KnownZkCertStandard.Twitter),
+      );
+      const processedLowerCase = prepareContentForCircuit(
+        eddsa,
+        parseContentJson(
+          dataLowerCase,
+          getContentSchema(KnownZkCertStandard.Twitter),
+        ),
+        getContentSchema(KnownZkCertStandard.Twitter),
+      );
+
+      expect(processedUpperCase.username).to.equal(processedLowerCase.username);
+    });
+
     it('should process rey example', async () => {
       const processed = prepareContentForCircuit(
         eddsa,

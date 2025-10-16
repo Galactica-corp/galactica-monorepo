@@ -1,6 +1,11 @@
 packages/zk-certificates/ignition/deployments
 packages/zk-certificates/issuedZKCertificates
 packages/zk-certificates/merkleProofs
+packages/zk-certificates/cache
+packages/zk-certificates/artifacts
 packages/cross-chain-replication-contracts/artifacts
 packages/cross-chain-replication-contracts/cache
 packages/cross-chain-replication-contracts/ignition/deployments
+packages/gnet-staking/ignition/deployments
+packages/gnet-staking/cache
+packages/gnet-staking/artifacts
