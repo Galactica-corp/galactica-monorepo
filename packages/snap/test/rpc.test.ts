@@ -24,8 +24,8 @@ import {
 import type { Poseidon } from '@galactica-net/zk-certificates';
 import {
   encryptZkCert,
-  fromDecToHex,
-  getMerkleRootFromProof,
+  fromHexToBytes32,
+  SparseMerkleTree,
   subPathWasm,
   subPathZkeyHeader,
   subPathZkeySections,
@@ -174,6 +174,8 @@ describe('Test rpc handler function', function () {
   const snapProvider = mockSnapProvider();
   const ethereumProvider = mockEthereumProvider();
   let poseidon: Poseidon;
+  let merkleProof: MerkleProof;
+  let merkleProof2: MerkleProof;
 
   /**
    * Helper to prepare mocks for guardian check.
@@ -223,6 +225,15 @@ describe('Test rpc handler function', function () {
       );
     }
     poseidon = await buildPoseidon();
+
+    // generate some test merkle proofs for the zkCerts
+    const merkleTree = new SparseMerkleTree(32, poseidon);
+    merkleTree.insertLeaves(
+      [zkCert.leafHash, zkCert2.leafHash],
+      [zkCert.registration.queuePosition, zkCert2.registration.queuePosition],
+    );
+    merkleProof = merkleTree.createProof(zkCert.registration.queuePosition);
+    merkleProof2 = merkleTree.createProof(zkCert2.registration.queuePosition);
   });
 
   beforeEach(function () {
@@ -232,9 +243,7 @@ describe('Test rpc handler function', function () {
       .onSecondCall()
       .resolves(testEntropyEncrypt);
     ethereumProvider.rpcStubs.eth_chainId.resolves('41233');
-    ethereumProvider.rpcStubs.eth_call.resolves(
-      fromDecToHex(getMerkleRootFromProof(zkCert.merkleProof, poseidon), true),
-    );
+    ethereumProvider.rpcStubs.eth_call.resolves(fromHexToBytes32('01'));
     ethereumProvider.rpcStubs.wallet_switchEthereumChain.resolves();
 
     // setting up merkle proof service for testing
@@ -242,14 +251,14 @@ describe('Test rpc handler function', function () {
       `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
         zkCert.registration.address
       }/${zkCert.leafHash}`,
-      merkleProofToServiceResponse(zkCert.merkleProof),
+      merkleProofToServiceResponse(merkleProof),
       { overwriteRoutes: true },
     );
     fetchMock.get(
       `${merkleProofServiceURL}${zkCert.registration.chainID.toString()}/merkle/proof/${
         zkCert2.registration.address
       }/${zkCert2.leafHash}`,
-      merkleProofToServiceResponse(zkCert2.merkleProof),
+      merkleProofToServiceResponse(merkleProof2),
       { overwriteRoutes: true },
     );
   });
@@ -501,54 +510,6 @@ describe('Test rpc handler function', function () {
       });
     });
 
-    it('should update a zkCert if a renewed version is imported at the same position in the Merkle tree', async function () {
-      prepareMocksForGuardianCheck();
-      snapProvider.rpcStubs.snap_dialog.resolves(true);
-      snapProvider.rpcStubs.snap_manageState
-        .withArgs({ operation: 'get' })
-        .resolves(createState([testHolder], [zkCertStorage]));
-
-      const renewedZkCert = JSON.parse(
-        JSON.stringify(zkCert),
-      ) as ZkCertRegistered<Record<string, Json>>; // deep copy to not mess up original
-      // some made up content analog to a renewed zkCert
-      renewedZkCert.expirationDate += 20;
-      renewedZkCert.leafHash = zkCert2.leafHash;
-      // note that the merkle path indices and registry address stay the same
-
-      const encryptedRenewedZkCert = encryptZkCert(
-        renewedZkCert,
-        testHolder.encryptionPubKey,
-        zkCert.holderCommitment,
-      );
-
-      const result = (await processRpcRequest(
-        buildRPCRequest(RpcMethods.ImportZkCert, {
-          encryptedZkCert: encryptedRenewedZkCert,
-        }),
-        snapProvider,
-        ethereumProvider,
-      )) as any;
-
-      expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledTwice; // once for the import, once for the update
-      expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
-        operation: 'update',
-        newState: createState(
-          [testHolder],
-          [
-            addGuardianInfoToStorage({
-              zkCert: renewedZkCert,
-              schema: getContentSchema(KnownZkCertStandard.ZkKYC),
-            }),
-          ],
-        ),
-      });
-      expect(result.standard).to.be.eq(renewedZkCert.zkCertStandard);
-      expect(result.expirationDate).to.be.eq(
-        renewedZkCert.expirationDate * 1000,
-      );
-    });
-
     it('should reject custom zkCerts without a schema', async function () {
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
@@ -744,9 +705,8 @@ describe('Test rpc handler function', function () {
         404,
         { overwriteRoutes: true },
       );
+      ethereumProvider.rpcStubs.eth_call.resolves(fromHexToBytes32('00')); // make the chain tell the snap that the merkle proof is not valid anymore
 
-      const outdatedZkCert = structuredClone(zkCert); // deep copy to not mess up original
-      outdatedZkCert.merkleProof.pathElements[0] = '01234';
       snapProvider.rpcStubs.snap_dialog.resolves(true);
       snapProvider.rpcStubs.snap_manageState
         .withArgs({ operation: 'get' })
@@ -755,7 +715,7 @@ describe('Test rpc handler function', function () {
             [testHolder],
             [
               {
-                zkCert: outdatedZkCert,
+                zkCert: structuredClone(zkCert),
                 schema: getContentSchema(KnownZkCertStandard.ZkKYC),
               },
             ],
@@ -777,10 +737,12 @@ describe('Test rpc handler function', function () {
     it('should automatically fetch new merkle proof from node', async function (this: Mocha.Context) {
       this.timeout(25000);
       snapProvider.rpcStubs.snap_dialog.resolves(true);
+      ethereumProvider.rpcStubs.eth_call.resolves(fromHexToBytes32('00')); // make the chain tell the snap that the merkle proof is not valid anymore
 
       const outdatedZkCert: ZkCertRegistered<
         Record<string, string | number | boolean | null>
       > = structuredClone(zkCert);
+      outdatedZkCert.merkleProof = merkleProof;
       outdatedZkCert.merkleProof.pathElements[0] = '01234';
 
       snapProvider.rpcStubs.snap_manageState
@@ -810,9 +772,11 @@ describe('Test rpc handler function', function () {
 
       // Merkle proof should have been updated and stored
       expect(fetchMock.calls().length).to.equal(1);
+      const expectedStorage = structuredClone(zkCertStorage);
+      expectedStorage.zkCert.merkleProof = merkleProof;
       expect(snapProvider.rpcStubs.snap_manageState).to.have.been.calledWith({
         operation: 'update',
-        newState: createState([testHolder], [zkCertStorage]),
+        newState: createState([testHolder], [expectedStorage]),
       });
     });
 
@@ -1286,7 +1250,7 @@ describe('Test rpc handler function', function () {
       const updateParams: MerkleProofUpdateRequestParams = {
         updates: [
           {
-            proof: zkCertStorage2.zkCert.merkleProof,
+            proof: merkleProof2,
             registryAddr: zkCertStorage.zkCert.registration.address,
           },
         ],
@@ -1311,7 +1275,7 @@ describe('Test rpc handler function', function () {
       const updateParams: MerkleProofUpdateRequestParams = {
         updates: [
           {
-            proof: zkCert2.merkleProof,
+            proof: merkleProof2,
             registryAddr: zkCert.registration.address,
           },
         ],
@@ -1350,7 +1314,9 @@ describe('Test rpc handler function', function () {
         ethereumProvider,
       )) as ConfirmationResponse;
 
-      const expectedUpdatedZkCert = { ...zkCert };
+      const expectedUpdatedZkCert: ZkCertRegistered<Record<string, Json>> = {
+        ...zkCert,
+      };
       expectedUpdatedZkCert.merkleProof = updatedMerkleProof;
 
       expect(snapProvider.rpcStubs.snap_dialog).to.have.been.calledOnce;
