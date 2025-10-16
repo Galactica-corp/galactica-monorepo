@@ -58,7 +58,10 @@ export type GenZkProofParams<ProofInputType> = {
 };
 
 export type PreparedZkCertProofInputs<
-  Params extends Record<string, FieldElement | FieldElement[]>,
+  Params extends Record<
+    string,
+    FieldElement | FieldElement[] | FieldElement[][]
+  >,
   Content extends Record<string, unknown>,
 > = Params &
   Record<keyof Content, FieldElement> &
@@ -90,7 +93,10 @@ export type PreparedZkCertProofInputs<
  * @returns A promise resolving to an object containing the prepared proof inputs required for ZK proof generation.
  */
 export async function prepareZkCertProofInputs<
-  Params extends Record<string, FieldElement | FieldElement[]>,
+  Params extends Record<
+    string,
+    FieldElement | FieldElement[] | FieldElement[][]
+  >,
   Content extends Record<string, unknown>,
 >(
   params: GenZkProofParams<Params>,
@@ -105,23 +111,7 @@ export async function prepareZkCertProofInputs<
   const eddsa = await buildEddsa();
   const merkleRoot = getMerkleRootFromProof(merkleProof, eddsa.poseidon);
 
-  let userPrivateKey: string | undefined;
-  if (params.zkInputRequiresPrivKey) {
-    const encryptionHashBase = eddsa.poseidon.F.toObject(
-      eddsa.poseidon([
-        new Uint8Array(holderEddsaKey),
-        params.userAddress,
-        zkCert.randomSalt,
-      ]),
-    ).toString();
-
-    userPrivateKey = formatPrivKeyForBabyJub(
-      encryptionHashBase,
-      eddsa,
-    ).toString();
-  }
-
-  return {
+  const preparedInput: PreparedZkCertProofInputs<Params, Content> = {
     ...params.input,
 
     ...prepareContentForCircuit(eddsa, zkCert.content, zkCert.contentSchema),
@@ -144,9 +134,25 @@ export async function prepareZkCertProofInputs<
     root: merkleRoot,
     pathElements: merkleProof.pathElements,
     leafIndex: merkleProof.leafIndex,
-
-    userPrivKey: userPrivateKey,
   };
+
+  if (params.zkInputRequiresPrivKey) {
+    const encryptionHashBase = eddsa.poseidon.F.toObject(
+      eddsa.poseidon([
+        new Uint8Array(holderEddsaKey),
+        params.userAddress,
+        zkCert.randomSalt,
+      ]),
+    ).toString();
+
+    // only set this if required, because `{userPrivKey: undefined}` leads to errors in the circom code
+    preparedInput.userPrivKey = formatPrivKeyForBabyJub(
+      encryptionHashBase,
+      eddsa,
+    ).toString();
+  }
+
+  return preparedInput;
 }
 
 /**
@@ -155,6 +161,8 @@ export async function prepareZkCertProofInputs<
  * @param inputs - The input data required for generating the proof.
  * @param proverOrLink - The prover data or a link to fetch the prover data.
  * @returns A promise that resolves to the generated proof and public signals.
+ *
+ * @deprecated use {@link Prover.generateProof} instead
  */
 export async function generateProof(
   inputs: Record<string, FieldElement | FieldElement[]>,
@@ -193,6 +201,8 @@ export async function generateProof(
  * @param holderEddsaKey - The private key of the EDDSA holder used for signature generation during the proof creation process.
  * @param merkleProof - The Merkle proof associated with the zero-knowledge certificate to verify its validity.
  * @returns A promise that resolves to the generated zero-knowledge certificate proof.
+ *
+ * @deprecated use {@link Prover.generateProof} instead
  */
 export async function generateZkCertProof<
   Params extends Record<string, FieldElement | FieldElement[]>,
@@ -223,7 +233,9 @@ export async function generateZkCertProof<
  * @returns A promise that resolves to the modified
  * and preprocessed ProverData object.
  */
-async function preprocessProver(prover: ProverData): Promise<ProverData> {
+export async function preprocessProver(
+  prover: ProverData,
+): Promise<ProverData> {
   // Store the curve before creating the object to avoid race condition
   const curve = await getCurveForSnarkJS(prover.zkeyHeader.curveName);
 
@@ -309,7 +321,7 @@ export function subPathZkeySections(i: number) {
  * @param link An object containing the URL and hash to fetch and validate prover data.
  * @returns A promise that resolves with the fetched and verified prover data.
  */
-async function fetchProverData(link: ProverLink): Promise<ProverData> {
+export async function fetchProverData(link: ProverLink): Promise<ProverData> {
   /**
    * Fetches data from the specified URL with error handling mechanisms to manage potential issues during the fetch or JSON parsing processes.
    *
