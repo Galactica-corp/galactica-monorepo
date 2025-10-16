@@ -45,7 +45,10 @@ export type GenZkProofParams<ProofInputType> = {
 };
 
 export type PreparedZkCertProofInputs<
-  Params extends Record<string, FieldElement | FieldElement[]>,
+  Params extends Record<
+    string,
+    FieldElement | FieldElement[] | FieldElement[][]
+  >,
   Content extends Record<string, unknown>,
 > = Params &
   Record<keyof Content, FieldElement> &

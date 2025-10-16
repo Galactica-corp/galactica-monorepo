@@ -32,7 +32,9 @@
     "ffjavascript": "0.3.0",
     "ejs": "patch:ejs@npm:3.1.9#.yarn/patches/ejs-npm-3.1.9-e201b2088c.patch",
     "fastfile@0.0.20": "patch:fastfile@npm:0.0.20#.yarn/patches/fastfile-npm-0.0.20-4263a2b353.patch",
-    "@typescript-eslint/typescript-estree": "8.40.0"
+    "@metamask/eth-sig-util@^8.2.0": "patch:@metamask/eth-sig-util@npm:^8.2.0#.yarn/patches/@metamask-eth-sig-util-npm-8.2.0-6005d801eb.patch",
+    "@typescript-eslint/typescript-estree": "8.40.0",
+    "@metamask/safe-event-emitter": "^3.1.2"
   },
   "devDependencies": {
     "@metamask/eslint-config": "^14.0.0",

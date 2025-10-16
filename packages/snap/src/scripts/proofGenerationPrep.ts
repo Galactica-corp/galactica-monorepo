@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: MIT
 import type { GenZkProofParams, ProverData } from '@galactica-net/snap-api';
 import { KnownZkCertStandard } from '@galactica-net/snap-api';
+import {
+  subPathWasm,
+  subPathZkeyHeader,
+  subPathZkeySections,
+} from '@galactica-net/zk-certificates';
 import { readBinFile, readSection } from '@iden3/binfileutils';
 import * as fs from 'fs';
 import { MD5 } from 'object-hash';
 import path from 'path';
 import { groth16, zKey } from 'snarkjs';
 import { parse } from 'ts-command-line-args';
-
-import {
-  subPathWasm,
-  subPathZkeyHeader,
-  subPathZkeySections,
-} from '../proofGenerator';
 
 // Tell JSON how to serialize BigInts
 (BigInt.prototype as any).toJSON = function () {
@@ -286,15 +285,13 @@ async function main() {
     path.join(
       __dirname,
       `../../../zk-certificates/circuits/input/`,
-      args.circuitName,
-      `.json`,
+      `${args.circuitName}.json`,
     );
 
   args.output ??= path.join(
     __dirname,
     `../../../galactica-dapp/public/provers/`,
-    args.circuitName,
-    `.json`,
+    `${args.circuitName}.json`,
   );
 
   if (!fs.existsSync(testInput)) {

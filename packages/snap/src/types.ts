@@ -1,22 +1,26 @@
 // SPDX-License-Identifier: BUSL-1.1
 import type { EddsaPrivateKey } from '@galactica-net/galactica-types';
 import type { ZkCertRegistered } from '@galactica-net/snap-api';
-import type { MetaMaskInpageProvider } from '@metamask/providers';
-import type { SnapsGlobalObject } from '@metamask/snaps-types';
+import type {
+  Json,
+  JsonRpcParams,
+  SnapsEthereumProvider,
+  SnapsProvider,
+} from '@metamask/snaps-sdk';
 import type { NodeType } from '@metamask/snaps-ui';
 import type { JsonRpcRequest } from '@metamask/types';
 import type { AnySchema } from 'ajv/dist/2020';
 
 export type RpcArgs = {
   origin: string;
-  request: JsonRpcRequest<unknown[] | { [key: string]: unknown }>;
+  request: JsonRpcRequest<JsonRpcParams>;
 };
 
 export type SnapRpcProcessor = (
   args: RpcArgs,
-  snap: SnapsGlobalObject,
-  ethereum: MetaMaskInpageProvider,
-) => Promise<unknown>;
+  snap: SnapsProvider,
+  ethereum: SnapsEthereumProvider,
+) => Promise<Json>;
 
 export type HolderData = {
   // address: string; Not needed as long as we do not support HW wallets
@@ -31,7 +35,7 @@ export type HolderData = {
  * Everything the snap needs to store about a zkCert.
  */
 export type ZkCertStorage = {
-  zkCert: ZkCertRegistered<Record<string, unknown>>;
+  zkCert: ZkCertRegistered<Record<string, Json>>;
   schema: AnySchema;
 };
 

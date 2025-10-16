@@ -1,0 +1,7 @@
+{
+  "StakingModule#ProxyImplementationStaking": "0xcCa0EF64CC1F2b4c44333B92E6f1336bE0002293",
+  "TimelockControllerModule#TimelockController": "0x5c42F5d3B04332E56eDC8037cB6566825fB94Ea6",
+  "StakingModule#TransparentUpgradeableProxyStaking": "0x90B07E15Cfb173726de904ca548dd96f73c12428",
+  "StakingModule#UpgradableContractStaking": "0x90B07E15Cfb173726de904ca548dd96f73c12428",
+  "StakingModule#ProxyAdminStaking": "0x4c224398b02aA3fF89cD97EB4d1b02B1fe17AD01"
+}
