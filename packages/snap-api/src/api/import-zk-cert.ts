@@ -1,5 +1,5 @@
 import { GalacticaErrorBase } from './error';
-import type { ZkCertMetadataList } from './list-zk-certs';
+import type { ZkCertListItem } from './list-zk-certs';
 import { RpcMethods } from './rpcEnums';
 import type { EncryptedZkCert } from './types';
 import { sdkConfig } from '../config';
@@ -41,5 +41,5 @@ export const importZkCert = async (
     },
     snapOrigin,
   );
-  return response as ZkCertMetadataList;
+  return response as ZkCertListItem;
 };
