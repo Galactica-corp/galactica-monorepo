@@ -5,6 +5,7 @@
  * Index defining exports of lib functions to other packages using this module
  */
 
+export * from './encryption';
 export * from './helpers';
 export * from './holderCommitment';
 export * from './keyManagement';
@@ -20,6 +21,8 @@ export * from './zkCertificate';
 export * from './zkCertificateDataProcessing';
 export * from './proofs';
 export * from './merkle';
-export type { getContentFields } from '@galactica-net/galactica-types';
-export type { ZkCertStandard } from '@galactica-net/galactica-types';
-export { KnownZkCertStandard } from '@galactica-net/galactica-types';
+export { getContentFields } from '@galactica-net/galactica-types';
+export {
+  type ZkCertStandard,
+  KnownZkCertStandard,
+} from '@galactica-net/galactica-types';

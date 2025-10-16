@@ -1,18 +1,14 @@
 import { RpcMethods } from './rpcEnums';
-import type { ZkCertStandard, ZkCertSelectionParams } from './types';
+import type { ZkCertSelectionParams, ZkCertStandard } from './types';
 import { sdkConfig } from '../config';
 import { invokeSnap } from '../utils/invoke-snap';
 
 export type ZkCertListItem = {
-  providerPubKey: {
-    ax: string;
-    ay: string;
-  };
+  standard: ZkCertStandard;
   expirationDate: number;
-  verificationLevel: string;
 };
 
-export type ZkCertMetadataList = Record<ZkCertStandard, ZkCertListItem[]>;
+export type ZkCertMetadataList = ZkCertListItem[];
 
 /**
  * Requests overview of zkCertificates held in the Snap for management.
