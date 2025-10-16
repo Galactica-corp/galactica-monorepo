@@ -2,21 +2,13 @@
 pragma solidity 0.8.28;
 
 import {IGuardianRegistry} from './IGuardianRegistry.sol';
+import {IReadableZkCertRegistry} from './IReadableZkCertRegistry.sol';
+import {IWritableZKCertRegistry} from './IWritableZKCertRegistry.sol';
 
 /// @author Galactica dev team
-interface IZkCertificateRegistry {
-    function merkleRoot() external view returns (bytes32);
+interface IZkCertificateRegistry is
+    IReadableZkCertRegistry,
+    IWritableZKCertRegistry
+{
 
-    function merkleRootIndex(bytes32) external view returns (uint);
-
-    function merkleRootValidIndex() external view returns (uint);
-
-    function verifyMerkleRoot(bytes32) external view returns (bool);
-
-    function guardianRegistry() external view returns (IGuardianRegistry);
-
-    /**
-     * @notice Depricated function to share interface with old contract version.
-     */
-    function _GuardianRegistry() external view returns (IGuardianRegistry);
 }
