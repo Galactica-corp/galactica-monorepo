@@ -520,8 +520,9 @@ describe('Upgrade Staking', function () {
 
       // in the third period the other account withdraws his rewards
       await time.setNextBlockTimestamp(start + 2000);
-      const staker2AccountBalanceBeforeReward =
-        await wGNET.balanceOf(staker2.address);
+      const staker2AccountBalanceBeforeReward = await wGNET.balanceOf(
+        staker2.address,
+      );
       const tx4 = await upgradedStaking.connect(staker2).getRewardWithWGNET();
       receipt = await tx4.wait();
       feesPaidStaker2 += receipt?.fee ?? 0n;

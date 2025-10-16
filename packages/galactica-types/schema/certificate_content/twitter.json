@@ -12,8 +12,7 @@
     "id": {
       "type": "string",
       "pattern": "^[0-9]+$",
-      "format": "decimal",
-      "description": "The numeric ID of the Twitter account."
+      "description": "The ID of the Twitter account, interpreted as string to be hashed."
     },
     "followersCount": {
       "type": "integer",
@@ -41,9 +40,11 @@
     },
     "username": {
       "type": "string",
+      "format": "case-insensitive",
+      "pattern": "^[a-zA-Z0-9_]+$",
       "minLength": 4,
       "maxLength": 15,
-      "description": "The username of the Twitter account."
+      "description": "The username of the Twitter account, it is case-insensitive, meaning that 'AStar_Gala' and 'astar_gala' lead to the same account and zk field element."
     },
     "verified": {
       "type": "boolean",

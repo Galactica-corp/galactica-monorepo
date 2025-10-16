@@ -35,6 +35,13 @@ const config = [
     },
   },
 
+  {
+    files: ['scripts/**/*.ts'],
+    rules: {
+      'n/no-unpublished-import': 'off', // hardhat packages are published but rule has issues with yarn workspace setup
+    },
+  },
+
   globalIgnores([
     '.eslintrc.js',
     'cache/',
