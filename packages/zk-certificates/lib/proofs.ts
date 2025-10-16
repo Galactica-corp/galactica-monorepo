@@ -58,7 +58,10 @@ export type GenZkProofParams<ProofInputType> = {
 };
 
 export type PreparedZkCertProofInputs<
-  Params extends Record<string, FieldElement | FieldElement[]>,
+  Params extends Record<
+    string,
+    FieldElement | FieldElement[] | FieldElement[][]
+  >,
   Content extends Record<string, unknown>,
 > = Params &
   Record<keyof Content, FieldElement> &
@@ -90,7 +93,10 @@ export type PreparedZkCertProofInputs<
  * @returns A promise resolving to an object containing the prepared proof inputs required for ZK proof generation.
  */
 export async function prepareZkCertProofInputs<
-  Params extends Record<string, FieldElement | FieldElement[]>,
+  Params extends Record<
+    string,
+    FieldElement | FieldElement[] | FieldElement[][]
+  >,
   Content extends Record<string, unknown>,
 >(
   params: GenZkProofParams<Params>,

@@ -13,7 +13,7 @@ import type {
   GenZkProofParams,
   ProverData,
   ProverLink,
-  ZkCertProof,
+  ZkProof,
 } from './proofs';
 import {
   fetchProverData,
@@ -32,7 +32,10 @@ import type { ZkCertificate } from './zkCertificate';
  * @template Content - Shape of the zk certificate content.
  */
 export class Prover<
-  Params extends Record<string, FieldElement | FieldElement[]>,
+  Params extends Record<
+    string,
+    FieldElement | FieldElement[] | FieldElement[][]
+  >,
   Content extends Record<string, unknown>,
 > {
   /**
@@ -65,7 +68,10 @@ export class Prover<
    * @throws Error if a ProverLink without a URL is provided.
    */
   static async new<
-    Params extends Record<string, FieldElement | FieldElement[] | FieldElement[][]>,
+    Params extends Record<
+      string,
+      FieldElement | FieldElement[] | FieldElement[][]
+    >,
     Content extends Record<string, unknown>,
   >(proverOrLink: ProverData | ProverLink) {
     let prover: ProverData;
@@ -100,7 +106,7 @@ export class Prover<
     zkCert: ZkCertificate<Content>,
     holderEddsaKey: EddsaPrivateKey,
     merkleProof: MerkleProof,
-  ): Promise<ZkCertProof> {
+  ): Promise<ZkProof> {
     const inputs = await prepareZkCertProofInputs(
       params,
       zkCert,

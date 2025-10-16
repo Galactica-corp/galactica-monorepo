@@ -40,7 +40,9 @@ export type AnyZkCertContent = (
   | REYCertificateContent
   | DEXCertificateContent
   | CEXCertificateContent
-  | TelegramCertificateContent) & Record<string, unknown>;
+  | TelegramCertificateContent
+) &
+  Record<string, unknown>;
 
 /**
  * Ordered list of fields common to all zkCerts.

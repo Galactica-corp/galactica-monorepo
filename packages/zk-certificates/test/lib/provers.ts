@@ -1,5 +1,8 @@
 /* Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 
+import type { EddsaPrivateKey } from '@galactica-net/galactica-types';
+import { KnownZkCertStandard } from '@galactica-net/galactica-types';
+import type { ZkKYCAgeCitizenshipProofInput } from '@galactica-net/snap-api';
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import { expect } from 'chai';
 import type { Eddsa } from 'circomlibjs';
@@ -7,17 +10,21 @@ import { buildEddsa } from 'circomlibjs';
 import { ethers } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
-import { Prover } from '../../lib/provers';
-import type { ProverData, ProverLink, GenZkProofParams } from '../../lib/proofs';
-import { EddsaPrivateKey, KnownZkCertStandard } from '@galactica-net/galactica-types';
-import { ZkCertificate } from '../../lib/zkCertificate';
-import { MerkleTree } from '../../lib/merkleTree';
-import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
-import { generateSampleZkKYC, generateZkKYCProofInput } from '../../scripts/dev/generateZkKYCInput';
-
-import exampleMockDAppVKey from '../../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
 import proverFile from '../../../galactica-dapp/public/provers/exampleMockDApp.json';
-import { ZkKYCAgeCitizenshipProofInput } from '@galactica-net/snap-api';
+import exampleMockDAppVKey from '../../../galactica-dapp/public/provers/exampleMockDApp.vkey.json';
+import { getEddsaKeyFromEthSigner } from '../../lib/keyManagement';
+import { MerkleTree } from '../../lib/merkleTree';
+import type {
+  ProverData,
+  ProverLink,
+  GenZkProofParams,
+} from '../../lib/proofs';
+import { Prover } from '../../lib/provers';
+import type { ZkCertificate } from '../../lib/zkCertificate';
+import {
+  generateSampleZkKYC,
+  generateZkKYCProofInput,
+} from '../../scripts/dev/generateZkKYCInput';
 
 const proverData = proverFile as ProverData;
 
@@ -26,7 +33,6 @@ describe('Prover', () => {
   let zkKYC: ZkCertificate;
   let holderEddsaKey: EddsaPrivateKey;
   let merkleProof: any;
-  let merkleRoot: string;
   let user: SignerWithAddress;
 
   before(async () => {
@@ -43,7 +49,6 @@ describe('Prover', () => {
     // Create merkle tree and proof
     const merkleTree = new MerkleTree(32, eddsa.poseidon);
     merkleTree.insertLeaves([zkKYC.leafHash]);
-    merkleRoot = merkleTree.root;
     merkleProof = merkleTree.createProof(zkKYC.leafHash);
   });
 
@@ -59,7 +64,7 @@ describe('Prover', () => {
       } as ProverLink;
 
       await expect(Prover.new(invalidProverLink)).to.be.rejectedWith(
-        'ProverLink does not contain a URL.'
+        'ProverLink does not contain a URL.',
       );
     });
 
@@ -69,13 +74,12 @@ describe('Prover', () => {
       } as ProverLink;
 
       await expect(Prover.new(invalidProverLink)).to.be.rejectedWith(
-        'ProverLink does not contain a URL.'
+        'ProverLink does not contain a URL.',
       );
     });
   });
 
   describe('generateProof()', () => {
-
     let params: GenZkProofParams<ZkKYCAgeCitizenshipProofInput>;
 
     beforeEach(async () => {
@@ -118,7 +122,7 @@ describe('Prover', () => {
         params,
         zkKYC,
         holderEddsaKey,
-        merkleProof
+        merkleProof,
       );
 
       expect(proof).to.have.property('proof');
@@ -141,7 +145,11 @@ describe('Prover', () => {
       expect(proof).to.have.property('proof');
       expect(proof).to.have.property('publicSignals');
 
-      const isValid = await groth16.verify(exampleMockDAppVKey, proof.publicSignals, proof.proof);
+      const isValid = await groth16.verify(
+        exampleMockDAppVKey,
+        proof.publicSignals,
+        proof.proof,
+      );
       expect(isValid).to.be.true;
     });
   });

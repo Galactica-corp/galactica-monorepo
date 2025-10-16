@@ -3379,6 +3379,7 @@ __metadata:
   resolution: "@galactica-net/zk-certificates@workspace:packages/zk-certificates"
   dependencies:
     "@galactica-net/galactica-types": "workspace:^"
+    "@galactica-net/snap-api": "workspace:^"
     "@metamask/eth-sig-util": ^8.2.0
     "@nomicfoundation/hardhat-chai-matchers": ^2.1.0
     "@nomicfoundation/hardhat-ethers": ^3.1.0
