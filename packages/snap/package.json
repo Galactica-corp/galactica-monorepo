@@ -14,7 +14,8 @@
     "snap.manifest.json"
   ],
   "scripts": {
-    "build": "mm-snap build",
+    "build": "yarn workspaces foreach --from @galactica-net/snap --parallel --topological-dev --recursive --verbose run build:local",
+    "build:local": "mm-snap build",
     "build:clean": "yarn clean && yarn build",
     "build:website": "node ./scripts/build-website.js",
     "clean": "rimraf dist",
