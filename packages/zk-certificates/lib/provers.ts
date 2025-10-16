@@ -4,8 +4,8 @@
 
 import type {
   FieldElement,
-  type EddsaPrivateKey,
-  type MerkleProof,
+  EddsaPrivateKey,
+  MerkleProof,
 } from '@galactica-net/galactica-types';
 import { groth16 } from 'snarkjs';
 
@@ -65,7 +65,7 @@ export class Prover<
    * @throws Error if a ProverLink without a URL is provided.
    */
   static async new<
-    Params extends Record<string, FieldElement | FieldElement[]>,
+    Params extends Record<string, FieldElement | FieldElement[] | FieldElement[][]>,
     Content extends Record<string, unknown>,
   >(proverOrLink: ProverData | ProverLink) {
     let prover: ProverData;

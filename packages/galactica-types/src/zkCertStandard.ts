@@ -34,13 +34,13 @@ export enum KnownZkCertStandard {
   Telegram = 'gip7',
 }
 
-export type AnyZkCertContent =
+export type AnyZkCertContent = (
   | KYCCertificateContent
   | TwitterCertificateContent
   | REYCertificateContent
   | DEXCertificateContent
   | CEXCertificateContent
-  | TelegramCertificateContent;
+  | TelegramCertificateContent) & Record<string, unknown>;
 
 /**
  * Ordered list of fields common to all zkCerts.
