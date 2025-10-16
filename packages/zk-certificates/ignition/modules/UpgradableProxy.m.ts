@@ -19,13 +19,13 @@ export function defineUpgradableProxy(
   initCallArgs: any[],
   libraries?: Record<string, Future>,
 ) {
-  // Deploying the staking logic contract
+  // Deploying the implementation logic contract
   const implementation = module.contract(contractName, [], {
     id: `ProxyImplementation${contractName}`,
     libraries,
   });
 
-  // Call to initialize the staking contract when the proxy is deployed
+  // Call to initialize the contract when the proxy is deployed
   const encodedInitCall = module.encodeFunctionCall(
     implementation,
     'initialize',
