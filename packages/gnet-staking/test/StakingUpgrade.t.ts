@@ -406,7 +406,6 @@ describe('Upgrade Staking', function () {
       let expectedStakesStaker2 = 0n;
       let expectedRewardsStaker = 0n;
       let expectedRewardsStaker2 = 0n;
-      let feesPaidStaker2 = 0n;
       expect(
         await upgradedStaking.showPendingReward(staker.address),
         'pending reward staker, start',
@@ -443,7 +442,7 @@ describe('Upgrade Staking', function () {
       const tx1 = await upgradedStaking
         .connect(staker)
         .createStakeWithWGNET(ethers.parseEther('5'));
-      let receipt = await tx1.wait();
+      await tx1.wait();
       expectedStakesStaker += ethers.parseEther('5');
 
       // later in the same period the other account stakes
@@ -451,8 +450,7 @@ describe('Upgrade Staking', function () {
       const tx2 = await upgradedStaking
         .connect(staker2)
         .createStakeWithWGNET(ethers.parseEther('10'));
-      receipt = await tx2.wait();
-      feesPaidStaker2 += receipt?.fee ?? 0n;
+      await tx2.wait();
       expectedStakesStaker2 += ethers.parseEther('10');
       let lastUpdateTime = await time.latest();
 
@@ -476,7 +474,7 @@ describe('Upgrade Staking', function () {
       const tx3 = await upgradedStaking
         .connect(staker)
         .createStakeWithWGNET(ethers.parseEther('10'));
-      receipt = await tx3.wait();
+      await tx3.wait();
       // updating the reward (using the time of the latest block and the stake amount before the increase)
       expectedRewardsStaker +=
         (emissionPeriods[0].rewardPerSecond *
@@ -524,8 +522,7 @@ describe('Upgrade Staking', function () {
         staker2.address,
       );
       const tx4 = await upgradedStaking.connect(staker2).getRewardWithWGNET();
-      receipt = await tx4.wait();
-      feesPaidStaker2 += receipt?.fee ?? 0n;
+      await tx4.wait();
       expectedRewardsStaker +=
         (emissionPeriods[1].rewardPerSecond *
           BigInt(emissionPeriods[1].endTime - lastUpdateTime) *
@@ -559,14 +556,9 @@ describe('Upgrade Staking', function () {
         'pending reward staker, third period',
       ).to.be.closeTo(expectedRewardsStaker, 100n);
       expect(
-        await ethers.provider.getBalance(staker2.address),
+        await wGNET.balanceOf(staker2.address),
         'balance staker2, third period',
-      ).to.be.greaterThan(
-        staker2AccountBalanceBeforeReward +
-          expectedRewardsStaker2 -
-          100n -
-          feesPaidStaker2,
-      );
+      ).to.be.equal(staker2AccountBalanceBeforeReward + expectedRewardsStaker2);
       expect(
         await upgradedStaking.showPendingReward(staker2.address),
         'pending reward staker2, third period',
@@ -579,7 +571,7 @@ describe('Upgrade Staking', function () {
       const tx5 = await upgradedStaking
         .connect(staker)
         .removeStake(expectedStakesStaker / 2n, expectedStakesStaker / 2n);
-      receipt = await tx5.wait();
+      await tx5.wait();
       expectedRewardsStaker +=
         (emissionPeriods[2].rewardPerSecond *
           BigInt(emissionPeriods[2].endTime - lastUpdateTime) *
@@ -622,8 +614,7 @@ describe('Upgrade Staking', function () {
       const tx6 = await upgradedStaking
         .connect(staker2)
         .removeStakeWithWGNET(expectedStakesStaker2, expectedStakesStaker2);
-      receipt = await tx6.wait();
-      feesPaidStaker2 += receipt?.fee ?? 0n;
+      await tx6.wait();
       expectedRewardsStaker +=
         (emissionPeriods[3].rewardPerSecond *
           BigInt(emissionPeriods[3].endTime - lastUpdateTime) *
@@ -644,8 +635,7 @@ describe('Upgrade Staking', function () {
       ).to.be.closeTo(expectedRewardsStaker2, 100n);
       await upgradedStaking.connect(staker).getRewardWithWGNET();
       const tx7 = await upgradedStaking.connect(staker2).getRewardWithWGNET();
-      receipt = await tx7.wait();
-      feesPaidStaker2 += receipt?.fee ?? 0n;
+      await tx7.wait();
       await upgradedStaking
         .connect(staker)
         .removeStakeWithWGNET(expectedStakesStaker, expectedStakesStaker);
