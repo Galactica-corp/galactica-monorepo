@@ -22,8 +22,6 @@ contract RegistryStateReceiver is IMessageRecipient {
 
   // Events
   event StateReceived(
-    uint32 origin,
-    address sender,
     bytes32[] newMerkleRoots,
     bytes32 oldestValidMerkleRoot,
     uint256 newQueuePointer
@@ -116,12 +114,6 @@ contract RegistryStateReceiver is IMessageRecipient {
     );
 
     // Emit event for monitoring and transparency
-    emit StateReceived(
-      _origin,
-      actualSender,
-      newMerkleRoots,
-      oldestValidMerkleRoot,
-      newQueuePointer
-    );
+    emit StateReceived(newMerkleRoots, oldestValidMerkleRoot, newQueuePointer);
   }
 }
