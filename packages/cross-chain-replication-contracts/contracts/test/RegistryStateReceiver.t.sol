@@ -166,8 +166,6 @@ contract RegistryStateReceiverTest is Test {
     // Expect the StateReceived event to be emitted
     vm.expectEmit(true, true, false, true);
     emit RegistryStateReceiver.StateReceived(
-      ORIGIN_DOMAIN,
-      SENDER_ADDRESS,
       testMerkleRoots,
       TEST_OLDEST_VALID_MERKLE_ROOT,
       TEST_QUEUE_POINTER
