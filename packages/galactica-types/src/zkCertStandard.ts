@@ -36,14 +36,16 @@ export enum KnownZkCertStandard {
   Blum = 'gip8',
 }
 
-export type AnyZkCertContent =
+export type AnyZkCertContent = (
   | KYCCertificateContent
   | TwitterCertificateContent
   | REYCertificateContent
   | DEXCertificateContent
   | CEXCertificateContent
   | TelegramCertificateContent
-  | BlumCertificateContent;
+  | BlumCertificateContent
+) &
+  Record<string, unknown>;
 
 /**
  * Ordered list of fields common to all zkCerts.

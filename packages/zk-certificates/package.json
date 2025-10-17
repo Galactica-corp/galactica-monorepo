@@ -52,6 +52,7 @@
     "snarkjs": "https://github.com/Galactica-corp/snarkjs-ses.git#v0.5-snap"
   },
   "devDependencies": {
+    "@galactica-net/snap-api": "workspace:^",
     "@metamask/eth-sig-util": "^8.2.0",
     "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
     "@nomicfoundation/hardhat-ethers": "^3.1.0",
