@@ -359,6 +359,7 @@ export const flagStandardMapping: Record<string, KnownZkCertStandard> = {
   cex: KnownZkCertStandard.CEX,
   dex: KnownZkCertStandard.DEX,
   telegram: KnownZkCertStandard.Telegram,
+  blum: KnownZkCertStandard.Blum,
 };
 
 /**

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Blum Certificate Content",
+  "description": "Certificate content for Blum account verification with Telegram-based user verification including sybil and activity scores.",
+  "type": "object",
+  "properties": {
+    "telegramId": {
+      "type": "string",
+      "format": "decimal",
+      "description": "The Telegram user ID."
+    },
+    "activityScore": {
+      "type": "number",
+      "minimum": 0,
+      "description": "User activity metric."
+    },
+    "sybilScore": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Sybil resistance score."
+    }
+  },
+  "required": ["telegramId", "activityScore", "sybilScore"],
+  "additionalProperties": false
+}

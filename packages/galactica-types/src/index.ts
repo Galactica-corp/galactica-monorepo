@@ -6,6 +6,7 @@ export type { TokenData } from './tokenData';
 export * from './zkCert';
 export * from './zkCertStandard';
 export type {
+  BlumCertificateContent,
   CEXCertificateContent,
   DEXCertificateContent,
   KYCCertificateContent,
