@@ -6,7 +6,7 @@
   "InfrastructureModule#Institution1": "0x9c3e53d0Ef321b37bfb66F95B4699518675f704a",
   "InfrastructureModule#Institution2": "0x4EE29bfA58217a18C046FD5ae448B906FE46D833",
   "InfrastructureModule#Institution3": "0x5eeEB472ce2607B5Dbc70902caF42578Ae4Fe2F1",
-  "PoseidonModule#PoseidonT3": "0x7f48eAe024c00a44F844CbFA25A40ccB502ae109",
+  "PoseidonModule#PoseidonT3": "0x0193412D3E8E7Bb38482F73E4d4F0960fA537D42",
   "RepeatableZKPTestModule#ZkKYCVerifier": "0xC04bb60918196CaeCa5f8936b5Fbf74356a22e6b",
   "InfrastructureModule#ProxyImplementationZkKYCRegistry": "0x9E348D818dA9a33D9AE88d08b08716F277408162",
   "GuardianRegistryModule#TransparentUpgradeableProxyGuardianRegistry": "0xBcf3641f4A4a0fF102F5800291f09e2Bd87c0a53",
@@ -95,5 +95,13 @@
   "KYCRequirementsDemoModule#AgeCitizenshipKYCVerifier": "0x0950E78110c74aca4b51c83F634551C000Cc82AA",
   "KYCRequirementsDemoModule#AgeCitizenshipKYC": "0x7782883b5a648c79853CC7228263CFbE9D66F2fD",
   "KYCRequirementsDemoModule#KYCRequirementsDemoDApp": "0x8A6e866a40e0dA08728aa401F6A77A1137A11F8D",
-  "KYCRequirementsDemoModule#VerificationSBT": "0xF06f6f4aCca94a76D716a11f7D07bd8Fd9829ACB"
+  "KYCRequirementsDemoModule#VerificationSBT": "0xF06f6f4aCca94a76D716a11f7D07bd8Fd9829ACB",
+  "Gip8ZkCertRegistryModule#ProxyImplementationGuardianRegistry": "0x70a7881832fe67cdE19866952aDece8e160a6fCF",
+  "Gip8ZkCertRegistryModule#ProxyImplementationZkCertificateRegistry": "0x95FAAD188B198d3E69E8029B898c845Dc1650360",
+  "Gip8ZkCertRegistryModule#TransparentUpgradeableProxyGuardianRegistry": "0x7B6Df1d279fC60131Cbb2bCc937d01c0B05C21c0",
+  "Gip8ZkCertRegistryModule#UpgradableContractGuardianRegistry": "0x7B6Df1d279fC60131Cbb2bCc937d01c0B05C21c0",
+  "Gip8ZkCertRegistryModule#ProxyAdminGuardianRegistry": "0x951f7a2e7d0600d06Ffd4211F9a0Aab5104b625E",
+  "Gip8ZkCertRegistryModule#TransparentUpgradeableProxyZkCertificateRegistry": "0x37b9D63b9de7a66843c6fb46b788bA1Fc9839e85",
+  "Gip8ZkCertRegistryModule#UpgradableContractZkCertificateRegistry": "0x37b9D63b9de7a66843c6fb46b788bA1Fc9839e85",
+  "Gip8ZkCertRegistryModule#ProxyAdminZkCertificateRegistry": "0xd1df3FA39A0C0675F392636550aBE2F5ac63FB1B"
 }
