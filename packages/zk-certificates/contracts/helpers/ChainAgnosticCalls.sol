@@ -29,7 +29,8 @@ contract ChainAgnosticCalls {
             block.chainid == 42161 || // Arbitrum One
             block.chainid == 421614 || // Arbitrum Nova
             block.chainid == 42170 || // Arbitrum Sepolia
-            block.chainid == 843843 // Galactica Cassiopeia
+            block.chainid == 843843 || // Galactica Cassiopeia
+            block.chainid == 613419 // Galactica Mainnet
         ) {
             blockNumber = ArbSys(address(100)).arbBlockNumber();
         } else {
