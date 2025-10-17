@@ -203,7 +203,7 @@ export interface TwitterCertificateContent {
    */
   createdAt: string;
   /**
-   * The numeric ID of the Twitter account.
+   * The ID of the Twitter account, interpreted as string to be hashed.
    */
   id: string;
   /**
@@ -223,7 +223,7 @@ export interface TwitterCertificateContent {
    */
   tweetCount?: number;
   /**
-   * The username of the Twitter account.
+   * The username of the Twitter account, it is case-insensitive, meaning that 'AStar_Gala' and 'astar_gala' lead to the same account and zk field element.
    */
   username: string;
   /**

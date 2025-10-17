@@ -43,7 +43,7 @@
   "Gip4ZkCertRegistryModule#ProxyImplementationGuardianRegistry": "0xEd55438Acdf9d9449096844B7fe3B1e24F071359",
   "Gip4ZkCertRegistryModule#ProxyImplementationZkCertificateRegistry": "0x7F905f0E08058B92647dA44BCc763ea10A0ea71f",
   "Gip4ZkCertRegistryModule#TransparentUpgradeableProxyGuardianRegistry": "0x271050259E325Be9C39138A6aDFE4FCb76431042",
-  "Gip4ZkCertRegistryModule#UpgradableContractGuardianRegistry": "0x325c958189b10d61db04042d12a33875B84E4fdF",
+  "Gip4ZkCertRegistryModule#UpgradableContractGuardianRegistry": "0x271050259E325Be9C39138A6aDFE4FCb76431042",
   "Gip4ZkCertRegistryModule#ProxyAdminGuardianRegistry": "0x6786560939fDc596AD0aFB0B5dBE6291cB15C728",
   "Gip4ZkCertRegistryModule#TransparentUpgradeableProxyZkCertificateRegistry": "0x81F8f62A667B941E99A6F873833b389F63dd8C2F",
   "Gip4ZkCertRegistryModule#UpgradableContractZkCertificateRegistry": "0x81F8f62A667B941E99A6F873833b389F63dd8C2F",
