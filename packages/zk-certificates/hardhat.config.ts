@@ -49,7 +49,11 @@ const config: HardhatUserConfig = {
       accounts: getAccounts(),
     },
     cassiopeia: {
-      url: 'https://galactica-cassiopeia.g.alchemy.com/public',
+      url: `https://galactica-cassiopeia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: getAccounts(),
+    },
+    arbitrumSepolia: {
+      url: `https://api.zan.top/arb-sepolia`,
       accounts: getAccounts(),
     },
     binanceTestnet: {
@@ -69,6 +73,7 @@ const config: HardhatUserConfig = {
       cassiopeia: process.env.ALCHEMY_API_KEY ?? '',
       bscTestnet: process.env.BSCScanApiKey ?? '',
       mainnet: process.env.EtherscanApiKey ?? '',
+      arbitrumSepolia: process.env.EtherscanApiKey ?? '',
     },
     customChains: [
       {
@@ -93,6 +98,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://galactica-cassiopeia.explorer.alchemy.com/api',
           browserURL: 'https://galactica-cassiopeia.explorer.alchemy.com/',
+        },
+      },
+      {
+        network: 'arbitrumSepolia',
+        chainId: 421614,
+        urls: {
+          apiURL: 'https://api.etherscan.io/v2/api?chainid=421614',
+          browserURL: 'https://sepolia.arbiscan.io/',
         },
       },
     ],
@@ -237,6 +250,11 @@ const config: HardhatUserConfig = {
   ignition: {
     // setting required confirmations to 1 because cassiopeia only creates new blocks when there is a transaction
     requiredConfirmations: 1,
+    strategyConfig: {
+      create2: {
+        salt: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      },
+    },
   },
 };
 

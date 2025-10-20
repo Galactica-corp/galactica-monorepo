@@ -81,15 +81,11 @@ There are some scripts for deployment of the basic infrastructure and example dA
 Before running it, you need to configure the deployer wallet in the environment variables used in `hardhat.config.ts` adn fund the account.
 
 ```shell
-yarn hardhat run scripts/deployInfrastructure.ts --network cassiopeia
+yarn hardhat ignition deploy ignition/modules/CompleteTestSetup.m.ts --network cassiopeia
+yarn hardhat ignition deploy ignition/modules/TwitterProofs.m.ts --network cassiopeia
 ```
 
-You can find the addresses of the deployed contracts in the console output.
-If you also want to deploy example contracts, you can enter them in the following script before running it.
-
-```shell
-yarn hardhat run scripts/deployExampleDApp.ts --network cassiopeia
-```
+You can find the deployed addresses in the output and in `ignition/deployments/chain-id/deployed_addresses.json`.
 
 ## Create and issue zkCertificates
 
@@ -142,5 +138,5 @@ To make the prover available to the snap, you still need to run
 
 ```shell
 cd ../snap
-yarn proofPrep <CIRCUIT_NAME>
+yarn proofPrep  --circuitName <CIRCUIT_NAME>
 ```

@@ -1,0 +1,18 @@
+diff --git a/package.json b/package.json
+index ee53a0c7ce8aeb6f709cb30568b0882d2161fb44..87b56464ff0da8f238b7307e898c4d4dd5ea99d3 100644
+--- a/package.json
++++ b/package.json
+@@ -39,13 +39,6 @@
+     "test": "test"
+   },
+   "type": "module",
+-  "exports": {
+-    ".": "./dist/index.js",
+-    "./mailbox": "./dist/contracts/Mailbox.js",
+-    "./buildArtifact.js": "./dist/buildArtifact.js",
+-    "./buildArtifact.json": "./dist/buildArtifact.json",
+-    "./contracts": "./contracts"
+-  },
+   "types": "./dist/index.d.ts",
+   "files": [
+     "/dist",
