@@ -7,15 +7,13 @@ export type {
   ZkCertRegistered,
   EncryptedZkCert,
 } from '@galactica-net/galactica-types';
-export type { ZkCertStandard } from '@galactica-net/galactica-types';
-export { KnownZkCertStandard } from '@galactica-net/galactica-types';
-
-// Re-export types from zk-certificates to avoid circular dependency
 export type {
+  ZkCertStandard,
   ProverData,
   ProverLink,
   ZkProof,
-} from '@galactica-net/zk-certificates';
+} from '@galactica-net/galactica-types';
+export { KnownZkCertStandard } from '@galactica-net/galactica-types';
 
 /**
  * Parameters for zkCert selection.
