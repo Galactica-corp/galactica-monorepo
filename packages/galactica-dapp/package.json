@@ -1,10 +1,11 @@
 {
-  "name": "galactica-dapp",
+  "name": "@galactica-net/galactica-dapp",
   "version": "0.4.0",
   "private": true,
   "license": "(MIT-0 OR Apache-2.0)",
   "scripts": {
-    "build": "cross-env GATSBY_TELEMETRY_DISABLED=1 gatsby build",
+    "build": "yarn workspaces foreach --from @galactica-net/galactica-dapp --parallel --topological-dev --recursive --verbose run build:local",
+    "build:local": "cross-env GATSBY_TELEMETRY_DISABLED=1 gatsby build",
     "clean": "rimraf build",
     "lint": "yarn lint:eslint && yarn lint:misc --check",
     "lint:eslint": "eslint . --cache --ext js,ts",
@@ -36,6 +37,7 @@
     "styled-components": "5.3.11"
   },
   "devDependencies": {
+    "@galactica-net/zk-certificates": "workspace:^",
     "@svgr/webpack": "^6.4.0",
     "@testing-library/dom": "^8.17.1",
     "@testing-library/jest-dom": "^5.16.4",

@@ -24,12 +24,13 @@
     "/typechain-types"
   ],
   "scripts": {
-    "build": "hardhat smartCircuitBuild --verbose && hardhat compile && hardhat run scripts/prepare-poseidon.ts && tsup --dts",
-    "compile": "hardhat smartCircuitBuild --verbose",
-    "recompile": "hardhat clean; rm -r circuits/build/*; hardhat smartCircuitBuild --verbose",
+    "build": "yarn workspaces foreach --from @galactica-net/zk-certificates --parallel --topological-dev --recursive --verbose run build:local",
+    "build:local": "hardhat smartCircuitBuild --verbose && hardhat compile && hardhat run scripts/prepare-poseidon.ts && tsup --dts",
+    "rebuild": "hardhat clean; rm -r circuits/build/*; yarn build",
     "start": "tsup --watch",
-    "test": "hardhat smartCircuitBuild --verbose && hardhat test",
-    "test:parallel": "hardhat smartCircuitBuild --verbose && hardhat test --parallel"
+    "test": "yarn build && hardhat test",
+    "test:local": "yarn build:local && hardhat test",
+    "test:parallel": "yarn build && hardhat test --parallel"
   },
   "dependencies": {
     "@galactica-net/galactica-types": "workspace:^",
