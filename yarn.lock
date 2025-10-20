@@ -4752,11 +4752,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@galactica-net/galactica-dapp@workspace:packages/galactica-dapp":
+"@galactica-net/galactica-dapp@workspace:^, @galactica-net/galactica-dapp@workspace:packages/galactica-dapp":
   version: 0.0.0-use.local
   resolution: "@galactica-net/galactica-dapp@workspace:packages/galactica-dapp"
   dependencies:
     "@galactica-net/snap-api": "workspace:^"
+    "@galactica-net/zk-certificates": "workspace:^"
     "@metamask/providers": ^16.1.0
     "@svgr/webpack": ^6.4.0
     "@testing-library/dom": ^8.17.1
@@ -4820,6 +4821,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@galactica-net/galactica-passport-poc@workspace:packages/galactica-passport-poc"
   dependencies:
+    "@galactica-net/galactica-dapp": "workspace:^"
     "@galactica-net/snap-api": "workspace:^"
     "@metamask/providers": ^16.1.0
     "@svgr/webpack": ^6.4.0
