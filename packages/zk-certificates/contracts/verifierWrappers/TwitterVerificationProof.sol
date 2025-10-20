@@ -3,14 +3,14 @@ pragma solidity 0.8.28;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '../interfaces/ITwitterZkCertificateVerifier.sol';
-import '../interfaces/IZkCertificateRegistry.sol';
+import '../interfaces/IReadableZkCertRegistry.sol';
 import {Fallback} from '../helpers/Fallback.sol';
 
 /// @author Galactica dev team
 /// @title a wrapper for verifier of twitter being verified
 contract TwitterVerificationProof is Ownable, Fallback {
     ITwitterZkCertificateVerifier public verifier;
-    IZkCertificateRegistry public registry;
+    IReadableZkCertRegistry public registry;
     uint256 public constant timeDifferenceTolerance = 30 * 60; // the maximal difference between the onchain time and public input current time
 
     // indices of the ZKP public input array
@@ -28,7 +28,7 @@ contract TwitterVerificationProof is Ownable, Fallback {
         address _registry
     ) Ownable(_owner) {
         verifier = ITwitterZkCertificateVerifier(_verifier);
-        registry = IZkCertificateRegistry(_registry);
+        registry = IReadableZkCertRegistry(_registry);
 
         // public outputs of the circuit
         INDEX_IS_VALID = 0;
@@ -48,7 +48,7 @@ contract TwitterVerificationProof is Ownable, Fallback {
         verifier = newVerifier;
     }
 
-    function setRegistry(IZkCertificateRegistry newRegistry) public onlyOwner {
+    function setRegistry(IReadableZkCertRegistry newRegistry) public onlyOwner {
         registry = newRegistry;
     }
 

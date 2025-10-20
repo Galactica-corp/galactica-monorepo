@@ -3,7 +3,7 @@ pragma solidity 0.8.28;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '../interfaces/IZkKYCVerifier.sol';
-import '../interfaces/IZkCertificateRegistry.sol';
+import '../interfaces/IReadableZkCertRegistry.sol';
 import '../interfaces/IGalacticaInstitution.sol';
 import '../interfaces/IGuardianRegistry.sol';
 import {Fallback} from '../helpers/Fallback.sol';
@@ -12,7 +12,7 @@ import {Fallback} from '../helpers/Fallback.sol';
 /// @title a wrapper for verifier of ZkKYC record existence
 contract ZkKYC is Ownable, Fallback {
     IZkKYCVerifier public verifier;
-    IZkCertificateRegistry public KYCRegistry;
+    IReadableZkCertRegistry public KYCRegistry;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;
     uint256 public constant timeDifferenceTolerance = 30 * 60; // the maximal difference between the onchain time and public input current time
 
@@ -39,7 +39,7 @@ contract ZkKYC is Ownable, Fallback {
         address[] memory _fraudInvestigationInstitutions
     ) Ownable(_owner) {
         verifier = IZkKYCVerifier(_verifier);
-        KYCRegistry = IZkCertificateRegistry(_KYCRegistry);
+        KYCRegistry = IReadableZkCertRegistry(_KYCRegistry);
         for (uint i = 0; i < _fraudInvestigationInstitutions.length; i++) {
             fraudInvestigationInstitutions.push(
                 IGalacticaInstitution(_fraudInvestigationInstitutions[i])
@@ -75,7 +75,7 @@ contract ZkKYC is Ownable, Fallback {
     }
 
     function setKYCRegistry(
-        IZkCertificateRegistry newKYCRegistry
+        IReadableZkCertRegistry newKYCRegistry
     ) public onlyOwner {
         KYCRegistry = newKYCRegistry;
     }
@@ -143,7 +143,7 @@ contract ZkKYC is Ownable, Fallback {
         );
 
         // check that the pubkey belongs to a whitelisted provider
-        IGuardianRegistry guardianRegistry = KYCRegistry._GuardianRegistry();
+        IGuardianRegistry guardianRegistry = KYCRegistry.guardianRegistry();
         address guardianAddress = guardianRegistry.pubKeyToAddress(
             input[INDEX_PROVIDER_PUBKEY_AX],
             input[INDEX_PROVIDER_PUBKEY_AY]

@@ -3,7 +3,14 @@
   "files": ["types/index.d.ts"],
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@metamask/snaps-sdk"
+    "lib": ["ES2020", "DOM"],
+    "jsxImportSource": "@metamask/snaps-sdk",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "strict": true,
+    "typeRoots": ["node_modules/@types", "packages/snap/types"]
   },
   "include": ["src", "types", "test", "../snap-api/src/api/zkCertTypes.ts"]
 }

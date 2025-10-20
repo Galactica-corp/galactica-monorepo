@@ -87,9 +87,10 @@ describe('ZkKYCRegistry', () => {
     const merkleTree = new SparseMerkleTree(treeDepth, eddsa.poseidon);
 
     expect(await ZkKYCRegistry.merkleRootValidIndex()).to.be.equal(1);
-    const merkleRoots = await ZkKYCRegistry.getMerkleRoots();
+    const merkleRoots = await ZkKYCRegistry.getMerkleRoots(0);
     // normal "expect" doesn't compare arrays so we need to compare length and iterate over elements
     expectEqualArrays(merkleRoots, [
+      0n,
       fromHexToBytes32(fromDecToHex(merkleTree.root)),
     ]);
   });
@@ -145,12 +146,12 @@ describe('ZkKYCRegistry', () => {
     }
 
     // check the merkle root array is correctly set
-    const merkleRootsFromContract = await ZkKYCRegistry.getMerkleRoots();
+    const merkleRootsFromContract = await ZkKYCRegistry.getMerkleRoots(1);
     expectEqualArrays(merkleRootsFromContract, merkleRoots);
     expect(await ZkKYCRegistry.merkleRootValidIndex()).to.be.equal(1);
     for (let i = 0; i < merkleRoots.length; i++) {
       expect(await ZkKYCRegistry.merkleRootIndex(merkleRoots[i])).to.be.equal(
-        i,
+        i + 1,
       );
     }
   });
@@ -220,7 +221,7 @@ describe('ZkKYCRegistry', () => {
       fromHexToBytes32(fromDecToHex(merkleTree.root)),
     );
 
-    expect(await ZkKYCRegistry.merkleRootValidIndex()).to.be.equal(loops + 1);
+    expect(await ZkKYCRegistry.merkleRootValidIndex()).to.be.equal(loops + 2);
   });
 
   it('only Guardian can register to the queue and add leaf', async function () {

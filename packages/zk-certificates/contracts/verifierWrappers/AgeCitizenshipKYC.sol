@@ -4,7 +4,7 @@ pragma solidity 0.8.28;
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IAgeCitizenshipKYCVerifier} from '../interfaces/IAgeCitizenshipKYCVerifier.sol';
 import {IVerifierWrapper} from '../interfaces/IVerifierWrapper.sol';
-import {IZkCertificateRegistry} from '../interfaces/IZkCertificateRegistry.sol';
+import {IReadableZkCertRegistry} from '../interfaces/IReadableZkCertRegistry.sol';
 import {BokkyPooBahsDateTimeLibrary} from '../libraries/BokkyPooBahsDateTimeLibrary.sol';
 import {IGalacticaInstitution} from '../interfaces/IGalacticaInstitution.sol';
 import {ICircomVerifier} from '../interfaces/ICircomVerifier.sol';
@@ -18,7 +18,7 @@ import {Fallback} from '../helpers/Fallback.sol';
  */
 contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier, Fallback {
     ICircomVerifier public verifier;
-    IZkCertificateRegistry public KYCRegistry;
+    IReadableZkCertRegistry public KYCRegistry;
     // list of sanctioned countries. Each entry is a poseidon hash of the Alpha-3 country code as field element so we can compare it with the public input of the circom proof.
     uint[] public sanctionedCountries;
     IGalacticaInstitution[] public fraudInvestigationInstitutions;
@@ -56,7 +56,7 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier, Fallback {
         uint _ageThreshold
     ) Ownable(_owner) {
         verifier = ICircomVerifier(_verifier);
-        KYCRegistry = IZkCertificateRegistry(_KYCRegistry);
+        KYCRegistry = IReadableZkCertRegistry(_KYCRegistry);
         for (uint i = 0; i < _sanctionedCountries.length; i++) {
             sanctionedCountries.push(_sanctionedCountries[i]);
         }
@@ -114,7 +114,7 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier, Fallback {
     }
 
     function setKYCRegistry(
-        IZkCertificateRegistry newKYCRegistry
+        IReadableZkCertRegistry newKYCRegistry
     ) public onlyOwner {
         KYCRegistry = newKYCRegistry;
     }
@@ -218,7 +218,7 @@ contract AgeCitizenshipKYC is Ownable, IAgeCitizenshipKYCVerifier, Fallback {
         );
 
         // check that the pubkey belongs to a whitelisted provider
-        IGuardianRegistry guardianRegistry = KYCRegistry._GuardianRegistry();
+        IGuardianRegistry guardianRegistry = KYCRegistry.guardianRegistry();
         address guardianAddress = guardianRegistry.pubKeyToAddress(
             input[INDEX_PROVIDER_PUBKEY_AX],
             input[INDEX_PROVIDER_PUBKEY_AY]
