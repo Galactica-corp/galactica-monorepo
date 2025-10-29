@@ -4,6 +4,7 @@ import '@nomicfoundation/hardhat-toolbox';
 import './tasks/stakingUpdate';
 import './tasks/changeUnstakingFee';
 import './tasks/registerUnstakingFeeChange';
+import './tasks/takeStakingSnapshot';
 
 const config: HardhatUserConfig = {
   solidity: {
