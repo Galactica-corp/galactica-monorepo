@@ -15,6 +15,7 @@ import './tasks/circomTemplate';
 import './tasks/hashStringToField';
 import './tasks/reliefZkCertQueue';
 import './tasks/integrateCeremonyResults';
+import './tasks/countEvents';
 
 const config: HardhatUserConfig = {
   mocha: {
@@ -64,6 +65,12 @@ const config: HardhatUserConfig = {
       url: process.env.MainnetInfuraAPI ?? 'default',
       accounts: getAccounts(),
       /* gasPrice: 30000000000 */
+    },
+    galacticaMainnet: {
+      url: `https://galactica-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.GnetMainnetDeployerPrivateKey
+        ? [process.env.GnetMainnetDeployerPrivateKey]
+        : [],
     },
   },
   etherscan: {
