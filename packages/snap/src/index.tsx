@@ -270,39 +270,6 @@ export const processRpcRequest: SnapRpcProcessor = async (
         });
       }
 
-      // check if the imported zkCert is a renewal of an existing one
-      const oldVersion = state.zkCerts
-        .map((cert) => cert.zkCert)
-        .find(
-          (candidate) =>
-            candidate.holderCommitment === zkCert.holderCommitment &&
-            candidate.merkleProof.leafIndex === zkCert.merkleProof.leafIndex &&
-            candidate.registration.address === zkCert.registration.address &&
-            candidate.zkCertStandard === zkCert.zkCertStandard,
-        );
-      if (oldVersion) {
-        const confirmRenewal = await snap.request({
-          method: 'snap_dialog',
-          params: {
-            type: 'confirmation',
-            content: (
-              <Box>
-                <Text>
-                  This zkCert looks like a renewed version of an existing one(
-                  {oldVersion.did}).
-                </Text>
-                <Text>Do you want to replace the existing one ? </Text>
-              </Box>
-            ),
-          },
-        });
-        if (confirmRenewal) {
-          state.zkCerts = state.zkCerts.filter(
-            (candidate) => candidate.zkCert.leafHash !== oldVersion.leafHash,
-          );
-        }
-      }
-
       const newCert: ZkCertRegistered<
         Record<string, string | number | boolean | null>
       > = {

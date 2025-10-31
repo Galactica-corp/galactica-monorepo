@@ -28,10 +28,6 @@ describe('Encryption', () => {
     );
 
     const content = {
-      holderCommitment,
-      zkCertStandard: KnownZkCertStandard.Rey,
-      randomSalt: '0',
-      expirationDate: 1,
       content: {
         xUsername: '0000',
         xID: '0',
@@ -41,6 +37,11 @@ describe('Encryption', () => {
         reyScoreAll: 0,
         reyScoreGalactica: 0,
       },
+      contentHash: '0',
+      did: '0',
+      expirationDate: 1,
+      holderCommitment,
+      leafHash: '0',
       providerData: {
         ax: '0',
         ay: '0',
@@ -48,20 +49,14 @@ describe('Encryption', () => {
         r8x: '0',
         r8y: '0',
       },
-      contentHash: '0',
-      leafHash: '0',
-      did: '0',
+      randomSalt: '0',
       registration: {
         address: '0',
         chainID: 1,
         revocable: true,
-        leafIndex: 1,
+        queuePosition: 1,
       },
-      merkleProof: {
-        leaf: '0',
-        pathElements: ['0'],
-        leafIndex: 1,
-      },
+      zkCertStandard: KnownZkCertStandard.Rey,
     } satisfies ZkCertRegistered;
 
     const encryptionPrivateKey = new Uint8Array(32);

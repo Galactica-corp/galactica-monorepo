@@ -35,13 +35,17 @@
     "ejs": "patch:ejs@npm:3.1.9#.yarn/patches/ejs-npm-3.1.9-e201b2088c.patch",
     "fastfile@0.0.20": "patch:fastfile@npm:0.0.20#.yarn/patches/fastfile-npm-0.0.20-4263a2b353.patch",
     "ffjavascript": "0.3.0",
-    "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch"
+    "web-worker": "patch:web-worker@npm:1.2.0#.yarn/patches/web-worker-npm-1.2.0-ef71df710e.patch",
+    "@nomicfoundation/ignition-core@^0.15.13": "patch:@nomicfoundation/ignition-core@npm:^0.15.13#.yarn/patches/@nomicfoundation-ignition-core-npm-0.15.13-420c20cc1d.patch"
   },
   "devDependencies": {
     "@metamask/eslint-config": "^14.0.0",
     "@metamask/eslint-config-browser": "^14.0.0",
     "@metamask/eslint-config-nodejs": "^14.0.0",
     "@metamask/eslint-config-typescript": "^14.0.0",
+    "ajv": "^8.17.1",
+    "ajv-cli": "^5.0.0",
+    "ajv-formats": "^3.0.1",
     "eslint": "^9.11.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.6.3",

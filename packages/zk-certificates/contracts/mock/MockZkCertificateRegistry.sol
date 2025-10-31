@@ -3,6 +3,7 @@ pragma solidity 0.8.28;
 
 import {IZkCertificateRegistry} from '../interfaces/IZkCertificateRegistry.sol';
 import {IGuardianRegistry} from '../interfaces/IGuardianRegistry.sol';
+import {RegistryOperation, CertificateData, CertificateState} from '../interfaces/IWritableZKCertRegistry.sol';
 
 /// @author Galactica dev team
 contract MockZkCertificateRegistry is IZkCertificateRegistry {
@@ -91,46 +92,26 @@ contract MockZkCertificateRegistry is IZkCertificateRegistry {
     }
 
     // Additional functions required by IWritableZKCertRegistry
-    function addZkCertificate(
-        uint256 /*leafIndex*/,
-        bytes32 /*zkCertificateHash*/,
-        bytes32[] memory /*merkleProof*/
+    function processNextOperation(
+        uint256 leafIndex,
+        bytes32 zkCertificateHash,
+        bytes32[] memory merkleProof
     ) external {
         // Mock implementation - do nothing
     }
 
-    function revokeZkCertificate(
-        uint256 /*leafIndex*/,
-        bytes32 /*zkCertificateHash*/,
-        bytes32[] memory /*merkleProof*/
-    ) external {
+    function addOperationToQueue(bytes32, RegistryOperation) external {
         // Mock implementation - do nothing
     }
 
-    function registerToQueue(bytes32 /*zkCertificateHash*/) external {
-        // Mock implementation - do nothing
-    }
-
-    function changeQueueExpirationTime(uint256 newTime) external {
-        queueExpirationTime = newTime;
-    }
-
-    function checkZkCertificateHashInQueue(
-        bytes32 /*zkCertificateHash*/
-    ) external pure returns (bool) {
-        return false; // Mock implementation
-    }
-
-    function getTimeParameters(
-        bytes32 /*zkCertificateHash*/
-    ) external pure returns (uint, uint) {
-        return (0, 0); // Mock implementation
-    }
-
-    /**
-     * @notice Deprecated function to share interface with old contract version.
-     */
-    function _GuardianRegistry() public view returns (IGuardianRegistry) {
-        return guardianRegistry;
+    function zkCertificateProcessingData(
+        bytes32
+    ) external pure returns (CertificateData memory) {
+        return
+            CertificateData({
+                guardian: address(0),
+                queueIndex: 0,
+                state: CertificateState.NonExistent
+            });
     }
 }

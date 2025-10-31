@@ -4797,6 +4797,9 @@ __metadata:
     "@metamask/eslint-config-browser": ^14.0.0
     "@metamask/eslint-config-nodejs": ^14.0.0
     "@metamask/eslint-config-typescript": ^14.0.0
+    ajv: ^8.17.1
+    ajv-cli: ^5.0.0
+    ajv-formats: ^3.0.1
     eslint: ^9.11.0
     eslint-config-prettier: ^9.1.0
     eslint-import-resolver-typescript: ^3.6.3
@@ -7484,6 +7487,23 @@ __metadata:
     lodash-es: 4.17.21
     ndjson: 2.0.0
   checksum: f85b5e41c9117fa8eb3515fc470b34482927526bec2227843a36ae4b194d5723c94fd9b102af92e324111029f889f5624c32af4f240ce054884294c26e73daf7
+  languageName: node
+  linkType: hard
+
+"@nomicfoundation/ignition-core@patch:@nomicfoundation/ignition-core@npm:^0.15.13#.yarn/patches/@nomicfoundation-ignition-core-npm-0.15.13-420c20cc1d.patch::locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A.":
+  version: 0.15.13
+  resolution: "@nomicfoundation/ignition-core@patch:@nomicfoundation/ignition-core@npm%3A0.15.13#.yarn/patches/@nomicfoundation-ignition-core-npm-0.15.13-420c20cc1d.patch::version=0.15.13&hash=5e00bf&locator=%40galactica-net%2Fgalactica-monorepo%40workspace%3A."
+  dependencies:
+    "@ethersproject/address": 5.6.1
+    "@nomicfoundation/solidity-analyzer": ^0.1.1
+    cbor: ^9.0.0
+    debug: ^4.3.2
+    ethers: ^6.14.0
+    fs-extra: ^10.0.0
+    immer: 10.0.2
+    lodash: 4.17.21
+    ndjson: 2.0.0
+  checksum: 37423a4930d81cf07125785e4a47333b8c38e015ab42660b29423edc557ab79bdff94c0703a8ede9995cf6f51795aa30645dfcf80bd4f20a03917832e6bc7a72
   languageName: node
   linkType: hard
 

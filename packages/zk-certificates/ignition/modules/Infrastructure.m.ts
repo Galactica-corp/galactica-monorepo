@@ -14,7 +14,6 @@ const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
   );
 
   const merkleDepth = module.getParameter('merkleDepth', 32);
-  const queueExpirationTime = module.getParameter('queueExpirationTime', 60); // 1 min default
   const description = module.getParameter(
     'description',
     'ZkKYC RecordRegistry',
@@ -30,11 +29,6 @@ const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
       },
     },
   );
-
-  // Change queue expiration time
-  module.call(zkKYCRegistry, 'changeQueueExpirationTime', [
-    queueExpirationTime,
-  ]);
 
   // Deploy institutional contracts
   const institution1 = module.contract('MockGalacticaInstitution', [], {

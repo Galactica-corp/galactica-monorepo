@@ -14,6 +14,7 @@ import {GuardianInfo} from './GuardianRegistry.sol';
 import {IGuardianRegistry} from './interfaces/IGuardianRegistry.sol';
 import {IZkCertificateRegistry} from './interfaces/IZkCertificateRegistry.sol';
 import {IReadableZkCertRegistry} from './interfaces/IReadableZkCertRegistry.sol';
+import {IWritableZKCertRegistry, CertificateData, RegistryOperation, CertificateState} from './interfaces/IWritableZKCertRegistry.sol';
 
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Fallback} from './helpers/Fallback.sol';
@@ -52,10 +53,11 @@ contract ZkCertificateRegistry is
     // array of all merkle roots
     bytes32[] public merkleRoots;
     // and from which index the merkle roots are still valid
+    // all previous ones are invalid because they contain revoked certificates
     // we start from 1 because nonexistant merkle roots return 0 in the merkleRootIndex mapping
     uint256 public override(IReadableZkCertRegistry) merkleRootValidIndex = 1;
     // we will also store the merkle root index in a mapping for quicker lookup
-    mapping(bytes32 => uint)
+    mapping(bytes32 => uint256)
         public
         override(IReadableZkCertRegistry) merkleRootIndex;
 
@@ -63,14 +65,10 @@ contract ZkCertificateRegistry is
     // You can use it to speed up finding all logs of the contract by starting from this block
     uint256 public initBlockHeight;
 
-    // a mapping to store which Guardian manages which ZkCertificate
-    mapping(bytes32 => address) public ZkCertificateToGuardian;
-    uint256 public queueExpirationTime = 2 * 60; // Guardian has at 2 minutes to add ZkCertificate after registration to the queue (by default)
     bytes32[] public ZkCertificateQueue;
     uint256 public currentQueuePointer;
-    mapping(bytes32 => uint) public ZkCertificateHashToIndexInQueue;
-    mapping(bytes32 => uint) public ZkCertificateHashToQueueTime;
-    mapping(bytes32 => address) public ZkCertificateHashToCommitedGuardian;
+
+    mapping(bytes32 => CertificateData) public zkCertificateHashToData;
 
     IGuardianRegistry public override(IReadableZkCertRegistry) guardianRegistry;
 
@@ -175,150 +173,147 @@ contract ZkCertificateRegistry is
         guardianRegistry = IGuardianRegistry(GuardianRegistry_);
 
         // Set the block height at which the contract was initialized
+        // This helps indexers to query all logs of the contract by starting from this block
         initBlockHeight = getBlockNumber();
     }
 
     /**
-     * @notice Change the time until which the Guardian needs to add/revoke the zkCertificate after registration to the queue
-     * @param newTime - New time
+     * @notice Process the next operation from the queue to add or revoke a zkCertificate.
+     * @dev This function may be called by anyone to process certificates added to the queue by guardians.
+     * @param leafIndex - Leaf position of the zkCertificate in the Merkle tree.
+     * @param zkCertificateHash - Hash of the zkCertificate record leaf.
+     * @param merkleProof - Merkle proof of the zkCertificate record leaf being free.
      */
-    function changeQueueExpirationTime(uint256 newTime) public onlyOwner {
-        queueExpirationTime = newTime;
-    }
-
-    /**
-     * @notice addZkCertificate issues a zkCertificate record by adding it to the Merkle tree
-     * @param leafIndex - leaf position of the zkCertificate in the Merkle tree
-     * @param zkCertificateHash - hash of the zkCertificate record leaf
-     * @param merkleProof - Merkle proof of the zkCertificate record leaf being free
-     */
-    function addZkCertificate(
+    function processNextOperation(
         uint256 leafIndex,
         bytes32 zkCertificateHash,
         bytes32[] memory merkleProof
-    ) public virtual {
-        // since we are adding a new zkCertificate record, we assume that the leaf is of zero value
-        bytes32 currentLeafHash = ZERO_VALUE;
+    ) external {
         require(
-            guardianRegistry.isWhitelisted(msg.sender),
-            'ZkCertificateRegistry: not a Guardian'
+            isZkCertificateInTurn(zkCertificateHash),
+            'ZkCertificateRegistry: zkCertificate is not in turn to be processed'
         );
 
-        require(
-            ZkCertificateToGuardian[zkCertificateHash] == address(0),
-            'ZkCertificateRegistry: zkCertificate already exists'
-        );
+        if (
+            zkCertificateHashToData[zkCertificateHash].state ==
+            CertificateState.IssuanceQueued
+        ) {
+            // since we are adding a new zkCertificate record, we assume that the leaf is of zero value
+            bytes32 currentLeafHash = ZERO_VALUE;
+            _changeLeafHash(
+                leafIndex,
+                currentLeafHash,
+                zkCertificateHash,
+                merkleProof
+            );
 
-        require(
-            checkZkCertificateHashInQueue(zkCertificateHash),
-            'ZkCertificateRegistry: zkCertificate is not in turn'
-        );
+            zkCertificateHashToData[zkCertificateHash].state = CertificateState
+                .Issued;
 
-        _changeLeafHash(
-            leafIndex,
-            currentLeafHash,
-            zkCertificateHash,
-            merkleProof
-        );
-        ZkCertificateToGuardian[
-            zkCertificateHash
-        ] = ZkCertificateHashToCommitedGuardian[zkCertificateHash];
-        currentQueuePointer =
-            ZkCertificateHashToIndexInQueue[zkCertificateHash] +
-            1;
-        emit zkCertificateAddition(
-            zkCertificateHash,
-            ZkCertificateToGuardian[zkCertificateHash],
-            leafIndex
-        );
-    }
+            emit CertificateProcessed(
+                zkCertificateHash,
+                zkCertificateHashToData[zkCertificateHash].guardian,
+                RegistryOperation.Add,
+                zkCertificateHashToData[zkCertificateHash].queueIndex,
+                leafIndex
+            );
+        } else if (
+            zkCertificateHashToData[zkCertificateHash].state ==
+            CertificateState.RevocationQueued
+        ) {
+            // since we are deleting the content of a leaf, the new value is the zero value
+            bytes32 newLeafHash = ZERO_VALUE;
+            _changeLeafHash(
+                leafIndex,
+                zkCertificateHash,
+                newLeafHash,
+                merkleProof
+            );
 
-    /**
-     * @notice revokeZkCertificate removes a previously issued zkCertificate from the registry by setting the content of the merkle leaf to zero.
-     * @param leafIndex - leaf position of the zkCertificate in the Merkle tree
-     * @param zkCertificateHash - hash of the zkCertificate record leaf
-     * @param merkleProof - Merkle proof of the zkCertificate record being in the tree
-     */
-    function revokeZkCertificate(
-        uint256 leafIndex,
-        bytes32 zkCertificateHash,
-        bytes32[] memory merkleProof
-    ) public virtual {
-        // since we are deleting the content of a leaf, the new value is the zero value
-        bytes32 newLeafHash = ZERO_VALUE;
-        require(
-            ZkCertificateToGuardian[zkCertificateHash] == msg.sender,
-            'ZkCertificateRegistry: not the corresponding Guardian'
-        );
-        require(
-            checkZkCertificateHashInQueue(zkCertificateHash),
-            'ZkCertificateRegistry: zkCertificate is not in turn'
-        );
-        _changeLeafHash(leafIndex, zkCertificateHash, newLeafHash, merkleProof);
-        // update the valid index
-        merkleRootValidIndex = merkleRoots.length - 1;
-        currentQueuePointer =
-            ZkCertificateHashToIndexInQueue[zkCertificateHash] +
-            1;
-        emit zkCertificateRevocation(
-            zkCertificateHash,
-            ZkCertificateToGuardian[zkCertificateHash],
-            leafIndex
-        );
-        ZkCertificateToGuardian[zkCertificateHash] = address(0);
-    }
+            // Update the valid index. Previous ones are invalid because they contain the revoked certificate.
+            merkleRootValidIndex = merkleRoots.length - 1;
 
-    /** @notice Register a zkCertificate to the queue
-     * @param zkCertificateHash - hash of the zkCertificate record leaf
-     */
-    function registerToQueue(bytes32 zkCertificateHash) public {
-        require(
-            guardianRegistry.isWhitelisted(msg.sender),
-            'ZkCertificateRegistry: not a Guardian'
-        );
-        // we need to determine the time until which the Guardian needs to add/revoke the zkCertificate after registration to the queue
-        uint256 expirationTime;
-        // if the pointer is one slot after the end of the queue
-        // this means there is no other ZkCertificate pending, so the Guardian has queueExpirationTime from current time
-        // the strict inequality should never happen
-        if (currentQueuePointer >= ZkCertificateQueue.length) {
-            expirationTime = block.timestamp + queueExpirationTime;
-            // in the other case there is some other ZkCertificate pending
-            // the Guardian has queueExpirationTime after the time of the last registered ZkCertificate
+            zkCertificateHashToData[zkCertificateHash].state = CertificateState
+                .Revoked;
+
+            emit CertificateProcessed(
+                zkCertificateHash,
+                zkCertificateHashToData[zkCertificateHash].guardian,
+                RegistryOperation.Revoke,
+                zkCertificateHashToData[zkCertificateHash].queueIndex,
+                leafIndex
+            );
         } else {
-            expirationTime =
-                ZkCertificateHashToQueueTime[
-                    ZkCertificateQueue[ZkCertificateQueue.length - 1]
-                ] +
-                queueExpirationTime;
+            revert(
+                'ZkCertificateRegistry: processing invalid operation. This should not happen.'
+            );
         }
-        // we register the time and push the zkCertificateHash to the queue
-        ZkCertificateHashToQueueTime[zkCertificateHash] = expirationTime;
-        ZkCertificateHashToIndexInQueue[zkCertificateHash] = ZkCertificateQueue
-            .length;
-        ZkCertificateHashToCommitedGuardian[zkCertificateHash] = msg.sender;
-        ZkCertificateQueue.push(zkCertificateHash);
+
+        currentQueuePointer += 1;
     }
 
-    function checkZkCertificateHashInQueue(
+    /** @notice Register an operation about a zkCertificate to the queue.
+     * @param zkCertificateHash - Hash of the zkCertificate record leaf.
+     * @param operation - Operation to add to the queue.
+     */
+    function addOperationToQueue(
+        bytes32 zkCertificateHash,
+        RegistryOperation operation
+    ) public virtual {
+        require(
+            guardianRegistry.isWhitelisted(msg.sender),
+            'ZkCertificateRegistry: not a Guardian'
+        );
+
+        if (operation == RegistryOperation.Add) {
+            require(
+                zkCertificateHashToData[zkCertificateHash].state ==
+                    CertificateState.NonExistent,
+                'ZkCertificateRegistry: zkCertificate already exists'
+            );
+            zkCertificateHashToData[zkCertificateHash].state = CertificateState
+                .IssuanceQueued;
+        } else if (operation == RegistryOperation.Revoke) {
+            require(
+                zkCertificateHashToData[zkCertificateHash].state ==
+                    CertificateState.Issued,
+                'ZkCertificateRegistry: zkCertificate is not issued and can therefore not be revoked'
+            );
+            require(
+                zkCertificateHashToData[zkCertificateHash].guardian ==
+                    msg.sender,
+                'ZkCertificateRegistry: not the corresponding Guardian'
+            );
+            zkCertificateHashToData[zkCertificateHash].state = CertificateState
+                .RevocationQueued;
+        } else {
+            revert('ZkCertificateRegistry: invalid operation');
+        }
+
+        zkCertificateHashToData[zkCertificateHash]
+            .queueIndex = ZkCertificateQueue.length;
+        zkCertificateHashToData[zkCertificateHash].guardian = msg.sender;
+
+        ZkCertificateQueue.push(zkCertificateHash);
+
+        emit OperationQueued(
+            zkCertificateHash,
+            msg.sender,
+            operation,
+            zkCertificateHashToData[zkCertificateHash].queueIndex
+        );
+    }
+
+    /**
+     * @notice Check if a zkCertificate is in turn to be processed.
+     * @param zkCertificateHash - Hash of the zkCertificate record leaf.
+     * @return True if the zkCertificate is in turn, false otherwise.
+     */
+    function isZkCertificateInTurn(
         bytes32 zkCertificateHash
     ) public view returns (bool) {
-        uint256 index = ZkCertificateHashToIndexInQueue[zkCertificateHash];
-        // if the queue pointer points to the zkCertificateHash then the operation can proceed
-        require(
-            index >= currentQueuePointer,
-            'ZkCertificateRegistry: pointer has already passed this zkCertificateHash'
-        );
-        if (index == currentQueuePointer) {
-            return true;
-            // if the expiration time of the previous zkCertificateHash has passed
-            // the operation can proceed
-        } else {
-            bytes32 previousZkCertificateHash = ZkCertificateQueue[index - 1];
-            return
-                ZkCertificateHashToQueueTime[previousZkCertificateHash] <
-                block.timestamp;
-        }
+        return (zkCertificateHashToData[zkCertificateHash].queueIndex ==
+            currentQueuePointer);
     }
 
     /** @notice Function change the leaf content at a certain index
@@ -394,27 +389,33 @@ contract ZkCertificateRegistry is
         return _merkleRootIndex >= merkleRootValidIndex;
     }
 
-    // function to return the time parameters of the period where one is allowed to add ZkCertificate
-    function getTimeParameters(
+    /**
+     * @notice Get the length of the queue.
+     * @return The length of the queue.
+     */
+    function getZkCertificateQueueLength() public view returns (uint256) {
+        return ZkCertificateQueue.length;
+    }
+
+    /**
+     * @notice Get the position of a zkCertificate in the queue.
+     * @param zkCertificateHash - Hash of the zkCertificate record leaf.
+     * @return The position of the zkCertificate in the queue.
+     */
+    function getQueuePosition(
         bytes32 zkCertificateHash
-    ) public view returns (uint, uint) {
-        uint expirationTime = ZkCertificateHashToQueueTime[zkCertificateHash];
-        require(
-            expirationTime != 0,
-            'ZkCertificateRegistry: zkCertificate is not in the queue'
-        );
-        uint indexInQueue = ZkCertificateHashToIndexInQueue[zkCertificateHash];
-        require(
-            indexInQueue >= currentQueuePointer,
-            'ZkCertificateRegistry: pointer has already passed this zkCertificateHash'
-        );
-        if (currentQueuePointer == indexInQueue || indexInQueue == 0) {
-            return (block.timestamp, expirationTime);
-        } else {
-            uint startTime = ZkCertificateHashToQueueTime[
-                ZkCertificateQueue[indexInQueue - 1]
-            ];
-            return (startTime, expirationTime);
-        }
+    ) public view returns (uint256) {
+        return zkCertificateHashToData[zkCertificateHash].queueIndex;
+    }
+
+    /**
+     * @notice Get the data of a zkCertificate needed to process it.
+     * @param zkCertificateHash - Hash of the zkCertificate record leaf.
+     * @return The data of the zkCertificate needed to process it.
+     */
+    function zkCertificateProcessingData(
+        bytes32 zkCertificateHash
+    ) public view returns (CertificateData memory) {
+        return zkCertificateHashToData[zkCertificateHash];
     }
 }

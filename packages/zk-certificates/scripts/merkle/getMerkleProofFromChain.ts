@@ -11,9 +11,9 @@ import type { ZkCertificateRegistry } from '../../typechain-types/contracts/ZkCe
  */
 async function main() {
   // input
-  const registryAddress = '0xa922eE97D068fd95d5692c357698F6Bf2C6fd8cE';
+  const registryAddress = '0xC056154d5705a97D03502D8980C670f56Ba0431c';
   const leavesToProve = [
-    '6981810429802296585701394890552897013958081400319643330577058257399344841317',
+    '14112242356001684757007634723621913619636690391642951623079403122702637191727',
   ];
   const merkleDepth = 32;
 
