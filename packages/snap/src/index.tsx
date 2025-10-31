@@ -6,11 +6,11 @@
 import type {
   HolderCommitmentData,
   ZkCertRegistered,
+  GenZkProofParams,
 } from '@galactica-net/galactica-types';
 import type {
-  BenchmarkZKPGenParams,
   ConfirmationResponse,
-  GenZkProofParams,
+  BenchmarkZKPGenParams,
   GetZkCertStorageHashesRequest,
   ImportZkCertParams,
   MerkleProofUpdateRequestParams,

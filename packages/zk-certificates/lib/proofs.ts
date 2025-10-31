@@ -6,8 +6,11 @@ import type {
   EddsaPrivateKey,
   FieldElement,
   MerkleProof,
-  OwnershipProofInput,
-  ZkCertStandard,
+  ProverData,
+  ProverLink,
+  ZkProof,
+  GenZkProofParams,
+  PreparedZkCertProofInputs,
 } from '@galactica-net/galactica-types';
 import { Buffer } from 'buffer';
 import { buildEddsa } from 'circomlibjs';
@@ -18,70 +21,6 @@ import { groth16 } from 'snarkjs';
 import { getMerkleRootFromProof, prepareContentForCircuit } from '.';
 import { formatPrivKeyForBabyJub } from './keyManagement';
 import type { ZkCertificate } from './zkCertificate';
-
-// Type definitions to avoid circular dependency with snap-api
-export type ProverData = {
-  wasm: any;
-  zkeyHeader: any;
-  zkeySections: any[];
-};
-
-export type ProverLink = {
-  url: string;
-  hash: string;
-};
-
-export type ZkProof = {
-  proof: {
-    /* eslint-disable @typescript-eslint/naming-convention */
-    pi_a: [string, string];
-    pi_b: [[string, string], [string, string]];
-    pi_c: [string, string];
-    /* eslint-enable @typescript-eslint/naming-convention */
-    protocol: string;
-    curve: string;
-  };
-  publicSignals: string[];
-};
-
-export type GenZkProofParams<ProofInputType> = {
-  input: ProofInputType;
-  requirements: {
-    zkCertStandard: ZkCertStandard;
-    registryAddress: string;
-  };
-  prover: ProverData | ProverLink;
-  userAddress: string;
-  description: string;
-  publicInputDescriptions: string[];
-  zkInputRequiresPrivKey: boolean;
-};
-
-export type PreparedZkCertProofInputs<
-  Params extends Record<
-    string,
-    FieldElement | FieldElement[] | FieldElement[][]
-  >,
-  Content extends Record<string, unknown>,
-> = Params &
-  Record<keyof Content, FieldElement> &
-  OwnershipProofInput & {
-    expirationDate: number;
-    leafIndex: number;
-    pathElements: string[];
-    providerAx: string;
-    providerAy: string;
-    providerR8x: string;
-    providerR8y: string;
-    providerS: string;
-    r8x2: string;
-    r8y2: string;
-    randomSalt: string;
-    root: string;
-    s2: string;
-    userAddress: string;
-    userPrivKey?: string;
-  };
 
 /**
  * Prepares the input object required to generate a zero-knowledge certificate proof.
