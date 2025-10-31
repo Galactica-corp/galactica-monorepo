@@ -300,5 +300,23 @@ describe('Blum Certificate (GIP-8)', () => {
       expect(activityScore > 0n).to.be.true;
       expect(sybilScore > 0n).to.be.true;
     });
+
+    it('should handle scientific notation correctly', () => {
+      // Test positive exponent
+      const result1 = floatToBigInt(1e2, 18); // 100
+      expect(result1.toString()).to.equal('100000000000000000000');
+
+      // Test negative exponent
+      const result2 = floatToBigInt(1e-2, 18); // 0.01
+      expect(result2.toString()).to.equal('10000000000000000');
+
+      // Test larger negative exponent
+      const result3 = floatToBigInt(1e-10, 18);
+      expect(result3.toString()).to.equal('100000000'); // 1e-10 * 10^18 = 10^8
+
+      // Test with decimal in scientific notation
+      const result4 = floatToBigInt(1.5e2, 18); // 150
+      expect(result4.toString()).to.equal('150000000000000000000');
+    });
   });
 });
