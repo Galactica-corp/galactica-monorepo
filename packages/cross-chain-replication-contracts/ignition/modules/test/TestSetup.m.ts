@@ -10,10 +10,36 @@ export default buildModule('TestSetupModule', (module) => {
   const receiverDomain = module.getParameter('receiverDomain', 2);
   const merkleDepth = module.getParameter('merkleDepth', 8);
 
-  const guardianRegistry = module.contract(
+  const proxyAdminOwner = module.getAccount(0); // deployer by default, can be changed later
+
+  // GuardianRegistry setup
+  const guardianRegistryImplementation = module.contract(
     'GuardianRegistry',
     guardianRegistryArtifact,
+    [],
+    { id: `GuardianRegistryImplementation` },
+  );
+  const encodedInitCallGuardianRegistry = module.encodeFunctionCall(
+    guardianRegistryImplementation,
+    'initialize',
     ['Test Guardian Registry'],
+  );
+  const guardianRegistryProxy = module.contract(
+    'TransparentUpgradeableProxy',
+    [
+      guardianRegistryImplementation,
+      proxyAdminOwner,
+      encodedInitCallGuardianRegistry,
+    ],
+    { id: `TransparentUpgradeableProxyGuardianRegistry` },
+  );
+  const guardianRegistry = module.contractAt(
+    'GuardianRegistry',
+    guardianRegistryArtifact,
+    guardianRegistryProxy,
+    {
+      id: `GuardianRegistry`,
+    },
   );
   module.call(guardianRegistry, 'grantGuardianRole', [
     module.getAccount(0),
@@ -21,19 +47,44 @@ export default buildModule('TestSetupModule', (module) => {
     'test',
   ]);
 
+  // ZkCertificateRegistry setup
   const poseidon = module.contract('PoseidonT3', poseidonT3Artifact);
 
-  const zkCertificateRegistry = module.contract(
+  const zkCertificateRegistryImplementation = module.contract(
     'ZkCertificateRegistry',
     zkCertificateRegistryArtifact,
-    [guardianRegistry, merkleDepth, 'Test ZkCertificate Registry'],
+    [],
     {
       libraries: {
         PoseidonT3: poseidon,
       },
+      id: `ZkCertificateRegistryImplementation`,
+    },
+  );
+  const encodedInitCallZkCertificateRegistry = module.encodeFunctionCall(
+    zkCertificateRegistryImplementation,
+    'initialize',
+    [guardianRegistryProxy, merkleDepth, 'Test ZkCertificate Registry'],
+  );
+  const zkCertificateRegistryProxy = module.contract(
+    'TransparentUpgradeableProxy',
+    [
+      zkCertificateRegistryImplementation,
+      proxyAdminOwner,
+      encodedInitCallZkCertificateRegistry,
+    ],
+    { id: `TransparentUpgradeableProxyZkCertificateRegistry` },
+  );
+  const zkCertificateRegistry = module.contractAt(
+    'ZkCertificateRegistry',
+    zkCertificateRegistryArtifact,
+    zkCertificateRegistryProxy,
+    {
+      id: `ZkCertificateRegistry`,
     },
   );
 
+  // Hyperlane setup
   const senderMailbox = module.contract(
     'MockMailbox',
     mockMailboxArtifact,

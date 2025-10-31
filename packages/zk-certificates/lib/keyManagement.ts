@@ -174,3 +174,21 @@ function isHex(test: string) {
   const regexp = /^[0-9a-fA-F]+$/u;
   return regexp.test(test);
 }
+
+//
+/**
+ * Convert pubkey to decimal strings
+ *
+ * @param pubKey - EdDSA public key as [Uint8Array, Uint8Array].
+ * @param eddsa - EdDSA instance from circomlibjs.
+ * @returns The decimal strings of the public key.
+ */
+export function convertPubkeyToDecimal(
+  pubKey: [Uint8Array, Uint8Array],
+  eddsa: Eddsa,
+): [string, string] {
+  return [
+    eddsa.poseidon.F.toObject(pubKey[0]).toString(),
+    eddsa.poseidon.F.toObject(pubKey[1]).toString(),
+  ];
+}

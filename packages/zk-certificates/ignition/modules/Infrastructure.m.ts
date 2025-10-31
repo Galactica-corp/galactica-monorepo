@@ -5,6 +5,7 @@ import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 
 import guardianRegistryModule from './GuardianRegistry.m';
 import poseidonModule from './Poseidon.m';
+import { defineUpgradableProxy } from './UpgradableProxy.m';
 import institutionPubkeys from '../params/institution_pubkeys.json';
 
 const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
@@ -20,15 +21,15 @@ const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
   );
 
   // Deploy ZkKYCRegistry
-  const zkKYCRegistry = module.contract(
-    'ZkKYCRegistry',
-    [kycGuardianRegistry, merkleDepth, description],
-    {
-      libraries: {
+  const { upgradableContract: zkKYCRegistry, proxyContracts } =
+    defineUpgradableProxy(
+      module,
+      'ZkKYCRegistry',
+      [kycGuardianRegistry, merkleDepth, description],
+      {
         PoseidonT3: poseidon,
       },
-    },
-  );
+    );
 
   // Deploy institutional contracts
   const institution1 = module.contract('MockGalacticaInstitution', [], {
@@ -82,6 +83,7 @@ const InfrastructureModule = buildModule('InfrastructureModule', (module) => {
     institution2,
     institution3,
     humanIDSaltRegistry,
+    ...proxyContracts,
   };
 });
 

@@ -4,9 +4,10 @@ import chai, { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import { buildEddsa } from 'circomlibjs';
 import type { BigNumberish } from 'ethers';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -138,12 +139,15 @@ describe('Verification SBT Smart contract', () => {
     circuitZkeyPath = './circuits/build/exampleMockDApp.zkey';
 
     // Deploy GuardianRegistry
-    const GuardianRegistryFactory =
-      await ethers.getContractFactory('GuardianRegistry');
-    guardianRegistry = (await GuardianRegistryFactory.deploy(
-      'https://example.com/metadata',
-    )) as GuardianRegistry;
-    await guardianRegistry.waitForDeployment();
+    const ignitionContracts = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: 'https://example.com/metadata',
+        },
+      },
+    });
+    guardianRegistry =
+      ignitionContracts.guardianRegistry as unknown as GuardianRegistry;
 
     // Set GuardianRegistry in MockZkCertificateRegistry
     await mockZkCertificateRegistry.setGuardianRegistry(
