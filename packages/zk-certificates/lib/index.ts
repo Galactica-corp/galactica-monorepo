@@ -5,7 +5,9 @@
  * Index defining exports of lib functions to other packages using this module
  */
 
+export * from './blockTimestampUtils';
 export * from './encryption';
+export * from './eventQueryUtils';
 export * from './helpers';
 export * from './holderCommitment';
 export * from './keyManagement';

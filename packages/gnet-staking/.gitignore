@@ -19,3 +19,6 @@ ignition/deployments/chain-31337
 ignition/deployments/*/build-info
 ignition/deployments/*/artifacts
 ignition/deployments/**/*.dbg.json
+
+# ignore data files
+data/**
