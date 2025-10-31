@@ -2,6 +2,7 @@
 
 import { task, types } from 'hardhat/config';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
+
 import {
   dateStringFromTimestamp,
   findBlockByTimestamp,
@@ -14,15 +15,16 @@ const DEFAULT_BLOCK_INTERVAL = 10000; // Default block interval to avoid RPC lim
 
 /**
  * Task for counting events emitted by a contract within a specified time range.
+ *
  * @param args - See task definition below or 'npx hardhat countEvents --help'.
  * @param hre - Hardhat runtime environment.
  */
 async function main(args: any, hre: HardhatRuntimeEnvironment) {
-  const registryAddress = args.registryAddress;
-  const startTime = args.startTime;
-  const endTime = args.endTime;
+  const { registryAddress } = args;
+  const { startTime } = args;
+  const { endTime } = args;
   const eventSignature =
-    args.eventSignature || 'zkCertificateAddition(bytes32,address,uint256)';
+    args.eventSignature ?? 'zkCertificateAddition(bytes32,address,uint256)';
 
   console.log(`Counting events for contract: ${registryAddress}`);
   console.log(`Event: ${eventSignature}`);
@@ -54,7 +56,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
     const initBlockHeight = await registry.initBlockHeight();
     initBlock = Number(initBlockHeight);
     console.log(`Contract initialized at block: ${initBlock}`);
-  } catch (error) {
+  } catch {
     console.log('Could not get initBlockHeight, using block 0 as start');
   }
 
@@ -73,11 +75,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   );
 
   console.log('Finding end block...');
-  const endBlock = await findBlockByTimestamp(
-    hre,
-    endTimestamp,
-    startBlock,
-  );
+  const endBlock = await findBlockByTimestamp(hre, endTimestamp, startBlock);
   const endBlockData = await hre.ethers.provider.getBlock(endBlock);
   console.log(
     `End block: ${endBlock} (timestamp: ${dateStringFromTimestamp(
@@ -89,7 +87,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
   const eventTopicHash = getEventTopicHash(registry, eventSignature);
 
   // Query events
-  const blockInterval = args.blockInterval || DEFAULT_BLOCK_INTERVAL;
+  const blockInterval = args.blockInterval ?? DEFAULT_BLOCK_INTERVAL;
   const logs = await getLogs(
     hre,
     registry,
@@ -116,7 +114,7 @@ async function main(args: any, hre: HardhatRuntimeEnvironment) {
         args: parsedLog?.args,
         blockNumber: firstLog.blockNumber,
       });
-    } catch (error) {
+    } catch {
       console.log('Could not parse sample event');
     }
   }
@@ -166,4 +164,3 @@ task('countEvents', 'Count events emitted by a contract within a time range')
       process.exitCode = 1;
     });
   });
-

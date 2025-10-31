@@ -2,7 +2,16 @@
  * Copyright (C) 2025 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+import type { HardhatEthersHelpers } from '@nomicfoundation/hardhat-ethers/types';
 import type { HardhatRuntimeEnvironment } from 'hardhat/types';
+
+/**
+ * Extended HardhatRuntimeEnvironment with ethers support.
+ * The @nomicfoundation/hardhat-ethers plugin adds the ethers property at runtime.
+ */
+type HardhatRuntimeEnvironmentWithEthers = HardhatRuntimeEnvironment & {
+  ethers: HardhatEthersHelpers;
+};
 
 /**
  * Convert a date string to a timestamp.
@@ -50,47 +59,44 @@ export function dateStringFromTimestamp(timestamp: number): string {
  * @returns The block number with timestamp closest to (but not exceeding) the target timestamp.
  */
 export async function findBlockByTimestamp(
-  hre: HardhatRuntimeEnvironment,
+  hre: HardhatRuntimeEnvironmentWithEthers,
   targetTimestamp: number,
   startBlock?: number,
   endBlock?: number,
 ): Promise<number> {
   // Get current block if endBlock not provided
-  if (endBlock === undefined) {
-    endBlock = await hre.ethers.provider.getBlockNumber();
-  }
+  const { provider } = hre.ethers;
+  const actualEndBlock = endBlock ?? (await provider.getBlockNumber());
 
   // Use 0 as default start block if not provided
-  if (startBlock === undefined) {
-    startBlock = 0;
-  }
+  const actualStartBlock = startBlock ?? 0;
 
   // Check if target is before the first block
-  const startBlockData = await hre.ethers.provider.getBlock(startBlock);
+  const startBlockData = await provider.getBlock(actualStartBlock);
   if (!startBlockData) {
-    throw new Error(`Block ${startBlock} not found`);
+    throw new Error(`Block ${actualStartBlock} not found`);
   }
   if (targetTimestamp < startBlockData.timestamp) {
-    return startBlock;
+    return actualStartBlock;
   }
 
   // Check if target is after the last block
-  const endBlockData = await hre.ethers.provider.getBlock(endBlock);
+  const endBlockData = await provider.getBlock(actualEndBlock);
   if (!endBlockData) {
-    throw new Error(`Block ${endBlock} not found`);
+    throw new Error(`Block ${actualEndBlock} not found`);
   }
   if (targetTimestamp >= endBlockData.timestamp) {
-    return endBlock;
+    return actualEndBlock;
   }
 
   // Binary search for the block
-  let low = startBlock;
-  let high = endBlock;
-  let result = startBlock;
+  let low = actualStartBlock;
+  let high = actualEndBlock;
+  let result = actualStartBlock;
 
   while (low <= high) {
     const mid = Math.floor((low + high) / 2);
-    const midBlock = await hre.ethers.provider.getBlock(mid);
+    const midBlock = await provider.getBlock(mid);
     if (!midBlock) {
       throw new Error(`Block ${mid} not found`);
     }
@@ -107,4 +113,3 @@ export async function findBlockByTimestamp(
 
   return result;
 }
-
