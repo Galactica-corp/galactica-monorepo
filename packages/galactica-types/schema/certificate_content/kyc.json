@@ -41,7 +41,7 @@
       "description": "The citizenship of the individual as an ISO 3166-1 alpha-3 country code."
     },
     "verificationLevel": {
-      "type": "number",
+      "type": "integer",
       "enum": [0, 1, 2],
       "description": "The level of KYC verification achieved.",
       "default": 0
