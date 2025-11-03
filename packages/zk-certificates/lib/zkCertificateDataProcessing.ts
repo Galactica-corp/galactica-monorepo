@@ -176,13 +176,27 @@ export function prepareContentForCircuit<
  * @returns BigInt representation with preserved decimal precision.
  */
 export function floatToBigInt(value: number, decimals: number): bigint {
-  // Convert to string to avoid floating point precision issues
-  const valueStr = value.toString();
+  // Handle special cases
+  if (!Number.isFinite(value)) {
+    throw new Error(`Cannot convert non-finite number to BigInt: ${value}`);
+  }
+  if (value === 0) {
+    return 0n;
+  }
+
+  // Convert to fixed decimal string to handle scientific notation (e.g., 1e-10, 1e10)
+  // Use toFixed with enough precision, then convert to avoid scientific notation
+  // Note: toFixed() is capped at 20 decimal places per ECMAScript spec
+  // We use the maximum available precision (or decimals + small buffer) to minimize
+  // rounding errors before truncating to the desired decimal places
+  const maxDecimalPlaces = Math.min(decimals + 2, 20); // Small buffer for rounding, capped at toFixed max
+  const fixedStr = value.toFixed(maxDecimalPlaces);
 
   // Split into integer and decimal parts
-  const [integerPart = '0', decimalPart = ''] = valueStr.split('.');
+  const [integerPart = '0', decimalPart = ''] = fixedStr.split('.');
 
   // Pad or truncate decimal part to desired length
+  // We pad with zeros to ensure consistent representation
   const paddedDecimalPart = decimalPart
     .padEnd(decimals, '0')
     .slice(0, decimals);
