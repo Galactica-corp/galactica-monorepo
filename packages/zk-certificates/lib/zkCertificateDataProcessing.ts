@@ -73,10 +73,8 @@ export function prepareContentForCircuit<
       // Check if the field type is 'number' in the schema (for float64 handling)
       // JSON Schema uses 'number' for floats and 'integer' for integers
       const fieldType = schemaProperties[field]?.type;
-      if (fieldType === 'number' && !Number.isInteger(sourceData)) {
-        // Only apply float conversion if it's actually a decimal number
+      if (fieldType === 'number') {
         // Convert float64 to big integer with 18 decimal places for blockchain compatibility
-        // This matches the Go implementation's scoreToFixedPoint function
         resValue = floatToBigInt(sourceData, 18);
       } else {
         // Integer type ('integer' in schema) or whole number, can be passed as is
