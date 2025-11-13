@@ -11,7 +11,8 @@
   "author": "Galactica Network",
   "packageManager": "yarn@3.2.1",
   "scripts": {
-    "build": "yarn hardhat compile",
+    "build": "yarn workspaces foreach --from @galactica-net/gnet-staking --parallel --topological-dev --recursive --verbose run build:local",
+    "build:local": "yarn hardhat compile",
     "test": "yarn hardhat test",
     "deploy": "yarn hardhat ignition deploy"
   },

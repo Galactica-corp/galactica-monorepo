@@ -1,0 +1,45 @@
+{
+  "name": "@galactica-net/gubi-index-pool",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "gUBI index token and pool contracts for Galactica Network UBI rewards",
+  "homepage": "https://galactica.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Galactica-corp/galactica-monorepo.git"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": "Galactica Network",
+  "packageManager": "yarn@3.2.1",
+  "scripts": {
+    "build": "yarn workspaces foreach --from @galactica-net/gubi-index-pool --parallel --topological-dev --recursive --verbose run build:local",
+    "build:local": "yarn hardhat compile",
+    "test": "yarn hardhat test",
+    "deploy": "yarn hardhat ignition deploy"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.3.0",
+    "@openzeppelin/contracts-upgradeable": "^5.3.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.5",
+    "@nomicfoundation/hardhat-ignition-viem": "^3.0.5",
+    "@nomicfoundation/hardhat-keystore": "^3.0.2",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.1",
+    "@nomicfoundation/hardhat-node-test-runner": "^3.0.7",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
+    "@nomicfoundation/hardhat-verify": "^3.0.7",
+    "@nomicfoundation/hardhat-viem": "^3.0.0",
+    "@nomicfoundation/hardhat-viem-assertions": "^3.0.0",
+    "@nomicfoundation/ignition-core": "^3.0.5",
+    "@types/node": "^22.8.5",
+    "eslint": "^9.11.0",
+    "forge-std": "foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.0.14",
+    "typescript": "~5.8.0",
+    "viem": "^2.30.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
