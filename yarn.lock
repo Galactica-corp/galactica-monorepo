@@ -4913,6 +4913,35 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@galactica-net/gubi-index-pool@workspace:packages/gubi-index-pool":
+  version: 0.0.0-use.local
+  resolution: "@galactica-net/gubi-index-pool@workspace:packages/gubi-index-pool"
+  dependencies:
+    "@nomicfoundation/hardhat-ignition": ^3.0.5
+    "@nomicfoundation/hardhat-ignition-viem": ^3.0.5
+    "@nomicfoundation/hardhat-keystore": ^3.0.2
+    "@nomicfoundation/hardhat-network-helpers": ^3.0.1
+    "@nomicfoundation/hardhat-node-test-runner": ^3.0.7
+    "@nomicfoundation/hardhat-toolbox-viem": ^5.0.1
+    "@nomicfoundation/hardhat-verify": ^3.0.7
+    "@nomicfoundation/hardhat-viem": ^3.0.0
+    "@nomicfoundation/hardhat-viem-assertions": ^3.0.0
+    "@nomicfoundation/ignition-core": ^3.0.5
+    "@openzeppelin/contracts": ^5.3.0
+    "@openzeppelin/contracts-upgradeable": ^5.3.0
+    "@types/chai": ^4.3.0
+    "@types/mocha": ^10.0.0
+    "@types/node": ^22.8.5
+    chai: ^4.3.0
+    eslint: ^9.11.0
+    forge-std: "foundry-rs/forge-std#v1.9.4"
+    hardhat: ^3.0.14
+    mocha: ^10.0.0
+    typescript: ~5.8.0
+    viem: ^2.30.0
+  languageName: unknown
+  linkType: soft
+
 "@galactica-net/snap-api@workspace:^, @galactica-net/snap-api@workspace:packages/snap-api":
   version: 0.0.0-use.local
   resolution: "@galactica-net/snap-api@workspace:packages/snap-api"
@@ -9611,7 +9640,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:^4.2.0, @types/chai@npm:^4.3.20":
+"@types/chai@npm:^4.2.0, @types/chai@npm:^4.3.0, @types/chai@npm:^4.3.20":
   version: 4.3.20
   resolution: "@types/chai@npm:4.3.20"
   checksum: 7c5b0c9148f1a844a8d16cb1e16c64f2e7749cab2b8284155b9e494a6b34054846e22fb2b38df6b290f9bf57e6beebb2e121940c5896bc086ad7bab7ed429f06
@@ -9941,7 +9970,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mocha@npm:>=9.1.0, @types/mocha@npm:^10.0.10":
+"@types/mocha@npm:>=9.1.0, @types/mocha@npm:^10.0.0, @types/mocha@npm:^10.0.10":
   version: 10.0.10
   resolution: "@types/mocha@npm:10.0.10"
   checksum: 17a56add60a8cc8362d3c62cb6798be3f89f4b6ccd5b9abd12b46e31ff299be21ff2faebf5993de7e0099559f58ca5a3b49a505d302dfa5d65c5a4edfc089195
@@ -13170,7 +13199,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:^4.3.4, chai@npm:^4.5.0":
+"chai@npm:^4.3.0, chai@npm:^4.3.4, chai@npm:^4.5.0":
   version: 4.5.0
   resolution: "chai@npm:4.5.0"
   dependencies:
@@ -19305,28 +19334,6 @@ __metadata:
   checksum: 03e67181eaf803a6248806259a24d221333a05360e8952d155dba57c63691eec5e23969c52deea1d7314e7cdfe8bfef8857d9427e321ed615fc1400a8504ff59
   languageName: node
   linkType: hard
-
-"gubi-index-pool@workspace:packages/gubi-index-pool":
-  version: 0.0.0-use.local
-  resolution: "gubi-index-pool@workspace:packages/gubi-index-pool"
-  dependencies:
-    "@nomicfoundation/hardhat-ignition": ^3.0.5
-    "@nomicfoundation/hardhat-ignition-viem": ^3.0.5
-    "@nomicfoundation/hardhat-keystore": ^3.0.2
-    "@nomicfoundation/hardhat-network-helpers": ^3.0.1
-    "@nomicfoundation/hardhat-node-test-runner": ^3.0.7
-    "@nomicfoundation/hardhat-toolbox-viem": ^5.0.1
-    "@nomicfoundation/hardhat-verify": ^3.0.7
-    "@nomicfoundation/hardhat-viem": ^3.0.0
-    "@nomicfoundation/hardhat-viem-assertions": ^3.0.0
-    "@nomicfoundation/ignition-core": ^3.0.5
-    "@types/node": ^22.8.5
-    forge-std: "foundry-rs/forge-std#v1.9.4"
-    hardhat: ^3.0.14
-    typescript: ~5.8.0
-    viem: ^2.30.0
-  languageName: unknown
-  linkType: soft
 
 "gzip-size@npm:^6.0.0":
   version: 6.0.0
