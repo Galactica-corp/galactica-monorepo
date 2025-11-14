@@ -3,35 +3,58 @@ pragma solidity 0.8.28;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {Ownable2Step, Ownable} from '@openzeppelin/contracts/access/Ownable2Step.sol';
-import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+import {Ownable2StepUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol';
+import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
 import {IERC20Burnable} from './interfaces/IERC20Burnable.sol';
 import {IIndexPool} from './interfaces/IIndexPool.sol';
 
 /**
  * @title Galactica Index Pool.
  * @notice The index pool holds tokens and releases them for burning the gUBI index pool token.
+ * @notice This contract will be the implementation behind an upgradeable Proxy contract.
  */
-contract IndexPool is IIndexPool, Ownable2Step, ReentrancyGuard {
+contract IndexPool is
+  IIndexPool,
+  Ownable2StepUpgradeable,
+  ReentrancyGuardUpgradeable
+{
   using SafeERC20 for IERC20;
 
-  IERC20Burnable public immutable indexToken;
+  IERC20Burnable public indexToken;
   address[] public heldTokens;
 
   event IndexTokenBurned(address indexed userAddress, uint amount);
   event TokenAdded();
 
   error InvalidIndexTokenAddress();
+  error InvalidOwnerAddress();
   error SkipArrayNotInSameOrderAsHeldTokensArray();
   error TokenCanNotBeAddedTwice();
 
-  constructor(address _indexToken) Ownable(msg.sender) {
-    // Sanitize address input
+  /**
+   * @dev Disable the constructor for the deployment as recommended by OpenZeppelin. Instead the upgradeable proxy will use the initialize function.
+   */
+  constructor() {
+    _disableInitializers();
+  }
+
+  /**
+   * @notice Initialize the contract with this function because a smart contract behind a proxy can't have a constructor.
+   * @param _indexToken The address of the index token (gUBI).
+   * @param _owner The owner of the contract.
+   */
+  function initialize(address _indexToken, address _owner) public initializer {
+    // Sanitize address inputs
     if (_indexToken == address(0)) {
       revert InvalidIndexTokenAddress();
     }
+    if (_owner == address(0)) {
+      revert InvalidOwnerAddress();
+    }
 
     indexToken = IERC20Burnable(_indexToken);
+    __ReentrancyGuard_init();
+    __Ownable_init(_owner);
   }
 
   /**

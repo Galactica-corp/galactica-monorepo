@@ -19,6 +19,10 @@ describe('IndexPool', async function () {
         IndexPoolModule: {
           owner: owner.account.address,
         },
+        TimelockControllerModule: {
+          // set the timelock duration to 0, so that the upgrade can be executed immediately for the unittest
+          minDelay: 0,
+        },
       },
     });
 
@@ -51,22 +55,35 @@ describe('IndexPool', async function () {
       assert.equal(getAddress(indexTokenAddress), getAddress(gUBI.address));
     });
 
-    it('Should fail to initialize with invalid zero addresses', async function () {
-      const { viem } = await network.connect();
-      const [deployer] = await viem.getWalletClients();
-
-      const artifact = await hre.artifacts.readArtifact('IndexPool');
+    it('Should fail to initialize twice', async function () {
+      const { indexPool, gUBI, owner } = await loadFixture(deployFixture);
 
       await assert.rejects(
         async () => {
-          await deployer.deployContract({
-            abi: artifact.abi,
-            bytecode: artifact.bytecode as `0x${string}`,
-            args: [zeroAddress],
+          await indexPool.write.initialize([gUBI.address, owner.account.address]);
+        },
+        (error: any) => {
+          return error.message.includes('InvalidInitialization');
+        }
+      );
+    });
+
+    it('Should fail to initialize with invalid zero addresses', async function () {
+      await assert.rejects(
+        async () => {
+          await ignition.deploy(IndexPoolModule, {
+            parameters: {
+              IndexPoolModule: {
+                owner: zeroAddress,
+              },
+              TimelockControllerModule: {
+                minDelay: 0,
+              },
+            },
           });
         },
         (error: any) => {
-          return error.message.includes('InvalidIndexTokenAddress');
+          return error.message.includes('InvalidOwnerAddress') || error.message.includes('custom error');
         }
       );
     });
