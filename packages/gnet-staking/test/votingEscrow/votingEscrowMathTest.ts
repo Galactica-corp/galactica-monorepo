@@ -1,18 +1,11 @@
 /* eslint-disable @typescript-eslint/dot-notation */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { network, ethers } from "hardhat";
-import { expect } from "chai";
-import { assertBNClosePercent } from "./helpers/assertions";
-//import { MassetMachine, StandardAccounts } from "./utils/machines"
-import {
-  advanceBlock,
-  increaseTime,
-  increaseTimeTo,
-  getTimestamp,
-  latestBlock,
-} from "./helpers/time2";
-import { BN, simpleToExactAmount, maximum, sqrt } from "./helpers/math";
+import { network, ethers, ignition } from 'hardhat';
+import { expect } from 'chai';
+import { time } from '@nomicfoundation/hardhat-toolbox/network-helpers';
+import { assertBNClosePercent } from './helpers/assertions';
+import { BN, simpleToExactAmount, maximum, sqrt } from './helpers/math';
 import {
   ONE_WEEK,
   ONE_HOUR,
@@ -20,37 +13,35 @@ import {
   ONE_YEAR,
   TWO_YEARS,
   DEFAULT_DECIMALS,
-} from "./helpers/constants";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-//import { ethers, waffle, network } from "hardhat";
-import { MockERC20, VotingEscrow } from "../../typechain";
-import { BigNumber } from "ethers";
+} from './helpers/constants';
+import type { VotingEscrow } from '../../typechain-types/contracts/VotingEscrow';
+import votingEscrowModule from '../../ignition/modules/VotingEscrow.m';
 
 //import { Account } from "types"
 
 let votingLockup: VotingEscrow;
-let admin: SignerWithAddress;
-let defaultUser: SignerWithAddress;
-let other: SignerWithAddress;
-let fundManager: SignerWithAddress;
-let accounts: SignerWithAddress[];
-let alice: SignerWithAddress;
-let bob: SignerWithAddress;
-let charlie: SignerWithAddress;
-let david: SignerWithAddress;
-let eve: SignerWithAddress;
-let francis: SignerWithAddress;
-let treasury: SignerWithAddress;
-//let nexus: Nexus
-let govMock: MockERC20;
+let admin: any;
+let defaultUser: any;
+let other: any;
+let fundManager: any;
+let accounts: any[];
+let alice: any;
+let bob: any;
+let charlie: any;
+let david: any;
+let eve: any;
+let francis: any;
+let treasury: any;
+
 async function latestBlockBN() {
-  return (await ethers.provider.getBlock("latest")).number;
+  return BigInt((await ethers.provider.getBlock('latest'))!.number);
 }
 async function getTimestampBN() {
-  return (await ethers.provider.getBlock("latest")).timestamp;
+  return BigInt((await ethers.provider.getBlock('latest'))!.timestamp);
 }
-describe("VotingEscrow Math test", () => {
-  before("Init contract", async () => {
+
+describe('VotingEscrow Math test', () => {
+  before('Init contract', async () => {
     accounts = await ethers.getSigners();
 
     [
@@ -72,67 +63,51 @@ describe("VotingEscrow Math test", () => {
 
   const calculateStaticBalance = async (
     lockupLength: BN,
-    amount: BN
+    amount: BN,
   ): Promise<BN> => {
-    const slope = amount.div(await votingLockup.MAXTIME());
-    const s = slope.mul(10000).mul(sqrt(lockupLength));
+    const maxTime = await votingLockup.MAXTIME();
+    const slope = amount / maxTime;
+    const s = slope * 10000n * sqrt(lockupLength);
     return s;
   };
 
   const goToNextUnixWeekStart = async () => {
-    const unixWeekCount = (await getTimestamp()).div(ONE_WEEK);
-    const nextUnixWeek = unixWeekCount.add(1).mul(ONE_WEEK);
-    await increaseTimeTo(nextUnixWeek);
+    const currentTimestamp = await getTimestampBN();
+    const unixWeekCount = currentTimestamp / ONE_WEEK;
+    const nextUnixWeek = (unixWeekCount + 1n) * ONE_WEEK;
+    await time.increaseTo(nextUnixWeek);
   };
 
-  const deployFresh = async (initialRewardFunding = BN.from(0)) => {
-    //  nexus = await new Nexus__factory(defaultUser).deploy(sa.governor.address)
-    const govMockDeployer = await ethers.getContractFactory("MockERC20", admin);
+  const deployFresh = async (initialRewardFunding = 0n) => {
+    const { votingEscrow } = await ignition.deploy(votingEscrowModule, {
+      parameters: {
+        VotingEscrowModule: {
+          owner: admin.address,
+          penaltyRecipient: treasury.address,
+          name: 'veToken',
+          symbol: 'veToken',
+        },
+        TimelockControllerModule: {
+          minDelay: 0,
+        },
+      },
+    });
 
-    govMock = await govMockDeployer.deploy("FiatDAO", "Token", admin.address);
-    // mta = await new MintableToken__factory(defaultUser).deploy(nexus.address, sa.fundManager.address)
-    await govMock.mint(
+    votingLockup = votingEscrow as unknown as VotingEscrow;
+
+    // Fund accounts with native tokens
+    await ethers.provider.send('hardhat_setBalance', [
       fundManager.address,
-      ethers.utils.parseEther("1000000000000")
-    );
-
-    await govMock
-      .connect(fundManager)
-      .transfer(
-        defaultUser.address,
-        simpleToExactAmount(1000, DEFAULT_DECIMALS)
-      );
-    await govMock
-      .connect(fundManager)
-      .transfer(other.address, simpleToExactAmount(1000, DEFAULT_DECIMALS));
-
-    const votingEscrowDeployer = await ethers.getContractFactory(
-      "VotingEscrow",
-      admin
-    );
-    votingLockup = await votingEscrowDeployer.deploy(
-      admin.address,
-      treasury.address,
-      govMock.address,
-      "veToken",
-      "veToken"
-    );
-    await govMock.approve(
-      votingLockup.address,
-      simpleToExactAmount(100, DEFAULT_DECIMALS)
-    );
-    await govMock
-      .connect(other)
-      .approve(
-        votingLockup.address,
-        simpleToExactAmount(100, DEFAULT_DECIMALS)
-      );
-    await govMock
-      .connect(fundManager)
-      .approve(
-        votingLockup.address,
-        simpleToExactAmount(10000, DEFAULT_DECIMALS)
-      );
+      '0x' + ethers.parseEther('1000000000000').toString(16),
+    ]);
+    await ethers.provider.send('hardhat_setBalance', [
+      defaultUser.address,
+      '0x' + simpleToExactAmount(1000, DEFAULT_DECIMALS).toString(16),
+    ]);
+    await ethers.provider.send('hardhat_setBalance', [
+      other.address,
+      '0x' + simpleToExactAmount(1000, DEFAULT_DECIMALS).toString(16),
+    ]);
   };
 
   describe("checking balances & total supply", () => {
@@ -142,12 +117,8 @@ describe("VotingEscrow Math test", () => {
     describe("before any stakes are made", () => {
       it("returns balances", async () => {
         //expect(await votingLockup.staticBalanceOf(defaultUser.address)).eq(BN.from(0))
-        expect(await votingLockup.balanceOf(defaultUser.address)).eq(
-          BN.from(0)
-        );
-        expect(await votingLockup.balanceOfAt(defaultUser.address, 1)).eq(
-          BN.from(0)
-        );
+        expect(await votingLockup.balanceOf(defaultUser.address)).eq(0n);
+        expect(await votingLockup.balanceOfAt(defaultUser.address, 1)).eq(0n);
       });
       it("returns balance at latest block", async () => {
         expect(
@@ -155,15 +126,15 @@ describe("VotingEscrow Math test", () => {
             defaultUser.address,
             await latestBlockBN()
           )
-        ).eq(BN.from(0));
+        ).eq(0n);
       });
       it("returns totalSupply", async () => {
-        expect(await votingLockup.totalSupply()).eq(BN.from(0));
-        expect(await votingLockup.totalSupplyAt(1)).eq(BN.from(0));
+        expect(await votingLockup.totalSupply()).eq(0n);
+        expect(await votingLockup.totalSupplyAt(1)).eq(0n);
       });
       it("returns totalSupply at latest block", async () => {
         expect(await votingLockup.totalSupplyAt(await latestBlockBN())).eq(
-          BN.from(0)
+          0n
         );
       });
     });
@@ -172,13 +143,13 @@ describe("VotingEscrow Math test", () => {
         await expect(
           votingLockup.balanceOfAt(
             defaultUser.address,
-            (await latestBlockBN()) + 1
+            await latestBlockBN() + 1n
           )
         ).to.be.revertedWith("Only past block number");
       });
       it("fails for supply", async () => {
         await expect(
-          votingLockup.totalSupplyAt((await latestBlockBN()) + 1)
+          votingLockup.totalSupplyAt(await latestBlockBN() + 1n)
         ).to.be.revertedWith("Only past block number");
       });
     });
@@ -234,9 +205,9 @@ describe("VotingEscrow Math test", () => {
         ts: lastPoint[2],
         blk: lastPoint[3],
       },
-      senderStakingTokenBalance: await govMock.balanceOf(sender.address),
-      contractStakingTokenBalance: await govMock.balanceOf(
-        votingLockup.address
+      senderStakingTokenBalance: await ethers.provider.getBalance(sender.address),
+      contractStakingTokenBalance: await ethers.provider.getBalance(
+        await votingLockup.getAddress()
       ),
     };
   };
@@ -257,51 +228,40 @@ describe("VotingEscrow Math test", () => {
     // let david: Account
     // let eve: Account
 
-    const stakeAmt1 = simpleToExactAmount(10, DEFAULT_DECIMALS);
-    const stakeAmt2 = simpleToExactAmount(1000, DEFAULT_DECIMALS);
-    let start: BigNumber;
-    let maxTime: BigNumber;
+    const stakeAmt1 = ethers.parseEther('10');
+    const stakeAmt2 = ethers.parseEther('1000');
+    let start: bigint;
+    let maxTime: bigint;
     before(async () => {
       await goToNextUnixWeekStart();
-      start = await getTimestamp();
-      await deployFresh(simpleToExactAmount(100, DEFAULT_DECIMALS));
+      start = await getTimestampBN();
+      await deployFresh(ethers.parseEther('100'));
       maxTime = await votingLockup.MAXTIME();
-      await govMock
-        .connect(fundManager)
-        .transfer(alice.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(fundManager)
-        .transfer(bob.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(fundManager)
-        .transfer(charlie.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(fundManager)
-        .transfer(david.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(fundManager)
-        .transfer(eve.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(fundManager)
-        .transfer(francis.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(alice)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
-      await govMock
-        .connect(bob)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
-      await govMock
-        .connect(charlie)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
-      await govMock
-        .connect(david)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
-      await govMock
-        .connect(eve)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
-      await govMock
-        .connect(francis)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
+      // Fund accounts with native tokens
+      await ethers.provider.send('hardhat_setBalance', [
+        alice.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        bob.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        charlie.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        david.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        eve.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        francis.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
     });
     describe("checking initial settings", () => {
       it("sets ERC20 details", async () => {
@@ -311,30 +271,30 @@ describe("VotingEscrow Math test", () => {
         const supply = await votingLockup.totalSupply();
         expect(name).eq("veToken");
         expect(symbol).eq("veToken");
-        expect(decimals).eq(BN.from(DEFAULT_DECIMALS));
-        expect(supply).eq(BN.from(0));
+        expect(decimals).eq(DEFAULT_DECIMALS);
+        expect(supply).eq(0n);
       });
     });
 
-    const calcBias = (amount: BN, len: BN): BN => amount.div(maxTime).mul(len);
+    const calcBias = (amount: bigint, len: bigint): bigint => amount / maxTime * len;
 
     describe("creating a lockup", () => {
       it("allows user to create a lock", async () => {
         await votingLockup
           .connect(alice)
-          .createLock(stakeAmt1, start.add(ONE_YEAR));
+          .createLock(start + ONE_YEAR, { value: stakeAmt1 });
         await votingLockup
           .connect(bob)
-          .createLock(stakeAmt2, start.add(ONE_WEEK.mul(26)));
+          .createLock(start + ONE_WEEK * 26n, { value: stakeAmt2 });
         await votingLockup
           .connect(charlie)
-          .createLock(stakeAmt1, start.add(ONE_WEEK.mul(26)));
+          .createLock(start + ONE_WEEK * 26n, { value: stakeAmt1 });
         await votingLockup
           .connect(eve)
-          .createLock(stakeAmt1, start.add(ONE_WEEK));
+          .createLock(start + ONE_WEEK, { value: stakeAmt1 });
         await votingLockup
           .connect(francis)
-          .createLock(stakeAmt1, start.add(TWO_YEARS));
+          .createLock(start + TWO_YEARS, { value: stakeAmt1 });
 
         const aliceData = await snapshotData(alice);
         const bobData = await snapshotData(bob);
@@ -349,12 +309,12 @@ describe("VotingEscrow Math test", () => {
         );
         assertBNClosePercent(
           bobData.userLastPoint.bias,
-          calcBias(stakeAmt2, ONE_WEEK.mul(26)),
+          calcBias(stakeAmt2, ONE_WEEK * 26n),
           "0.4"
         );
         assertBNClosePercent(
           charlieData.userLastPoint.bias,
-          calcBias(stakeAmt1, ONE_WEEK.mul(26)),
+          calcBias(stakeAmt1, ONE_WEEK * 26n),
           "0.4"
         );
         assertBNClosePercent(
@@ -372,40 +332,40 @@ describe("VotingEscrow Math test", () => {
         await expect(
           votingLockup
             .connect(other)
-            .createLock(BN.from(0), start.add(ONE_WEEK))
+            .createLock(start + ONE_WEEK, { value: 0 })
         ).to.be.revertedWith("Only non zero amount");
         await expect(
           votingLockup
             .connect(alice)
-            .createLock(BN.from(1), start.add(ONE_WEEK))
+            .createLock(start + ONE_WEEK, { value: 1 })
         ).to.be.revertedWith("Lock exists");
         await expect(
           votingLockup
             .connect(other)
-            .createLock(BN.from(1), start.sub(ONE_WEEK))
+            .createLock(start - ONE_WEEK, { value: 1 })
         ).to.be.revertedWith("Only future lock end");
       });
       it("only allows creation up until END date", async () => {
         await expect(
           votingLockup
             .connect(other)
-            .createLock(BN.from(1), start.add(TWO_YEARS.add(ONE_WEEK)))
+            .createLock(start + TWO_YEARS + ONE_WEEK, { value: 1 })
         ).to.be.revertedWith("Exceeds maxtime");
       });
     });
 
     describe("extending lock", () => {
       before(async () => {
-        await increaseTime(ONE_WEEK.mul(12));
+        await time.increaseTo(start + ONE_WEEK * 12n);
         // Eves lock is now expired
       });
       describe("by amount", () => {
         it("fails if conditions are not met", async () => {
           await expect(
-            votingLockup.connect(alice).increaseAmount(BN.from(0))
+            votingLockup.connect(alice).increaseAmount({ value: 0 })
           ).to.be.revertedWith("Only non zero amount");
           await expect(
-            votingLockup.connect(eve).increaseAmount(BN.from(1))
+            votingLockup.connect(eve).increaseAmount({ value: 1 })
           ).to.be.revertedWith("Lock expired");
         });
         it("allows someone to increase lock amount", async () => {
@@ -414,20 +374,20 @@ describe("VotingEscrow Math test", () => {
             alice.address,
             await latestBlockBN()
           );
-          await votingLockup.connect(alice).increaseAmount(stakeAmt1);
+          await votingLockup.connect(alice).increaseAmount({ value: stakeAmt1 });
           const aliceBalanceAfter = await votingLockup.balanceOfAt(
             alice.address,
             await latestBlockBN()
           );
           assertBNClosePercent(
-            aliceBalanceBefore.mul(2),
+            aliceBalanceBefore * 2n,
             aliceBalanceAfter,
             "0.4"
           );
 
           // Account with lock.end>block.timestamp and lock.amount>0
           const charlieSnapBefore = await snapshotData(charlie);
-          await votingLockup.connect(charlie).increaseAmount(stakeAmt2);
+          await votingLockup.connect(charlie).increaseAmount({ value: stakeAmt2 });
           const charlieSnapAfter = await snapshotData(charlie);
         });
       });
@@ -437,30 +397,30 @@ describe("VotingEscrow Math test", () => {
           await expect(
             votingLockup
               .connect(eve)
-              .increaseUnlockTime((await getTimestamp()).add(ONE_WEEK))
+              .increaseUnlockTime(start + ONE_WEEK)
           ).to.be.revertedWith("Lock expired");
           await expect(
             votingLockup
               .connect(david)
-              .increaseUnlockTime((await getTimestamp()).add(ONE_WEEK))
+              .increaseUnlockTime(start + ONE_WEEK)
           ).to.be.revertedWith("No lock");
           await expect(
             votingLockup
               .connect(alice)
-              .increaseUnlockTime((await getTimestamp()).add(ONE_DAY))
+              .increaseUnlockTime(start + ONE_DAY)
           ).to.be.revertedWith("Only increase lock end");
           await expect(
             votingLockup
               .connect(bob)
-              .increaseUnlockTime((await getTimestamp()).add(ONE_WEEK.mul(105)))
+              .increaseUnlockTime(start + ONE_WEEK * 105n)
           ).to.be.revertedWith("Exceeds maxtime");
 
           await expect(
             votingLockup
               .connect(david)
               .createLock(
-                stakeAmt1,
-                (await getTimestamp()).add(ONE_WEEK.mul(105))
+                start + ONE_WEEK * 105n,
+                { value: stakeAmt1 }
               )
           ).to.be.revertedWith("Exceeds maxtime");
         });
@@ -469,7 +429,7 @@ describe("VotingEscrow Math test", () => {
           const bobSnapBefore = await snapshotData(bob);
           await votingLockup
             .connect(bob)
-            .increaseUnlockTime(start.add(ONE_YEAR));
+            .increaseUnlockTime(start + ONE_YEAR);
 
           const bobSnapAfter = await snapshotData(bob);
         });
@@ -494,10 +454,10 @@ describe("VotingEscrow Math test", () => {
         await votingLockup.checkpoint();
         const after = await snapshotData(alice);
 
-        expect(after.epoch).eq(before.epoch.add(1));
+        expect(after.epoch).eq(before.epoch + 1n);
         expect(after.lastPoint.bias).lt(before.lastPoint.bias);
         expect(after.lastPoint.slope).eq(before.lastPoint.slope);
-        expect(after.lastPoint.blk).eq(BN.from((await latestBlock()).number));
+        expect(after.lastPoint.blk).eq(await latestBlockBN());
       });
     });
 
@@ -519,8 +479,8 @@ describe("VotingEscrow Math test", () => {
       before(async () => {
         await votingLockup
           .connect(david)
-          .createLock(stakeAmt1, (await getTimestamp()).add(ONE_WEEK.mul(13)));
-        await increaseTime(ONE_WEEK.mul(14));
+          .createLock(start + ONE_WEEK * 13n, { value: stakeAmt1 });
+        await time.increaseTo(start + ONE_WEEK * 14n);
       });
       it("allows user to withdraw", async () => {
         // david withdraws
@@ -529,14 +489,13 @@ describe("VotingEscrow Math test", () => {
         const davidAfter = await snapshotData(david);
 
         expect(davidAfter.senderStakingTokenBalance).eq(
-          davidBefore.senderStakingTokenBalance.add(
-            davidBefore.userLocked.amount
-          )
-        );
-        expect(davidAfter.userLastPoint.bias).eq(BN.from(0));
-        expect(davidAfter.userLastPoint.slope).eq(BN.from(0));
-        expect(davidAfter.userLocked.amount).eq(BN.from(0));
-        expect(davidAfter.userLocked.end).eq(BN.from(0));
+          davidBefore.senderStakingTokenBalance +
+          davidBefore.userLocked.amount
+        )
+        expect(davidAfter.userLastPoint.bias).eq(0n);
+        expect(davidAfter.userLastPoint.slope).eq(0n);
+        expect(davidAfter.userLocked.amount).eq(0n);
+        expect(davidAfter.userLocked.end).eq(0n);
       });
 
       it("fully exits the system", async () => {
@@ -546,27 +505,26 @@ describe("VotingEscrow Math test", () => {
         const eveAfter = await snapshotData(eve);
 
         expect(eveAfter.senderStakingTokenBalance).eq(
-          eveBefore.senderStakingTokenBalance.add(eveBefore.userLocked.amount)
+          eveBefore.senderStakingTokenBalance + eveBefore.userLocked.amount
         );
-        expect(eveAfter.userLastPoint.bias).eq(BN.from(0));
-        expect(eveAfter.userLastPoint.slope).eq(BN.from(0));
-        expect(eveAfter.userLocked.amount).eq(BN.from(0));
-        expect(eveAfter.userLocked.end).eq(BN.from(0));
+        expect(eveAfter.userLastPoint.bias).eq(0n);
+        expect(eveAfter.userLastPoint.slope).eq(0n);
+        expect(eveAfter.userLocked.amount).eq(0n);
+        expect(eveAfter.userLocked.end).eq(0n);
 
-        await increaseTime(ONE_WEEK.mul(77));
+        await time.increaseTo(start + ONE_WEEK * 77n);
         const francisBefore = await snapshotData(francis);
         await votingLockup.connect(francis).withdraw();
         const francisAfter = await snapshotData(francis);
 
         expect(francisAfter.senderStakingTokenBalance).eq(
-          francisBefore.senderStakingTokenBalance.add(
-            francisBefore.userLocked.amount
-          )
+          francisBefore.senderStakingTokenBalance +
+          francisBefore.userLocked.amount
         );
-        expect(francisAfter.userLastPoint.bias).eq(BN.from(0));
-        expect(francisAfter.userLastPoint.slope).eq(BN.from(0));
-        expect(francisAfter.userLocked.amount).eq(BN.from(0));
-        expect(francisAfter.userLocked.end).eq(BN.from(0));
+        expect(francisAfter.userLastPoint.bias).eq(0n);
+        expect(francisAfter.userLastPoint.slope).eq(0n);
+        expect(francisAfter.userLocked.amount).eq(0n);
+        expect(francisAfter.userLocked.end).eq(0n);
       });
     });
   });
@@ -614,17 +572,21 @@ describe("VotingEscrow Math test", () => {
        */
       const MAXTIME = await votingLockup.MAXTIME();
       const tolerance = "0.04"; // 0.04% | 0.00004 | 4e14
-      const amount = simpleToExactAmount(1000, DEFAULT_DECIMALS);
-      await govMock.connect(fundManager).transfer(alice.address, amount.mul(5));
-      await govMock.connect(fundManager).transfer(bob.address, amount.mul(5));
+      const amount = ethers.parseEther('1000');
+      // Fund accounts with native tokens
+      await ethers.provider.send('hardhat_setBalance', [
+        alice.address,
+        '0x' + (amount * 5n).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        bob.address,
+        '0x' + (amount * 5n).toString(16),
+      ]);
       const stages: any = {};
 
-      await govMock.connect(alice).approve(votingLockup.address, amount.mul(5));
-      await govMock.connect(bob).approve(votingLockup.address, amount.mul(5));
-
-      expect(await votingLockup.totalSupply()).eq(BN.from(0));
-      expect(await votingLockup.balanceOf(alice.address)).eq(BN.from(0));
-      expect(await votingLockup.balanceOf(bob.address)).eq(BN.from(0));
+      expect(await votingLockup.totalSupply()).eq(0n);
+      expect(await votingLockup.balanceOf(alice.address)).eq(0n);
+      expect(await votingLockup.balanceOf(bob.address)).eq(0n);
 
       /**
        * BEGIN PERIOD 1
@@ -633,41 +595,41 @@ describe("VotingEscrow Math test", () => {
        */
 
       await goToNextUnixWeekStart();
-      await increaseTime(ONE_HOUR);
+      await time.increase(ONE_HOUR);
 
       stages["before_deposits"] = [
-        BN.from((await latestBlock()).number),
-        await getTimestamp(),
+        await latestBlockBN(),
+        await getTimestampBN(),
       ];
 
       await votingLockup
         .connect(alice)
-        .createLock(amount, (await getTimestamp()).add(ONE_WEEK.add(1)));
+        .createLock(await getTimestampBN() + ONE_WEEK + 1n, { value: amount });
       stages["alice_deposit"] = [
-        BN.from((await latestBlock()).number),
-        await getTimestamp(),
+        await latestBlockBN(),
+        await getTimestampBN(),
       ];
 
-      await increaseTime(ONE_HOUR);
-      await advanceBlock();
+      await time.increaseTo(await getTimestampBN() + ONE_HOUR);
+      await ethers.provider.send('evm_mine', []);
       assertBNClosePercent(
         await votingLockup.balanceOf(alice.address),
-        amount.div(MAXTIME).mul(ONE_WEEK.sub(ONE_HOUR.mul(2))),
+        amount / MAXTIME * (ONE_WEEK - ONE_HOUR * 2n),
         tolerance
       );
       assertBNClosePercent(
         await votingLockup.totalSupply(),
-        amount.div(MAXTIME).mul(ONE_WEEK.sub(ONE_HOUR.mul(2))),
+        amount / MAXTIME * (ONE_WEEK - ONE_HOUR * 2n),
         tolerance
       );
-      expect(await votingLockup.balanceOf(bob.address)).eq(BN.from(0));
-      let t0 = await getTimestamp();
-      let dt = BN.from(0);
+      expect(await votingLockup.balanceOf(bob.address)).eq(0n);
+      let t0 = await getTimestampBN();
+      let dt = 0n;
 
       stages["alice_in_0"] = [];
       stages["alice_in_0"].push([
-        BN.from((await latestBlock()).number),
-        await getTimestamp(),
+        await latestBlockBN(),
+        await getTimestampBN(),
       ]);
 
       /**
@@ -675,47 +637,43 @@ describe("VotingEscrow Math test", () => {
        */
       for (let i = 0; i < 7; i += 1) {
         for (let j = 0; j < 24; j += 1) {
-          await increaseTime(ONE_HOUR);
-          await advanceBlock();
+          await time.increaseTo(await getTimestampBN() + ONE_HOUR);
+          await ethers.provider.send('evm_mine', []);
         }
-        dt = (await getTimestamp()).sub(t0);
+        dt = await getTimestampBN() - t0;
         assertBNClosePercent(
           await votingLockup.totalSupply(),
-          amount
-            .div(MAXTIME)
-            .mul(maximum(ONE_WEEK.sub(ONE_HOUR.mul(2)).sub(dt), BN.from(0))),
+          amount / MAXTIME * maximum(ONE_WEEK - ONE_HOUR * 2n - dt, 0n),
           tolerance
         );
         assertBNClosePercent(
           await votingLockup.balanceOf(alice.address),
-          amount
-            .div(MAXTIME)
-            .mul(maximum(ONE_WEEK.sub(ONE_HOUR.mul(2)).sub(dt), BN.from(0))),
+          amount / MAXTIME * maximum(ONE_WEEK - ONE_HOUR * 2n - dt, 0n),
           tolerance
         );
-        expect(await votingLockup.balanceOf(bob.address)).eq(BN.from(0));
+        expect(await votingLockup.balanceOf(bob.address)).eq(0n);
         stages["alice_in_0"].push([
-          BN.from((await latestBlock()).number),
-          await getTimestamp(),
+          await latestBlockBN(),
+          await getTimestampBN(),
         ]);
       }
 
-      await increaseTime(ONE_HOUR);
+      await time.increaseTo(await getTimestampBN() + ONE_HOUR);
 
-      expect(await votingLockup.balanceOf(alice.address)).eq(BN.from(0));
+      expect(await votingLockup.balanceOf(alice.address)).eq(0n);
 
       await votingLockup.connect(alice).withdraw();
 
       stages["alice_withdraw"] = [
-        BN.from((await latestBlock()).number),
-        await getTimestamp(),
+        await latestBlockBN(),
+        await getTimestampBN(),
       ];
-      expect(await votingLockup.totalSupply()).eq(BN.from(0));
-      expect(await votingLockup.balanceOf(alice.address)).eq(BN.from(0));
-      expect(await votingLockup.balanceOf(bob.address)).eq(BN.from(0));
+      expect(await votingLockup.totalSupply()).eq(0n);
+      expect(await votingLockup.balanceOf(alice.address)).eq(0n);
+      expect(await votingLockup.balanceOf(bob.address)).eq(0n);
 
-      await increaseTime(ONE_HOUR);
-      await advanceBlock();
+      await time.increaseTo(await getTimestampBN() + ONE_HOUR);
+      await ethers.provider.send('evm_mine', []);
 
       /**
        * BEGIN PERIOD 2
@@ -725,94 +683,94 @@ describe("VotingEscrow Math test", () => {
 
       await votingLockup
         .connect(alice)
-        .createLock(amount, (await getTimestamp()).add(ONE_WEEK.mul(2)));
+        .createLock(await getTimestampBN() + ONE_WEEK * 2n, { value: amount });
       stages["alice_deposit_2"] = [
-        BN.from((await latestBlock()).number),
-        await getTimestamp(),
+        await latestBlockBN(),
+        await getTimestampBN(),
       ];
 
       assertBNClosePercent(
         await votingLockup.totalSupply(),
-        amount.div(MAXTIME).mul(2).mul(ONE_WEEK),
+        amount / MAXTIME * 2n * ONE_WEEK,
         tolerance
       );
       assertBNClosePercent(
         await votingLockup.balanceOf(alice.address),
-        amount.div(MAXTIME).mul(2).mul(ONE_WEEK),
+        amount / MAXTIME * 2n * ONE_WEEK,
         tolerance
       );
-      expect(await votingLockup.balanceOf(bob.address)).eq(BN.from(0));
+      expect(await votingLockup.balanceOf(bob.address)).eq(0n);
 
       await votingLockup
         .connect(bob)
-        .createLock(amount, (await getTimestamp()).add(ONE_WEEK.add(1)));
+        .createLock(await getTimestampBN() + ONE_WEEK + 1n, { value: amount });
       stages["bob_deposit_2"] = [
-        BN.from((await latestBlock()).number),
-        await getTimestamp(),
+        await latestBlockBN(),
+        await getTimestampBN(),
       ];
 
       assertBNClosePercent(
         await votingLockup.totalSupply(),
-        amount.div(MAXTIME).mul(3).mul(ONE_WEEK),
+        amount / MAXTIME * 3n * ONE_WEEK,
         tolerance
       );
       assertBNClosePercent(
         await votingLockup.balanceOf(alice.address),
-        amount.div(MAXTIME).mul(2).mul(ONE_WEEK),
+        amount / MAXTIME * 2n * ONE_WEEK,
         tolerance
       );
       assertBNClosePercent(
         await votingLockup.balanceOf(bob.address),
-        amount.div(MAXTIME).mul(ONE_WEEK),
+        amount / MAXTIME * ONE_WEEK,
         tolerance
       );
 
-      t0 = await getTimestamp();
-      await increaseTime(ONE_HOUR);
-      await advanceBlock();
+      t0 = await getTimestampBN();
+      await time.increaseTo(await getTimestampBN() + ONE_HOUR);
+      await ethers.provider.send('evm_mine', []);
 
-      let w_alice = BN.from(0);
-      let w_total = BN.from(0);
-      let w_bob = BN.from(0);
+      let w_alice = 0n;
+      let w_total = 0n;
+      let w_bob = 0n;
 
       stages["alice_bob_in_2"] = [];
       // Beginning of week: weight 3
       // End of week: weight 1
       for (let i = 0; i < 7; i += 1) {
         for (let j = 0; j < 24; j += 1) {
-          await increaseTime(ONE_HOUR);
-          await advanceBlock();
+          await time.increaseTo(await getTimestampBN() + ONE_HOUR);
+          await ethers.provider.send('evm_mine', []);
         }
-        dt = (await getTimestamp()).sub(t0);
-        const b = BN.from((await latestBlock()).number);
+        dt = await getTimestampBN() - t0;
+        const b = await latestBlockBN();
         w_total = await votingLockup.totalSupplyAt(b);
         w_alice = await votingLockup.balanceOfAt(alice.address, b);
         w_bob = await votingLockup.balanceOfAt(bob.address, b);
-        expect(w_total).eq(w_alice.add(w_bob));
+        expect(w_total).eq(w_alice + w_bob);
         assertBNClosePercent(
           w_alice,
-          amount.div(MAXTIME).mul(maximum(ONE_WEEK.mul(2).sub(dt), BN.from(0))),
+          amount / MAXTIME * maximum(ONE_WEEK * 2n - dt, 0n),
           tolerance
         );
         assertBNClosePercent(
           w_bob,
-          amount.div(MAXTIME).mul(maximum(ONE_WEEK.sub(dt), BN.from(0))),
+          amount / MAXTIME * maximum(ONE_WEEK - dt, 0n),
           tolerance
         );
         stages["alice_bob_in_2"].push([
-          BN.from((await latestBlock()).number),
-          await getTimestamp(),
+          await latestBlockBN(),
+          await getTimestampBN(),
         ]);
       }
 
-      await increaseTime(ONE_HOUR);
-      await advanceBlock();
+      await time.increaseTo(await getTimestampBN() + ONE_HOUR);
+      await ethers.provider.send('evm_mine', []);
 
       await votingLockup.connect(bob).withdraw();
-      t0 = await getTimestamp();
+      t0 = await getTimestampBN();
       stages["bob_withdraw_1"] = [
-        BN.from((await latestBlock()).number),
-        await getTimestamp(),
+        await latestBlockBN(),
+        await getTimestampBN(),
       ];
       w_total = await votingLockup.totalSupply();
       w_alice = await votingLockup.balanceOf(alice.address);
@@ -820,60 +778,56 @@ describe("VotingEscrow Math test", () => {
 
       assertBNClosePercent(
         w_total,
-        amount.div(MAXTIME).mul(ONE_WEEK.sub(ONE_HOUR.mul(2))),
+        amount / MAXTIME * (ONE_WEEK - ONE_HOUR * 2n),
         tolerance
       );
-      expect(await votingLockup.balanceOf(bob.address)).eq(BN.from(0));
+      expect(await votingLockup.balanceOf(bob.address)).eq(0n);
 
-      await increaseTime(ONE_HOUR);
-      await advanceBlock();
+      await time.increaseTo(await getTimestampBN() + ONE_HOUR);
+      await ethers.provider.send('evm_mine', []);
 
       stages["alice_in_2"] = [];
       for (let i = 0; i < 7; i += 1) {
         for (let j = 0; j < 24; j += 1) {
-          await increaseTime(ONE_HOUR);
-          await advanceBlock();
+          await time.increaseTo(await getTimestampBN() + ONE_HOUR);
+          await ethers.provider.send('evm_mine', []);
         }
-        dt = (await getTimestamp()).sub(t0);
+        dt = await getTimestampBN() - t0;
         w_total = await votingLockup.totalSupply();
         w_alice = await votingLockup.balanceOf(alice.address);
         expect(w_total).eq(w_alice);
         assertBNClosePercent(
           w_total,
-          amount
-            .div(MAXTIME)
-            .mul(
-              maximum(
-                ONE_WEEK.sub(dt).sub(ONE_HOUR.mul(37).div(DEFAULT_DECIMALS)),
-                BN.from(0)
-              )
-            ),
+          amount / MAXTIME * maximum(
+            ONE_WEEK - dt - ONE_HOUR * 37n / BigInt(DEFAULT_DECIMALS),
+            0n
+          ),
           isCoverage ? "1" : "0.04"
         );
-        expect(await votingLockup.balanceOf(bob.address)).eq(BN.from(0));
+        expect(await votingLockup.balanceOf(bob.address)).eq(0n);
         stages["alice_in_2"].push([
-          BN.from((await latestBlock()).number),
-          await getTimestamp(),
+          await latestBlockBN(),
+          await getTimestampBN(),
         ]);
       }
 
       await votingLockup.connect(alice).withdraw();
       stages["alice_withdraw_2"] = [
-        BN.from((await latestBlock()).number),
-        await getTimestamp(),
+        await latestBlockBN(),
+        await getTimestampBN(),
       ];
 
-      await increaseTime(ONE_HOUR);
-      await advanceBlock();
+      await time.increaseTo(await getTimestampBN() + ONE_HOUR);
+      await ethers.provider.send('evm_mine', []);
 
       stages["bob_withdraw_2"] = [
-        BN.from((await latestBlock()).number),
-        await getTimestamp(),
+        await latestBlockBN(),
+        await getTimestampBN(),
       ];
 
-      expect(await votingLockup.totalSupply()).eq(BN.from(0));
-      expect(await votingLockup.balanceOf(alice.address)).eq(BN.from(0));
-      expect(await votingLockup.balanceOf(bob.address)).eq(BN.from(0));
+      expect(await votingLockup.totalSupply()).eq(0n);
+      expect(await votingLockup.balanceOf(alice.address)).eq(0n);
+      expect(await votingLockup.balanceOf(bob.address)).eq(0n);
 
       /**
        * END OF INTERACTION
@@ -884,15 +838,15 @@ describe("VotingEscrow Math test", () => {
           alice.address,
           stages["before_deposits"][0]
         )
-      ).eq(BN.from(0));
+      ).eq(0n);
       expect(
         await votingLockup.balanceOfAt(
           bob.address,
           stages["before_deposits"][0]
         )
-      ).eq(BN.from(0));
+      ).eq(0n);
       expect(await votingLockup.totalSupplyAt(stages["before_deposits"][0])).eq(
-        BN.from(0)
+        0n
       );
 
       w_alice = await votingLockup.balanceOfAt(
@@ -901,29 +855,27 @@ describe("VotingEscrow Math test", () => {
       );
       assertBNClosePercent(
         w_alice,
-        amount.div(MAXTIME).mul(ONE_WEEK.sub(ONE_HOUR)),
+        amount / MAXTIME * (ONE_WEEK - ONE_HOUR),
         tolerance
       );
       expect(
         await votingLockup.balanceOfAt(bob.address, stages["alice_deposit"][0])
-      ).eq(BN.from(0));
+      ).eq(0n);
       w_total = await votingLockup.totalSupplyAt(stages["alice_deposit"][0]);
       expect(w_alice).eq(w_total);
 
-      for (let i = 0; i < stages["alice_in_0"].length; i += 1) {
-        const [block] = stages["alice_in_0"][i];
+      for (let i = 0n; i < BigInt(stages["alice_in_0"].length); i += 1n) {
+        const [block] = stages["alice_in_0"][Number(i)];
         w_alice = await votingLockup.balanceOfAt(alice.address, block);
         w_bob = await votingLockup.balanceOfAt(bob.address, block);
         w_total = await votingLockup.totalSupplyAt(block);
-        expect(w_bob).eq(BN.from(0));
+        expect(w_bob).eq(0n);
         expect(w_alice).eq(w_total);
-        const time_left = ONE_WEEK.mul(7 - i)
-          .div(7)
-          .sub(ONE_HOUR.mul(2));
-        const error_1h = (ONE_HOUR.toNumber() * 100) / time_left.toNumber(); // Rounding error of 1 block is possible, and we have 1h blocks
+        const time_left = ONE_WEEK * (7n - i) / 7n - ONE_HOUR * 2n;
+        const error_1h = (ONE_HOUR * 100n) / time_left; // Rounding error of 1 block is possible, and we have 1h blocks
         assertBNClosePercent(
           w_alice,
-          amount.div(MAXTIME).mul(time_left),
+          amount / MAXTIME * time_left,
           error_1h.toString()
         );
       }
@@ -937,9 +889,9 @@ describe("VotingEscrow Math test", () => {
         bob.address,
         stages["alice_withdraw"][0]
       );
-      expect(w_total).eq(BN.from(0));
-      expect(w_alice).eq(BN.from(0));
-      expect(w_bob).eq(BN.from(0));
+      expect(w_total).eq(0n);
+      expect(w_alice).eq(0n);
+      expect(w_bob).eq(0n);
 
       w_total = await votingLockup.totalSupplyAt(stages["alice_deposit_2"][0]);
       w_alice = await votingLockup.balanceOfAt(
@@ -952,11 +904,11 @@ describe("VotingEscrow Math test", () => {
       );
       assertBNClosePercent(
         w_total,
-        amount.div(MAXTIME).mul(2).mul(ONE_WEEK),
+        amount / MAXTIME * 2n * ONE_WEEK,
         tolerance
       );
       expect(w_total).eq(w_alice);
-      expect(w_bob).eq(BN.from(0));
+      expect(w_bob).eq(0n);
 
       w_total = await votingLockup.totalSupplyAt(stages["bob_deposit_2"][0]);
       w_alice = await votingLockup.balanceOfAt(
@@ -967,38 +919,38 @@ describe("VotingEscrow Math test", () => {
         bob.address,
         stages["bob_deposit_2"][0]
       );
-      expect(w_total).eq(w_alice.add(w_bob));
+      expect(w_total).eq(w_alice + w_bob);
       assertBNClosePercent(
         w_total,
-        amount.div(MAXTIME).mul(3).mul(ONE_WEEK),
+        amount / MAXTIME * 3n * ONE_WEEK,
         tolerance
       );
       assertBNClosePercent(
         w_alice,
-        amount.div(MAXTIME).mul(2).mul(ONE_WEEK),
+        amount / MAXTIME * 2n * ONE_WEEK,
         tolerance
       );
 
-      let error_1h = 0;
+      let error_1h = 0n;
       [, t0] = stages["bob_deposit_2"];
-      for (let i = 0; i < stages["alice_bob_in_2"].length; i += 1) {
-        const [block, ts] = stages["alice_bob_in_2"][i];
+      for (let i = 0n; i < BigInt(stages["alice_bob_in_2"].length); i += 1n) {
+        const [block, ts] = stages["alice_bob_in_2"][Number(i)];
         w_alice = await votingLockup.balanceOfAt(alice.address, block);
         w_bob = await votingLockup.balanceOfAt(bob.address, block);
         w_total = await votingLockup.totalSupplyAt(block);
-        expect(w_total).eq(w_alice.add(w_bob));
-        dt = ts.sub(t0);
+        expect(w_total).eq(w_alice + w_bob);
+        dt = ts - t0;
         error_1h =
-          (ONE_HOUR.toNumber() * 100) /
-          (2 * ONE_WEEK.toNumber() - i - ONE_DAY.toNumber());
+          (ONE_HOUR * 100n) /
+          (2n * ONE_WEEK - i - ONE_DAY);
         assertBNClosePercent(
           w_alice,
-          amount.div(MAXTIME).mul(maximum(ONE_WEEK.mul(2).sub(dt), BN.from(0))),
+          amount / MAXTIME * maximum(ONE_WEEK * 2n - dt, 0n),
           error_1h.toString()
         );
         assertBNClosePercent(
           w_bob,
-          amount.div(MAXTIME).mul(maximum(ONE_WEEK.sub(dt), BN.from(0))),
+          amount / MAXTIME * maximum(ONE_WEEK - dt, 0n),
           error_1h.toString()
         );
       }
@@ -1014,27 +966,25 @@ describe("VotingEscrow Math test", () => {
       expect(w_total).eq(w_alice);
       assertBNClosePercent(
         w_total,
-        amount.div(MAXTIME).mul(ONE_WEEK.sub(ONE_HOUR.mul(2))),
+        amount / MAXTIME * (ONE_WEEK - ONE_HOUR * 2n),
         tolerance
       );
-      expect(w_bob).eq(BN.from(0));
+      expect(w_bob).eq(0n);
       [, t0] = stages["bob_withdraw_1"];
-      for (let i = 0; i < stages["alice_in_2"].length; i += 1) {
-        const [block, ts] = stages["alice_in_2"][i];
+      for (let i = 0n; i < BigInt(stages["alice_in_2"].length); i += 1n) {
+        const [block, ts] = stages["alice_in_2"][Number(i)];
         w_alice = await votingLockup.balanceOfAt(alice.address, block);
         w_bob = await votingLockup.balanceOfAt(bob.address, block);
         w_total = await votingLockup.totalSupplyAt(block);
         expect(w_total).eq(w_alice);
-        expect(w_bob).eq(BN.from(0));
-        dt = ts.sub(t0);
+        expect(w_bob).eq(0n);
+        dt = ts - t0;
         error_1h =
-          (ONE_HOUR.toNumber() * 100) /
-          (ONE_WEEK.toNumber() - i * ONE_DAY.toNumber() + ONE_DAY.toNumber());
+          (ONE_HOUR * 100n) /
+          (ONE_WEEK - i * ONE_DAY + ONE_DAY);
         assertBNClosePercent(
           w_total,
-          amount
-            .div(MAXTIME)
-            .mul(maximum(ONE_WEEK.sub(dt).sub(ONE_HOUR.mul(2)), BN.from(0))),
+          amount / MAXTIME * maximum(ONE_WEEK - dt - ONE_HOUR * 2n, 0n),
           error_1h.toString()
         );
       }
@@ -1047,9 +997,9 @@ describe("VotingEscrow Math test", () => {
         bob.address,
         stages["bob_withdraw_2"][0]
       );
-      expect(w_total).eq(BN.from(0));
-      expect(w_alice).eq(BN.from(0));
-      expect(w_bob).eq(BN.from(0));
+      expect(w_total).eq(0n);
+      expect(w_alice).eq(0n);
+      expect(w_bob).eq(0n);
     });
   });
 });

@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 pragma solidity ^0.8.28;
 
-import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
+import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import {Ownable2StepUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol';
-import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
 import {IVotingEscrow} from './interfaces/IVotingEscrow.sol';
 
 /// @title  Delegated Voting Escrow
@@ -22,16 +20,12 @@ import {IVotingEscrow} from './interfaces/IVotingEscrow.sol';
 /// (see https://github.com/curvefi/curve-dao-contracts/blob/master/contracts/VotingEscrow.vy)
 /// and mStable's Solidity translation thereof
 /// (see https://github.com/mstable/mStable-contracts/blob/master/contracts/governance/IncentivisedVotingLockup.sol)
-/// Usage of this contract is not safe with all tokens, specifically:
-/// - Contract does not support tokens with maxSupply>2^128-10^[decimals]
-/// - Contract does not support fee-on-transfer tokens
-/// - Contract may be unsafe for tokens with decimals<6
+/// Usage of this contract is for native gas token (GNET/ETH) only.
 contract VotingEscrow is
     IVotingEscrow,
     Ownable2StepUpgradeable,
     ReentrancyGuardUpgradeable
 {
-    using SafeERC20 for IERC20;
     // Shared Events
     event Deposit(
         address indexed provider,
@@ -52,12 +46,11 @@ contract VotingEscrow is
     event Unlock();
 
     // Shared global state
-    IERC20 public token;
     uint256 public constant WEEK = 7 days;
     uint256 public constant MAXTIME = 730 days;
     uint256 public constant MULTIPLIER = 1e18;
     address public penaltyRecipient; // receives collected penalty payments
-    uint256 public maxPenalty = 1e18; // penalty for quitters with MAXTIME remaining lock
+    uint256 public maxPenalty; // penalty for quitters with MAXTIME remaining lock
     uint256 public penaltyAccumulated; // accumulated and unwithdrawn penalty payments
     uint256 public supply;
 
@@ -108,30 +101,27 @@ contract VotingEscrow is
     /// @notice Initializes state
     /// @param _owner Is assumed to be a timelock contract
     /// @param _penaltyRecipient The recipient of penalty paid by lock quitters
-    /// @param _token The token locked in order to obtain voting power
     /// @param _name The name of the voting token
     /// @param _symbol The symbol of the voting token
     function initialize(
         address _owner,
         address _penaltyRecipient,
-        address _token,
         string memory _name,
         string memory _symbol
     ) public initializer {
-        token = IERC20(_token);
         pointHistory[0] = Point({
             bias: int128(0),
             slope: int128(0),
             ts: block.timestamp,
             blk: block.number
         });
-
-        decimals = IERC20Metadata(_token).decimals();
-        require(decimals <= 18, 'Exceeds max decimals');
-
         name = _name;
         symbol = _symbol;
         penaltyRecipient = _penaltyRecipient;
+
+        // set initial values
+        maxPenalty = 1e18;
+        decimals = 18;
 
         __ReentrancyGuard_init();
         __Ownable_init(_owner);
@@ -380,16 +370,16 @@ contract VotingEscrow is
     }
 
     /// @notice Creates a new lock
-    /// @param _value Amount of token to lock
     /// @param _unlockTime Expiration time of the lock
-    /// @dev `_value` is (unsafely) downcasted from `uint256` to `int128`
+    /// @dev The amount to lock is provided via `msg.value`
+    /// `msg.value` is (unsafely) downcasted from `uint256` to `int128`
     /// and `_unlockTime` is (unsafely) downcasted from `uint256` to `uint96`
     /// assuming that the values never reach the respective max values
     function createLock(
-        uint256 _value,
         uint256 _unlockTime
-    ) external override nonReentrant {
+    ) external payable override nonReentrant {
         uint256 unlock_time = _floorToWeek(_unlockTime); // Locktime is rounded down to weeks
+        uint256 _value = msg.value;
         LockedBalance memory locked_ = locked[msg.sender];
         // Validate inputs
         require(_value != 0, 'Only non zero amount');
@@ -409,8 +399,6 @@ contract VotingEscrow is
         locked_.delegatee = msg.sender;
         locked[msg.sender] = locked_;
         _checkpoint(msg.sender, LockedBalance(0, 0, 0, address(0)), locked_);
-        // Deposit locked tokens
-        token.safeTransferFrom(msg.sender, address(this), _value);
         emit Deposit(
             msg.sender,
             _value,
@@ -421,12 +409,13 @@ contract VotingEscrow is
     }
 
     /// @notice Locks more tokens in an existing lock
-    /// @param _value Amount of tokens to add to the lock
-    /// @dev Does not update the lock's expiration
+    /// @dev The amount to add is provided via `msg.value`
+    /// Does not update the lock's expiration
     /// Does record a new checkpoint for the lock
-    /// `_value` is (unsafely) downcasted from `uint256` to `int128` assuming
+    /// `msg.value` is (unsafely) downcasted from `uint256` to `int128` assuming
     /// that the max value is never reached in practice
-    function increaseAmount(uint256 _value) external override nonReentrant {
+    function increaseAmount() external payable override nonReentrant {
+        uint256 _value = msg.value;
         LockedBalance memory locked_ = locked[msg.sender];
         // Validate inputs
         require(_value != 0, 'Only non zero amount');
@@ -470,8 +459,7 @@ contract VotingEscrow is
         }
         // Checkpoint only for delegatee
         _checkpoint(delegatee, locked_, newLocked);
-        // Deposit locked tokens
-        token.safeTransferFrom(msg.sender, address(this), _value);
+        // Native tokens are already received via msg.value
         emit Deposit(msg.sender, _value, unlockTime, action, block.timestamp);
     }
 
@@ -534,7 +522,7 @@ contract VotingEscrow is
         // Both can have >= 0 amount
         _checkpoint(msg.sender, locked_, newLocked);
         // Send back deposited tokens
-        token.safeTransfer(msg.sender, value);
+        payable(msg.sender).transfer(value);
         emit Withdraw(msg.sender, value, LockAction.WITHDRAW, block.timestamp);
     }
 
@@ -660,7 +648,7 @@ contract VotingEscrow is
         penaltyAccumulated = penaltyAccumulated + penaltyAmount;
         uint256 remainingAmount = value - penaltyAmount;
         // Send back remaining tokens
-        token.safeTransfer(msg.sender, remainingAmount);
+        payable(msg.sender).transfer(remainingAmount);
         emit Withdraw(msg.sender, value, LockAction.QUIT, block.timestamp);
     }
 
@@ -689,7 +677,7 @@ contract VotingEscrow is
         uint256 amount = penaltyAccumulated;
         penaltyAccumulated = 0;
         address recipient = penaltyRecipient;
-        token.safeTransfer(recipient, amount);
+        payable(recipient).transfer(amount);
         emit CollectPenalty(amount, recipient);
     }
 

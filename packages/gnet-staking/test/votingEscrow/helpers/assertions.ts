@@ -1,128 +1,140 @@
 //import { MassetMachine, MassetDetails } from "./machines"
-import { assert, expect } from "chai";
-import { BN, simpleToExactAmount } from "./math";
-import { fullScale } from "./constants";
+import { assert, expect } from 'chai';
+import { BN, simpleToExactAmount } from './math';
+import { fullScale } from './constants';
+
+// Helper to convert various types to bigint
+const toBN = (value: BN | string | number | bigint): bigint => {
+  if (typeof value === 'bigint') return value;
+  if (typeof value === 'number') return BigInt(value);
+  if (typeof value === 'string') return BigInt(value);
+  return value; // already BN (bigint)
+};
 
 /**
- *  Convenience method to assert that two BN.js instances are within 100 units of each other.
- *  @param actual The BN.js instance you received
- *  @param expected The BN.js amount you expected to receive, allowing a varience of +/- 10 units
+ *  Convenience method to assert that two BN instances are within variance units of each other.
+ *  @param actual The BN instance you received
+ *  @param expected The BN amount you expected to receive, allowing a variance of +/- variance units
  */
 export const assertBNClose = (
-  actual: BN | string,
-  expected: BN,
-  variance: BN | number = BN.from(10),
-  reason?: string
+  actual: BN | string | number,
+  expected: BN | string | number,
+  variance: BN | number = 10n,
+  reason?: string,
 ): void => {
-  const actualBN = BN.from(actual);
-  const actualDelta = actualBN.gt(expected)
-    ? actualBN.sub(expected)
-    : expected.sub(actualBN);
+  const actualBN = toBN(actual);
+  const expectedBN = toBN(expected);
+  const varianceBN = toBN(variance);
+  const actualDelta =
+    actualBN > expectedBN ? actualBN - expectedBN : expectedBN - actualBN;
 
   const str = reason
-    ? `\n\tReason: ${reason}\n\t${actualBN.toString()} vs ${expected.toString()}`
-    : "";
+    ? `\n\tReason: ${reason}\n\t${actualBN.toString()} vs ${expectedBN.toString()}`
+    : '';
   assert.ok(
-    actualBN.gte(expected.sub(variance)),
-    `Number is too small to be close (Delta between actual and expected is ${actualDelta.toString()}, but variance was only ${variance.toString()}${str}`
+    actualBN >= expectedBN - varianceBN,
+    `Number is too small to be close (Delta between actual and expected is ${actualDelta.toString()}, but variance was only ${varianceBN.toString()}${str}`,
   );
   assert.ok(
-    actualBN.lte(expected.add(variance)),
-    `Number is too large to be close (Delta between actual and expected is ${actualDelta.toString()}, but variance was only ${variance.toString()})${str}`
+    actualBN <= expectedBN + varianceBN,
+    `Number is too large to be close (Delta between actual and expected is ${actualDelta.toString()}, but variance was only ${varianceBN.toString()})${str}`,
   );
 };
 
 /**
- *  Convenience method to assert that two BN.js instances are within 100 units of each other.
- *  @param actual The BN.js instance you received
- *  @param expected The BN.js amount you expected to receive, allowing a varience of +/- 10 units
+ *  Convenience method to assert that two BN instances are within a percentage variance of each other.
+ *  @param a The first BN instance
+ *  @param b The second BN instance
+ *  @param variance The allowed variance as a string or number (e.g., "0.02" for 2%)
  */
 export const assertBNClosePercent = (
   a: BN,
   b: BN,
-  variance: string | number = "0.02",
-  reason?: string
+  variance: string | number = '0.02',
+  reason?: string,
 ): void => {
-  if (a.eq(b)) return;
-  const varianceBN = simpleToExactAmount(variance.toString().substr(0, 6), 16);
-  const diff = a.sub(b).abs().mul(2).mul(fullScale).div(a.add(b));
+  if (a === b) return;
+  const varianceBN = simpleToExactAmount(
+    variance.toString().substring(0, 6),
+    16,
+  );
+  const diff = ((a > b ? a - b : b - a) * 2n * fullScale) / (a + b);
   const str = reason
     ? `\n\tReason: ${reason}\n\t${a.toString()} vs ${b.toString()}`
-    : "";
+    : '';
   assert.ok(
-    diff.lte(varianceBN),
-    `Numbers exceed ${variance}% diff (Delta between a and b is ${diff.toString()}%, but variance was only ${varianceBN.toString()})${str}`
+    diff <= varianceBN,
+    `Numbers exceed ${variance}% diff (Delta between a and b is ${diff.toString()}%, but variance was only ${varianceBN.toString()})${str}`,
   );
 };
 
 /**
- *  Convenience method to assert that one BN.js instance is GTE the other
- *  @param actual The BN.js instance you received
- *  @param expected The operant to compare against
+ *  Convenience method to assert that one BN instance is GTE the other
+ *  @param actual The BN instance you received
+ *  @param comparison The operand to compare against
  */
 export const assertBnGte = (actual: BN, comparison: BN): void => {
   assert.ok(
-    actual.gte(comparison),
-    `Number must be GTE comparitor, got: ${actual.toString()}; comparitor: ${comparison.toString()}`
+    actual >= comparison,
+    `Number must be GTE comparitor, got: ${actual.toString()}; comparitor: ${comparison.toString()}`,
   );
 };
 
 /**
- *  Convenience method to assert that one BN.js number is eq to, or greater than an expected value by some small amount
- *  @param actual The BN.js instance you received
- *  @param equator The BN.js to equate to
+ *  Convenience method to assert that one BN number is eq to, or greater than an expected value by some small amount
+ *  @param actual The BN instance you received
+ *  @param equator The BN to equate to
  *  @param maxActualShouldExceedExpected Upper limit for the growth
  *  @param mustBeGreater Fail if the operands are equal
  */
 export const assertBNSlightlyGT = (
   actual: BN,
   equator: BN,
-  maxActualShouldExceedExpected = BN.from(100),
+  maxActualShouldExceedExpected: BN | number = 100n,
   mustBeGreater = false,
-  reason?: string
+  reason?: string,
 ): void => {
-  const actualDelta = actual.gt(equator)
-    ? actual.sub(equator)
-    : equator.sub(actual);
+  const maxBN = toBN(maxActualShouldExceedExpected);
+  const actualDelta = actual > equator ? actual - equator : equator - actual;
 
   const str = reason
     ? `\n\t${reason}\n\t${actual.toString()} vs ${equator.toString()}`
-    : "";
+    : '';
 
   assert.ok(
-    mustBeGreater ? actual.gt(equator) : actual.gte(equator),
-    `Actual value should be greater than the expected value ${str}`
+    mustBeGreater ? actual > equator : actual >= equator,
+    `Actual value should be greater than the expected value ${str}`,
   );
   assert.ok(
-    actual.lte(equator.add(maxActualShouldExceedExpected)),
-    `Actual value should not exceed ${maxActualShouldExceedExpected.toString()} units greater than expected. Variance was ${actualDelta.toString()} ${str}`
+    actual <= equator + maxBN,
+    `Actual value should not exceed ${maxBN.toString()} units greater than expected. Variance was ${actualDelta.toString()} ${str}`,
   );
 };
 
 /**
- *  Convenience method to assert that one BN.js number is eq to, or greater than an expected value by some small amount
- *  @param actual The BN.js instance you received
- *  @param equator The BN.js to equate to
- *  @param maxActualShouldExceedExpected Percentage amount of increase, as a string (1% = 1)
+ *  Convenience method to assert that one BN number is eq to, or greater than an expected value by some small amount
+ *  @param actual The BN instance you received
+ *  @param equator The BN to equate to
+ *  @param maxPercentIncrease Percentage amount of increase, as a string (1% = 1)
  *  @param mustBeGreater Fail if the operands are equal
  */
 export const assertBNSlightlyGTPercent = (
   actual: BN,
   equator: BN,
-  maxPercentIncrease = "0.1",
-  mustBeGreater = false
+  maxPercentIncrease = '0.1',
+  mustBeGreater = false,
 ): void => {
   const maxIncreaseBN = simpleToExactAmount(maxPercentIncrease, 16);
-  const maxIncreaseUnits = equator.mul(maxIncreaseBN).div(fullScale);
+  const maxIncreaseUnits = (equator * maxIncreaseBN) / fullScale;
   // const actualDelta = actual.gt(equator) ? actual.sub(equator) : equator.sub(actual);
 
   assert.ok(
-    mustBeGreater ? actual.gt(equator) : actual.gte(equator),
-    `Actual value should be greater than the expected value`
+    mustBeGreater ? actual > equator : actual >= equator,
+    `Actual value should be greater than the expected value`,
   );
   assert.ok(
-    actual.lte(equator.add(maxIncreaseUnits)),
-    `Actual value should not exceed ${maxPercentIncrease}% greater than expected`
+    actual <= equator + maxIncreaseUnits,
+    `Actual value should not exceed ${maxPercentIncrease}% greater than expected`,
   );
 };
 

@@ -1,56 +1,43 @@
 /* eslint-disable @typescript-eslint/dot-notation */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable @typescript-eslint/naming-convention */
-import { network, ethers } from "hardhat";
-import { expect } from "chai";
-import { assertBNClose, assertBNClosePercent } from "./helpers/assertions";
-//import { MassetMachine, StandardAccounts } from "./utils/machines"
-import {
-  advanceBlock,
-  increaseTime,
-  increaseTimeTo,
-  getTimestamp,
-  latestBlock,
-} from "./helpers/time2";
-import { BN, simpleToExactAmount, maximum, sqrt } from "./helpers/math";
+import { network, ethers, ignition } from 'hardhat';
+import { expect } from 'chai';
+import { time, loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers';
+import { assertBNClose, assertBNClosePercent } from './helpers/assertions';
+import { BN, simpleToExactAmount, maximum, sqrt } from './helpers/math';
 import {
   ONE_WEEK,
   ONE_HOUR,
   ONE_DAY,
   ONE_YEAR,
   DEFAULT_DECIMALS,
-} from "./helpers/constants";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { createSnapshot, restoreSnapshot } from "./helpers/snapshots";
-//import { ethers, waffle, network } from "hardhat";
-import { MockERC20, VotingEscrow } from "../../typechain";
-import { BigNumber, BigNumberish } from "ethers";
-import { getBlock } from "./helpers/time";
-import { MockProvider } from "ethereum-waffle";
+} from './helpers/constants';
+import type { VotingEscrow } from '../../typechain-types/contracts/VotingEscrow';
+import votingEscrowModule from '../../ignition/modules/VotingEscrow.m';
 
 let votingLockup: VotingEscrow;
-let admin: SignerWithAddress;
-let defaultUser: SignerWithAddress;
-let other: SignerWithAddress;
-let fundManager: SignerWithAddress;
-let accounts: SignerWithAddress[];
-let alice: SignerWithAddress;
-let bob: SignerWithAddress;
-let charlie: SignerWithAddress;
-let david: SignerWithAddress;
-let eve: SignerWithAddress;
-let treasury: SignerWithAddress;
-//let nexus: Nexus
-let govMock: MockERC20;
+let admin: any;
+let defaultUser: any;
+let other: any;
+let fundManager: any;
+let accounts: any[];
+let alice: any;
+let bob: any;
+let charlie: any;
+let david: any;
+let eve: any;
+let treasury: any;
+
 async function latestBlockBN() {
-  return (await ethers.provider.getBlock("latest")).number;
+  return BigInt((await ethers.provider.getBlock('latest'))!.number);
 }
 async function getTimestampBN() {
-  return (await ethers.provider.getBlock("latest")).timestamp;
+  return BigInt((await ethers.provider.getBlock('latest'))!.timestamp);
 }
 
-describe("VotingEscrow Delegation Math test", () => {
-  before("Init contract", async () => {
+describe('VotingEscrow Delegation Math test', () => {
+  before('Init contract', async () => {
     accounts = await ethers.getSigners();
 
     [
@@ -68,60 +55,42 @@ describe("VotingEscrow Delegation Math test", () => {
   });
 
   const goToNextUnixWeekStart = async () => {
-    const unixWeekCount = (await getTimestamp()).div(ONE_WEEK);
-    const nextUnixWeek = unixWeekCount.add(1).mul(ONE_WEEK);
-    await increaseTimeTo(nextUnixWeek);
+    const currentTimestamp = BigInt(await getTimestampBN());
+    const unixWeekCount = currentTimestamp / ONE_WEEK;
+    const nextUnixWeek = (unixWeekCount + 1n) * ONE_WEEK;
+    await time.increaseTo(nextUnixWeek);
   };
 
-  const deployFresh = async (initialRewardFunding = BN.from(0)) => {
-    //  nexus = await new Nexus__factory(defaultUser).deploy(sa.governor.address)
-    const govMockDeployer = await ethers.getContractFactory("MockERC20", admin);
+  const deployFresh = async (initialRewardFunding = 0n) => {
+    const { votingEscrow } = await ignition.deploy(votingEscrowModule, {
+      parameters: {
+        VotingEscrowModule: {
+          owner: admin.address,
+          penaltyRecipient: treasury.address,
+          name: 'veToken',
+          symbol: 'veToken',
+        },
+        TimelockControllerModule: {
+          minDelay: 0,
+        },
+      },
+    });
 
-    govMock = await govMockDeployer.deploy("FiatDAO", "Token", admin.address);
-    // mta = await new MintableToken__factory(defaultUser).deploy(nexus.address, sa.fundManager.address)
-    await govMock.mint(
+    votingLockup = votingEscrow as unknown as VotingEscrow;
+
+    // Fund accounts with native tokens
+    await ethers.provider.send('hardhat_setBalance', [
       fundManager.address,
-      ethers.utils.parseEther("1000000000000")
-    );
-
-    await govMock
-      .connect(fundManager)
-      .transfer(
-        defaultUser.address,
-        simpleToExactAmount(1000, DEFAULT_DECIMALS)
-      );
-    await govMock
-      .connect(fundManager)
-      .transfer(other.address, simpleToExactAmount(1000, DEFAULT_DECIMALS));
-
-    const votingEscrowDeployer = await ethers.getContractFactory(
-      "VotingEscrow",
-      admin
-    );
-    votingLockup = await votingEscrowDeployer.deploy(
-      admin.address,
-      treasury.address,
-      govMock.address,
-      "veToken",
-      "veToken"
-    );
-
-    await govMock.approve(
-      votingLockup.address,
-      simpleToExactAmount(100, DEFAULT_DECIMALS)
-    );
-    await govMock
-      .connect(other)
-      .approve(
-        votingLockup.address,
-        simpleToExactAmount(100, DEFAULT_DECIMALS)
-      );
-    await govMock
-      .connect(fundManager)
-      .approve(
-        votingLockup.address,
-        simpleToExactAmount(10000, DEFAULT_DECIMALS)
-      );
+      '0x' + ethers.parseEther('1000000000000').toString(16),
+    ]);
+    await ethers.provider.send('hardhat_setBalance', [
+      defaultUser.address,
+      '0x' + simpleToExactAmount(1000, DEFAULT_DECIMALS).toString(16),
+    ]);
+    await ethers.provider.send('hardhat_setBalance', [
+      other.address,
+      '0x' + simpleToExactAmount(1000, DEFAULT_DECIMALS).toString(16),
+    ]);
   };
 
   interface LockedBalance {
@@ -176,9 +145,9 @@ describe("VotingEscrow Delegation Math test", () => {
         ts: lastPoint[2],
         blk: lastPoint[3],
       },
-      senderStakingTokenBalance: await govMock.balanceOf(sender.address),
-      contractStakingTokenBalance: await govMock.balanceOf(
-        votingLockup.address
+      senderStakingTokenBalance: await ethers.provider.getBalance(sender.address),
+      contractStakingTokenBalance: await ethers.provider.getBalance(
+        await votingLockup.getAddress()
       ),
       votingPower: await votingLockup.balanceOf(sender.address),
     };
@@ -187,46 +156,37 @@ describe("VotingEscrow Delegation Math test", () => {
   describe("performing delegation flow", () => {
     const stakeAmt1 = simpleToExactAmount(10, DEFAULT_DECIMALS);
     const stakeAmt2 = simpleToExactAmount(1000, DEFAULT_DECIMALS);
-    let start: BigNumber;
-    let maxTime: BigNumber;
+    let start: bigint;
+    let maxTime: bigint;
     before(async () => {
       await goToNextUnixWeekStart();
-      start = await getTimestamp();
+      start = await getTimestampBN();
       await deployFresh(simpleToExactAmount(100, DEFAULT_DECIMALS));
       maxTime = await votingLockup.MAXTIME();
-      await govMock
-        .connect(fundManager)
-        .transfer(alice.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(fundManager)
-        .transfer(bob.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(fundManager)
-        .transfer(charlie.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(fundManager)
-        .transfer(david.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(fundManager)
-        .transfer(eve.address, simpleToExactAmount(1, 22));
-      await govMock
-        .connect(alice)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
-      await govMock
-        .connect(bob)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
-      await govMock
-        .connect(charlie)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
-      await govMock
-        .connect(david)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
-      await govMock
-        .connect(eve)
-        .approve(votingLockup.address, simpleToExactAmount(100, 21));
+      // Fund accounts with native tokens
+      await ethers.provider.send('hardhat_setBalance', [
+        alice.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        bob.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        charlie.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        david.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
+      await ethers.provider.send('hardhat_setBalance', [
+        eve.address,
+        '0x' + simpleToExactAmount(1, 22).toString(16),
+      ]);
     });
 
-    const calcBias = (amount: BN, len: BN): BN => amount.div(maxTime).mul(len);
+    const calcBias = (amount: BN, len: BN): BN => amount / maxTime * len;
 
     describe("creating a lockup", () => {
       it("Alice, Bob and Charlie create initial locks", async () => {
@@ -235,13 +195,13 @@ describe("VotingEscrow Delegation Math test", () => {
 
         await votingLockup
           .connect(alice)
-          .createLock(stakeAmt1, start.add(ONE_YEAR));
+          .createLock(start + ONE_YEAR, { value: stakeAmt1 });
         await votingLockup
           .connect(bob)
-          .createLock(stakeAmt2, start.add(ONE_WEEK.mul(26)));
+          .createLock(start + ONE_WEEK * 26n, { value: stakeAmt2 });
         await votingLockup
           .connect(charlie)
-          .createLock(stakeAmt1, start.add(ONE_WEEK.mul(26)));
+          .createLock(start + ONE_WEEK * 26n, { value: stakeAmt1 });
 
         const aliceData = await snapshotData(alice);
         const bobData = await snapshotData(bob);
@@ -250,8 +210,8 @@ describe("VotingEscrow Delegation Math test", () => {
         // Total supply is the sum of their voting power
         expect(await votingLockup.totalSupply()).to.equal(
           aliceData.votingPower
-            .add(bobData.votingPower)
-            .add(charlieData.votingPower)
+          + bobData.votingPower
+          + charlieData.votingPower
         );
 
         // Bias
@@ -262,12 +222,12 @@ describe("VotingEscrow Delegation Math test", () => {
         );
         assertBNClosePercent(
           bobData.userLastPoint.bias,
-          calcBias(stakeAmt2, ONE_WEEK.mul(26)),
+          calcBias(stakeAmt2, ONE_WEEK * 26n),
           "0.4"
         );
         assertBNClosePercent(
           charlieData.userLastPoint.bias,
-          calcBias(stakeAmt1, ONE_WEEK.mul(26)),
+          calcBias(stakeAmt1, ONE_WEEK * 26n),
           "0.4"
         );
       });
@@ -306,14 +266,14 @@ describe("VotingEscrow Delegation Math test", () => {
 
           // Alice's voting power is her one plus twice the original charlie vp (passed from 6 month to 1 year)
           assertBNClosePercent(
-            charlieVP.mul(2).add(aliceVP),
+            charlieVP * 2n + aliceVP,
             await votingLockup.balanceOf(alice.address),
             "0.4"
           );
 
           // Total supply also increased
           assertBNClosePercent(
-            charlieVP.mul(2).add(bobVP).add(aliceVP),
+            charlieVP * 2n + bobVP + aliceVP,
             await votingLockup.totalSupply(),
             "0.4"
           );
@@ -330,7 +290,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const aliceData = await snapshotData(alice);
           assertBNClosePercent(
             aliceData.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_YEAR),
+            calcBias(stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
 
@@ -342,7 +302,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const aliceDataAfter = await snapshotData(alice);
           assertBNClosePercent(
             aliceDataAfter.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_YEAR),
+            calcBias(stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
         });
@@ -368,7 +328,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const aliceData = await snapshotData(alice);
           assertBNClosePercent(
             aliceData.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_YEAR),
+            calcBias(stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
 
@@ -380,13 +340,13 @@ describe("VotingEscrow Delegation Math test", () => {
             )
           ).to.equal(0);
 
-          await votingLockup.connect(charlie).increaseAmount(stakeAmt1);
+          await votingLockup.connect(charlie).increaseAmount({ value: stakeAmt1 });
 
           // Alice has more voting power
           const aliceDataAfter = await snapshotData(alice);
           assertBNClosePercent(
             aliceDataAfter.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(3), ONE_YEAR),
+            calcBias(stakeAmt1 * 3n, ONE_YEAR),
             "0.4"
           );
 
@@ -402,7 +362,7 @@ describe("VotingEscrow Delegation Math test", () => {
         it("Charlie extends his lock, then undelegate", async () => {
           await votingLockup
             .connect(charlie)
-            .increaseUnlockTime((await getTimestamp()).add(ONE_YEAR));
+            .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
 
           // Charlie's power is still ZERO
           expect(
@@ -429,7 +389,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const charlieData = await snapshotData(charlie);
           assertBNClosePercent(
             charlieData.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_YEAR),
+            calcBias(stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
         });
@@ -466,7 +426,7 @@ describe("VotingEscrow Delegation Math test", () => {
 
           await votingLockup
             .connect(charlie)
-            .increaseUnlockTime((await getTimestamp()).add(ONE_YEAR));
+            .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
 
           expect(await votingLockup.lockEnd(charlie.address)).gt(lockEndBfore);
         });
@@ -481,7 +441,7 @@ describe("VotingEscrow Delegation Math test", () => {
         /*it("Alice increase her lock equal to Charlie's one, but yet Charlie cannot delegate", async () => {
           await votingLockup
             .connect(alice)
-            .increaseUnlockTime((await getTimestamp()).add(ONE_YEAR));
+            .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
 
           await expect(
             votingLockup.connect(charlie).delegate(alice.address)
@@ -494,7 +454,7 @@ describe("VotingEscrow Delegation Math test", () => {
 
           await votingLockup
             .connect(alice)
-            .increaseUnlockTime((await getTimestamp()).add(ONE_YEAR));
+            .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
 
           // Alice has only her voting power
           // const aliceData = await snapshotData(alice);
@@ -518,7 +478,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const aliceDataAfter = await snapshotData(alice);
           assertBNClosePercent(
             aliceDataAfter.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(3), ONE_YEAR),
+            calcBias(stakeAmt1 * 3n, ONE_YEAR),
             "0.4"
           );
         });
@@ -544,7 +504,7 @@ describe("VotingEscrow Delegation Math test", () => {
           // Bob's set his unlock time 1 WEEK longer than Alice's.
           await votingLockup
             .connect(bob)
-            .increaseUnlockTime((await getTimestamp()).add(ONE_YEAR));
+            .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
 
           // Bob has voting power
           const bobData = await snapshotData(bob);
@@ -568,7 +528,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const bobDataAfter = await snapshotData(bob);
           assertBNClosePercent(
             bobDataAfter.userLastPoint.bias,
-            calcBias(stakeAmt2.add(stakeAmt1.mul(2)), ONE_YEAR),
+            calcBias(stakeAmt2 + stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
 
@@ -576,7 +536,7 @@ describe("VotingEscrow Delegation Math test", () => {
           // TODO: check this
           await votingLockup
             .connect(alice)
-            .increaseUnlockTime((await getTimestamp()).add(ONE_YEAR));
+            .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
           // Alice only has her voting power
           const aliceDataAfter = await snapshotData(alice);
           assertBNClosePercent(
@@ -591,10 +551,10 @@ describe("VotingEscrow Delegation Math test", () => {
         it("David and Eve creates locks", async () => {
           await votingLockup
             .connect(david)
-            .createLock(stakeAmt1, (await getTimestamp()).add(ONE_YEAR));
+            .createLock(await getTimestampBN() + ONE_YEAR, { value: stakeAmt1 });
           await votingLockup
             .connect(eve)
-            .createLock(stakeAmt1, (await getTimestamp()).add(ONE_WEEK));
+            .createLock(await getTimestampBN() + ONE_WEEK, { value: stakeAmt1 });
 
           const davidData = await snapshotData(david);
           const eveData = await snapshotData(eve);
@@ -630,7 +590,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const davidDataAfter = await snapshotData(david);
           assertBNClosePercent(
             davidDataAfter.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_YEAR),
+            calcBias(stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
 
@@ -671,14 +631,14 @@ describe("VotingEscrow Delegation Math test", () => {
           const davidData = await snapshotData(david);
           assertBNClosePercent(
             davidData.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_YEAR),
+            calcBias(stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
 
           // Alice updates her lock longer
           await votingLockup
             .connect(alice)
-            .increaseUnlockTime((await getTimestamp()).add(ONE_YEAR));
+            .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
 
           // David can now delegate to Alice
           await votingLockup.connect(david).delegate(alice.address);
@@ -686,7 +646,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const aliceDataAfter = await snapshotData(alice);
           assertBNClosePercent(
             aliceDataAfter.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_YEAR),
+            calcBias(stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
 
@@ -702,13 +662,13 @@ describe("VotingEscrow Delegation Math test", () => {
           // David updates lock time
           await votingLockup
             .connect(david)
-            .increaseUnlockTime((await getTimestamp()).add(ONE_YEAR));
+            .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
 
           // Alice has her and David's vp
           const aliceData = await snapshotData(alice);
           assertBNClosePercent(
             aliceData.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_YEAR),
+            calcBias(stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
           // Eve's lock expired
@@ -724,14 +684,14 @@ describe("VotingEscrow Delegation Math test", () => {
           const aliceData = await snapshotData(alice);
           assertBNClosePercent(
             aliceData.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_YEAR),
+            calcBias(stakeAmt1 * 2n, ONE_YEAR),
             "0.4"
           );
 
           // Alice's updates her lock time
           await votingLockup
             .connect(alice)
-            .increaseUnlockTime((await getTimestamp()).add(ONE_YEAR));
+            .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
 
           // Eve lock expired, she will inherit David's one when undelegating
           await votingLockup.connect(eve).delegate(eve.address);
@@ -742,7 +702,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const aliceDataAfter = await snapshotData(alice);
           assertBNClosePercent(
             aliceDataAfter.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(3), ONE_YEAR),
+            calcBias(stakeAmt1 * 3n, ONE_YEAR),
             "0.4"
           );
 
@@ -755,22 +715,22 @@ describe("VotingEscrow Delegation Math test", () => {
 
       describe("Delegation and withdrawals", () => {
         it("David's (delegator) and Alice's (delegatee) lock have ended", async () => {
-          await increaseTimeTo((await getTimestamp()).add(ONE_YEAR));
+          await time.increase(ONE_YEAR);
 
           const aliceLockEnd = (await snapshotData(alice)).userLocked.end;
 
-          expect(await getTimestamp()).gt(aliceLockEnd);
+          expect(await getTimestampBN()).gt(aliceLockEnd);
 
           const davidLockEnd = (await snapshotData(david)).userLocked.end;
 
-          expect(await getTimestamp()).gt(davidLockEnd);
+          expect(await getTimestampBN()).gt(davidLockEnd);
         });
 
         it("David fails to increases lock beyond timestamp and fails to withdraw", async () => {
           await expect(
             votingLockup
               .connect(david)
-              .increaseUnlockTime((await getTimestamp()).add(ONE_WEEK))
+              .increaseUnlockTime(await getTimestampBN() + ONE_WEEK)
           ).to.be.revertedWith("Lock expired");
 
           // David tries to withdraw
@@ -784,20 +744,20 @@ describe("VotingEscrow Delegation Math test", () => {
           await goToNextUnixWeekStart();
 
           // David withdraws
-          const davidBalBefore = await govMock.balanceOf(david.address);
+          const davidBalBefore = await ethers.provider.getBalance(david.address);
           await votingLockup.connect(david).delegate(david.address);
           await votingLockup.connect(david).withdraw();
 
           // David got back his tokens
-          expect(await govMock.balanceOf(david.address)).to.equal(
-            stakeAmt1.add(davidBalBefore)
+          expect(await ethers.provider.getBalance(david.address)).to.be.gte(
+            stakeAmt1 + davidBalBefore
           );
 
           // Alice's cannot update her lock time because it expired
           await expect(
             votingLockup
               .connect(alice)
-              .increaseUnlockTime((await getTimestamp()).add(ONE_WEEK.mul(10)))
+              .increaseUnlockTime(await getTimestampBN() + ONE_WEEK * 10n)
           ).to.be.revertedWith("Lock expired");
 
           // Eve cannot withdraw, has to undelegate first
@@ -821,15 +781,15 @@ describe("VotingEscrow Delegation Math test", () => {
           await votingLockup
             .connect(alice)
             .createLock(
-              stakeAmt1,
-              (await getTimestamp()).add(ONE_WEEK.mul(26))
+              await getTimestampBN() + ONE_WEEK * 26n,
+              { value: stakeAmt1 }
             );
 
           await votingLockup
             .connect(david)
             .createLock(
-              stakeAmt1,
-              (await getTimestamp()).add(ONE_WEEK.mul(25))
+              await getTimestampBN() + ONE_WEEK * 25n,
+              { value: stakeAmt1 }
             );
 
           // Set tolerance to 0.6%
@@ -838,14 +798,14 @@ describe("VotingEscrow Delegation Math test", () => {
           const aliceData = await snapshotData(alice);
           assertBNClosePercent(
             aliceData.userLastPoint.bias,
-            calcBias(stakeAmt1.mul(2), ONE_WEEK.mul(26)),
+            calcBias(stakeAmt1 * 2n, ONE_WEEK * 26n),
             "0.6"
           );
 
           const davidData = await snapshotData(david);
           assertBNClosePercent(
             davidData.userLastPoint.bias,
-            calcBias(stakeAmt1, ONE_WEEK.mul(25)),
+            calcBias(stakeAmt1, ONE_WEEK * 25n),
             "0.6"
           );
         });
@@ -859,7 +819,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const aliceData = await snapshotData(alice);
           assertBNClosePercent(
             aliceData.userLastPoint.bias,
-            calcBias(stakeAmt1, ONE_WEEK.mul(26)),
+            calcBias(stakeAmt1, ONE_WEEK * 26n),
             "0.6"
           );
 
@@ -867,7 +827,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const eveData = await snapshotData(eve);
           assertBNClosePercent(
             eveData.userLastPoint.bias,
-            calcBias(stakeAmt1, ONE_WEEK.mul(26)),
+            calcBias(stakeAmt1, ONE_WEEK * 26n),
             "0.6"
           );
 
@@ -876,15 +836,15 @@ describe("VotingEscrow Delegation Math test", () => {
         });
 
         it("Eve's withdraw after her lock expiration", async () => {
-          await increaseTimeTo((await getTimestamp()).add(ONE_YEAR));
+          await time.increase(ONE_YEAR);
 
-          const eveBalBefore = await govMock.balanceOf(eve.address);
+          const eveBalBefore = await ethers.provider.getBalance(eve.address);
 
           await votingLockup.connect(eve).withdraw();
 
           // Eve got back his tokens
-          expect(await govMock.balanceOf(eve.address)).to.equal(
-            stakeAmt1.add(eveBalBefore)
+          expect(await ethers.provider.getBalance(eve.address)).to.be.gte(
+            stakeAmt1 + eveBalBefore
           );
         });
 
@@ -893,12 +853,12 @@ describe("VotingEscrow Delegation Math test", () => {
           await expect(
             votingLockup
               .connect(david)
-              .increaseUnlockTime((await getTimestamp()).add(ONE_WEEK))
+              .increaseUnlockTime(await getTimestampBN() + ONE_WEEK)
           ).to.be.revertedWith("Lock expired");
 
-          await increaseTime(ONE_WEEK);
+          await time.increase(ONE_WEEK);
 
-          const davidBalBefore = await govMock.balanceOf(david.address);
+          const davidBalBefore = await ethers.provider.getBalance(david.address);
 
           await expect(
             votingLockup.connect(david).withdraw()
@@ -908,8 +868,8 @@ describe("VotingEscrow Delegation Math test", () => {
           await votingLockup.connect(david).withdraw();
 
           // david got back his tokens
-          expect(await govMock.balanceOf(david.address)).to.equal(
-            stakeAmt1.add(davidBalBefore)
+          expect(await ethers.provider.getBalance(david.address)).to.be.gte(
+            stakeAmt1 + davidBalBefore
           );
         });
 
@@ -917,20 +877,20 @@ describe("VotingEscrow Delegation Math test", () => {
           // ALL LOCKS HAVE EXPIRED AT THIS POINT, TOTAL SUPPLY (TOTAL VOTING POWER)
           expect(await votingLockup.totalSupply()).to.equal(0);
 
-          const aliceBalBefore = await govMock.balanceOf(alice.address);
+          const aliceBalBefore = await ethers.provider.getBalance(alice.address);
 
           await votingLockup.connect(alice).withdraw();
 
           // alice got back his tokens
-          expect(await govMock.balanceOf(alice.address)).to.equal(
-            stakeAmt1.add(aliceBalBefore)
+          expect(await ethers.provider.getBalance(alice.address)).to.be.gte(
+            stakeAmt1 + aliceBalBefore
           );
 
           // Other users also withdraws, all their lock expired
           await expect(
             votingLockup
               .connect(charlie)
-              .increaseUnlockTime((await getTimestamp()).add(ONE_WEEK))
+              .increaseUnlockTime(await getTimestampBN() + ONE_WEEK)
           ).to.be.revertedWith("Lock expired");
 
           await votingLockup.connect(charlie).delegate(charlie.address);
@@ -960,7 +920,7 @@ describe("VotingEscrow Delegation Math test", () => {
 
       describe("Delegation and quitLocks", () => {
         it("Alice, Bob and Charlie create initial locks", async () => {
-          start = await getTimestamp();
+          start = await getTimestampBN();
           let checkReset;
           checkReset = await snapshotData(alice);
           expect(checkReset.userLastPoint.bias).to.equal(0);
@@ -974,16 +934,16 @@ describe("VotingEscrow Delegation Math test", () => {
 
           await votingLockup
             .connect(alice)
-            .createLock(stakeAmt1, start.add(ONE_YEAR));
+            .createLock(start + ONE_YEAR, { value: stakeAmt1 });
           await votingLockup
             .connect(bob)
-            .createLock(stakeAmt2, start.add(ONE_WEEK.mul(26)));
+            .createLock(start + ONE_WEEK * 26n, { value: stakeAmt2 });
           await votingLockup
             .connect(charlie)
-            .createLock(stakeAmt1, start.add(ONE_WEEK.mul(26)));
+            .createLock(start + ONE_WEEK * 26n, { value: stakeAmt1 });
           await votingLockup
             .connect(eve)
-            .createLock(stakeAmt1, start.add(ONE_WEEK.mul(26)));
+            .createLock(start + ONE_WEEK * 26n, { value: stakeAmt1 });
 
           const aliceData = await snapshotData(alice);
           const bobData = await snapshotData(bob);
@@ -998,12 +958,12 @@ describe("VotingEscrow Delegation Math test", () => {
           );
           assertBNClosePercent(
             bobData.userLastPoint.bias,
-            calcBias(stakeAmt2, ONE_WEEK.mul(26)),
+            calcBias(stakeAmt2, ONE_WEEK * 26n),
             "1.2"
           );
           assertBNClosePercent(
             charlieData.userLastPoint.bias,
-            calcBias(stakeAmt1, ONE_WEEK.mul(26)),
+            calcBias(stakeAmt1, ONE_WEEK * 26n),
             "1.2"
           );
         });
@@ -1021,25 +981,25 @@ describe("VotingEscrow Delegation Math test", () => {
 
           // Charlies now has inherited Alice's lock (from 6 month to 1 year)
           assertBNClosePercent(
-            charliePowerBefore.mul(2).add(alicePowerBefore),
+            charliePowerBefore * 2n + alicePowerBefore,
             await votingLockup.balanceOf(alice.address),
             "0.4"
           );
         });
 
         it("Alice quitlocks, Charlie's delegation is also no more accounting for voting power", async () => {
-          const aliceBalBefore = await govMock.balanceOf(alice.address);
+          const aliceBalBefore = await ethers.provider.getBalance(alice.address);
 
           expect(await votingLockup.balanceOf(alice.address)).to.above(0);
           expect(await votingLockup.lockEnd(alice.address)).gt(
-            await getTimestamp()
+            await getTimestampBN()
           );
 
           await votingLockup.connect(eve).delegate(alice.address);
           await votingLockup.connect(alice).quitLock();
 
           // alice got back his tokens after penalty
-          expect(await govMock.balanceOf(alice.address)).gt(aliceBalBefore);
+          expect(await ethers.provider.getBalance(alice.address)).gt(aliceBalBefore);
 
           // Alice exited the ve contracts so her personal power is zero, yet still has a locked end > block.timestamp
           // also Charlie's delegation voting power is gone
@@ -1055,8 +1015,8 @@ describe("VotingEscrow Delegation Math test", () => {
             votingLockup
               .connect(alice)
               .createLock(
-                stakeAmt1,
-                (await getTimestamp()).add(ONE_WEEK.mul(26))
+                await getTimestampBN() + ONE_WEEK * 26n,
+                { value: stakeAmt1 }
               )
           ).to.be.revertedWith("Only increase lock end");
         });
@@ -1079,7 +1039,7 @@ describe("VotingEscrow Delegation Math test", () => {
           const alicePowerBefore = await votingLockup.balanceOf(alice.address);
           // Charlie cannot increase amount
           await expect(
-            votingLockup.connect(charlie).increaseAmount(stakeAmt1)
+            votingLockup.connect(charlie).increaseAmount({ value: stakeAmt1 })
           ).to.be.revertedWith("Delegatee has no lock");
 
           assertBNClosePercent(
@@ -1107,13 +1067,13 @@ describe("VotingEscrow Delegation Math test", () => {
         });
 
         it("After their lock end, Alice can now re-create a lock, Bob and Charlie withdraw and re-create too", async () => {
-          await increaseTime(ONE_YEAR);
+          await time.increase(ONE_YEAR);
           // Bob and Charlie locked expired
           expect(await votingLockup.lockEnd(charlie.address)).lt(
-            await getTimestamp()
+            await getTimestampBN()
           );
           expect(await votingLockup.lockEnd(bob.address)).lt(
-            await getTimestamp()
+            await getTimestampBN()
           );
           await votingLockup.connect(charlie).withdraw();
           await votingLockup.connect(bob).withdraw();
@@ -1127,18 +1087,18 @@ describe("VotingEscrow Delegation Math test", () => {
           expect(await votingLockup.totalSupply()).to.equal(0);
           await votingLockup
             .connect(alice)
-            .createLock(stakeAmt1, (await getTimestamp()).add(ONE_YEAR));
+            .createLock(await getTimestampBN() + ONE_YEAR, { value: stakeAmt1 });
           await votingLockup
             .connect(bob)
             .createLock(
-              stakeAmt1,
-              (await getTimestamp()).add(ONE_WEEK.mul(26))
+              await getTimestampBN() + ONE_WEEK * 26n,
+              { value: stakeAmt1 }
             );
           await votingLockup
             .connect(charlie)
             .createLock(
-              stakeAmt1,
-              (await getTimestamp()).add(ONE_WEEK.mul(26))
+              await getTimestampBN() + ONE_WEEK * 26n,
+              { value: stakeAmt1 }
             );
         });
         it("Bob and Charlie delegate to Alice, then their lock ends, cannot quitLock", async () => {
@@ -1158,15 +1118,15 @@ describe("VotingEscrow Delegation Math test", () => {
 
           // Bob and Charlie delegated to Alice, their voting power doubled because they passed from 6 month lock to 1 year
           assertBNClosePercent(
-            bobVP.add(charlieVP).mul(2).add(aliceVP),
+            bobVP + charlieVP * 2n + aliceVP,
             await votingLockup.balanceOf(alice.address),
             "0.6"
           );
 
-          await increaseTime(ONE_YEAR.add(ONE_WEEK));
+          await time.increase(ONE_YEAR + ONE_WEEK);
 
           expect(await votingLockup.lockEnd(alice.address)).lt(
-            await getTimestamp()
+            await getTimestampBN()
           );
 
           await expect(

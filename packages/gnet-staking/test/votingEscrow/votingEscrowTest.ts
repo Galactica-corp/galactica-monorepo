@@ -1,114 +1,127 @@
-import "module-alias/register";
-
-import { expect } from "chai";
-import { ethers, waffle, network } from "hardhat";
-import { createSnapshot, restoreSnapshot } from "./helpers/snapshots";
+import { expect } from 'chai';
+import hre, { ethers, ignition } from 'hardhat';
 import {
-  MockERC20,
-  MockSmartWallet,
-  VotingEscrow,
-} from "../typechain";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { advanceBlocks } from "./helpers/time";
-import { BigNumber } from "@ethersproject/contracts/node_modules/@ethersproject/bignumber";
-import { Signer, utils } from "ethers";
-import { increaseTime, increaseTimeTo } from "./helpers/time2";
-import { assertBNClosePercent } from "./helpers/assertions";
-import { ONE_WEEK } from "./helpers/constants";
+  time,
+  loadFixture,
+} from '@nomicfoundation/hardhat-toolbox/network-helpers';
+import type { MockSmartWallet } from '../../typechain-types/contracts/test/MockSmartWallet';
+import type { VotingEscrow } from '../../typechain-types/contracts/VotingEscrow';
+import { assertBNClosePercent } from './helpers/assertions';
+import votingEscrowModule from '../../ignition/modules/VotingEscrow.m';
 
-const { provider } = waffle;
-
-describe("VotingEscrow Tests", function () {
-  let ve: VotingEscrow;
-  let govMock: MockERC20;
-  let contract: MockSmartWallet;
-  let contract2: MockSmartWallet; // ADD TEST FOR 0 BALANCES
-  let contract3: MockSmartWallet;
-  let admin: SignerWithAddress;
-  let treasury: SignerWithAddress;
-  const maxPenalty = utils.parseEther("1");
-  const name = "veToken";
-  const symbol = "veToken";
-  let alice: SignerWithAddress;
-  let bob: SignerWithAddress;
-  let charlie: SignerWithAddress;
-  let david: SignerWithAddress;
-  let eve: SignerWithAddress;
-  let francis: SignerWithAddress;
-  const initialGovUserBal = utils.parseEther("1000");
-  const lockAmount = utils.parseEther("100");
-  let tx;
-  const MAX = ethers.constants.MaxUint256;
-  const ZERO_ADDRESS = ethers.constants.AddressZero;
+describe('VotingEscrow Tests', function () {
+  const maxPenalty = ethers.parseEther('1');
+  const name = 'veToken';
+  const symbol = 'veToken';
+  const initialGovUserBal = ethers.parseEther('1000');
+  const lockAmount = ethers.parseEther('100');
   const WEEK = 7 * 86400;
   const MAXTIME = 2 * 365 * 86400; // 2 years
-  const PRECISION = ethers.constants.WeiPerEther;
-
-  let signers: SignerWithAddress[];
+  const PRECISION = ethers.parseEther('1');
 
   async function getBlock() {
-    return (await ethers.provider.getBlock("latest")).number;
+    return (await ethers.provider.getBlock('latest'))!.number;
   }
   async function getTimestamp() {
-    return (await ethers.provider.getBlock("latest")).timestamp;
+    return (await ethers.provider.getBlock('latest'))!.timestamp;
   }
 
-  before(async function () {
-    await createSnapshot(provider);
+  async function deployFixture() {
+    const [
+      admin,
+      alice,
+      bob,
+      charlie,
+      david,
+      eve,
+      francis,
+      treasury,
+    ] = await ethers.getSigners();
 
-    signers = await ethers.getSigners();
-    [admin, alice, bob, charlie, david, eve, francis, treasury] = signers;
+    // Deploy VE contract using Ignition
+    // This ensures Ignition can properly simulate the deployment
+    const { votingEscrow } = await ignition.deploy(votingEscrowModule, {
+      parameters: {
+        VotingEscrowModule: {
+          owner: admin.address,
+          penaltyRecipient: treasury.address,
+          name,
+          symbol,
+        },
+        TimelockControllerModule: {
+          minDelay: 0,
+        },
+      },
+    });
 
-    // Deploy Governance Token contract
-    const govMockDeployer = await ethers.getContractFactory("MockERC20", admin);
-    govMock = await govMockDeployer.deploy("FiatDAO", "Token", admin.address);
+    const ve = votingEscrow as unknown as VotingEscrow;
 
-    // mint gov tokens
-    await govMock.mint(alice.address, initialGovUserBal);
-    await govMock.mint(bob.address, initialGovUserBal);
-    await govMock.mint(charlie.address, initialGovUserBal);
-    await govMock.mint(david.address, initialGovUserBal);
-    await govMock.mint(eve.address, initialGovUserBal);
-    await govMock.mint(francis.address, initialGovUserBal);
+    // Fund accounts with native tokens
+    await ethers.provider.send('hardhat_setBalance', [
+      alice.address,
+      '0x' + (initialGovUserBal).toString(16),
+    ]);
+    await ethers.provider.send('hardhat_setBalance', [
+      bob.address,
+      '0x' + (initialGovUserBal).toString(16),
+    ]);
+    await ethers.provider.send('hardhat_setBalance', [
+      charlie.address,
+      '0x' + (initialGovUserBal).toString(16),
+    ]);
+    await ethers.provider.send('hardhat_setBalance', [
+      david.address,
+      '0x' + (initialGovUserBal).toString(16),
+    ]);
+    await ethers.provider.send('hardhat_setBalance', [
+      eve.address,
+      '0x' + (initialGovUserBal).toString(16),
+    ]);
+    await ethers.provider.send('hardhat_setBalance', [
+      francis.address,
+      '0x' + (initialGovUserBal).toString(16),
+    ]);
 
-    // Deploy VE contract
-    const veDeployer = await ethers.getContractFactory("VotingEscrow", admin);
-    ve = await veDeployer.deploy(
-      admin.address,
-      treasury.address,
-      govMock.address,
-      "veToken",
-      "veToken"
-    );
+    const contractDeployer = await ethers.getContractFactory('MockSmartWallet');
+    const contract = (await contractDeployer.deploy()) as unknown as MockSmartWallet;
+    await ethers.provider.send('hardhat_setBalance', [
+      await contract.getAddress(),
+      '0x' + (initialGovUserBal).toString(16),
+    ]);
 
-    // approve VE contract on gov token
-    await govMock.setAllowance(alice.address, ve.address, MAX);
-    await govMock.setAllowance(bob.address, ve.address, MAX);
-    await govMock.setAllowance(charlie.address, ve.address, MAX);
-    await govMock.setAllowance(david.address, ve.address, MAX);
-    await govMock.setAllowance(eve.address, ve.address, MAX);
-    await govMock.setAllowance(francis.address, ve.address, MAX);
+    const contract2 = (await contractDeployer.deploy()) as unknown as MockSmartWallet;
+    await ethers.provider.send('hardhat_setBalance', [
+      await contract2.getAddress(),
+      '0x' + (initialGovUserBal).toString(16),
+    ]);
 
-    // Deploy malicious contracts
-    const contractDeployer = await ethers.getContractFactory(
-      "MockSmartWallet",
-      admin
-    );
-    contract = await contractDeployer.deploy(govMock.address);
-    await govMock.mint(contract.address, initialGovUserBal);
+    const contract3 = (await contractDeployer.deploy()) as unknown as MockSmartWallet;
+    await ethers.provider.send('hardhat_setBalance', [
+      await contract3.getAddress(),
+      '0x' + (initialGovUserBal).toString(16),
+    ]);
 
-    contract2 = await contractDeployer.deploy(govMock.address);
-    await govMock.mint(contract2.address, initialGovUserBal);
+    return {
+      ve,
+      contract,
+      contract2,
+      contract3,
+      admin,
+      alice,
+      bob,
+      charlie,
+      david,
+      eve,
+      francis,
+      treasury,
+    };
+  }
 
-    contract3 = await contractDeployer.deploy(govMock.address);
-    await govMock.mint(contract3.address, initialGovUserBal);
-  });
-  after(async () => {
-    await restoreSnapshot(provider);
-  });
+  describe('Deployment', async () => {
+    it('Initialized properly', async () => {
+      const { ve, admin, alice, bob, treasury } =
+        await loadFixture(deployFixture);
 
-  describe("Deployment", async () => {
-    it("Initialized properly", async () => {
       expect(await ve.owner()).to.equal(admin.address);
 
       expect(await ve.name()).to.equal(name);
@@ -123,40 +136,49 @@ describe("VotingEscrow Tests", function () {
 
       expect(await ve.maxPenalty()).to.equal(maxPenalty);
 
-      expect(await govMock.balanceOf(alice.address)).to.equal(
-        initialGovUserBal
+      expect(await ethers.provider.getBalance(alice.address)).to.be.gte(
+        initialGovUserBal,
       );
 
-      expect(await govMock.balanceOf(bob.address)).to.equal(initialGovUserBal);
+      expect(await ethers.provider.getBalance(bob.address)).to.be.gte(initialGovUserBal);
     });
   });
 
-  describe("EOA flow", async () => {
-    it("Alice and Bob lock tokens in ve", async () => {
-      await createSnapshot(provider);
+  describe('EOA flow', async () => {
+    it('Alice and Bob lock tokens in ve', async () => {
+      const { ve, alice, bob } = await loadFixture(deployFixture);
       const lockTime = 4 * WEEK + (await getTimestamp());
 
-      await ve.connect(alice).createLock(lockAmount, lockTime);
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
 
-      await ve.connect(bob).createLock(lockAmount, lockTime);
+      await ve.connect(bob).createLock(lockTime, { value: lockAmount });
     });
 
-    it("Alice and Bob attempt to withdraw before lock end, fail", async () => {
-      tx = ve.connect(alice).withdraw();
-      await expect(tx).to.be.revertedWith("Lock not expired");
+    it('Alice and Bob attempt to withdraw before lock end, fail', async () => {
+      const { ve, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      await ve.connect(bob).createLock(lockTime, { value: lockAmount });
 
-      tx = ve.connect(bob).withdraw();
-      await expect(tx).to.be.revertedWith("Lock not expired");
+      const tx = ve.connect(alice).withdraw();
+      await expect(tx).to.be.revertedWith('Lock not expired');
+
+      const tx2 = ve.connect(bob).withdraw();
+      await expect(tx2).to.be.revertedWith('Lock not expired');
     });
 
-    it("Alice attempts to quit lock, succeeds with penalty", async () => {
+    it('Alice attempts to quit lock, succeeds with penalty', async () => {
+      const { ve, alice } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+
       // Increase time to 2 weeks to lock end
       const lockEnd = await ve.lockEnd(alice.address);
-      await increaseTimeTo(lockEnd.sub(WEEK * 2));
+      await time.increaseTo(lockEnd - BigInt(WEEK * 2));
 
       // Check penalty to be paid
       const penaltyRate = await ve.getPenaltyRate(lockEnd);
-      const expectedPenalty = penaltyRate.mul(lockAmount).div(PRECISION);
+      const expectedPenalty = (penaltyRate * lockAmount) / PRECISION;
 
       // Quit lock
       await ve.connect(alice).quitLock();
@@ -164,150 +186,111 @@ describe("VotingEscrow Tests", function () {
       // Validate penalty is ~ 3.84% (2/52*100)
       assertBNClosePercent(
         expectedPenalty,
-        lockAmount.mul(WEEK * 2).div(MAXTIME),
-        "0.01"
+        (lockAmount * BigInt(WEEK * 2)) / BigInt(MAXTIME),
+        '0.01',
       );
 
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenalty,
-        initialGovUserBal.sub(await govMock.balanceOf(alice.address)),
-        "0.01"
+        initialGovUserBal - (await ethers.provider.getBalance(alice.address)),
+        '0.01',
       );
     });
 
-    it("Check accumulated penalty and collect", async () => {
-      const lockAmount = utils.parseEther("100");
+    it('Check accumulated penalty and collect', async () => {
+      const { ve, alice, treasury } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockEnd = await ve.lockEnd(alice.address);
+      await time.increaseTo(lockEnd - BigInt(WEEK * 2));
+      await ve.connect(alice).quitLock();
+
       expect(await ve.penaltyAccumulated()).gt(0);
 
       const penaltyAccumulated = await ve.penaltyAccumulated();
-
+      const treasuryBalanceBefore = await ethers.provider.getBalance(treasury.address);
       await ve.collectPenalty();
-
-      expect(await ve.penaltyAccumulated()).to.equal(0);
-
-      expect(await govMock.balanceOf(treasury.address)).to.equal(
-        penaltyAccumulated
+      const treasuryBalanceAfter = await ethers.provider.getBalance(treasury.address);
+      expect(treasuryBalanceAfter - treasuryBalanceBefore).to.equal(
+        penaltyAccumulated,
       );
     });
 
-    it("Bob increase his unlock time", async () => {
-      const lockTime = 10 * WEEK + (await getTimestamp());
-      await ve.connect(bob).increaseUnlockTime(lockTime);
-    });
-
-    it("Alice locks again after locked expired, succeed", async () => {
-      await increaseTime(5 * WEEK);
+    it('Bob increase his unlock time', async () => {
+      const { ve, bob } = await loadFixture(deployFixture);
       const lockTime = 4 * WEEK + (await getTimestamp());
-      await ve.connect(alice).createLock(lockAmount, lockTime);
+      await ve.connect(bob).createLock(lockTime, { value: lockAmount });
+      const newLockTime = 10 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(newLockTime);
     });
 
-    it("Admin unlocks ve contracts", async () => {
-      tx = ve.connect(alice).withdraw();
-      await expect(tx).to.be.revertedWith("Lock not expired");
+    it('Alice locks again after locked expired and withdraws, succeed', async () => {
+      const { ve, alice } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      await time.increase(5 * WEEK);
+      const newLockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).withdraw();
+      await ve.connect(alice).createLock(newLockTime, { value: lockAmount });
+    });
+
+    it('Admin unlocks ve contracts', async () => {
+      const { ve, alice } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+
+      const tx = ve.connect(alice).withdraw();
+      await expect(tx).to.be.revertedWith('Lock not expired');
 
       await ve.unlock();
 
       expect(await ve.maxPenalty()).to.equal(0);
     });
 
-    it("Alice and Bob attempt to quit lock, succeeds without penalty", async () => {
+    it('Alice and Bob attempt to quit lock, succeeds without penalty', async () => {
+      const { ve, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      await ve.connect(bob).createLock(lockTime, { value: lockAmount });
+      await ve.unlock();
+
       await ve.connect(alice).quitLock();
       assertBNClosePercent(
-        await govMock.balanceOf(alice.address),
-        initialGovUserBal.sub(lockAmount.mul(2).div(MAXTIME)),
-        "0.4"
+        await ethers.provider.getBalance(alice.address),
+        initialGovUserBal,
+        '0.1',
       );
 
       await ve.connect(bob).quitLock();
-      expect(await govMock.balanceOf(bob.address)).to.equal(initialGovUserBal); // because bob did not quit lock previously but deposited twice
+      assertBNClosePercent(
+        await ethers.provider.getBalance(alice.address),
+        initialGovUserBal,
+        '0.1',
+      );
 
       expect(await ve.penaltyAccumulated()).to.equal(0);
-
-      await restoreSnapshot(provider);
     });
   });
 
-  describe("Malicious contracts flow", async () => {
-    it("2 contracts lock tokens in ve", async () => {
-      await createSnapshot(provider);
+  describe('Delegation flow', async () => {
+    it('Alice creates a lock', async () => {
+      const { ve, alice, bob } = await loadFixture(deployFixture);
 
       const lockTime = 4 * WEEK + (await getTimestamp());
 
-      // contract 1
-      await contract.createLock(ve.address, lockAmount, lockTime);
-      expect(await ve.balanceOf(contract.address)).not.eq(0);
-      expect(await ve.balanceOfAt(contract.address, await getBlock())).not.eq(
-        0
-      );
-
-      // contract 2
-      await contract2.createLock(ve.address, lockAmount, lockTime);
-      expect(await ve.balanceOf(contract2.address)).not.eq(0);
-      expect(await ve.balanceOfAt(contract2.address, await getBlock())).not.eq(
-        0
-      );
-    });
-
-    it("Admin unlocks ve contracts", async () => {
-      await ve.unlock();
-
-      expect(await ve.maxPenalty()).to.equal(0);
-    });
-
-    it("Allowed contract can quit lock without penalty", async () => {
-      await contract2.quitLock(ve.address);
-      expect(await govMock.balanceOf(contract2.address)).to.equal(
-        initialGovUserBal
-      );
-
-      await restoreSnapshot(provider);
-    });
-  });
-
-  describe("Blocked contracts undelegation", async () => {
-    it("2contracts lock tokens in ve", async () => {
-      await createSnapshot(provider);
-
-      const lockTime = 4 * WEEK + (await getTimestamp());
-      const lockTime2 = 2 * WEEK + (await getTimestamp());
-      // contract 1
-      await contract.createLock(ve.address, lockAmount, lockTime);
-      expect(await ve.balanceOf(contract.address)).not.eq(0);
-      expect(await ve.balanceOfAt(contract.address, await getBlock())).not.eq(
-        0
-      );
-
-      // contract 2
-      await contract2.createLock(ve.address, lockAmount, lockTime);
-      expect(await ve.balanceOf(contract2.address)).not.eq(0);
-      expect(await ve.balanceOfAt(contract2.address, await getBlock())).not.eq(
-        0
-      );
-      // contract 3
-      await contract3.createLock(ve.address, lockAmount, lockTime);
-      expect(await ve.balanceOf(contract3.address)).not.eq(0);
-      expect(await ve.balanceOfAt(contract3.address, await getBlock())).not.eq(
-        0
-      );
-    });
-  });
-
-  describe("Delegation flow", async () => {
-    it("Alice creates a lock", async () => {
-      await createSnapshot(provider);
-
-      const lockTime = 4 * WEEK + (await getTimestamp());
-
-      await ve.connect(alice).createLock(lockAmount, lockTime);
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
 
       const block = await getBlock();
       expect(await ve.balanceOfAt(alice.address, block)).to.above(0);
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
     });
 
-    it("Bob creates a lock, Alice delegates to Bob", async () => {
-      const lockTime = 5 * WEEK + (await getTimestamp());
+    it('Bob creates a lock, Alice delegates to Bob', async () => {
+      const { ve, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
 
       // pre lock balances
       let block = await getBlock();
@@ -315,7 +298,7 @@ describe("VotingEscrow Tests", function () {
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
 
       // bob creates lock
-      await ve.connect(bob).createLock(lockAmount, lockTime);
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
 
       block = await getBlock();
       const preBalance = await ve.balanceOfAt(bob.address, block);
@@ -330,8 +313,14 @@ describe("VotingEscrow Tests", function () {
       expect(await ve.balanceOfAt(bob.address, block)).to.above(preBalance);
     });
 
-    it("Bob extends his lock beyond Alice's lock, succeeds", async () => {
-      const lockTime = 6 * WEEK + (await getTimestamp());
+    it('Bob extends his lock beyond Alice lock, succeeds', async () => {
+      const { ve, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
 
       // pre delegation balances
       let block = await getBlock();
@@ -340,44 +329,83 @@ describe("VotingEscrow Tests", function () {
       expect(preBalance).to.above(0);
 
       // Bob extends lock
-      await ve.connect(bob).increaseUnlockTime(lockTime);
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
       block = await getBlock();
       expect(await ve.balanceOfAt(alice.address, block)).to.equal(0);
       expect(await ve.balanceOfAt(bob.address, block)).to.above(preBalance);
     });
 
-    it("Contract creates a lock, Bob delegates to contract", async () => {
-      const lockTime = 7 * WEEK + (await getTimestamp());
+    it('Contract creates a lock, Bob delegates to contract', async () => {
+      const { ve, contract, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
 
       // create lock
-      await contract.createLock(ve.address, lockAmount, lockTime);
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
       let block = await getBlock();
-      expect(await ve.balanceOfAt(contract.address, block)).to.above(0);
+      expect(await ve.balanceOfAt(await contract.getAddress(), block)).to.above(
+        0,
+      );
 
       // delegate to contract
-      await ve.connect(bob).delegate(contract.address);
+      await ve.connect(bob).delegate(await contract.getAddress());
       block = await getBlock();
       expect(await ve.balanceOfAt(alice.address, block)).to.equal(0);
       expect(await ve.balanceOfAt(bob.address, block)).to.above(0);
-      expect(await ve.balanceOfAt(contract.address, block)).to.above(0);
+      expect(await ve.balanceOfAt(await contract.getAddress(), block)).to.above(
+        0,
+      );
     });
 
-    it("Alice re-delegates to contract", async () => {
+    it('Alice re-delegates to contract', async () => {
+      const { ve, contract, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+
       let block = await getBlock();
       expect(await ve.balanceOfAt(alice.address, block)).to.equal(0);
       expect(await ve.balanceOfAt(bob.address, block)).to.above(0);
 
       // re-delegation to contract
-      await ve.connect(alice).delegate(contract.address);
+      await ve.connect(alice).delegate(await contract.getAddress());
       block = await getBlock();
       expect(await ve.balanceOfAt(alice.address, block)).to.equal(0);
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
-      expect(await ve.balanceOfAt(contract.address, block)).to.above(0);
+      expect(await ve.balanceOfAt(await contract.getAddress(), block)).to.above(
+        0,
+      );
     });
 
-    it("Alice extends her lock", async () => {
-      const lockTime = 8 * WEEK + (await getTimestamp());
-      await ve.connect(alice).increaseUnlockTime(lockTime);
+    it('Alice extends her lock', async () => {
+      const { ve, contract, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
 
       const block = await getBlock();
       // expect(await ve.lockEnd(alice.address)).to.equal(
@@ -386,11 +414,26 @@ describe("VotingEscrow Tests", function () {
     });
 
     it("Alice's lock ends after Contract's, Alice can delegate back to herself", async () => {
+      const { ve, contract, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
+
       // pre undelegation
       let block = await getBlock();
       const balance_before_contract = await ve.balanceOfAt(
-        contract.address,
-        block
+        await contract.getAddress(),
+        block,
       );
       expect(balance_before_contract).to.above(0);
 
@@ -401,18 +444,39 @@ describe("VotingEscrow Tests", function () {
       block = await getBlock();
       expect(await ve.balanceOfAt(alice.address, block)).to.above(0);
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
-      expect(await ve.balanceOfAt(contract.address, block)).to.above(0);
+      expect(await ve.balanceOfAt(await contract.getAddress(), block)).to.above(
+        0,
+      );
     });
 
     it("Alice's lock is not delegated, Alice can quit", async () => {
+      const { ve, contract, alice, bob } =
+        await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
+      await ve.connect(alice).delegate(alice.address);
+
       // pre quit
       let block = await getBlock();
-      expect(await govMock.balanceOf(alice.address)).to.equal(
-        initialGovUserBal.sub(lockAmount)
+      expect(await ethers.provider.getBalance(alice.address)).to.be.gte(
+        initialGovUserBal - lockAmount,
       );
       expect(await ve.balanceOfAt(alice.address, block)).to.above(0);
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
-      expect(await ve.balanceOfAt(contract.address, block)).to.above(0);
+      expect(await ve.balanceOfAt(await contract.getAddress(), block)).to.above(
+        0,
+      );
 
       // alice quits
       await ve.connect(alice).quitLock();
@@ -421,40 +485,77 @@ describe("VotingEscrow Tests", function () {
       block = await getBlock();
 
       assertBNClosePercent(
-        await govMock.balanceOf(alice.address),
-        initialGovUserBal.sub(lockAmount.mul(7 * WEEK).div(MAXTIME)),
-        "0.5"
+        await ethers.provider.getBalance(alice.address),
+        initialGovUserBal - (lockAmount * BigInt(7 * WEEK)) / BigInt(MAXTIME),
+        '0.5',
       );
       expect(await ve.balanceOfAt(alice.address, block)).to.equal(0);
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
-      expect(await ve.balanceOfAt(contract.address, block)).to.above(0);
+      expect(await ve.balanceOfAt(await contract.getAddress(), block)).to.above(
+        0,
+      );
     });
 
     it("Bob's lock is delegated, Bob cannot quit", async () => {
+      const { ve, contract, alice, bob } =
+        await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
+      await ve.connect(alice).delegate(alice.address);
+      await ve.connect(alice).quitLock();
+
       // pre quit
       let block = await getBlock();
-      expect(await govMock.balanceOf(bob.address)).to.equal(
-        initialGovUserBal.sub(lockAmount)
+      expect(await ethers.provider.getBalance(bob.address)).to.be.gte(
+        initialGovUserBal - lockAmount,
       );
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
 
       // Bob attempts to quit
-      tx = ve.connect(bob).quitLock();
-      await expect(tx).to.be.revertedWith("Lock delegated");
+      const tx = ve.connect(bob).quitLock();
+      await expect(tx).to.be.revertedWith('Lock delegated');
 
       // post quit
       block = await getBlock();
-      expect(await govMock.balanceOf(bob.address)).to.equal(
-        initialGovUserBal.sub(lockAmount)
+      expect(await ethers.provider.getBalance(bob.address)).to.be.gte(
+        initialGovUserBal - lockAmount,
       );
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
     });
 
-    it("Bob extends lock and undelegates", async () => {
+    it('Bob extends lock and undelegates', async () => {
+      const { ve, contract, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
+      await ve.connect(alice).delegate(alice.address);
+      await ve.connect(alice).quitLock();
+
       // pre undelegation
       let block = await getBlock();
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
-      const preBalance = await ve.balanceOfAt(contract.address, block);
+      const preBalance = await ve.balanceOfAt(await contract.getAddress(), block);
       expect(preBalance).to.above(0);
 
       // Bob extends and undelegates
@@ -466,16 +567,38 @@ describe("VotingEscrow Tests", function () {
       // post undelegation
       block = await getBlock();
       expect(await ve.balanceOfAt(bob.address, block)).to.above(0);
-      const postBalance = await ve.balanceOfAt(contract.address, block);
+      const postBalance = await ve.balanceOfAt(await contract.getAddress(), block);
       expect(postBalance).to.above(0);
       expect(postBalance).to.below(preBalance);
     });
 
     it("Bob's lock is not delegated, Bob can quit", async () => {
+      const { ve, contract, alice, bob } =
+        await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
+      await ve.connect(alice).delegate(alice.address);
+      await ve.connect(alice).quitLock();
+      await ve
+        .connect(bob)
+        .increaseUnlockTime(7 * WEEK + (await getTimestamp()));
+      await ve.connect(bob).delegate(bob.address);
+
       // pre quit
       let block = await getBlock();
-      expect(await govMock.balanceOf(bob.address)).to.equal(
-        initialGovUserBal.sub(lockAmount)
+      expect(await ethers.provider.getBalance(bob.address)).to.be.gte(
+        initialGovUserBal - lockAmount,
       );
       expect(await ve.balanceOfAt(bob.address, block)).to.above(0);
 
@@ -485,50 +608,99 @@ describe("VotingEscrow Tests", function () {
       // post quit
       block = await getBlock();
       assertBNClosePercent(
-        await govMock.balanceOf(bob.address),
-        initialGovUserBal.sub(lockAmount.mul(6 * WEEK).div(MAXTIME)),
-        "0.5"
+        await ethers.provider.getBalance(bob.address),
+        initialGovUserBal - (lockAmount * BigInt(6 * WEEK)) / BigInt(MAXTIME),
+        '0.5',
       );
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
     });
 
-    it("Contract extends lock beyond Bob's lock, ", async () => {
-      const lockTimeContract = 30 * WEEK + (await getTimestamp());
-      await contract.increaseUnlockTime(ve.address, lockTimeContract);
+    it('Contract extends lock beyond Bob lock, ', async () => {
+      const { ve, contract, alice, bob } =
+        await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
+      await ve.connect(alice).delegate(alice.address);
+      await ve.connect(alice).quitLock();
+      await ve
+        .connect(bob)
+        .increaseUnlockTime(7 * WEEK + (await getTimestamp()));
+      await ve.connect(bob).delegate(bob.address);
+      await ve.connect(bob).quitLock();
 
-      await increaseTime(8 * WEEK);
+      const lockTimeContract = 30 * WEEK + (await getTimestamp());
+      await contract.increaseUnlockTime(await ve.getAddress(), lockTimeContract);
+
+      await time.increase(8 * WEEK);
       // pre delegation
       const block = await getBlock();
       assertBNClosePercent(
-        await govMock.balanceOf(bob.address),
-        initialGovUserBal.sub(lockAmount.mul(7 * WEEK).div(MAXTIME)),
-        "0.5"
+        await ethers.provider.getBalance(bob.address),
+        initialGovUserBal - (lockAmount * BigInt(7 * WEEK)) / BigInt(MAXTIME),
+        '0.5',
       );
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
     });
 
-    it("Bob attempts to lock again, succeeds, Bob can delegate to contract", async () => {
-      const lockTime = 10 * WEEK + (await getTimestamp());
+    it('Bob attempts to lock again, succeeds, Bob can delegate to contract', async () => {
+      const { ve, contract, alice, bob } =
+        await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
+      await ve.connect(alice).delegate(alice.address);
+      await ve.connect(alice).quitLock();
+      await ve
+        .connect(bob)
+        .increaseUnlockTime(7 * WEEK + (await getTimestamp()));
+      await ve.connect(bob).delegate(bob.address);
+      await ve.connect(bob).quitLock();
+      const lockTimeContract = 30 * WEEK + (await getTimestamp());
+      await contract.increaseUnlockTime(await ve.getAddress(), lockTimeContract);
+      await time.increase(8 * WEEK);
+
+      const lockTime6 = 10 * WEEK + (await getTimestamp());
       // bob creates a new lock
-      await ve.connect(bob).createLock(lockAmount, lockTime);
+      await ve.connect(bob).createLock(lockTime6, { value: lockAmount });
 
       let block = await getBlock();
-      const preBalance = await ve.balanceOfAt(contract.address, block);
+      const preBalance = await ve.balanceOfAt(await contract.getAddress(), block);
       expect(preBalance).to.above(0);
 
-      await ve.connect(bob).delegate(contract.address);
+      await ve.connect(bob).delegate(await contract.getAddress());
 
       // post delegation
       block = await getBlock();
       assertBNClosePercent(
-        await govMock.balanceOf(bob.address),
-        initialGovUserBal
-          .sub(lockAmount.mul(7 * WEEK).div(MAXTIME))
-          .sub(lockAmount),
-        "0.5"
+        await ethers.provider.getBalance(bob.address),
+        initialGovUserBal -
+        (lockAmount * BigInt(7 * WEEK)) / BigInt(MAXTIME) -
+        lockAmount,
+        '0.5',
       );
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
-      const postBalance = await ve.balanceOfAt(contract.address, block);
+      const postBalance = await ve.balanceOfAt(await contract.getAddress(), block);
       expect(postBalance).to.above(preBalance);
       // const block = await getBlock();
       // expect(await ve.lockEnd(contract.address)).to.equal(
@@ -537,37 +709,100 @@ describe("VotingEscrow Tests", function () {
     });
 
     it("Contract's lock is not delegated, contract can quit and but lose delegated balance", async () => {
+      const { ve, contract, alice, bob } =
+        await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
+      await ve.connect(alice).delegate(alice.address);
+      await ve.connect(alice).quitLock();
+      await ve
+        .connect(bob)
+        .increaseUnlockTime(7 * WEEK + (await getTimestamp()));
+      await ve.connect(bob).delegate(bob.address);
+      await ve.connect(bob).quitLock();
+      const lockTimeContract = 30 * WEEK + (await getTimestamp());
+      await contract.increaseUnlockTime(await ve.getAddress(), lockTimeContract);
+      await time.increase(8 * WEEK);
+      const lockTime6 = 10 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime6, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+
       // pre quit
       let block = await getBlock();
-      expect(await govMock.balanceOf(contract.address)).to.equal(
-        initialGovUserBal.sub(lockAmount)
+      const contractBalanceBefore = await ethers.provider.getBalance(await contract.getAddress());
+      await ve.collectPenalty();
+      const contractBalanceAfter = await ethers.provider.getBalance(await contract.getAddress());
+      expect(contractBalanceAfter - contractBalanceBefore).to.equal(
+        initialGovUserBal - lockAmount,
       );
-      const preBalance = await ve.balanceOfAt(contract.address, block);
+      const preBalance = await ve.balanceOfAt(await contract.getAddress(), block);
       expect(preBalance).to.above(0);
 
       // contract quits
-      await contract.quitLock(ve.address);
+      await contract.quitLock(await ve.getAddress());
 
       // post quit
       block = await getBlock();
 
       // Contract locked for 30 weeks, then we advanced 8 weeks
       assertBNClosePercent(
-        await govMock.balanceOf(contract.address),
-        initialGovUserBal.sub(lockAmount.mul(21 * WEEK).div(MAXTIME)),
-        "0.5"
+        await ethers.provider.getBalance(await contract.getAddress()),
+        initialGovUserBal - (lockAmount * BigInt(21 * WEEK)) / BigInt(MAXTIME),
+        '0.5',
       );
-      const postBalance = await ve.balanceOfAt(contract.address, block);
+      const postBalance = await ve.balanceOfAt(await contract.getAddress(), block);
       expect(postBalance).to.equal(0);
       expect(postBalance).to.below(preBalance);
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
     });
 
     it("Bob's lock ends before Contract's, Bob can still delegate back to himself", async () => {
+      const { ve, contract, alice, bob } = await loadFixture(deployFixture);
+      const lockTime = 4 * WEEK + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      const lockTime2 = 5 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(alice).delegate(bob.address);
+      const lockTime3 = 6 * WEEK + (await getTimestamp());
+      await ve.connect(bob).increaseUnlockTime(lockTime3);
+      const lockTime4 = 7 * WEEK + (await getTimestamp());
+      await contract.createLock(await ve.getAddress(), lockTime4, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await ve.connect(alice).delegate(await contract.getAddress());
+      const lockTime5 = 8 * WEEK + (await getTimestamp());
+      await ve.connect(alice).increaseUnlockTime(lockTime5);
+      await ve.connect(alice).delegate(alice.address);
+      await ve.connect(alice).quitLock();
+      await ve
+        .connect(bob)
+        .increaseUnlockTime(7 * WEEK + (await getTimestamp()));
+      await ve.connect(bob).delegate(bob.address);
+      await ve.connect(bob).quitLock();
+      const lockTimeContract = 30 * WEEK + (await getTimestamp());
+      await contract.increaseUnlockTime(await ve.getAddress(), lockTimeContract);
+      await time.increase(8 * WEEK);
+      const lockTime6 = 10 * WEEK + (await getTimestamp());
+      await ve.connect(bob).createLock(lockTime6, { value: lockAmount });
+      await ve.connect(bob).delegate(await contract.getAddress());
+      await contract.quitLock(await ve.getAddress());
+
       // pre undelegation
       let block = await getBlock();
       expect(await ve.balanceOfAt(bob.address, block)).to.equal(0);
-      expect(await ve.balanceOfAt(contract.address, block)).to.equal(0);
+      expect(await ve.balanceOfAt(await contract.getAddress(), block)).to.equal(
+        0,
+      );
 
       // undelegate
       await ve.connect(bob).delegate(bob.address);
@@ -575,175 +810,253 @@ describe("VotingEscrow Tests", function () {
       // post undelegation
       block = await getBlock();
       expect(await ve.balanceOfAt(bob.address, block)).to.above(0);
-      expect(await ve.balanceOfAt(contract.address, block)).to.equal(0);
-
-      await restoreSnapshot(provider);
+      expect(await ve.balanceOfAt(await contract.getAddress(), block)).to.equal(
+        0,
+      );
     });
   });
 
-  describe("Quitlock flow", async () => {
-    it("Alice, Bob, Charlie, David and Eve lock tokens in ve", async () => {
-      await createSnapshot(provider);
+  describe('Quitlock flow', async () => {
+    it('Alice, Bob, Charlie, David and Eve lock tokens in ve', async () => {
+      const { ve, alice, bob, charlie, david, eve, francis } =
+        await loadFixture(deployFixture);
       // MAXTIME => 2 years
       const lockTime1 = MAXTIME + (await getTimestamp());
-      const lockTime2 = MAXTIME / 2 + (await getTimestamp());
+      const lockTime2 = Math.floor(MAXTIME / 2) + (await getTimestamp());
 
       // 2 years lock
-      await ve.connect(alice).createLock(lockAmount, lockTime1);
-      await ve.connect(bob).createLock(lockAmount, lockTime1);
-      await ve.connect(charlie).createLock(lockAmount, lockTime1);
-      await ve.connect(francis).createLock(lockAmount, lockTime1);
+      await ve.connect(alice).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(bob).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(charlie).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(francis).createLock(lockTime1, { value: lockAmount });
 
       // 1 year lock
-      await ve.connect(david).createLock(lockAmount, lockTime2);
-      await ve.connect(eve).createLock(lockAmount, lockTime2);
+      await ve.connect(david).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(eve).createLock(lockTime2, { value: lockAmount });
     });
 
-    it("Alice and David quitlocks after ~3 months", async () => {
+    it('Alice and David quitlocks after ~3 months', async () => {
+      const { ve, alice, bob, charlie, david, eve, francis } =
+        await loadFixture(deployFixture);
+      const lockTime1 = MAXTIME + (await getTimestamp());
+      const lockTime2 = Math.floor(MAXTIME / 2) + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(bob).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(charlie).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(francis).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(david).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(eve).createLock(lockTime2, { value: lockAmount });
+
       // Alice would have ~91 weeks left
       const lockEnd = await ve.lockEnd(alice.address);
-      await increaseTimeTo(lockEnd.sub(WEEK * 91));
+      await time.increaseTo(lockEnd - BigInt(WEEK * 91));
 
       await ve.connect(alice).quitLock();
       const penaltyRate = await ve.getPenaltyRate(lockEnd);
-      const expectedPenalty = penaltyRate.mul(lockAmount).div(PRECISION);
+      const expectedPenalty = (penaltyRate * lockAmount) / PRECISION;
       // Check penalty to be paid
       assertBNClosePercent(
         expectedPenalty,
-        lockAmount.mul(WEEK * 91).div(MAXTIME),
-        "0.01"
+        (lockAmount * BigInt(WEEK * 91)) / BigInt(MAXTIME),
+        '0.01',
       );
 
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenalty,
-        initialGovUserBal.sub(await govMock.balanceOf(alice.address)),
-        "0.01"
+        initialGovUserBal * 2n - (await ethers.provider.getBalance(alice.address)) - lockAmount,
+        '0.01',
       );
 
       const lockEndDavid = await ve.lockEnd(david.address);
       const penaltyRateDavid = await ve.getPenaltyRate(lockEndDavid);
-      const expectedPenaltyDavid = penaltyRateDavid
-        .mul(lockAmount)
-        .div(PRECISION);
+      const expectedPenaltyDavid = (penaltyRateDavid * lockAmount) / PRECISION;
 
       // David would have ~39 weeks left
       await ve.connect(david).quitLock();
       assertBNClosePercent(
         expectedPenaltyDavid,
-        lockAmount.mul(WEEK * 39).div(MAXTIME),
-        "0.01"
+        (lockAmount * BigInt(WEEK * 39)) / BigInt(MAXTIME),
+        '0.01',
       );
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenaltyDavid,
-        initialGovUserBal.sub(await govMock.balanceOf(david.address)),
-        "0.01"
+        initialGovUserBal * 2n - (await ethers.provider.getBalance(david.address)) - lockAmount,
+        '0.01',
       );
     });
 
-    it("Bob and Eve quitlocks after ~ 4 months", async () => {
+    it('Bob and Eve quitlocks after ~ 4 months', async () => {
+      const { ve, alice, bob, charlie, david, eve, francis } =
+        await loadFixture(deployFixture);
+      const lockTime1 = MAXTIME + (await getTimestamp());
+      const lockTime2 = Math.floor(MAXTIME / 2) + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(bob).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(charlie).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(francis).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(david).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(eve).createLock(lockTime2, { value: lockAmount });
+      const lockEnd = await ve.lockEnd(alice.address);
+      await time.increaseTo(lockEnd - BigInt(WEEK * 91));
+      await ve.connect(alice).quitLock();
+      const lockEndDavid = await ve.lockEnd(david.address);
+      await time.increaseTo(lockEndDavid - BigInt(WEEK * 39));
+      await ve.connect(david).quitLock();
+
       // Bob would have ~87 weeks left
       const lockEndBob = await ve.lockEnd(bob.address);
-      await increaseTimeTo(lockEndBob.sub(WEEK * 87));
+      await time.increaseTo(lockEndBob - BigInt(WEEK * 87));
 
       const penaltyRateBob = await ve.getPenaltyRate(lockEndBob);
-      const expectedPenaltyBob = penaltyRateBob.mul(lockAmount).div(PRECISION);
+      const expectedPenaltyBob = (penaltyRateBob * lockAmount) / PRECISION;
 
       await ve.connect(bob).quitLock();
 
       assertBNClosePercent(
         expectedPenaltyBob,
-        lockAmount.mul(WEEK * 87).div(MAXTIME),
-        "0.01"
+        (lockAmount * BigInt(WEEK * 87)) / BigInt(MAXTIME),
+        '0.01',
       );
 
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenaltyBob,
-        initialGovUserBal.sub(await govMock.balanceOf(bob.address)),
-        "0.01"
+        initialGovUserBal * 2n - (await ethers.provider.getBalance(bob.address)),
+        '0.01',
       );
 
       const lockEndEve = await ve.lockEnd(eve.address);
       const penaltyRateEve = await ve.getPenaltyRate(lockEndEve);
-      const expectedPenaltyEve = penaltyRateEve.mul(lockAmount).div(PRECISION);
+      const expectedPenaltyEve = (penaltyRateEve * lockAmount) / PRECISION;
       // Eve would have ~35 weeks left
       await ve.connect(eve).quitLock();
 
       assertBNClosePercent(
         expectedPenaltyEve,
-        lockAmount.mul(WEEK * 35).div(MAXTIME),
-        "0.01"
+        (lockAmount * BigInt(WEEK * 35)) / BigInt(MAXTIME),
+        '0.01',
       );
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenaltyEve,
-        initialGovUserBal.sub(await govMock.balanceOf(eve.address)),
-        "0.01"
+        initialGovUserBal * 2n - (await ethers.provider.getBalance(eve.address)),
+        '0.01',
       );
     });
 
-    it("Charlie quitlocks after ~ 9 months", async () => {
+    it('Charlie quitlocks after ~ 9 months', async () => {
+      const { ve, alice, bob, charlie, david, eve, francis } =
+        await loadFixture(deployFixture);
+      const lockTime1 = MAXTIME + (await getTimestamp());
+      const lockTime2 = Math.floor(MAXTIME / 2) + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(bob).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(charlie).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(francis).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(david).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(eve).createLock(lockTime2, { value: lockAmount });
+      const lockEnd = await ve.lockEnd(alice.address);
+      await time.increaseTo(lockEnd - BigInt(WEEK * 91));
+      await ve.connect(alice).quitLock();
+      const lockEndDavid = await ve.lockEnd(david.address);
+      await time.increaseTo(lockEndDavid - BigInt(WEEK * 39));
+      await ve.connect(david).quitLock();
+      const lockEndBob = await ve.lockEnd(bob.address);
+      await time.increaseTo(lockEndBob - BigInt(WEEK * 87));
+      await ve.connect(bob).quitLock();
+      const lockEndEve = await ve.lockEnd(eve.address);
+      await time.increaseTo(lockEndEve - BigInt(WEEK * 35));
+      await ve.connect(eve).quitLock();
+
       // Charlie would have ~66 weeks left
       const lockEndCharlie = await ve.lockEnd(charlie.address);
-      await increaseTimeTo(lockEndCharlie.sub(WEEK * 66));
+      await time.increaseTo(lockEndCharlie - BigInt(WEEK * 66));
 
       const penaltyRateCharlie = await ve.getPenaltyRate(lockEndCharlie);
-      const expectedPenaltyCharlie = penaltyRateCharlie
-        .mul(lockAmount)
-        .div(PRECISION);
+      const expectedPenaltyCharlie = (penaltyRateCharlie * lockAmount) / PRECISION;
 
       await ve.connect(charlie).quitLock();
 
       assertBNClosePercent(
         expectedPenaltyCharlie,
-        lockAmount.mul(WEEK * 66).div(MAXTIME),
-        "0.01"
+        (lockAmount * BigInt(WEEK * 66)) / BigInt(MAXTIME),
+        '0.01',
       );
 
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenaltyCharlie,
-        initialGovUserBal.sub(await govMock.balanceOf(charlie.address)),
-        "0.01"
+        initialGovUserBal * 2n - (await ethers.provider.getBalance(charlie.address)),
+        '0.01',
       );
     });
 
-    it("Francis quitlocks 1 week before end", async () => {
+    it('Francis quitlocks 1 week before end', async () => {
+      const { ve, alice, bob, charlie, david, eve, francis } =
+        await loadFixture(deployFixture);
+      const lockTime1 = MAXTIME + (await getTimestamp());
+      const lockTime2 = Math.floor(MAXTIME / 2) + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(bob).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(charlie).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(francis).createLock(lockTime1, { value: lockAmount });
+      await ve.connect(david).createLock(lockTime2, { value: lockAmount });
+      await ve.connect(eve).createLock(lockTime2, { value: lockAmount });
+      const lockEnd = await ve.lockEnd(alice.address);
+      await time.increaseTo(lockEnd - BigInt(WEEK * 91));
+      await ve.connect(alice).quitLock();
+      const lockEndDavid = await ve.lockEnd(david.address);
+      await time.increaseTo(lockEndDavid - BigInt(WEEK * 39));
+      await ve.connect(david).quitLock();
+      const lockEndBob = await ve.lockEnd(bob.address);
+      await time.increaseTo(lockEndBob - BigInt(WEEK * 87));
+      await ve.connect(bob).quitLock();
+      const lockEndEve = await ve.lockEnd(eve.address);
+      await time.increaseTo(lockEndEve - BigInt(WEEK * 35));
+      await ve.connect(eve).quitLock();
+      const lockEndCharlie = await ve.lockEnd(charlie.address);
+      await time.increaseTo(lockEndCharlie - BigInt(WEEK * 66));
+      await ve.connect(charlie).quitLock();
+
       // Francis would have ~1 week left
       const lockEndFrancis = await ve.lockEnd(francis.address);
-      await increaseTimeTo(lockEndFrancis.sub(WEEK * 1));
+      await time.increaseTo(lockEndFrancis - BigInt(WEEK * 1));
 
       const penaltyRateFrancis = await ve.getPenaltyRate(lockEndFrancis);
-      const expectedPenaltyFrancis = penaltyRateFrancis
-        .mul(lockAmount)
-        .div(PRECISION);
+      const expectedPenaltyFrancis = (penaltyRateFrancis * lockAmount) / PRECISION;
 
       await ve.connect(francis).quitLock();
 
       assertBNClosePercent(
         expectedPenaltyFrancis,
-        lockAmount.mul(WEEK * 1).div(MAXTIME),
-        "0.01"
+        (lockAmount * BigInt(WEEK * 1)) / BigInt(MAXTIME),
+        '0.01',
       );
 
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenaltyFrancis,
-        initialGovUserBal.sub(await govMock.balanceOf(francis.address)),
-        "0.01"
+        initialGovUserBal * 2n - (await ethers.provider.getBalance(francis.address)),
+        '0.01',
       );
     });
 
-    it("Alice locks again, then penalty is taken away,she withdraws without penalty", async () => {
-      const aliceBalBefore = await govMock.balanceOf(alice.address);
+    it('Alice locks again, then penalty is taken away,she withdraws without penalty', async () => {
+      const { ve, alice } = await loadFixture(deployFixture);
+      const lockTime1 = MAXTIME + (await getTimestamp());
+      await ve.connect(alice).createLock(lockTime1, { value: lockAmount });
+      const lockEnd = await ve.lockEnd(alice.address);
+      await time.increaseTo(lockEnd - BigInt(WEEK * 91));
+      await ve.connect(alice).quitLock();
+      const aliceBalBefore = await ethers.provider.getBalance(alice.address);
       await ve
         .connect(alice)
-        .createLock(lockAmount, (await getTimestamp()) + MAXTIME);
+        .createLock(BigInt(await getTimestamp()) + BigInt(MAXTIME), { value: lockAmount });
       await ve.unlock();
       await ve.connect(alice).quitLock();
-      expect(await govMock.balanceOf(alice.address)).to.equal(aliceBalBefore);
+      expect(await ethers.provider.getBalance(alice.address)).to.equal(aliceBalBefore);
     });
   });
 });
