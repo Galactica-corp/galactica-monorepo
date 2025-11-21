@@ -25,8 +25,4 @@ contract MockSmartWallet {
     function withdraw(address ve) external {
         IVotingEscrow(ve).withdraw();
     }
-
-    function delegate(address ve, address to) external {
-        IVotingEscrow(ve).delegate(to);
-    }
 }

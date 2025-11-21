@@ -6,12 +6,11 @@ import {Ownable2StepUpgradeable} from '@openzeppelin/contracts-upgradeable/acces
 import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
 import {IVotingEscrow} from './interfaces/IVotingEscrow.sol';
 
-/// @title  Delegated Voting Escrow
+/// @title  Voting Escrow
 /// @notice An ERC20 token that allocates users a virtual balance depending
 /// on the amount of tokens locked and their remaining lock duration. The
 /// virtual balance decreases linearly with the remaining lock duration.
 /// This is the locking mechanism known from veCRV with additional features:
-/// - Delegation of lock and voting power
 /// - Quit an existing lock and pay a penalty
 /// - Reduced pointHistory array size and, as a result, lifetime of the contract
 /// - Removed public deposit_for and Aragon compatibility (no use case)
@@ -76,21 +75,16 @@ contract VotingEscrow is
     }
     struct LockedBalance {
         int128 amount;
-        int128 delegated;
         uint96 end;
-        address delegatee;
     }
 
     // Miscellaneous
     enum LockAction {
         CREATE,
         INCREASE_AMOUNT,
-        INCREASE_AMOUNT_AND_DELEGATION,
         INCREASE_TIME,
         WITHDRAW,
-        QUIT,
-        DELEGATE,
-        UNDELEGATE
+        QUIT
     }
 
     /// @dev Disable the constructor for the deployment as recommended by OpenZeppelin. Instead the upgradeable proxy will use the initialize function.
@@ -201,17 +195,17 @@ contract VotingEscrow is
             // Casting in the next blocks is safe given that MAXTIME is a small
             // positive number and we check for _oldLocked.end>block.timestamp
             // and _newLocked.end>block.timestamp
-            if (_oldLocked.end > block.timestamp && _oldLocked.delegated > 0) {
+            if (_oldLocked.end > block.timestamp && _oldLocked.amount > 0) {
                 userOldPoint.slope =
-                    _oldLocked.delegated /
+                    _oldLocked.amount /
                     int128(int256(MAXTIME));
                 userOldPoint.bias =
                     userOldPoint.slope *
                     int128(int256(_oldLocked.end - block.timestamp));
             }
-            if (_newLocked.end > block.timestamp && _newLocked.delegated > 0) {
+            if (_newLocked.end > block.timestamp && _newLocked.amount > 0) {
                 userNewPoint.slope =
-                    _newLocked.delegated /
+                    _newLocked.amount /
                     int128(int256(MAXTIME));
                 userNewPoint.bias =
                     userNewPoint.slope *
@@ -395,10 +389,8 @@ contract VotingEscrow is
         // value (considering the max precision of 18 decimals enforced in the constructor)
         locked_.amount = locked_.amount + int128(int256(_value));
         locked_.end = uint96(unlock_time);
-        locked_.delegated = locked_.delegated + int128(int256(_value));
-        locked_.delegatee = msg.sender;
         locked[msg.sender] = locked_;
-        _checkpoint(msg.sender, LockedBalance(0, 0, 0, address(0)), locked_);
+        _checkpoint(msg.sender, LockedBalance(0, 0), locked_);
         emit Deposit(
             msg.sender,
             _value,
@@ -424,41 +416,16 @@ contract VotingEscrow is
         // Update total supply of token deposited
         supply = supply + _value;
         // Update lock
-        address delegatee = locked_.delegatee;
         uint256 unlockTime = locked_.end;
         LockAction action = LockAction.INCREASE_AMOUNT;
         LockedBalance memory newLocked;
         // Casting in the next block is safe given that we check for _value>0 and the
         // totalSupply of tokens is generally significantly lower than the int128.max
         // value (considering the max precision of 18 decimals enforced in the constructor)
-        if (delegatee == msg.sender) {
-            // Undelegated lock
-            action = LockAction.INCREASE_AMOUNT_AND_DELEGATION;
-            newLocked = _copyLock(locked_);
-            newLocked.amount = newLocked.amount + int128(int256(_value));
-            newLocked.delegated = newLocked.delegated + int128(int256(_value));
-            locked[msg.sender] = newLocked;
-        } else {
-            // Delegated lock, update sender's lock first
-            locked_.amount = locked_.amount + int128(int256(_value));
-            locked[msg.sender] = locked_;
-            // Then, update delegatee's lock and voting power (checkpoint)
-            locked_ = locked[delegatee];
-            require(locked_.amount > 0, 'Delegatee has no lock');
-            require(locked_.end > block.timestamp, 'Delegatee lock expired');
-            newLocked = _copyLock(locked_);
-            newLocked.delegated = newLocked.delegated + int128(int256(_value));
-            locked[delegatee] = newLocked;
-            emit Deposit(
-                delegatee,
-                _value,
-                newLocked.end,
-                LockAction.DELEGATE,
-                block.timestamp
-            );
-        }
-        // Checkpoint only for delegatee
-        _checkpoint(delegatee, locked_, newLocked);
+        newLocked = _copyLock(locked_);
+        newLocked.amount = newLocked.amount + int128(int256(_value));
+        locked[msg.sender] = newLocked;
+        _checkpoint(msg.sender, locked_, newLocked);
         // Native tokens are already received via msg.value
         emit Deposit(msg.sender, _value, unlockTime, action, block.timestamp);
     }
@@ -483,7 +450,7 @@ contract VotingEscrow is
         uint256 oldUnlockTime = locked_.end;
         locked_.end = uint96(unlock_time);
         locked[msg.sender] = locked_;
-        if (locked_.delegated > 0) {
+        if (locked_.amount > 0) {
             // Lock with non-zero virtual balance
             LockedBalance memory oldLocked = _copyLock(locked_);
             oldLocked.end = uint96(oldUnlockTime);
@@ -499,13 +466,11 @@ contract VotingEscrow is
     }
 
     /// @notice Withdraws the tokens of an expired lock
-    /// Delegated locks need to be undelegated first
     function withdraw() external override nonReentrant {
         LockedBalance memory locked_ = locked[msg.sender];
         // Validate inputs
         require(locked_.amount > 0, 'No lock');
         require(locked_.end <= block.timestamp, 'Lock not expired');
-        require(locked_.delegatee == msg.sender, 'Lock delegated');
         // Update total supply of token deposited
         uint256 value = uint256(uint128(locked_.amount));
         supply = supply - value;
@@ -513,10 +478,7 @@ contract VotingEscrow is
         LockedBalance memory newLocked = _copyLock(locked_);
         newLocked.amount = 0;
         newLocked.end = 0;
-        newLocked.delegated = newLocked.delegated - locked_.amount;
-        newLocked.delegatee = address(0);
         locked[msg.sender] = newLocked;
-        newLocked.delegated = 0;
         // oldLocked can have either expired <= timestamp or zero end
         // currentLock has only 0 end
         // Both can have >= 0 amount
@@ -527,117 +489,24 @@ contract VotingEscrow is
     }
 
     /// ~~~~~~~~~~~~~~~~~~~~~~~~~~ ///
-    ///         DELEGATION         ///
-    /// ~~~~~~~~~~~~~~~~~~~~~~~~~~ ///
-
-    /// @notice Delegate lock and voting power to another lock
-    /// The receiving lock needs to have a longer lock duration
-    /// The delegated lock will inherit the receiving lock's expiration
-    /// @param _addr The address of the lock owner to which to delegate
-    function delegate(address _addr) external override nonReentrant {
-        // Different restrictions apply to undelegation
-        if (_addr == msg.sender) {
-            _undelegate();
-            return;
-        }
-        LockedBalance memory locked_ = locked[msg.sender];
-        // Validate inputs
-        require(locked_.amount > 0, 'No lock');
-        require(locked_.end > block.timestamp, 'Lock expired');
-        require(locked_.delegatee != _addr, 'Already delegated');
-        // Update locks
-        int128 value = locked_.amount;
-        address delegatee = locked_.delegatee;
-        LockedBalance memory toLocked = locked[_addr];
-        locked_.delegatee = _addr;
-        if (delegatee != msg.sender) {
-            locked[msg.sender] = locked_;
-            locked_ = locked[delegatee];
-        }
-        require(toLocked.amount > 0, 'Delegatee has no lock');
-        require(toLocked.end > block.timestamp, 'Delegatee lock expired');
-        require(toLocked.end >= locked_.end, 'Only delegate to longer lock');
-        _delegate(delegatee, locked_, value, LockAction.UNDELEGATE);
-        _delegate(_addr, toLocked, value, LockAction.DELEGATE);
-    }
-
-    // Undelegates sender's lock
-    // Can be executed on expired locks too
-    // Owner inherits delegatee's unlockTime if it exceeds owner's
-    function _undelegate() internal {
-        LockedBalance memory locked_ = locked[msg.sender];
-        // Validate inputs
-        require(locked_.amount > 0, 'No lock');
-        require(locked_.delegatee != msg.sender, 'Already undelegated');
-        // Update locks
-        int128 value = locked_.amount;
-        address delegatee = locked_.delegatee;
-        LockedBalance memory fromLocked = locked[delegatee];
-        locked_.delegatee = msg.sender;
-        if (locked_.end < fromLocked.end) {
-            locked_.end = fromLocked.end;
-        }
-        _delegate(delegatee, fromLocked, value, LockAction.UNDELEGATE);
-        _delegate(msg.sender, locked_, value, LockAction.DELEGATE);
-    }
-
-    // Delegates from/to lock and voting power
-    function _delegate(
-        address addr,
-        LockedBalance memory _locked,
-        int128 value,
-        LockAction action
-    ) internal {
-        LockedBalance memory newLocked = _copyLock(_locked);
-        if (action == LockAction.DELEGATE) {
-            newLocked.delegated = newLocked.delegated + value;
-            emit Deposit(
-                addr,
-                uint256(int256(value)),
-                newLocked.end,
-                action,
-                block.timestamp
-            );
-        } else {
-            newLocked.delegated = newLocked.delegated - value;
-            emit Withdraw(
-                addr,
-                uint256(int256(value)),
-                action,
-                block.timestamp
-            );
-        }
-        locked[addr] = newLocked;
-        if (newLocked.amount > 0) {
-            // Only if lock (from lock) hasn't been withdrawn/quitted
-            _checkpoint(addr, _locked, newLocked);
-        }
-    }
-
-    /// ~~~~~~~~~~~~~~~~~~~~~~~~~~ ///
     ///         QUIT LOCK          ///
     /// ~~~~~~~~~~~~~~~~~~~~~~~~~~ ///
 
     /// @notice Quit an existing lock by withdrawing all tokens less a penalty
     /// Use `withdraw` for expired locks
-    /// @dev Quitters lock expiration remains in place because it might be delegated to
     function quitLock() external override nonReentrant {
         LockedBalance memory locked_ = locked[msg.sender];
         // Validate inputs
         require(locked_.amount > 0, 'No lock');
         require(locked_.end > block.timestamp, 'Lock expired');
-        require(locked_.delegatee == msg.sender, 'Lock delegated');
         // Update total supply of token deposited
         uint256 value = uint256(uint128(locked_.amount));
         supply = supply - value;
         // Update lock
         LockedBalance memory newLocked = _copyLock(locked_);
         newLocked.amount = 0;
-        newLocked.delegated = newLocked.delegated - locked_.amount;
-        newLocked.delegatee = address(0);
         locked[msg.sender] = newLocked;
         newLocked.end = 0;
-        newLocked.delegated = 0;
         // oldLocked can have either expired <= timestamp or zero end
         // currentLock has only 0 end
         // Both can have >= 0 amount
@@ -689,13 +558,7 @@ contract VotingEscrow is
     function _copyLock(
         LockedBalance memory _locked
     ) internal pure returns (LockedBalance memory) {
-        return
-            LockedBalance({
-                amount: _locked.amount,
-                end: _locked.end,
-                delegatee: _locked.delegatee,
-                delegated: _locked.delegated
-            });
+        return LockedBalance({amount: _locked.amount, end: _locked.end});
     }
 
     // Floors a timestamp to the nearest weekly increment

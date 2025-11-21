@@ -157,9 +157,7 @@ describe('VotingEscrow Math test', () => {
 
   interface LockedBalance {
     amount: BN;
-    delegated: BN;
     end: BN;
-    delegatee: string;
   }
 
   interface Point {
@@ -190,9 +188,7 @@ describe('VotingEscrow Math test', () => {
       userEpoch,
       userLocked: {
         amount: locked[0],
-        delegated: locked[1],
-        end: locked[2],
-        delegatee: locked[3],
+        end: locked[1],
       },
       userLastPoint: {
         bias: userLastPoint[0],
@@ -412,14 +408,14 @@ describe('VotingEscrow Math test', () => {
           await expect(
             votingLockup
               .connect(bob)
-              .increaseUnlockTime(start + ONE_WEEK * 105n)
+              .increaseUnlockTime(await getTimestampBN() + ONE_WEEK * 105n)
           ).to.be.revertedWith("Exceeds maxtime");
 
           await expect(
             votingLockup
               .connect(david)
               .createLock(
-                start + ONE_WEEK * 105n,
+                await getTimestampBN() + ONE_WEEK * 105n,
                 { value: stakeAmt1 }
               )
           ).to.be.revertedWith("Exceeds maxtime");

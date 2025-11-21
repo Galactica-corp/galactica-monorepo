@@ -10,8 +10,6 @@ interface IVotingEscrow {
 
     function withdraw() external;
 
-    function delegate(address _addr) external;
-
     function quitLock() external;
 
     function balanceOf(address _owner) external view returns (uint256);
