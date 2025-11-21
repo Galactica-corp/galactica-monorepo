@@ -4,12 +4,14 @@ pragma solidity ^0.8.28;
 import {IVotingEscrow} from '../interfaces/IVotingEscrow.sol';
 
 contract MockSmartWallet {
-    function createLock(address ve, uint256 end) external payable {
-        IVotingEscrow(ve).createLock{value: msg.value}(end);
+    receive() external payable {}
+
+    function createLock(address ve, uint256 end, uint256 value) external {
+        IVotingEscrow(ve).createLock{value: value}(end);
     }
 
-    function increaseAmount(address ve) external payable {
-        IVotingEscrow(ve).increaseAmount{value: msg.value}();
+    function increaseAmount(address ve, uint256 value) external {
+        IVotingEscrow(ve).increaseAmount{value: value}();
     }
 
     function increaseUnlockTime(address ve, uint256 unlockTime) external {
