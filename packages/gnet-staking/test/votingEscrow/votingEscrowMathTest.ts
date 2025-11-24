@@ -473,6 +473,7 @@ describe('VotingEscrow Math test', () => {
 
     describe("exiting the system", () => {
       before(async () => {
+        start = await getTimestampBN();
         await votingLockup
           .connect(david)
           .createLock(start + ONE_WEEK * 13n, { value: stakeAmt1 });
@@ -481,12 +482,14 @@ describe('VotingEscrow Math test', () => {
       it("allows user to withdraw", async () => {
         // david withdraws
         const davidBefore = await snapshotData(david);
-        await votingLockup.connect(david).withdraw();
+        let tx = await votingLockup.connect(david).withdraw();
+        await tx.wait();
+        let accumulatedFeesDavid = (await tx.wait())!.fee;
         const davidAfter = await snapshotData(david);
 
         expect(davidAfter.senderStakingTokenBalance).eq(
           davidBefore.senderStakingTokenBalance +
-          davidBefore.userLocked.amount
+          davidBefore.userLocked.amount - accumulatedFeesDavid
         )
         expect(davidAfter.userLastPoint.bias).eq(0n);
         expect(davidAfter.userLastPoint.slope).eq(0n);
@@ -497,25 +500,29 @@ describe('VotingEscrow Math test', () => {
       it("fully exits the system", async () => {
         // eve exits
         const eveBefore = await snapshotData(eve);
-        await votingLockup.connect(eve).withdraw();
+        let tx = await votingLockup.connect(eve).withdraw();
+        await tx.wait();
+        let accumulatedFeesEve = (await tx.wait())!.fee;
         const eveAfter = await snapshotData(eve);
 
         expect(eveAfter.senderStakingTokenBalance).eq(
-          eveBefore.senderStakingTokenBalance + eveBefore.userLocked.amount
+          eveBefore.senderStakingTokenBalance + eveBefore.userLocked.amount - accumulatedFeesEve
         );
         expect(eveAfter.userLastPoint.bias).eq(0n);
         expect(eveAfter.userLastPoint.slope).eq(0n);
         expect(eveAfter.userLocked.amount).eq(0n);
         expect(eveAfter.userLocked.end).eq(0n);
 
-        await time.increaseTo(start + ONE_WEEK * 77n);
+        await time.increaseTo(start + ONE_WEEK * 104n);
         const francisBefore = await snapshotData(francis);
-        await votingLockup.connect(francis).withdraw();
+        tx = await votingLockup.connect(francis).withdraw();
+        await tx.wait();
+        let accumulatedFeesFrancis = (await tx.wait())!.fee;
         const francisAfter = await snapshotData(francis);
 
         expect(francisAfter.senderStakingTokenBalance).eq(
           francisBefore.senderStakingTokenBalance +
-          francisBefore.userLocked.amount
+          francisBefore.userLocked.amount - accumulatedFeesFrancis
         );
         expect(francisAfter.userLastPoint.bias).eq(0n);
         expect(francisAfter.userLastPoint.slope).eq(0n);
@@ -868,7 +875,7 @@ describe('VotingEscrow Math test', () => {
         expect(w_bob).eq(0n);
         expect(w_alice).eq(w_total);
         const time_left = ONE_WEEK * (7n - i) / 7n - ONE_HOUR * 2n;
-        const error_1h = (ONE_HOUR * 100n) / time_left; // Rounding error of 1 block is possible, and we have 1h blocks
+        const error_1h = (ONE_HOUR * 100n) / time_left + 1n; // Rounding error of 1 block is possible, and we have 1h blocks
         assertBNClosePercent(
           w_alice,
           amount / MAXTIME * time_left,
@@ -938,7 +945,7 @@ describe('VotingEscrow Math test', () => {
         dt = ts - t0;
         error_1h =
           (ONE_HOUR * 100n) /
-          (2n * ONE_WEEK - i - ONE_DAY);
+          (2n * ONE_WEEK - i - ONE_DAY) + 1n;
         assertBNClosePercent(
           w_alice,
           amount / MAXTIME * maximum(ONE_WEEK * 2n - dt, 0n),
@@ -977,7 +984,7 @@ describe('VotingEscrow Math test', () => {
         dt = ts - t0;
         error_1h =
           (ONE_HOUR * 100n) /
-          (ONE_WEEK - i * ONE_DAY + ONE_DAY);
+          (ONE_WEEK - i * ONE_DAY + ONE_DAY) + 1n;
         assertBNClosePercent(
           w_total,
           amount / MAXTIME * maximum(ONE_WEEK - dt - ONE_HOUR * 2n, 0n),

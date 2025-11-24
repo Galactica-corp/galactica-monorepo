@@ -95,9 +95,7 @@ describe('Gas usage tests', () => {
 
   interface LockedBalance {
     amount: BN;
-    delegated: BN;
     end: BN;
-    delegatee: string;
   }
 
   interface Point {
@@ -130,9 +128,7 @@ describe('Gas usage tests', () => {
       userEpoch,
       userLocked: {
         amount: locked[0],
-        delegated: locked[1],
-        end: locked[2],
-        delegatee: locked[3],
+        end: locked[1],
       },
       userLastPoint: {
         bias: userLastPoint[0],
@@ -440,16 +436,8 @@ describe('Gas usage tests', () => {
           + charlieData.votingPower
         );
 
-        // Bob inmediately locks
-        // This costs 343K
-        await votingLockup.connect(bob).delegate(alice.address);
-
         // After 3 months charlie delegates to Alice too
         await time.increase(ONE_WEEK * 12n);
-
-        // Charlie locks after 90 days without global checkpoint
-        // This costs 1.2M ==> in line with 10K increase at the checkpoint, even if there are 2 checkpoints because are in the same week
-        await votingLockup.connect(charlie).delegate(alice.address);
       });
       it("Alice, Bob and Charlie create locks, Bob inmediately locks to Alice, Checkpoint after 6 months", async () => {
         start = await getTimestampBN();
@@ -477,10 +465,6 @@ describe('Gas usage tests', () => {
           + charlieData.votingPower
         );
 
-        // Bob inmediately locks
-        // This costs 343K
-        await votingLockup.connect(bob).delegate(alice.address);
-
         // After 3 months we make a checkpoint
         await time.increase(ONE_WEEK * 12n);
         // This one costs 945K for 3 months
@@ -488,10 +472,6 @@ describe('Gas usage tests', () => {
 
         // After 3 months charlie delegates to Alice too
         await time.increase(ONE_WEEK * 12n);
-
-        // Charlie delegate after 84 days without global checkpoint
-        // This costs ~1.2M ==> in line with ~10K increase at the checkpoint, even if there are 2 checkpoints because are in the same week
-        await votingLockup.connect(charlie).delegate(alice.address);
       });
       it("Alice, Bob and Charlie inmediately locks to Alice, then Charlie first increase lock time then undelegates, after checkpoint Bob delegates to Charlie ", async () => {
         start = await getTimestampBN();
@@ -519,19 +499,12 @@ describe('Gas usage tests', () => {
           + charlieData.votingPower
         );
 
-        // Bob inmediately locks
-        // This costs 343K
-        await votingLockup.connect(bob).delegate(alice.address);
-        await votingLockup.connect(charlie).delegate(alice.address);
-
         // After 3 months
         await time.increase(ONE_WEEK * 12n);
         // This call cost 1M (updates the global checkpoint)
         await votingLockup
           .connect(charlie)
           .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
-        // This one costs ~340K
-        await votingLockup.connect(charlie).delegate(charlie.address);
         await time.increase(ONE_YEAR);
         await votingLockup.checkpoint();
         await votingLockup.connect(charlie).withdraw();
