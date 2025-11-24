@@ -79,6 +79,8 @@ describe('VotingEscrow Math test', () => {
   };
 
   const deployFresh = async (initialRewardFunding = 0n) => {
+    const wGNET = await ethers.deployContract('WGNET10');
+
     const { votingEscrow } = await ignition.deploy(votingEscrowModule, {
       parameters: {
         VotingEscrowModule: {
@@ -86,6 +88,7 @@ describe('VotingEscrow Math test', () => {
           penaltyRecipient: treasury.address,
           name: 'veToken',
           symbol: 'veToken',
+          wGNET: await wGNET.getAddress(),
         },
         TimelockControllerModule: {
           minDelay: 0,

@@ -38,6 +38,8 @@ describe('VotingEscrow Tests', function () {
       treasury,
     ] = await ethers.getSigners();
 
+    const wGNET = await ethers.deployContract('WGNET10');
+
     // Deploy VE contract using Ignition
     // This ensures Ignition can properly simulate the deployment
     const { votingEscrow } = await ignition.deploy(votingEscrowModule, {
@@ -47,6 +49,7 @@ describe('VotingEscrow Tests', function () {
           penaltyRecipient: treasury.address,
           name,
           symbol,
+          wGNET: await wGNET.getAddress(),
         },
         TimelockControllerModule: {
           minDelay: 0,
@@ -114,6 +117,7 @@ describe('VotingEscrow Tests', function () {
       eve,
       francis,
       treasury,
+      wGNET,
     };
   }
 
@@ -517,6 +521,81 @@ describe('VotingEscrow Tests', function () {
       tx = await ve.connect(alice).quitLock();
       accumulatedFeesAlice += (await tx.wait())!.fee;
       expect(await ethers.provider.getBalance(alice.address)).to.equal(aliceBalBefore - accumulatedFeesAlice);
+    });
+  });
+
+  describe('Wrapped token flow', async () => {
+    it('Alice locks with wrapped token', async () => {
+      const { ve, alice, wGNET } = await loadFixture(deployFixture);
+      const lockTime = MAXTIME + (await getTimestamp());
+
+      await wGNET.connect(alice).deposit({ value: lockAmount });
+      await wGNET.connect(alice).approve(await ve.getAddress(), lockAmount);
+
+      await ve.connect(alice).createLockWithWrappedToken(lockTime, lockAmount);
+
+      expect(await wGNET.balanceOf(alice.address)).to.equal(0);
+      assertBNClosePercent(
+        await ve.balanceOf(alice.address),
+        lockAmount * (await ve.lockEnd(alice.address) - BigInt(await getTimestamp())) / BigInt(MAXTIME),
+        '0.01',
+      );
+    });
+    it('Alice locks with wrapped token and increases lock', async () => {
+      const { ve, alice, wGNET } = await loadFixture(deployFixture);
+      const lockTime = MAXTIME + (await getTimestamp());
+
+      await wGNET.connect(alice).deposit({ value: lockAmount * 3n });
+      await wGNET.connect(alice).approve(await ve.getAddress(), lockAmount * 3n);
+
+      await ve.connect(alice).createLockWithWrappedToken(lockTime, lockAmount);
+      await ve.connect(alice).increaseAmountWithWrappedToken(lockAmount * 2n);
+
+      expect(await wGNET.balanceOf(alice.address)).to.equal(0);
+      assertBNClosePercent(
+        await ve.balanceOf(alice.address),
+        lockAmount * 3n * (await ve.lockEnd(alice.address) - BigInt(await getTimestamp())) / BigInt(MAXTIME),
+        '0.01',
+      );
+    });
+    it('Alice locks and withdraws wrapped tokens after expiration', async () => {
+      const { ve, alice, wGNET } = await loadFixture(deployFixture);
+      const lockTime = MAXTIME + (await getTimestamp());
+
+      await wGNET.connect(alice).deposit({ value: lockAmount });
+      await wGNET.connect(alice).approve(await ve.getAddress(), lockAmount);
+      await ve.connect(alice).createLockWithWrappedToken(lockTime, lockAmount);
+
+      await time.increaseTo(lockTime);
+
+      await ve.connect(alice).withdrawWrappedToken();
+
+      expect(await wGNET.balanceOf(alice.address)).to.equal(lockAmount);
+      expect(await ve.balanceOf(alice.address)).to.equal(0);
+    });
+    it('Alice locks and quits with wrapped token', async () => {
+      const { ve, alice, wGNET } = await loadFixture(deployFixture);
+      const lockTime = MAXTIME + (await getTimestamp());
+
+      await wGNET.connect(alice).deposit({ value: lockAmount });
+      await wGNET.connect(alice).approve(await ve.getAddress(), lockAmount);
+      await ve.connect(alice).createLockWithWrappedToken(lockTime, lockAmount);
+
+      await time.increaseTo(lockTime - MAXTIME / 2);
+
+      await ve.connect(alice).quitLockWrappedToken();
+
+      expect(await ve.balanceOf(alice.address)).to.equal(0);
+      assertBNClosePercent(
+        await wGNET.balanceOf(alice.address),
+        lockAmount / 2n,
+        '2',
+      );
+      assertBNClosePercent(
+        await ve.penaltyAccumulated(),
+        lockAmount / 2n,
+        '2',
+      );
     });
   });
 });

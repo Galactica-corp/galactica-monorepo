@@ -10,11 +10,12 @@ const VotingEscrowModule = buildModule('VotingEscrowModule', (module) => {
   const penaltyRecipient = module.getParameter('penaltyRecipient', module.getAccount(0));
   const name = module.getParameter('name', 'veToken');
   const symbol = module.getParameter('symbol', 'veToken');
+  const wGNET = module.getParameter('wGNET');
 
   const { upgradableContract: votingEscrow, proxyContracts } = defineUpgradableProxy(
     module,
     'VotingEscrow',
-    [owner, penaltyRecipient, name, symbol],
+    [owner, penaltyRecipient, name, symbol, wGNET],
   );
 
   return { votingEscrow, ...proxyContracts };

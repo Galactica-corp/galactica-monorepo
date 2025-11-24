@@ -5,21 +5,23 @@ import {OwnableUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Own
 import {Ownable2StepUpgradeable} from '@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol';
 import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
 import {IVotingEscrow} from './interfaces/IVotingEscrow.sol';
+import {IWGNET10} from './interfaces/IWGNET10.sol';
 
 /// @title  Voting Escrow
 /// @notice An ERC20 token that allocates users a virtual balance depending
 /// on the amount of tokens locked and their remaining lock duration. The
 /// virtual balance decreases linearly with the remaining lock duration.
 /// This is the locking mechanism known from veCRV with additional features:
-/// - Quit an existing lock and pay a penalty
+/// - Quit an existing lock and pay a penalty proportional to the remaining lock duration
 /// - Reduced pointHistory array size and, as a result, lifetime of the contract
 /// - Removed public deposit_for and Aragon compatibility (no use case)
+/// - Removed delegate functionality (because voting power on galactica depends on reputation as well, so we can not just delegate stake to someone else)
+/// - Usage of this contract is for native gas token (GNET/ETH) and wrapped version of it
 /// @dev Builds on BarnBridge's VotingEscrow implementation, that in turn builds on Curve Finance's original VotingEscrow implementation
 /// (see https://github.com/BarnBridge/veToken)
 /// (see https://github.com/curvefi/curve-dao-contracts/blob/master/contracts/VotingEscrow.vy)
 /// and mStable's Solidity translation thereof
-/// (see https://github.com/mstable/mStable-contracts/blob/master/contracts/governance/IncentivisedVotingLockup.sol)
-/// Usage of this contract is for native gas token (GNET/ETH) only.
+/// (see https://github.com/mstable/mStable-contracts/blob/master/contracts/governance/IncentivisedVotingLockup.sol).
 contract VotingEscrow is
     IVotingEscrow,
     Ownable2StepUpgradeable,
@@ -39,7 +41,6 @@ contract VotingEscrow is
         LockAction indexed action,
         uint256 ts
     );
-    event TransferOwnership(address indexed owner);
     event UpdatePenaltyRecipient(address indexed recipient);
     event CollectPenalty(uint256 amount, address indexed recipient);
     event Unlock();
@@ -65,6 +66,9 @@ contract VotingEscrow is
     string public name;
     string public symbol;
     uint256 public decimals;
+
+    // Wrapped token
+    IWGNET10 public wGNET;
 
     // Structs
     struct Point {
@@ -92,6 +96,11 @@ contract VotingEscrow is
         _disableInitializers();
     }
 
+    /**
+     * @notice Receive function used to accept native tokens being unwrapped.
+     */
+    receive() external payable {}
+
     /// @notice Initializes state
     /// @param _owner Is assumed to be a timelock contract
     /// @param _penaltyRecipient The recipient of penalty paid by lock quitters
@@ -101,7 +110,8 @@ contract VotingEscrow is
         address _owner,
         address _penaltyRecipient,
         string memory _name,
-        string memory _symbol
+        string memory _symbol,
+        address payable _wGNET
     ) public initializer {
         pointHistory[0] = Point({
             bias: int128(0),
@@ -112,6 +122,7 @@ contract VotingEscrow is
         name = _name;
         symbol = _symbol;
         penaltyRecipient = _penaltyRecipient;
+        wGNET = IWGNET10(_wGNET);
 
         // set initial values
         maxPenalty = 1e18;
@@ -125,14 +136,6 @@ contract VotingEscrow is
     ///       Owner Functions       ///
     /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~ ///
 
-    /// @notice Transfers ownership to a new owner
-    /// @param newOwner The new owner
-    /// @dev Owner is assumed to be a timelock contract
-    function transferOwnership(address newOwner) public override onlyOwner {
-        super.transferOwnership(newOwner);
-        emit TransferOwnership(newOwner);
-    }
-
     /// @notice Updates the recipient of the accumulated penalty paid by quitters
     function updatePenaltyRecipient(address _addr) external onlyOwner {
         penaltyRecipient = _addr;
@@ -145,6 +148,11 @@ contract VotingEscrow is
     function unlock() external onlyOwner {
         maxPenalty = 0;
         emit Unlock();
+    }
+
+    /// @notice Sets the wrapped token address
+    function setWGNET(address payable _wGNET) public onlyOwner {
+        wGNET = IWGNET10(_wGNET);
     }
 
     /// ~~~~~~~~~~~~~~~~~~~~~~~~~~~ ///
@@ -363,17 +371,18 @@ contract VotingEscrow is
         _checkpoint(address(0), empty, empty);
     }
 
-    /// @notice Creates a new lock
+    /// @notice Creates a new lock (internal function for processing either native or wrapped token)
     /// @param _unlockTime Expiration time of the lock
-    /// @dev The amount to lock is provided via `msg.value`
+    /// @param _value The amount to lock
+    /// @dev Assumes that the value is already checked and converted to the native token
     /// `msg.value` is (unsafely) downcasted from `uint256` to `int128`
     /// and `_unlockTime` is (unsafely) downcasted from `uint256` to `uint96`
     /// assuming that the values never reach the respective max values
-    function createLock(
-        uint256 _unlockTime
-    ) external payable override nonReentrant {
+    function _createLock(
+        uint256 _unlockTime,
+        uint256 _value
+    ) internal nonReentrant {
         uint256 unlock_time = _floorToWeek(_unlockTime); // Locktime is rounded down to weeks
-        uint256 _value = msg.value;
         LockedBalance memory locked_ = locked[msg.sender];
         // Validate inputs
         require(_value != 0, 'Only non zero amount');
@@ -400,14 +409,38 @@ contract VotingEscrow is
         );
     }
 
-    /// @notice Locks more tokens in an existing lock
-    /// @dev The amount to add is provided via `msg.value`
+    /// @notice Creates a new lock for native token deposits
+    /// @param _unlockTime Expiration time of the lock
+    /// @dev The amount to lock is provided via `msg.value`
+    /// `msg.value` is (unsafely) downcasted from `uint256` to `int128`
+    /// and `_unlockTime` is (unsafely) downcasted from `uint256` to `uint96`
+    /// assuming that the values never reach the respective max values
+    function createLock(uint256 _unlockTime) external payable override {
+        uint256 _value = msg.value;
+        _createLock(_unlockTime, _value);
+    }
+
+    /// @notice Creates a new lock for wrapped token deposits
+    /// @param _unlockTime Expiration time of the lock
+    /// @param _value The amount to lock
+    /// @dev The amount is transferred from WGNET, which needs to be approved first.
+    function createLockWithWrappedToken(
+        uint256 _unlockTime,
+        uint256 _value
+    ) external {
+        wGNET.transferFrom(msg.sender, address(this), _value);
+        wGNET.withdraw(_value);
+        _createLock(_unlockTime, _value);
+    }
+
+    /// @notice Locks more tokens in an existing lock (internal function for processing either native or wrapped token)
+    /// @param _value The amount to add
+    /// @dev Assumes that the value is already checked and converted to the native token
     /// Does not update the lock's expiration
     /// Does record a new checkpoint for the lock
-    /// `msg.value` is (unsafely) downcasted from `uint256` to `int128` assuming
+    /// `_value` is (unsafely) downcasted from `uint256` to `int128` assuming
     /// that the max value is never reached in practice
-    function increaseAmount() external payable override nonReentrant {
-        uint256 _value = msg.value;
+    function _increaseAmount(uint256 _value) internal nonReentrant {
         LockedBalance memory locked_ = locked[msg.sender];
         // Validate inputs
         require(_value != 0, 'Only non zero amount');
@@ -428,6 +461,26 @@ contract VotingEscrow is
         _checkpoint(msg.sender, locked_, newLocked);
         // Native tokens are already received via msg.value
         emit Deposit(msg.sender, _value, unlockTime, action, block.timestamp);
+    }
+
+    /// @notice Locks more tokens in an existing lock for native token deposits
+    /// @dev The amount to add is provided via `msg.value`
+    /// Does not update the lock's expiration
+    /// Does record a new checkpoint for the lock
+    function increaseAmount() external payable override {
+        uint256 _value = msg.value;
+        _increaseAmount(_value);
+    }
+
+    /// @notice Locks more tokens in an existing lock for wrapped token deposits
+    /// @param _value The amount to add
+    /// @dev The amount is transferred from WGNET, which needs to be approved first.
+    /// Does not update the lock's expiration
+    /// Does record a new checkpoint for the lock
+    function increaseAmountWithWrappedToken(uint256 _value) external {
+        wGNET.transferFrom(msg.sender, address(this), _value);
+        wGNET.withdraw(_value);
+        _increaseAmount(_value);
     }
 
     /// @notice Extends the expiration of an existing lock
@@ -466,7 +519,9 @@ contract VotingEscrow is
     }
 
     /// @notice Withdraws the tokens of an expired lock
-    function withdraw() external override nonReentrant {
+    /// @dev Internal function for processing either native or wrapped token
+    /// @return payout The amount of tokens to be sent back to the user
+    function _withdraw() internal nonReentrant returns (uint256 payout) {
         LockedBalance memory locked_ = locked[msg.sender];
         // Validate inputs
         require(locked_.amount > 0, 'No lock');
@@ -483,9 +538,23 @@ contract VotingEscrow is
         // currentLock has only 0 end
         // Both can have >= 0 amount
         _checkpoint(msg.sender, locked_, newLocked);
+        payout = value;
+        emit Withdraw(msg.sender, payout, LockAction.WITHDRAW, block.timestamp);
+    }
+
+    /// @notice Withdraws native tokens of an expired lock
+    function withdraw() external override {
+        uint256 payout = _withdraw();
         // Send back deposited tokens
-        payable(msg.sender).transfer(value);
-        emit Withdraw(msg.sender, value, LockAction.WITHDRAW, block.timestamp);
+        payable(msg.sender).transfer(payout);
+    }
+
+    /// @notice Withdraws the tokens of an expired lock as wrapped token
+    function withdrawWrappedToken() external {
+        uint256 payout = _withdraw();
+        // Send back deposited tokens
+        wGNET.deposit{value: payout}();
+        wGNET.transfer(msg.sender, payout);
     }
 
     /// ~~~~~~~~~~~~~~~~~~~~~~~~~~ ///
@@ -493,8 +562,9 @@ contract VotingEscrow is
     /// ~~~~~~~~~~~~~~~~~~~~~~~~~~ ///
 
     /// @notice Quit an existing lock by withdrawing all tokens less a penalty
+    /// @dev Internal function for processing either native or wrapped token
     /// Use `withdraw` for expired locks
-    function quitLock() external override nonReentrant {
+    function _quitLock() internal nonReentrant returns (uint256 payout) {
         LockedBalance memory locked_ = locked[msg.sender];
         // Validate inputs
         require(locked_.amount > 0, 'No lock');
@@ -516,9 +586,27 @@ contract VotingEscrow is
         uint256 penaltyAmount = (value * penaltyRate) / 1e18; // quitlock_penalty is in 18 decimals precision
         penaltyAccumulated = penaltyAccumulated + penaltyAmount;
         uint256 remainingAmount = value - penaltyAmount;
-        // Send back remaining tokens
-        payable(msg.sender).transfer(remainingAmount);
         emit Withdraw(msg.sender, value, LockAction.QUIT, block.timestamp);
+        payout = remainingAmount;
+    }
+
+    /// @notice Quit an existing lock by withdrawing all tokens less a penalty
+    /// @dev The payout is returned in native tokens
+    /// Use `withdraw` for expired locks
+    function quitLock() external override {
+        uint256 payout = _quitLock();
+        // Send back remaining tokens
+        payable(msg.sender).transfer(payout);
+    }
+
+    /// @notice Quit an existing lock by withdrawing all tokens less a penalty
+    /// @dev The payout is returned in wrapped tokens
+    /// Use `withdraw` for expired locks
+    function quitLockWrappedToken() external {
+        uint256 payout = _quitLock();
+        // Send back remaining tokens
+        wGNET.deposit{value: payout}();
+        wGNET.transfer(msg.sender, payout);
     }
 
     /// @notice Returns the penalty rate for a given lock expiration
