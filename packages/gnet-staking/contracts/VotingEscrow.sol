@@ -634,7 +634,8 @@ contract VotingEscrow is
         uint256 amount = penaltyAccumulated;
         penaltyAccumulated = 0;
         address recipient = penaltyRecipient;
-        payable(recipient).transfer(amount);
+        wGNET.deposit{value: amount}();
+        wGNET.transfer(recipient, amount);
         emit CollectPenalty(amount, recipient);
     }
 

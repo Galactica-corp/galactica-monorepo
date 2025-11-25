@@ -206,7 +206,7 @@ describe('VotingEscrow Tests', function () {
     });
 
     it('Check accumulated penalty and collect', async () => {
-      const { ve, alice, treasury } = await loadFixture(deployFixture);
+      const { ve, alice, treasury, wGNET } = await loadFixture(deployFixture);
       const lockTime = 4 * WEEK + (await getTimestamp());
       await ve.connect(alice).createLock(lockTime, { value: lockAmount });
       const lockEnd = await ve.lockEnd(alice.address);
@@ -216,9 +216,9 @@ describe('VotingEscrow Tests', function () {
       expect(await ve.penaltyAccumulated()).gt(0);
 
       const penaltyAccumulated = await ve.penaltyAccumulated();
-      const treasuryBalanceBefore = await ethers.provider.getBalance(treasury.address);
+      const treasuryBalanceBefore = await wGNET.balanceOf(treasury.address);
       await ve.collectPenalty();
-      const treasuryBalanceAfter = await ethers.provider.getBalance(treasury.address);
+      const treasuryBalanceAfter = await wGNET.balanceOf(treasury.address);
       expect(treasuryBalanceAfter - treasuryBalanceBefore).to.equal(
         penaltyAccumulated,
       );
