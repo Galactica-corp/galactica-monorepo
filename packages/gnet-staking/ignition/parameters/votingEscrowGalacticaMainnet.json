@@ -1,0 +1,8 @@
+{
+  "VotingEscrowModule": {
+    "penaltyRecipient": "0x50AF2AAb1455C1C06B3b8e623549dDE437F54EeF",
+    "name": "Voting Escrowed GNET",
+    "symbol": "veGNET",
+    "wGNET": "0x690F1eEf8AcEaD09Ac695d9111Af081045c6d5b7"
+  }
+}
