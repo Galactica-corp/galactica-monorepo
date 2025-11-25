@@ -30,7 +30,7 @@ yarn test
 ### Deployment
 
 ```shell
-yarn deploy
+yarn hardhat ignition deploy ignition/modules/IndexPool.m.ts --network galacticaMainnet --verify
 ```
 
 ## Contract Architecture

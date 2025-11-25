@@ -14,8 +14,7 @@
   "scripts": {
     "build": "yarn workspaces foreach --from @galactica-net/gubi-index-pool --parallel --topological-dev --recursive --verbose run build:local",
     "build:local": "yarn hardhat compile",
-    "test": "yarn hardhat test",
-    "deploy": "yarn hardhat ignition deploy"
+    "test": "yarn hardhat test"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.3.0",

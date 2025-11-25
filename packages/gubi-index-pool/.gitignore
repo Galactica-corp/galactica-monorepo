@@ -19,3 +19,12 @@
 
 # Hardhat coverage reports
 /coverage
+
+# Ignition deployments
+ignition/deployments
+!ignition/deployments/chain-613419
+ignition/deployments/chain-613419/build-info
+ignition/deployments/chain-613419/artifacts
+!ignition/deployments/chain-843843
+ignition/deployments/chain-843843/build-info
+ignition/deployments/chain-843843/artifacts
