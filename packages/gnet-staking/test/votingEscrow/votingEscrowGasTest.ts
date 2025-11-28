@@ -1,20 +1,12 @@
-/* eslint-disable @typescript-eslint/dot-notation */
-/* eslint-disable no-await-in-loop */
-/* eslint-disable @typescript-eslint/naming-convention */
-import { network, ethers, ignition } from 'hardhat';
+import { time } from '@nomicfoundation/hardhat-toolbox/network-helpers';
 import { expect } from 'chai';
-import { time, loadFixture } from '@nomicfoundation/hardhat-toolbox/network-helpers';
-import { assertBNClose, assertBNClosePercent } from './helpers/assertions';
-import { BN, simpleToExactAmount, maximum, sqrt } from './helpers/math';
-import {
-  ONE_WEEK,
-  ONE_HOUR,
-  ONE_DAY,
-  ONE_YEAR,
-  DEFAULT_DECIMALS,
-} from './helpers/constants';
-import type { VotingEscrow } from '../../typechain-types/contracts/VotingEscrow';
+import { ethers, ignition } from 'hardhat';
+
+import { ONE_WEEK, ONE_YEAR, DEFAULT_DECIMALS } from './helpers/constants';
+import type { BN } from './helpers/math';
+import { simpleToExactAmount } from './helpers/math';
 import votingEscrowModule from '../../ignition/modules/VotingEscrow.m';
+import type { VotingEscrow } from '../../typechain-types/contracts/VotingEscrow';
 
 let votingLockup: VotingEscrow;
 let admin: any;
@@ -29,9 +21,9 @@ let david: any;
 let eve: any;
 let treasury: any;
 
-async function latestBlockBN() {
-  return BigInt((await ethers.provider.getBlock('latest'))!.number);
-}
+/**
+ * @returns The current timestamp in BigInt
+ */
 async function getTimestampBN() {
   return BigInt((await ethers.provider.getBlock('latest'))!.timestamp);
 }
@@ -61,7 +53,7 @@ describe('Gas usage tests', () => {
     await time.increaseTo(nextUnixWeek);
   };
 
-  const deployFresh = async (initialRewardFunding = 0n) => {
+  const deployFresh = async () => {
     const wGNET = await ethers.deployContract('WGNET10');
     const { votingEscrow } = await ignition.deploy(votingEscrowModule, {
       parameters: {
@@ -83,31 +75,31 @@ describe('Gas usage tests', () => {
     // Fund accounts with native tokens
     await ethers.provider.send('hardhat_setBalance', [
       fundManager.address,
-      '0x' + ethers.parseEther('1000000000000').toString(16),
+      `0x${ethers.parseEther('1000000000000').toString(16)}`,
     ]);
     await ethers.provider.send('hardhat_setBalance', [
       defaultUser.address,
-      '0x' + simpleToExactAmount(1000, DEFAULT_DECIMALS).toString(16),
+      `0x${simpleToExactAmount(1000, DEFAULT_DECIMALS).toString(16)}`,
     ]);
     await ethers.provider.send('hardhat_setBalance', [
       other.address,
-      '0x' + simpleToExactAmount(1000, DEFAULT_DECIMALS).toString(16),
+      `0x${simpleToExactAmount(1000, DEFAULT_DECIMALS).toString(16)}`,
     ]);
   };
 
-  interface LockedBalance {
+  type LockedBalance = {
     amount: BN;
     end: BN;
-  }
+  };
 
-  interface Point {
+  type Point = {
     bias: BN;
     slope: BN;
     ts: BN;
     blk?: BN;
-  }
+  };
 
-  interface ContractData {
+  type ContractData = {
     epoch: BN;
     userEpoch: BN;
     userLocked: LockedBalance;
@@ -116,13 +108,14 @@ describe('Gas usage tests', () => {
     senderStakingTokenBalance: BN;
     contractStakingTokenBalance: BN;
     votingPower: BN;
-  }
+    balanceOf: BN;
+  };
 
   const snapshotData = async (sender = defaultUser): Promise<ContractData> => {
     const locked = await votingLockup.locked(sender.address);
     const userLastPoint = await votingLockup.getLastUserPoint(sender.address);
-    const epoch = await await votingLockup.globalEpoch();
-    const userEpoch = await await votingLockup.userPointEpoch(sender.address);
+    const epoch = await votingLockup.globalEpoch();
+    const userEpoch = await votingLockup.userPointEpoch(sender.address);
     const lastPoint = await votingLockup.pointHistory(epoch);
     const balanceOf = await votingLockup.balanceOf(sender.address);
     return {
@@ -143,51 +136,49 @@ describe('Gas usage tests', () => {
         ts: lastPoint[2],
         blk: lastPoint[3],
       },
-      senderStakingTokenBalance: await ethers.provider.getBalance(sender.address),
+      senderStakingTokenBalance: await ethers.provider.getBalance(
+        sender.address,
+      ),
       contractStakingTokenBalance: await ethers.provider.getBalance(
-        await votingLockup.getAddress()
+        await votingLockup.getAddress(),
       ),
       votingPower: await votingLockup.balanceOf(sender.address),
+      balanceOf,
     };
   };
 
-  describe("Start gas consumption comparison", () => {
+  describe('Start gas consumption comparison', () => {
     const stakeAmt1 = simpleToExactAmount(10, DEFAULT_DECIMALS);
-    const stakeAmt2 = simpleToExactAmount(1000, DEFAULT_DECIMALS);
     let start: bigint;
-    let maxTime: bigint;
     beforeEach(async () => {
       await goToNextUnixWeekStart();
 
-      await deployFresh(simpleToExactAmount(100, DEFAULT_DECIMALS));
-      maxTime = await votingLockup.MAXTIME();
+      await deployFresh();
       // Fund accounts with native tokens
       await ethers.provider.send('hardhat_setBalance', [
         alice.address,
-        '0x' + simpleToExactAmount(1, 22).toString(16),
+        `0x${simpleToExactAmount(1, 22).toString(16)}`,
       ]);
       await ethers.provider.send('hardhat_setBalance', [
         bob.address,
-        '0x' + simpleToExactAmount(1, 22).toString(16),
+        `0x${simpleToExactAmount(1, 22).toString(16)}`,
       ]);
       await ethers.provider.send('hardhat_setBalance', [
         charlie.address,
-        '0x' + simpleToExactAmount(1, 22).toString(16),
+        `0x${simpleToExactAmount(1, 22).toString(16)}`,
       ]);
       await ethers.provider.send('hardhat_setBalance', [
         david.address,
-        '0x' + simpleToExactAmount(1, 22).toString(16),
+        `0x${simpleToExactAmount(1, 22).toString(16)}`,
       ]);
       await ethers.provider.send('hardhat_setBalance', [
         eve.address,
-        '0x' + simpleToExactAmount(1, 22).toString(16),
+        `0x${simpleToExactAmount(1, 22).toString(16)}`,
       ]);
     });
 
-    const calcBias = (amount: BN, len: BN): BN => amount / maxTime * len;
-
-    describe("Gas usage", () => {
-      it("Alice, Bob and Charlie create MAX locks and withdraw RIGHT AFTER their locked expired, no delegation, nor global checkpoint", async () => {
+    describe('Gas usage', () => {
+      it('Alice, Bob and Charlie create MAX locks and withdraw RIGHT AFTER their locked expired, no delegation, nor global checkpoint', async () => {
         start = await getTimestampBN();
         // Total supply (total voting power) is ZERO
         expect(await votingLockup.totalSupply()).to.equal(0);
@@ -208,9 +199,7 @@ describe('Gas usage tests', () => {
 
         // Total supply is the sum of their voting power
         expect(await votingLockup.totalSupply()).to.equal(
-          aliceData.votingPower
-          + bobData.votingPower
-          + charlieData.votingPower
+          aliceData.votingPower + bobData.votingPower + charlieData.votingPower,
         );
 
         // NOTHING HAPPENS FOR 1 YEAR.. NOT EVEN A GLOBAL CHECKPOINT
@@ -223,7 +212,7 @@ describe('Gas usage tests', () => {
         await votingLockup.connect(bob).withdraw();
         await votingLockup.connect(charlie).withdraw();
       });
-      it("Alice, Bob and Charlie create locks and withdraw RIGHT AFTER their locked expired, no delegation but WE DID 1 GLOBAL CHECKPOINT at 3 months", async () => {
+      it('Alice, Bob and Charlie create locks and withdraw RIGHT AFTER their locked expired, no delegation but WE DID 1 GLOBAL CHECKPOINT at 3 months', async () => {
         start = await getTimestampBN();
         // Total supply (total voting power) is ZERO
         expect(await votingLockup.totalSupply()).to.equal(0);
@@ -244,9 +233,7 @@ describe('Gas usage tests', () => {
 
         // Total supply is the sum of their voting power
         expect(await votingLockup.totalSupply()).to.equal(
-          aliceData.votingPower
-          + bobData.votingPower
-          + charlieData.votingPower
+          aliceData.votingPower + bobData.votingPower + charlieData.votingPower,
         );
 
         await time.increase(ONE_WEEK * 13n);
@@ -266,7 +253,7 @@ describe('Gas usage tests', () => {
         await votingLockup.connect(bob).withdraw();
         await votingLockup.connect(charlie).withdraw();
       });
-      it("Alice, Bob and Charlie create locks and withdraw RIGHT AFTER their locked expired, no delegation but WE DID 2 GLOBAL CHECKPOINTS at 3 and 9 months", async () => {
+      it('Alice, Bob and Charlie create locks and withdraw RIGHT AFTER their locked expired, no delegation but WE DID 2 GLOBAL CHECKPOINTS at 3 and 9 months', async () => {
         start = await getTimestampBN();
         // Total supply (total voting power) is ZERO
         expect(await votingLockup.totalSupply()).to.equal(0);
@@ -287,9 +274,7 @@ describe('Gas usage tests', () => {
 
         // Total supply is the sum of their voting power
         expect(await votingLockup.totalSupply()).to.equal(
-          aliceData.votingPower
-          + bobData.votingPower
-          + charlieData.votingPower
+          aliceData.votingPower + bobData.votingPower + charlieData.votingPower,
         );
 
         await time.increase(ONE_WEEK * 13n);
@@ -316,7 +301,7 @@ describe('Gas usage tests', () => {
         await votingLockup.connect(bob).withdraw();
         await votingLockup.connect(charlie).withdraw();
       });
-      it("Alice, Bob and Charlie create locks and withdraw RIGHT AFTER their locked expired, no delegation but WE DID 3 GLOBAL CHECKPOINTS at 3,9 and 12 months", async () => {
+      it('Alice, Bob and Charlie create locks and withdraw RIGHT AFTER their locked expired, no delegation but WE DID 3 GLOBAL CHECKPOINTS at 3,9 and 12 months', async () => {
         start = await getTimestampBN();
         // Total supply (total voting power) is ZERO
         expect(await votingLockup.totalSupply()).to.equal(0);
@@ -337,9 +322,7 @@ describe('Gas usage tests', () => {
 
         // Total supply is the sum of their voting power
         expect(await votingLockup.totalSupply()).to.equal(
-          aliceData.votingPower
-          + bobData.votingPower
-          + charlieData.votingPower
+          aliceData.votingPower + bobData.votingPower + charlieData.votingPower,
         );
 
         await time.increase(ONE_WEEK * 13n);
@@ -367,7 +350,7 @@ describe('Gas usage tests', () => {
         await votingLockup.connect(bob).withdraw();
         await votingLockup.connect(charlie).withdraw();
       });
-      it("Alice, Bob and Charlie create MAX locks and withdraw RIGHT AFTER their locked expired, no delegation, 1 global checkpoint made from david", async () => {
+      it('Alice, Bob and Charlie create MAX locks and withdraw RIGHT AFTER their locked expired, no delegation, 1 global checkpoint made from david', async () => {
         start = await getTimestampBN();
         // Total supply (total voting power) is ZERO
         expect(await votingLockup.totalSupply()).to.equal(0);
@@ -388,9 +371,7 @@ describe('Gas usage tests', () => {
 
         // Total supply is the sum of their voting power
         expect(await votingLockup.totalSupply()).to.equal(
-          aliceData.votingPower
-          + bobData.votingPower
-          + charlieData.votingPower
+          aliceData.votingPower + bobData.votingPower + charlieData.votingPower,
         );
 
         // NOTHING HAPPENS FOR 1 YEAR.. NOT EVEN A GLOBAL CHECKPOINT
@@ -400,7 +381,9 @@ describe('Gas usage tests', () => {
         // This call costs roughly ~4M (no checkpoint for a year)
         await votingLockup
           .connect(david)
-          .createLock(await getTimestampBN() + ONE_YEAR, { value: stakeAmt1 });
+          .createLock((await getTimestampBN()) + ONE_YEAR, {
+            value: stakeAmt1,
+          });
 
         await time.increase(ONE_WEEK); // New weekly checkpoint available
         // This one costs 254K
@@ -412,7 +395,7 @@ describe('Gas usage tests', () => {
         // This one costs 254K, each week increases ~70k, the other withdraws in the same week are at 180K
         await votingLockup.connect(bob).withdraw();
       });
-      it("Alice, Bob and Charlie create locks, Bob inmediately locks to Alice, Charlie after 3 months", async () => {
+      it('Alice, Bob and Charlie create locks, Bob inmediately locks to Alice, Charlie after 3 months', async () => {
         start = await getTimestampBN();
         // Total supply (total voting power) is ZERO
         expect(await votingLockup.totalSupply()).to.equal(0);
@@ -433,15 +416,13 @@ describe('Gas usage tests', () => {
 
         // Total supply is the sum of their voting power
         expect(await votingLockup.totalSupply()).to.equal(
-          aliceData.votingPower
-          + bobData.votingPower
-          + charlieData.votingPower
+          aliceData.votingPower + bobData.votingPower + charlieData.votingPower,
         );
 
         // After 3 months charlie delegates to Alice too
         await time.increase(ONE_WEEK * 12n);
       });
-      it("Alice, Bob and Charlie create locks, Bob inmediately locks to Alice, Checkpoint after 6 months", async () => {
+      it('Alice, Bob and Charlie create locks, Bob inmediately locks to Alice, Checkpoint after 6 months', async () => {
         start = await getTimestampBN();
         // Total supply (total voting power) is ZERO
         expect(await votingLockup.totalSupply()).to.equal(0);
@@ -462,9 +443,7 @@ describe('Gas usage tests', () => {
 
         // Total supply is the sum of their voting power
         expect(await votingLockup.totalSupply()).to.equal(
-          aliceData.votingPower
-          + bobData.votingPower
-          + charlieData.votingPower
+          aliceData.votingPower + bobData.votingPower + charlieData.votingPower,
         );
 
         // After 3 months we make a checkpoint
@@ -475,7 +454,7 @@ describe('Gas usage tests', () => {
         // After 3 months charlie delegates to Alice too
         await time.increase(ONE_WEEK * 12n);
       });
-      it("Alice, Bob and Charlie inmediately locks to Alice, then Charlie first increase lock time then undelegates, after checkpoint Bob delegates to Charlie ", async () => {
+      it('Alice, Bob and Charlie inmediately locks to Alice, then Charlie first increase lock time then undelegates, after checkpoint Bob delegates to Charlie ', async () => {
         start = await getTimestampBN();
         // Total supply (total voting power) is ZERO
         expect(await votingLockup.totalSupply()).to.equal(0);
@@ -496,9 +475,7 @@ describe('Gas usage tests', () => {
 
         // Total supply is the sum of their voting power
         expect(await votingLockup.totalSupply()).to.equal(
-          aliceData.votingPower
-          + bobData.votingPower
-          + charlieData.votingPower
+          aliceData.votingPower + bobData.votingPower + charlieData.votingPower,
         );
 
         // After 3 months
@@ -506,7 +483,7 @@ describe('Gas usage tests', () => {
         // This call cost 1M (updates the global checkpoint)
         await votingLockup
           .connect(charlie)
-          .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
+          .increaseUnlockTime((await getTimestampBN()) + ONE_YEAR);
         await time.increase(ONE_YEAR);
         await votingLockup.checkpoint();
         await votingLockup.connect(charlie).withdraw();
@@ -517,7 +494,7 @@ describe('Gas usage tests', () => {
         // This one costs ~340K
         // await votingLockup.connect(bob).delegate(charlie.address);
       });
-      it("Alice locks, then increase amount, increase lock time and quitLocks ", async () => {
+      it('Alice locks, then increase amount, increase lock time and quitLocks ', async () => {
         start = await getTimestampBN();
         // Total supply (total voting power) is ZERO
         expect(await votingLockup.totalSupply()).to.equal(0);
@@ -529,7 +506,7 @@ describe('Gas usage tests', () => {
         await votingLockup.connect(alice).increaseAmount({ value: stakeAmt1 });
         await votingLockup
           .connect(alice)
-          .increaseUnlockTime(await getTimestampBN() + ONE_YEAR);
+          .increaseUnlockTime((await getTimestampBN()) + ONE_YEAR);
 
         // Alice's quitLocks
         await votingLockup.connect(alice).quitLock();

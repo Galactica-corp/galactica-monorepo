@@ -1,20 +1,24 @@
-import { describe, it } from 'node:test';
+import { network } from 'hardhat';
 import assert from 'node:assert/strict';
-import hre, { network } from 'hardhat';
-import { parseEther, getAddress, zeroAddress, type Address } from 'viem';
-import IndexPoolModule from '../ignition/modules/IndexPool.m.ts';
-import TestTokenModule from '../ignition/modules/TestToken.m.ts';
+import { describe, it } from 'node:test';
+import { parseEther, getAddress, zeroAddress } from 'viem';
+
+import indexPoolModule from '../ignition/modules/IndexPool.m';
+import testTokenModule from '../ignition/modules/TestToken.m';
 
 describe('IndexPool', async function () {
   const { ignition, networkHelpers } = await network.connect();
   const { loadFixture } = networkHelpers;
 
+  /**
+   * @returns The deployed fixture
+   */
   async function deployFixture() {
     const { viem } = await network.connect();
     const [owner, other] = await viem.getWalletClients();
     const publicClient = await viem.getPublicClient();
 
-    const { indexPool, gUBI } = await ignition.deploy(IndexPoolModule, {
+    const { indexPool, gUBI } = await ignition.deploy(indexPoolModule, {
       parameters: {
         IndexPoolModule: {
           owner: owner.account.address,
@@ -26,7 +30,7 @@ describe('IndexPool', async function () {
       },
     });
 
-    const { testToken } = await ignition.deploy(TestTokenModule, {
+    const { testToken } = await ignition.deploy(testTokenModule, {
       parameters: {
         TestTokenModule: {
           owner: owner.account.address,
@@ -44,14 +48,17 @@ describe('IndexPool', async function () {
     };
   }
 
-  describe('Deployment', function () {
+  describe('Deployment', async function () {
     it('Should set the right parameters', async function () {
       const { indexPool, owner, gUBI } = await loadFixture(deployFixture);
 
       const indexPoolOwner = await indexPool.read.owner();
       const indexTokenAddress = await indexPool.read.indexToken();
 
-      assert.equal(indexPoolOwner.toLowerCase(), owner.account.address.toLowerCase());
+      assert.equal(
+        indexPoolOwner.toLowerCase(),
+        owner.account.address.toLowerCase(),
+      );
       assert.equal(getAddress(indexTokenAddress), getAddress(gUBI.address));
     });
 
@@ -60,18 +67,21 @@ describe('IndexPool', async function () {
 
       await assert.rejects(
         async () => {
-          await indexPool.write.initialize([gUBI.address, owner.account.address]);
+          await indexPool.write.initialize([
+            gUBI.address,
+            owner.account.address,
+          ]);
         },
         (error: any) => {
           return error.message.includes('InvalidInitialization');
-        }
+        },
       );
     });
 
     it('Should fail to initialize with invalid zero addresses', async function () {
       await assert.rejects(
         async () => {
-          await ignition.deploy(IndexPoolModule, {
+          await ignition.deploy(indexPoolModule, {
             parameters: {
               IndexPoolModule: {
                 owner: zeroAddress,
@@ -83,8 +93,11 @@ describe('IndexPool', async function () {
           });
         },
         (error: any) => {
-          return error.message.includes('InvalidOwnerAddress') || error.message.includes('custom error');
-        }
+          return (
+            error.message.includes('InvalidOwnerAddress') ??
+            error.message.includes('custom error')
+          );
+        },
       );
     });
   });
@@ -104,7 +117,7 @@ describe('IndexPool', async function () {
     it('Should add a batch of tokens', async function () {
       const { indexPool, testToken, owner } = await loadFixture(deployFixture);
 
-      const { testToken: otherToken } = await ignition.deploy(TestTokenModule, {
+      const { testToken: otherToken } = await ignition.deploy(testTokenModule, {
         parameters: {
           TestTokenModule: {
             owner: owner.account.address,
@@ -112,7 +125,9 @@ describe('IndexPool', async function () {
         },
       });
 
-      await indexPool.write.addTokenBatch([[testToken.address, otherToken.address]]);
+      await indexPool.write.addTokenBatch([
+        [testToken.address, otherToken.address],
+      ]);
 
       const heldTokens = await indexPool.read.getHeldTokens();
 
@@ -126,18 +141,25 @@ describe('IndexPool', async function () {
 
       await assert.rejects(
         async () => {
-          await indexPool.write.addToken([testToken.address], { account: other.account });
+          await indexPool.write.addToken([testToken.address], {
+            account: other.account,
+          });
         },
         (error: any) => {
           return error.message.includes('OwnableUnauthorizedAccount');
-        }
+        },
       );
     });
   });
 
   describe('Distribute Indexed Tokens', function () {
+    /**
+     * @param indexPool The index pool contract
+     * @param owner The owner of the tokens
+     * @returns Fixture with the tokens and the indexed amounts
+     */
     async function loadIndexPool(indexPool: any, owner: any) {
-      const { testToken: token1 } = await ignition.deploy(TestTokenModule, {
+      const { testToken: token1 } = await ignition.deploy(testTokenModule, {
         parameters: {
           TestTokenModule: {
             owner: owner.account.address,
@@ -145,7 +167,7 @@ describe('IndexPool', async function () {
         },
       });
 
-      const { testToken: token2 } = await ignition.deploy(TestTokenModule, {
+      const { testToken: token2 } = await ignition.deploy(testTokenModule, {
         parameters: {
           TestTokenModule: {
             owner: owner.account.address,
@@ -153,7 +175,7 @@ describe('IndexPool', async function () {
         },
       });
 
-      const { testToken: token3 } = await ignition.deploy(TestTokenModule, {
+      const { testToken: token3 } = await ignition.deploy(testTokenModule, {
         parameters: {
           TestTokenModule: {
             owner: owner.account.address,
@@ -161,7 +183,9 @@ describe('IndexPool', async function () {
         },
       });
 
-      await indexPool.write.addTokenBatch([[token1.address, token2.address, token3.address]]);
+      await indexPool.write.addTokenBatch([
+        [token1.address, token2.address, token3.address],
+      ]);
 
       const indexedAmount1 = parseEther('10000000'); // 10 million
       const indexedAmount2 = parseEther('2000000'); // 2 million
@@ -181,13 +205,27 @@ describe('IndexPool', async function () {
         }
       }
 
-      return { token1, token2, token3, indexedAmount1, indexedAmount2, indexedAmount3 };
+      return {
+        token1,
+        token2,
+        token3,
+        indexedAmount1,
+        indexedAmount2,
+        indexedAmount3,
+      };
     }
 
     it('Should distribute tokens', async function () {
       const { indexPool, gUBI, owner } = await loadFixture(deployFixture);
 
-      const { token1, token2, token3, indexedAmount1, indexedAmount2, indexedAmount3 } = await loadIndexPool(indexPool, owner);
+      const {
+        token1,
+        token2,
+        token3,
+        indexedAmount1,
+        indexedAmount2,
+        indexedAmount3,
+      } = await loadIndexPool(indexPool, owner);
 
       const burnAmount = parseEther('500');
 
@@ -199,28 +237,44 @@ describe('IndexPool', async function () {
 
       await gUBI.write.approve([indexPool.address, burnAmount]);
 
-      const gUBIBalanceBefore = await gUBI.read.balanceOf([owner.account.address]);
+      const gUBIBalanceBefore = await gUBI.read.balanceOf([
+        owner.account.address,
+      ]);
 
       await indexPool.write.burnIndexToken([burnAmount]);
 
-      const gUBIBalanceAfter = await gUBI.read.balanceOf([owner.account.address]);
+      const gUBIBalanceAfter = await gUBI.read.balanceOf([
+        owner.account.address,
+      ]);
 
       const totalSupplyAfter = await gUBI.read.totalSupply();
 
       assert.equal(gUBIBalanceAfter, gUBIBalanceBefore - burnAmount);
       assert.equal(totalSupplyAfter, gUBIBalanceBefore - burnAmount);
 
-      const token1Balance = await token1.read.balanceOf([owner.account.address]);
-      const token2Balance = await token2.read.balanceOf([owner.account.address]);
-      const token3Balance = await token3.read.balanceOf([owner.account.address]);
+      const token1Balance = await token1.read.balanceOf([
+        owner.account.address,
+      ]);
+      const token2Balance = await token2.read.balanceOf([
+        owner.account.address,
+      ]);
+      const token3Balance = await token3.read.balanceOf([
+        owner.account.address,
+      ]);
 
       assert.equal(token1Balance, expectedPayout1);
       assert.equal(token2Balance, expectedPayout2);
       assert.equal(token3Balance, expectedPayout3);
 
-      const token1PoolBalance = await token1.read.balanceOf([indexPool.address]);
-      const token2PoolBalance = await token2.read.balanceOf([indexPool.address]);
-      const token3PoolBalance = await token3.read.balanceOf([indexPool.address]);
+      const token1PoolBalance = await token1.read.balanceOf([
+        indexPool.address,
+      ]);
+      const token2PoolBalance = await token2.read.balanceOf([
+        indexPool.address,
+      ]);
+      const token3PoolBalance = await token3.read.balanceOf([
+        indexPool.address,
+      ]);
 
       assert.equal(token1PoolBalance, indexedAmount1 - expectedPayout1);
       assert.equal(token2PoolBalance, indexedAmount2 - expectedPayout2);
@@ -230,10 +284,17 @@ describe('IndexPool', async function () {
     it('Should distribute tokens with skipping feature', async function () {
       const { indexPool, gUBI, owner } = await loadFixture(deployFixture);
 
-      const { token1, token2, token3, indexedAmount1, indexedAmount2, indexedAmount3 } = await loadIndexPool(indexPool, owner);
+      const {
+        token1,
+        token2,
+        token3,
+        indexedAmount1,
+        indexedAmount2,
+        indexedAmount3,
+      } = await loadIndexPool(indexPool, owner);
 
       // add a broken token to the index pool
-      const brokenTokenAddress = getAddress('0x' + '1'.repeat(40)) as Address;
+      const brokenTokenAddress = getAddress(`0x${'1'.repeat(40)}`);
       await indexPool.write.addToken([brokenTokenAddress]);
 
       const burnAmount = parseEther('0.456789');
@@ -246,39 +307,53 @@ describe('IndexPool', async function () {
       await gUBI.write.approve([indexPool.address, burnAmount]);
 
       // calling the distribution will revert because of the broken token
-      await assert.rejects(
-        async () => {
-          await indexPool.write.burnIndexToken([burnAmount]);
-        }
-      );
+      await assert.rejects(async () => {
+        await indexPool.write.burnIndexToken([burnAmount]);
+      });
 
-      const tokensToSkip = [
-        token2.address,
-        brokenTokenAddress,
-      ];
+      const tokensToSkip = [token2.address, brokenTokenAddress];
 
-      const gUBIBalanceBefore = await gUBI.read.balanceOf([owner.account.address]);
+      const gUBIBalanceBefore = await gUBI.read.balanceOf([
+        owner.account.address,
+      ]);
 
-      await indexPool.write.burnIndexTokenAndSkipSomeTokens([burnAmount, tokensToSkip]);
+      await indexPool.write.burnIndexTokenAndSkipSomeTokens([
+        burnAmount,
+        tokensToSkip,
+      ]);
 
-      const gUBIBalanceAfter = await gUBI.read.balanceOf([owner.account.address]);
+      const gUBIBalanceAfter = await gUBI.read.balanceOf([
+        owner.account.address,
+      ]);
 
       const totalSupplyAfter = await gUBI.read.totalSupply();
 
       assert.equal(gUBIBalanceAfter, gUBIBalanceBefore - burnAmount);
       assert.equal(totalSupplyAfter, gUBIBalanceBefore - burnAmount);
 
-      const token1Balance = await token1.read.balanceOf([owner.account.address]);
-      const token2Balance = await token2.read.balanceOf([owner.account.address]);
-      const token3Balance = await token3.read.balanceOf([owner.account.address]);
+      const token1Balance = await token1.read.balanceOf([
+        owner.account.address,
+      ]);
+      const token2Balance = await token2.read.balanceOf([
+        owner.account.address,
+      ]);
+      const token3Balance = await token3.read.balanceOf([
+        owner.account.address,
+      ]);
 
       assert.equal(token1Balance, expectedPayout1);
       assert.equal(token2Balance, 0n);
       assert.equal(token3Balance, expectedPayout3);
 
-      const token1PoolBalance = await token1.read.balanceOf([indexPool.address]);
-      const token2PoolBalance = await token2.read.balanceOf([indexPool.address]);
-      const token3PoolBalance = await token3.read.balanceOf([indexPool.address]);
+      const token1PoolBalance = await token1.read.balanceOf([
+        indexPool.address,
+      ]);
+      const token2PoolBalance = await token2.read.balanceOf([
+        indexPool.address,
+      ]);
+      const token3PoolBalance = await token3.read.balanceOf([
+        indexPool.address,
+      ]);
 
       assert.equal(token1PoolBalance, indexedAmount1 - expectedPayout1);
       assert.equal(token2PoolBalance, indexedAmount2);
@@ -296,14 +371,22 @@ describe('IndexPool', async function () {
         },
         (error: any) => {
           return error.message.includes('TokenCanNotBeAddedTwice');
-        }
+        },
       );
     });
 
     it('Should empty the pool completely', async function () {
-      const { indexPool, testToken, gUBI, owner } = await loadFixture(deployFixture);
+      const { indexPool, testToken, gUBI, owner } =
+        await loadFixture(deployFixture);
 
-      const { token1, token2, token3, indexedAmount1, indexedAmount2, indexedAmount3 } = await loadIndexPool(indexPool, owner);
+      const {
+        token1,
+        token2,
+        token3,
+        indexedAmount1,
+        indexedAmount2,
+        indexedAmount3,
+      } = await loadIndexPool(indexPool, owner);
 
       const totalSupply = await gUBI.read.totalSupply();
 
@@ -312,7 +395,9 @@ describe('IndexPool', async function () {
 
       const totalSupplyAfter = await gUBI.read.totalSupply();
       const gUBIPoolBalance = await gUBI.read.balanceOf([indexPool.address]);
-      const gUBIOwnerBalance = await gUBI.read.balanceOf([owner.account.address]);
+      const gUBIOwnerBalance = await gUBI.read.balanceOf([
+        owner.account.address,
+      ]);
 
       assert.equal(totalSupplyAfter, 0n);
       assert.equal(gUBIPoolBalance, 0n);
@@ -323,10 +408,18 @@ describe('IndexPool', async function () {
         assert.equal(poolBalance, 0n);
       }
 
-      const token1Balance = await token1.read.balanceOf([owner.account.address]);
-      const token2Balance = await token2.read.balanceOf([owner.account.address]);
-      const token3Balance = await token3.read.balanceOf([owner.account.address]);
-      const testTokenBalance = await testToken.read.balanceOf([owner.account.address]);
+      const token1Balance = await token1.read.balanceOf([
+        owner.account.address,
+      ]);
+      const token2Balance = await token2.read.balanceOf([
+        owner.account.address,
+      ]);
+      const token3Balance = await token3.read.balanceOf([
+        owner.account.address,
+      ]);
+      const testTokenBalance = await testToken.read.balanceOf([
+        owner.account.address,
+      ]);
       const testTokenTotalSupply = await testToken.read.totalSupply();
 
       assert.equal(token1Balance, indexedAmount1);
@@ -342,11 +435,16 @@ describe('IndexPool', async function () {
       await gUBI.write.approve([indexPool.address, 1n]);
       await assert.rejects(
         async () => {
-          await indexPool.write.burnIndexTokenAndSkipSomeTokens([1n, [token3.address, token2.address]]);
+          await indexPool.write.burnIndexTokenAndSkipSomeTokens([
+            1n,
+            [token3.address, token2.address],
+          ]);
         },
         (error: any) => {
-          return error.message.includes('SkipArrayNotInSameOrderAsHeldTokensArray');
-        }
+          return error.message.includes(
+            'SkipArrayNotInSameOrderAsHeldTokensArray',
+          );
+        },
       );
     });
   });

@@ -1,8 +1,7 @@
-/* eslint-disable max-classes-per-file */
 import { keccak256, toUtf8Bytes } from 'ethers';
 
 /**
- * @notice This file contains constants relevant across the mStable test suite
+ * This file contains constants relevant across the mStable test suite
  * Wherever possible, it should conform to fixed on chain vars
  */
 

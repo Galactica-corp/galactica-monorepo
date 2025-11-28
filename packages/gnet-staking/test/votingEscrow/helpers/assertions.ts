@@ -1,20 +1,31 @@
-//import { MassetMachine, MassetDetails } from "./machines"
-import { assert, expect } from 'chai';
-import { BN, simpleToExactAmount } from './math';
+// import { MassetMachine, MassetDetails } from "./machines"
+import { assert } from 'chai';
+
 import { fullScale } from './constants';
+import type { BN } from './math';
+import { simpleToExactAmount } from './math';
 
 // Helper to convert various types to bigint
 const toBN = (value: BN | string | number | bigint): bigint => {
-  if (typeof value === 'bigint') return value;
-  if (typeof value === 'number') return BigInt(value);
-  if (typeof value === 'string') return BigInt(value);
+  if (typeof value === 'bigint') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    return BigInt(value);
+  }
+  if (typeof value === 'string') {
+    return BigInt(value);
+  }
   return value; // already BN (bigint)
 };
 
 /**
- *  Convenience method to assert that two BN instances are within variance units of each other.
- *  @param actual The BN instance you received
- *  @param expected The BN amount you expected to receive, allowing a variance of +/- variance units
+ * Convenience method to assert that two BN instances are within variance units of each other.
+ *
+ * @param actual The BN instance you received
+ * @param expected The BN amount you expected to receive, allowing a variance of +/- variance units
+ * @param variance The allowed variance as a string or number (e.g., "10" for 10 units)
+ * @param reason Optional reason for the assertion
  */
 export const assertBNClose = (
   actual: BN | string | number,
@@ -42,10 +53,12 @@ export const assertBNClose = (
 };
 
 /**
- *  Convenience method to assert that two BN instances are within a percentage variance of each other.
- *  @param a The first BN instance
- *  @param b The second BN instance
- *  @param variance The allowed variance as a string or number (e.g., "0.02" for 2%)
+ * Convenience method to assert that two BN instances are within a percentage variance of each other.
+ *
+ * @param a The first BN instance
+ * @param b The second BN instance
+ * @param variance The allowed variance as a string or number (e.g., "0.02" for 2%)
+ * @param reason Optional reason for the assertion
  */
 export const assertBNClosePercent = (
   a: BN,
@@ -53,7 +66,9 @@ export const assertBNClosePercent = (
   variance: string | number = '0.02',
   reason?: string,
 ): void => {
-  if (a === b) return;
+  if (a === b) {
+    return;
+  }
   const varianceBN = simpleToExactAmount(
     variance.toString().substring(0, 6),
     16,
@@ -69,9 +84,10 @@ export const assertBNClosePercent = (
 };
 
 /**
- *  Convenience method to assert that one BN instance is GTE the other
- *  @param actual The BN instance you received
- *  @param comparison The operand to compare against
+ * Convenience method to assert that one BN instance is GTE the other
+ *
+ * @param actual The BN instance you received
+ * @param comparison The operand to compare against
  */
 export const assertBnGte = (actual: BN, comparison: BN): void => {
   assert.ok(
@@ -81,11 +97,13 @@ export const assertBnGte = (actual: BN, comparison: BN): void => {
 };
 
 /**
- *  Convenience method to assert that one BN number is eq to, or greater than an expected value by some small amount
- *  @param actual The BN instance you received
- *  @param equator The BN to equate to
- *  @param maxActualShouldExceedExpected Upper limit for the growth
- *  @param mustBeGreater Fail if the operands are equal
+ * Convenience method to assert that one BN number is eq to, or greater than an expected value by some small amount
+ *
+ * @param actual The BN instance you received
+ * @param equator The BN to equate to
+ * @param maxActualShouldExceedExpected Upper limit for the growth
+ * @param mustBeGreater Fail if the operands are equal
+ * @param reason Optional reason for the assertion
  */
 export const assertBNSlightlyGT = (
   actual: BN,
@@ -112,11 +130,12 @@ export const assertBNSlightlyGT = (
 };
 
 /**
- *  Convenience method to assert that one BN number is eq to, or greater than an expected value by some small amount
- *  @param actual The BN instance you received
- *  @param equator The BN to equate to
- *  @param maxPercentIncrease Percentage amount of increase, as a string (1% = 1)
- *  @param mustBeGreater Fail if the operands are equal
+ * Convenience method to assert that one BN number is eq to, or greater than an expected value by some small amount
+ *
+ * @param actual The BN instance you received
+ * @param equator The BN to equate to
+ * @param maxPercentIncrease Percentage amount of increase, as a string (1% = 1)
+ * @param mustBeGreater Fail if the operands are equal
  */
 export const assertBNSlightlyGTPercent = (
   actual: BN,

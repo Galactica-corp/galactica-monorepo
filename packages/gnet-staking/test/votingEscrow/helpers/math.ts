@@ -5,8 +5,12 @@ export type BN = bigint;
 
 // Helper to convert various types to bigint
 const toBN = (value: number | string | bigint): bigint => {
-  if (typeof value === 'bigint') return value;
-  if (typeof value === 'number') return BigInt(value);
+  if (typeof value === 'bigint') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    return BigInt(value);
+  }
   return BigInt(value);
 };
 
@@ -29,7 +33,7 @@ export const simpleToExactAmount = (
   const scaleString = scale.toString();
 
   // Is it negative?
-  const negative = amountString.substring(0, 1) === '-';
+  const negative = amountString.startsWith('-');
   if (negative) {
     amountString = amountString.substring(1);
   }
@@ -132,22 +136,6 @@ export const minimum = (a: bigint, b: bigint): bigint => (a <= b ? a : b);
 
 // Returns the bigger number
 export const maximum = (a: bigint, b: bigint): bigint => (a >= b ? a : b);
-
-// Returns the square root of a big number, solution taken from https://github.com/ethers-io/ethers.js/issues/1182#issuecomment-744142921
-export const sqrt = (value: bigint | number): bigint => {
-  const x = toBN(value);
-  if (x < 0n) throw new Error('Square root of negative number');
-  if (x === 0n) return 0n;
-  if (x === 1n) return 1n;
-
-  let z = (x + 1n) / 2n;
-  let y = x;
-  while (z < y) {
-    y = z;
-    z = (x / z + z) / 2n;
-  }
-  return y;
-};
 
 // Returns the sum of two big numbers
 export const sum = (a: bigint, b: bigint): bigint => a + b;

@@ -1,13 +1,14 @@
-import { expect } from 'chai';
-import { ethers, ignition } from 'hardhat';
 import {
   time,
   loadFixture,
 } from '@nomicfoundation/hardhat-toolbox/network-helpers';
-import type { MockSmartWallet } from '../../typechain-types/contracts/test/MockSmartWallet';
-import type { VotingEscrow } from '../../typechain-types/contracts/VotingEscrow';
+import { expect } from 'chai';
+import { ethers, ignition } from 'hardhat';
+
 import { assertBNClosePercent } from './helpers/assertions';
 import votingEscrowModule from '../../ignition/modules/VotingEscrow.m';
+import type { MockSmartWallet } from '../../typechain-types/contracts/test/MockSmartWallet';
+import type { VotingEscrow } from '../../typechain-types/contracts/VotingEscrow';
 
 describe('VotingEscrow Tests', function () {
   const maxPenalty = ethers.parseEther('1');
@@ -19,24 +20,19 @@ describe('VotingEscrow Tests', function () {
   const MAXTIME = 2 * 365 * 86400; // 2 years
   const PRECISION = ethers.parseEther('1');
 
-  async function getBlock() {
-    return (await ethers.provider.getBlock('latest'))!.number;
-  }
+  /**
+   * @returns The current timestamp in seconds
+   */
   async function getTimestamp() {
     return (await ethers.provider.getBlock('latest'))!.timestamp;
   }
 
+  /**
+   * @returns The deployed fixture
+   */
   async function deployFixture() {
-    const [
-      admin,
-      alice,
-      bob,
-      charlie,
-      david,
-      eve,
-      francis,
-      treasury,
-    ] = await ethers.getSigners();
+    const [admin, alice, bob, charlie, david, eve, francis, treasury] =
+      await ethers.getSigners();
 
     const wGNET = await ethers.deployContract('WGNET10');
 
@@ -62,46 +58,49 @@ describe('VotingEscrow Tests', function () {
     // Fund accounts with native tokens
     await ethers.provider.send('hardhat_setBalance', [
       alice.address,
-      '0x' + (initialGovUserBal).toString(16),
+      `0x${initialGovUserBal.toString(16)}`,
     ]);
     await ethers.provider.send('hardhat_setBalance', [
       bob.address,
-      '0x' + (initialGovUserBal).toString(16),
+      `0x${initialGovUserBal.toString(16)}`,
     ]);
     await ethers.provider.send('hardhat_setBalance', [
       charlie.address,
-      '0x' + (initialGovUserBal).toString(16),
+      `0x${initialGovUserBal.toString(16)}`,
     ]);
     await ethers.provider.send('hardhat_setBalance', [
       david.address,
-      '0x' + (initialGovUserBal).toString(16),
+      `0x${initialGovUserBal.toString(16)}`,
     ]);
     await ethers.provider.send('hardhat_setBalance', [
       eve.address,
-      '0x' + (initialGovUserBal).toString(16),
+      `0x${initialGovUserBal.toString(16)}`,
     ]);
     await ethers.provider.send('hardhat_setBalance', [
       francis.address,
-      '0x' + (initialGovUserBal).toString(16),
+      `0x${initialGovUserBal.toString(16)}`,
     ]);
 
     const contractDeployer = await ethers.getContractFactory('MockSmartWallet');
-    const contract = (await contractDeployer.deploy()) as unknown as MockSmartWallet;
+    const contract =
+      (await contractDeployer.deploy()) as unknown as MockSmartWallet;
     await ethers.provider.send('hardhat_setBalance', [
       await contract.getAddress(),
-      '0x' + (initialGovUserBal).toString(16),
+      `0x${initialGovUserBal.toString(16)}`,
     ]);
 
-    const contract2 = (await contractDeployer.deploy()) as unknown as MockSmartWallet;
+    const contract2 =
+      (await contractDeployer.deploy()) as unknown as MockSmartWallet;
     await ethers.provider.send('hardhat_setBalance', [
       await contract2.getAddress(),
-      '0x' + (initialGovUserBal).toString(16),
+      `0x${initialGovUserBal.toString(16)}`,
     ]);
 
-    const contract3 = (await contractDeployer.deploy()) as unknown as MockSmartWallet;
+    const contract3 =
+      (await contractDeployer.deploy()) as unknown as MockSmartWallet;
     await ethers.provider.send('hardhat_setBalance', [
       await contract3.getAddress(),
-      '0x' + (initialGovUserBal).toString(16),
+      `0x${initialGovUserBal.toString(16)}`,
     ]);
 
     return {
@@ -121,7 +120,7 @@ describe('VotingEscrow Tests', function () {
     };
   }
 
-  describe('Deployment', async () => {
+  describe('Deployment', () => {
     it('Initialized properly', async () => {
       const { ve, admin, alice, bob, treasury } =
         await loadFixture(deployFixture);
@@ -144,11 +143,13 @@ describe('VotingEscrow Tests', function () {
         initialGovUserBal,
       );
 
-      expect(await ethers.provider.getBalance(bob.address)).to.be.gte(initialGovUserBal);
+      expect(await ethers.provider.getBalance(bob.address)).to.be.gte(
+        initialGovUserBal,
+      );
     });
   });
 
-  describe('EOA flow', async () => {
+  describe('EOA flow', () => {
     it('Alice and Bob lock tokens in ve', async () => {
       const { ve, alice, bob } = await loadFixture(deployFixture);
       const lockTime = 4 * WEEK + (await getTimestamp());
@@ -175,7 +176,9 @@ describe('VotingEscrow Tests', function () {
       const { ve, alice } = await loadFixture(deployFixture);
       const lockTime = 4 * WEEK + (await getTimestamp());
       let accumulatedFees = 0n;
-      let tx = await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+      let tx = await ve
+        .connect(alice)
+        .createLock(lockTime, { value: lockAmount });
       accumulatedFees += (await tx.wait())!.fee;
 
       // Increase time to 2 weeks to lock end
@@ -200,7 +203,9 @@ describe('VotingEscrow Tests', function () {
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenalty,
-        initialGovUserBal - (await ethers.provider.getBalance(alice.address)) - accumulatedFees,
+        initialGovUserBal -
+          (await ethers.provider.getBalance(alice.address)) -
+          accumulatedFees,
         '0.01',
       );
     });
@@ -280,7 +285,7 @@ describe('VotingEscrow Tests', function () {
     });
   });
 
-  describe('Quitlock flow', async () => {
+  describe('Quitlock flow', () => {
     it('Alice, Bob, Charlie, David and Eve lock tokens in ve', async () => {
       const { ve, alice, bob, charlie, david, eve, francis } =
         await loadFixture(deployFixture);
@@ -306,7 +311,9 @@ describe('VotingEscrow Tests', function () {
       const lockTime2 = Math.floor(MAXTIME / 2) + (await getTimestamp());
       let accumulatedFeesAlice = 0n;
       let accumulatedFeesDavid = 0n;
-      let tx = await ve.connect(alice).createLock(lockTime1, { value: lockAmount });
+      let tx = await ve
+        .connect(alice)
+        .createLock(lockTime1, { value: lockAmount });
       accumulatedFeesAlice += (await tx.wait())!.fee;
       await ve.connect(bob).createLock(lockTime1, { value: lockAmount });
       await ve.connect(charlie).createLock(lockTime1, { value: lockAmount });
@@ -333,7 +340,9 @@ describe('VotingEscrow Tests', function () {
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenalty,
-        initialGovUserBal - (await ethers.provider.getBalance(alice.address)) - accumulatedFeesAlice,
+        initialGovUserBal -
+          (await ethers.provider.getBalance(alice.address)) -
+          accumulatedFeesAlice,
         '0.01',
       );
 
@@ -352,7 +361,9 @@ describe('VotingEscrow Tests', function () {
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenaltyDavid,
-        initialGovUserBal - (await ethers.provider.getBalance(david.address)) - accumulatedFeesDavid,
+        initialGovUserBal -
+          (await ethers.provider.getBalance(david.address)) -
+          accumulatedFeesDavid,
         '0.01',
       );
     });
@@ -438,7 +449,8 @@ describe('VotingEscrow Tests', function () {
       await time.increaseTo(lockEndCharlie - BigInt(WEEK * 66));
 
       const penaltyRateCharlie = await ve.getPenaltyRate(lockEndCharlie);
-      const expectedPenaltyCharlie = (penaltyRateCharlie * lockAmount) / PRECISION;
+      const expectedPenaltyCharlie =
+        (penaltyRateCharlie * lockAmount) / PRECISION;
 
       await ve.connect(charlie).quitLock();
 
@@ -465,7 +477,9 @@ describe('VotingEscrow Tests', function () {
       await ve.connect(alice).createLock(lockTime1, { value: lockAmount });
       await ve.connect(bob).createLock(lockTime1, { value: lockAmount });
       await ve.connect(charlie).createLock(lockTime1, { value: lockAmount });
-      let tx = await ve.connect(francis).createLock(lockTime1, { value: lockAmount });
+      let tx = await ve
+        .connect(francis)
+        .createLock(lockTime1, { value: lockAmount });
       accumulatedFeesFrancis += (await tx.wait())!.fee;
       await ve.connect(david).createLock(lockTime2, { value: lockAmount });
       await ve.connect(eve).createLock(lockTime2, { value: lockAmount });
@@ -483,23 +497,26 @@ describe('VotingEscrow Tests', function () {
 
       // Francis would have ~1 week left
       const lockEndFrancis = await ve.lockEnd(francis.address);
-      await time.increaseTo(lockEndFrancis - BigInt(WEEK * 1));
+      await time.increaseTo(lockEndFrancis - BigInt(WEEK));
 
       const penaltyRateFrancis = await ve.getPenaltyRate(lockEndFrancis);
-      const expectedPenaltyFrancis = (penaltyRateFrancis * lockAmount) / PRECISION;
+      const expectedPenaltyFrancis =
+        (penaltyRateFrancis * lockAmount) / PRECISION;
 
       tx = await ve.connect(francis).quitLock();
       accumulatedFeesFrancis += (await tx.wait())!.fee;
       assertBNClosePercent(
         expectedPenaltyFrancis,
-        (lockAmount * BigInt(WEEK * 1)) / BigInt(MAXTIME),
+        (lockAmount * BigInt(WEEK)) / BigInt(MAXTIME),
         '0.01',
       );
 
       // Validate remaining balance
       assertBNClosePercent(
         expectedPenaltyFrancis,
-        initialGovUserBal - (await ethers.provider.getBalance(francis.address)) - accumulatedFeesFrancis,
+        initialGovUserBal -
+          (await ethers.provider.getBalance(francis.address)) -
+          accumulatedFeesFrancis,
         '0.01',
       );
     });
@@ -507,7 +524,9 @@ describe('VotingEscrow Tests', function () {
     it('Alice locks again, then penalty is taken away,she withdraws without penalty', async () => {
       const { ve, alice } = await loadFixture(deployFixture);
       const lockTime1 = MAXTIME + (await getTimestamp());
-      let tx = await ve.connect(alice).createLock(lockTime1, { value: lockAmount });
+      let tx = await ve
+        .connect(alice)
+        .createLock(lockTime1, { value: lockAmount });
       const lockEnd = await ve.lockEnd(alice.address);
       await time.increaseTo(lockEnd - BigInt(WEEK * 91));
       tx = await ve.connect(alice).quitLock();
@@ -515,16 +534,20 @@ describe('VotingEscrow Tests', function () {
       let accumulatedFeesAlice = 0n;
       tx = await ve
         .connect(alice)
-        .createLock(BigInt(await getTimestamp()) + BigInt(MAXTIME), { value: lockAmount });
+        .createLock(BigInt(await getTimestamp()) + BigInt(MAXTIME), {
+          value: lockAmount,
+        });
       accumulatedFeesAlice += (await tx.wait())!.fee;
       await ve.unlock();
       tx = await ve.connect(alice).quitLock();
       accumulatedFeesAlice += (await tx.wait())!.fee;
-      expect(await ethers.provider.getBalance(alice.address)).to.equal(aliceBalBefore - accumulatedFeesAlice);
+      expect(await ethers.provider.getBalance(alice.address)).to.equal(
+        aliceBalBefore - accumulatedFeesAlice,
+      );
     });
   });
 
-  describe('Wrapped token flow', async () => {
+  describe('Wrapped token flow', () => {
     it('Alice locks with wrapped token', async () => {
       const { ve, alice, wGNET } = await loadFixture(deployFixture);
       const lockTime = MAXTIME + (await getTimestamp());
@@ -537,7 +560,9 @@ describe('VotingEscrow Tests', function () {
       expect(await wGNET.balanceOf(alice.address)).to.equal(0);
       assertBNClosePercent(
         await ve.balanceOf(alice.address),
-        lockAmount * (await ve.lockEnd(alice.address) - BigInt(await getTimestamp())) / BigInt(MAXTIME),
+        (lockAmount *
+          ((await ve.lockEnd(alice.address)) - BigInt(await getTimestamp()))) /
+          BigInt(MAXTIME),
         '0.01',
       );
     });
@@ -546,7 +571,9 @@ describe('VotingEscrow Tests', function () {
       const lockTime = MAXTIME + (await getTimestamp());
 
       await wGNET.connect(alice).deposit({ value: lockAmount * 3n });
-      await wGNET.connect(alice).approve(await ve.getAddress(), lockAmount * 3n);
+      await wGNET
+        .connect(alice)
+        .approve(await ve.getAddress(), lockAmount * 3n);
 
       await ve.connect(alice).createLockWithWrappedToken(lockTime, lockAmount);
       await ve.connect(alice).increaseAmountWithWrappedToken(lockAmount * 2n);
@@ -554,7 +581,10 @@ describe('VotingEscrow Tests', function () {
       expect(await wGNET.balanceOf(alice.address)).to.equal(0);
       assertBNClosePercent(
         await ve.balanceOf(alice.address),
-        lockAmount * 3n * (await ve.lockEnd(alice.address) - BigInt(await getTimestamp())) / BigInt(MAXTIME),
+        (lockAmount *
+          3n *
+          ((await ve.lockEnd(alice.address)) - BigInt(await getTimestamp()))) /
+          BigInt(MAXTIME),
         '0.01',
       );
     });
@@ -591,11 +621,7 @@ describe('VotingEscrow Tests', function () {
         lockAmount / 2n,
         '2',
       );
-      assertBNClosePercent(
-        await ve.penaltyAccumulated(),
-        lockAmount / 2n,
-        '2',
-      );
+      assertBNClosePercent(await ve.penaltyAccumulated(), lockAmount / 2n, '2');
     });
   });
 });

@@ -7,19 +7,24 @@ import { defineUpgradableProxy } from './UpgradableProxy.m';
 
 const VotingEscrowModule = buildModule('VotingEscrowModule', (module) => {
   const owner = module.getParameter('owner', module.getAccount(0));
-  const penaltyRecipient = module.getParameter('penaltyRecipient', module.getAccount(0));
+  const penaltyRecipient = module.getParameter(
+    'penaltyRecipient',
+    module.getAccount(0),
+  );
   const name = module.getParameter('name', 'veToken');
   const symbol = module.getParameter('symbol', 'veToken');
   const wGNET = module.getParameter('wGNET');
 
-  const { upgradableContract: votingEscrow, proxyContracts } = defineUpgradableProxy(
-    module,
-    'VotingEscrow',
-    [owner, penaltyRecipient, name, symbol, wGNET],
-  );
+  const { upgradableContract: votingEscrow, proxyContracts } =
+    defineUpgradableProxy(module, 'VotingEscrow', [
+      owner,
+      penaltyRecipient,
+      name,
+      symbol,
+      wGNET,
+    ]);
 
   return { votingEscrow, ...proxyContracts };
 });
 
 export default VotingEscrowModule;
-
