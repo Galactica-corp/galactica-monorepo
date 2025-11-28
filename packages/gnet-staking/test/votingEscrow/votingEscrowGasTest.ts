@@ -25,7 +25,11 @@ let treasury: any;
  * @returns The current timestamp in BigInt
  */
 async function getTimestampBN() {
-  return BigInt((await ethers.provider.getBlock('latest'))!.timestamp);
+  const block = await ethers.provider.getBlock('latest');
+  if (!block) {
+    throw new Error('Failed to get latest block');
+  }
+  return BigInt(block.timestamp);
 }
 
 describe('Gas usage tests', () => {

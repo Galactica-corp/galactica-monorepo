@@ -16,6 +16,7 @@ const config = [
   {
     files: ['test/**/*.ts'],
     rules: {
+      '@typescript-eslint/no-floating-promises': 0, // node tests still work
       'jest/expect-expect': 0, // accept tests that only try to run through without causing exceptions
       'n/no-unpublished-import': 'off', // hardhat packages are published but rule has issues with yarn workspace setup
     },

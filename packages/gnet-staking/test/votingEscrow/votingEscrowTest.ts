@@ -24,7 +24,11 @@ describe('VotingEscrow Tests', function () {
    * @returns The current timestamp in seconds
    */
   async function getTimestamp() {
-    return (await ethers.provider.getBlock('latest'))!.timestamp;
+    const block = await ethers.provider.getBlock('latest');
+    if (!block) {
+      throw new Error('Failed to get latest block');
+    }
+    return block.timestamp;
   }
 
   /**
@@ -179,7 +183,11 @@ describe('VotingEscrow Tests', function () {
       let tx = await ve
         .connect(alice)
         .createLock(lockTime, { value: lockAmount });
-      accumulatedFees += (await tx.wait())!.fee;
+      let receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFees += receipt.fee;
 
       // Increase time to 2 weeks to lock end
       const lockEnd = await ve.lockEnd(alice.address);
@@ -191,7 +199,11 @@ describe('VotingEscrow Tests', function () {
 
       // Quit lock
       tx = await ve.connect(alice).quitLock();
-      accumulatedFees += (await tx.wait())!.fee;
+      receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFees += receipt.fee;
 
       // Validate penalty is ~ 3.84% (2/52*100)
       assertBNClosePercent(
@@ -314,12 +326,20 @@ describe('VotingEscrow Tests', function () {
       let tx = await ve
         .connect(alice)
         .createLock(lockTime1, { value: lockAmount });
-      accumulatedFeesAlice += (await tx.wait())!.fee;
+      let receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFeesAlice += receipt.fee;
       await ve.connect(bob).createLock(lockTime1, { value: lockAmount });
       await ve.connect(charlie).createLock(lockTime1, { value: lockAmount });
       await ve.connect(francis).createLock(lockTime1, { value: lockAmount });
       tx = await ve.connect(david).createLock(lockTime2, { value: lockAmount });
-      accumulatedFeesDavid += (await tx.wait())!.fee;
+      receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFeesDavid += receipt.fee;
       await ve.connect(eve).createLock(lockTime2, { value: lockAmount });
 
       // Alice would have ~91 weeks left
@@ -327,7 +347,11 @@ describe('VotingEscrow Tests', function () {
       await time.increaseTo(lockEnd - BigInt(WEEK * 91));
 
       tx = await ve.connect(alice).quitLock();
-      accumulatedFeesAlice += (await tx.wait())!.fee;
+      receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFeesAlice += receipt.fee;
       const penaltyRate = await ve.getPenaltyRate(lockEnd);
       const expectedPenalty = (penaltyRate * lockAmount) / PRECISION;
       // Check penalty to be paid
@@ -352,7 +376,11 @@ describe('VotingEscrow Tests', function () {
 
       // David would have ~39 weeks left
       tx = await ve.connect(david).quitLock();
-      accumulatedFeesDavid += (await tx.wait())!.fee;
+      receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFeesDavid += receipt.fee;
       assertBNClosePercent(
         expectedPenaltyDavid,
         (lockAmount * BigInt(WEEK * 39)) / BigInt(MAXTIME),
@@ -480,7 +508,11 @@ describe('VotingEscrow Tests', function () {
       let tx = await ve
         .connect(francis)
         .createLock(lockTime1, { value: lockAmount });
-      accumulatedFeesFrancis += (await tx.wait())!.fee;
+      let receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFeesFrancis += receipt.fee;
       await ve.connect(david).createLock(lockTime2, { value: lockAmount });
       await ve.connect(eve).createLock(lockTime2, { value: lockAmount });
       const lockEnd = await ve.lockEnd(alice.address);
@@ -504,7 +536,11 @@ describe('VotingEscrow Tests', function () {
         (penaltyRateFrancis * lockAmount) / PRECISION;
 
       tx = await ve.connect(francis).quitLock();
-      accumulatedFeesFrancis += (await tx.wait())!.fee;
+      receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFeesFrancis += receipt.fee;
       assertBNClosePercent(
         expectedPenaltyFrancis,
         (lockAmount * BigInt(WEEK)) / BigInt(MAXTIME),
@@ -537,10 +573,18 @@ describe('VotingEscrow Tests', function () {
         .createLock(BigInt(await getTimestamp()) + BigInt(MAXTIME), {
           value: lockAmount,
         });
-      accumulatedFeesAlice += (await tx.wait())!.fee;
+      let receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFeesAlice += receipt.fee;
       await ve.unlock();
       tx = await ve.connect(alice).quitLock();
-      accumulatedFeesAlice += (await tx.wait())!.fee;
+      receipt = await tx.wait();
+      if (!receipt) {
+        throw new Error('Transaction receipt is null');
+      }
+      accumulatedFeesAlice += receipt.fee;
       expect(await ethers.provider.getBalance(alice.address)).to.equal(
         aliceBalBefore - accumulatedFeesAlice,
       );

@@ -1,20 +1,27 @@
 import { network } from 'hardhat';
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { describe, it, before } from 'node:test';
 import { parseEther, getAddress, zeroAddress } from 'viem';
 
 import indexPoolModule from '../ignition/modules/IndexPool.m';
 import testTokenModule from '../ignition/modules/TestToken.m';
 
-describe('IndexPool', async function () {
-  const { ignition, networkHelpers } = await network.connect();
-  const { loadFixture } = networkHelpers;
+let ignition: any;
+let loadFixture: any;
+
+describe('IndexPool', function () {
+  before(async function () {
+    const connection = (await network.connect()) as any;
+    ignition = connection.ignition;
+    loadFixture = connection.networkHelpers.loadFixture;
+  });
 
   /**
    * @returns The deployed fixture
    */
   async function deployFixture() {
-    const { viem } = await network.connect();
+    const connection = (await network.connect()) as any;
+    const { viem } = connection;
     const [owner, other] = await viem.getWalletClients();
     const publicClient = await viem.getPublicClient();
 
@@ -48,7 +55,7 @@ describe('IndexPool', async function () {
     };
   }
 
-  describe('Deployment', async function () {
+  describe('Deployment', function () {
     it('Should set the right parameters', async function () {
       const { indexPool, owner, gUBI } = await loadFixture(deployFixture);
 

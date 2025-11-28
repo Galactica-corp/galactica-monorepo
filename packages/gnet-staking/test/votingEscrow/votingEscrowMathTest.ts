@@ -34,13 +34,21 @@ let treasury: any;
  * @returns The current block number in BigInt
  */
 async function latestBlockBN() {
-  return BigInt((await ethers.provider.getBlock('latest'))!.number);
+  const block = await ethers.provider.getBlock('latest');
+  if (!block) {
+    throw new Error('Failed to get latest block');
+  }
+  return BigInt(block.number);
 }
 /**
  * @returns The current timestamp in BigInt
  */
 async function getTimestampBN() {
-  return BigInt((await ethers.provider.getBlock('latest'))!.timestamp);
+  const block = await ethers.provider.getBlock('latest');
+  if (!block) {
+    throw new Error('Failed to get latest block');
+  }
+  return BigInt(block.timestamp);
 }
 
 describe('VotingEscrow Math test', () => {
@@ -470,8 +478,11 @@ describe('VotingEscrow Math test', () => {
         // david withdraws
         const davidBefore = await snapshotData(david);
         const tx = await votingLockup.connect(david).withdraw();
-        await tx.wait();
-        const accumulatedFeesDavid = (await tx.wait())!.fee;
+        const receipt = await tx.wait();
+        if (!receipt) {
+          throw new Error('Transaction receipt is null');
+        }
+        const accumulatedFeesDavid = receipt.fee;
         const davidAfter = await snapshotData(david);
 
         expect(davidAfter.senderStakingTokenBalance).eq(
@@ -489,8 +500,11 @@ describe('VotingEscrow Math test', () => {
         // eve exits
         const eveBefore = await snapshotData(eve);
         let tx = await votingLockup.connect(eve).withdraw();
-        await tx.wait();
-        const accumulatedFeesEve = (await tx.wait())!.fee;
+        let receipt = await tx.wait();
+        if (!receipt) {
+          throw new Error('Transaction receipt is null');
+        }
+        const accumulatedFeesEve = receipt.fee;
         const eveAfter = await snapshotData(eve);
 
         expect(eveAfter.senderStakingTokenBalance).eq(
@@ -506,8 +520,11 @@ describe('VotingEscrow Math test', () => {
         await time.increaseTo(start + ONE_WEEK * 104n);
         const francisBefore = await snapshotData(francis);
         tx = await votingLockup.connect(francis).withdraw();
-        await tx.wait();
-        const accumulatedFeesFrancis = (await tx.wait())!.fee;
+        receipt = await tx.wait();
+        if (!receipt) {
+          throw new Error('Transaction receipt is null');
+        }
+        const accumulatedFeesFrancis = receipt.fee;
         const francisAfter = await snapshotData(francis);
 
         expect(francisAfter.senderStakingTokenBalance).eq(
