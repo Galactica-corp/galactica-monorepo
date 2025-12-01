@@ -9,3 +9,6 @@ packages/cross-chain-replication-contracts/ignition/deployments
 packages/gnet-staking/ignition/deployments
 packages/gnet-staking/cache
 packages/gnet-staking/artifacts
+packages/gubi-index-pool/ignition/deployments
+packages/gubi-index-pool/cache
+packages/gubi-index-pool/artifacts
