@@ -39,7 +39,7 @@ export async function generateSampleZkKYC(): Promise<ZkCertificate> {
     KnownZkCertStandard.ZkKYC,
     eddsa,
     '1773',
-    1769736098,
+    2344658820,
     getContentSchema(KnownZkCertStandard.ZkKYC),
     kycExample,
   );
