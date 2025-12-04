@@ -178,20 +178,20 @@ describe('Upgrade Staking', function () {
         (emissionPeriods[0].rewardPerSecond *
           BigInt(emissionPeriods[0].endTime - lastUpdateTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[1].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[0].endTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedRewardsStaker2 +=
         (emissionPeriods[0].rewardPerSecond *
           BigInt(emissionPeriods[0].endTime - lastUpdateTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[1].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[0].endTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedStakesStaker += ethers.parseEther('10');
       lastUpdateTime = await time.latest();
       expect(
@@ -225,20 +225,20 @@ describe('Upgrade Staking', function () {
         (emissionPeriods[1].rewardPerSecond *
           BigInt(emissionPeriods[1].endTime - lastUpdateTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[2].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[1].endTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedRewardsStaker2 +=
         (emissionPeriods[1].rewardPerSecond *
           BigInt(emissionPeriods[1].endTime - lastUpdateTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[2].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[1].endTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
 
       lastUpdateTime = await time.latest();
       expect(
@@ -258,9 +258,9 @@ describe('Upgrade Staking', function () {
         'balance staker2, third period',
       ).to.be.greaterThan(
         staker2AccountBalanceBeforeReward +
-          expectedRewardsStaker2 -
-          100n -
-          feesPaidStaker2,
+        expectedRewardsStaker2 -
+        100n -
+        feesPaidStaker2,
       );
       expect(
         await upgradedStaking.showPendingReward(staker2.address),
@@ -279,20 +279,20 @@ describe('Upgrade Staking', function () {
         (emissionPeriods[2].rewardPerSecond *
           BigInt(emissionPeriods[2].endTime - lastUpdateTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[3].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[2].endTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedRewardsStaker2 +=
         (emissionPeriods[2].rewardPerSecond *
           BigInt(emissionPeriods[2].endTime - lastUpdateTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[3].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[2].endTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedStakesStaker /= 2n;
       lastUpdateTime = await time.latest();
       expect(
@@ -420,18 +420,18 @@ describe('Upgrade Staking', function () {
       const wGNET = await wGNETFactory.deploy();
 
       // stakers deposit GNET to get WGNET
-      await wGNET.connect(staker).deposit({ value: ethers.parseEther('1000') });
+      await wGNET.connect(staker).deposit({ value: ethers.parseEther('500') });
       await wGNET
         .connect(staker2)
-        .deposit({ value: ethers.parseEther('1000') });
+        .deposit({ value: ethers.parseEther('500') });
 
       // approve WGNET for the staking contract
       await wGNET
         .connect(staker)
-        .approve(await upgradedStaking.getAddress(), ethers.parseEther('1000'));
+        .approve(await upgradedStaking.getAddress(), ethers.parseEther('500'));
       await wGNET
         .connect(staker2)
-        .approve(await upgradedStaking.getAddress(), ethers.parseEther('1000'));
+        .approve(await upgradedStaking.getAddress(), ethers.parseEther('500'));
 
       // set WGNET inside the staking contract
       await upgradedStaking.setWGNET(wGNET.getAddress());
@@ -480,20 +480,20 @@ describe('Upgrade Staking', function () {
         (emissionPeriods[0].rewardPerSecond *
           BigInt(emissionPeriods[0].endTime - lastUpdateTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[1].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[0].endTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedRewardsStaker2 +=
         (emissionPeriods[0].rewardPerSecond *
           BigInt(emissionPeriods[0].endTime - lastUpdateTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[1].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[0].endTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedStakesStaker += ethers.parseEther('10');
       lastUpdateTime = await time.latest();
       expect(
@@ -527,20 +527,20 @@ describe('Upgrade Staking', function () {
         (emissionPeriods[1].rewardPerSecond *
           BigInt(emissionPeriods[1].endTime - lastUpdateTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[2].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[1].endTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedRewardsStaker2 +=
         (emissionPeriods[1].rewardPerSecond *
           BigInt(emissionPeriods[1].endTime - lastUpdateTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[2].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[1].endTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
 
       lastUpdateTime = await time.latest();
       expect(
@@ -576,20 +576,20 @@ describe('Upgrade Staking', function () {
         (emissionPeriods[2].rewardPerSecond *
           BigInt(emissionPeriods[2].endTime - lastUpdateTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[3].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[2].endTime) *
           expectedStakesStaker) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedRewardsStaker2 +=
         (emissionPeriods[2].rewardPerSecond *
           BigInt(emissionPeriods[2].endTime - lastUpdateTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2) +
+        (expectedStakesStaker + expectedStakesStaker2) +
         (emissionPeriods[3].rewardPerSecond *
           BigInt((await time.latest()) - emissionPeriods[2].endTime) *
           expectedStakesStaker2) /
-          (expectedStakesStaker + expectedStakesStaker2);
+        (expectedStakesStaker + expectedStakesStaker2);
       expectedStakesStaker /= 2n;
       lastUpdateTime = await time.latest();
       expect(
