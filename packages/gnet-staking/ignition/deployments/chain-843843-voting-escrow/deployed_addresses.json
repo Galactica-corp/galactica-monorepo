@@ -1,0 +1,7 @@
+{
+  "TimelockControllerModule#TimelockController": "0x54a6FFFCCD410983206B3303D7567C8Ae0b5136d",
+  "VotingEscrowModule#ProxyImplementationVotingEscrow": "0x1cEE5fCc52CCc404EF3bc424AdDb2b6c65A12915",
+  "VotingEscrowModule#TransparentUpgradeableProxyVotingEscrow": "0x12C6857CD6f1186cde72F59F174E6F7B0572544D",
+  "VotingEscrowModule#UpgradableContractVotingEscrow": "0x12C6857CD6f1186cde72F59F174E6F7B0572544D",
+  "VotingEscrowModule#ProxyAdminVotingEscrow": "0x6267310806791a665A08572Cd2E763C7e8dca156"
+}

@@ -1,0 +1,8 @@
+{
+  "GUBIModule#GUBI": "0x5b9A231e9bBC26C81f80790fA307Ce5595635eDF",
+  "IndexPoolModule#ProxyImplementationIndexPool": "0x4cC4E2d7a7253E1a7362eb15e036b837C5f36a7E",
+  "TimelockControllerModule#TimelockController": "0x21106d9261666f5Ac09938F9481AA9392898C18E",
+  "IndexPoolModule#TransparentUpgradeableProxyIndexPool": "0x03AfdAE87e9E02D65ffe61BD87CF5981132a453b",
+  "IndexPoolModule#UpgradableContractIndexPool": "0x03AfdAE87e9E02D65ffe61BD87CF5981132a453b",
+  "IndexPoolModule#ProxyAdminIndexPool": "0x9312Dd1A22Bd20BFC2452f2C66E8f9Ca49f0A7D1"
+}

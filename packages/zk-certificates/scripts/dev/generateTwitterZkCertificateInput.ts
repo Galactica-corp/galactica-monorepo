@@ -38,7 +38,7 @@ export async function generateSampleTwitterZkCertificate(
     KnownZkCertStandard.Twitter,
     eddsa,
     '1773',
-    1769736098,
+    2344658820,
     getContentSchema(KnownZkCertStandard.Twitter),
     fields,
   );
