@@ -575,8 +575,8 @@ contract VotingEscrow is
         // Update lock
         LockedBalance memory newLocked = _copyLock(locked_);
         newLocked.amount = 0;
-        locked[msg.sender] = newLocked;
         newLocked.end = 0;
+        locked[msg.sender] = newLocked;
         // oldLocked can have either expired <= timestamp or zero end
         // currentLock has only 0 end
         // Both can have >= 0 amount
