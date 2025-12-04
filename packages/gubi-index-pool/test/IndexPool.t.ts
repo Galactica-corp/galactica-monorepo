@@ -100,8 +100,9 @@ describe('IndexPool', function () {
           });
         },
         (error: any) => {
+          console.log('error.message', error.message);
           return (
-            error.message.includes('InvalidOwnerAddress') ??
+            error.message.includes('InvalidOwnerAddress') ||
             error.message.includes('custom error')
           );
         },
