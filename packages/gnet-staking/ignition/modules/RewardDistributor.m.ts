@@ -6,19 +6,25 @@ import { ethers } from 'hardhat';
 
 import { defineUpgradableProxy } from './UpgradableProxy.m';
 
-const RewardDistributorModule = buildModule('RewardDistributorModule', (module) => {
-  const owner = module.getParameter('owner', module.getAccount(0));
-  const assetManager = module.getParameter('assetManager', module.getAccount(0));
-  const rewardToken = module.getParameter('rewardToken', ethers.ZeroAddress);
+const RewardDistributorModule = buildModule(
+  'RewardDistributorModule',
+  (module) => {
+    const owner = module.getParameter('owner', module.getAccount(0));
+    const assetManager = module.getParameter(
+      'assetManager',
+      module.getAccount(0),
+    );
+    const rewardToken = module.getParameter('rewardToken', ethers.ZeroAddress);
 
-  const { upgradableContract: rewardDistributor, proxyContracts } = defineUpgradableProxy(
-    module,
-    'RewardDistributor',
-    [owner, assetManager, rewardToken],
-  );
+    const { upgradableContract: rewardDistributor, proxyContracts } =
+      defineUpgradableProxy(module, 'RewardDistributor', [
+        owner,
+        assetManager,
+        rewardToken,
+      ]);
 
-  return { rewardDistributor, ...proxyContracts };
-});
+    return { rewardDistributor, ...proxyContracts };
+  },
+);
 
 export default RewardDistributorModule;
-

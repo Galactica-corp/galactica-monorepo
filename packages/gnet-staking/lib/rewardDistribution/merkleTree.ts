@@ -1,39 +1,45 @@
-import { AbiCoder, keccak256 } from "ethers";
+import { AbiCoder, keccak256 } from 'ethers';
 
-export interface IMerkleLeaf {
+export type IMerkleLeaf = {
   index: bigint;
   address: string;
   amount: bigint;
   proof: string[];
-}
+};
 
-export interface IMerkleNode {
+export type IMerkleNode = {
   hash: string;
   siblingHash: string;
   parentIndex: number;
-}
+};
 
 export class MerkleTree {
-
   nodes: IMerkleNode[] = [];
+
   leaves: IMerkleLeaf[] = [];
-  merkleRootHash: string = "";
+
+  merkleRootHash: string = '';
 
   calculatePairHash(hash1: string, hash2: string) {
     let combinedHash: string;
 
     // using the same mathod as in OpenZeppeling MerkleProof function
     if (hash1 <= hash2) {
-      combinedHash = AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [BigInt(hash1), BigInt(hash2)]);
+      combinedHash = AbiCoder.defaultAbiCoder().encode(
+        ['uint256', 'uint256'],
+        [BigInt(hash1), BigInt(hash2)],
+      );
     } else {
-      combinedHash = AbiCoder.defaultAbiCoder().encode(["uint256", "uint256"], [BigInt(hash2), BigInt(hash1)]);
+      combinedHash = AbiCoder.defaultAbiCoder().encode(
+        ['uint256', 'uint256'],
+        [BigInt(hash2), BigInt(hash1)],
+      );
     }
     return keccak256(combinedHash);
   }
 
   buildMerkleTreeForRewardsDistribution(elements: IMerkleLeaf[]) {
-
-    elements = elements.sort((a, b) => {
+    elements.sort((a, b) => {
       if (a.index < b.index) {
         return -1;
       }
@@ -43,12 +49,15 @@ export class MerkleTree {
       return 0;
     });
 
-    for (let i = 0; i < elements.length; i++) {
+    for (const leaf of elements) {
       // this should be the same hash computation as in RewardDistributor smart contract
-      const payloadLeaf = AbiCoder.defaultAbiCoder().encode(["uint256", "address", "uint256"], [elements[i].index, elements[i].address, elements[i].amount]);
+      const payloadLeaf = AbiCoder.defaultAbiCoder().encode(
+        ['uint256', 'address', 'uint256'],
+        [leaf.index, leaf.address, leaf.amount],
+      );
       const hashLeaf = keccak256(payloadLeaf);
-      this.nodes.push({ hash: hashLeaf, siblingHash: "", parentIndex: -1 });
-      this.leaves.push(elements[i]);
+      this.nodes.push({ hash: hashLeaf, siblingHash: '', parentIndex: -1 });
+      this.leaves.push(leaf);
     }
 
     let currNode = 0;
@@ -65,7 +74,7 @@ export class MerkleTree {
 
       const hashParent = this.calculatePairHash(currHash, siblingHash);
 
-      this.nodes.push({ hash: hashParent, siblingHash: "", parentIndex: -1 });
+      this.nodes.push({ hash: hashParent, siblingHash: '', parentIndex: -1 });
 
       this.nodes[currNode].parentIndex = this.nodes.length - 1;
       this.nodes[sibling].parentIndex = this.nodes.length - 1;
@@ -79,10 +88,11 @@ export class MerkleTree {
 
   getProof(index: number): string[] {
     const proof: string[] = [];
+    let currentIndex = index;
 
-    while (this.nodes[index].parentIndex != -1) {
-      proof.push(this.nodes[index].siblingHash);
-      index = this.nodes[index].parentIndex;
+    while (this.nodes[currentIndex].parentIndex !== -1) {
+      proof.push(this.nodes[currentIndex].siblingHash);
+      currentIndex = this.nodes[currentIndex].parentIndex;
     }
 
     return proof;
@@ -95,4 +105,3 @@ export class MerkleTree {
     return this.leaves;
   }
 }
-
