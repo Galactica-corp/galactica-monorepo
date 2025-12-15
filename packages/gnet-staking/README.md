@@ -2,6 +2,10 @@
 
 Smart contract and operational scripts for GNET staking.
 
+## License
+
+The VotingEscrow contracts and their associated tests are licensed under AGPL-3.0-or-later, as they are forked from https://github.com/BarnBridge/veToken. All other code in this package is licensed under GPL-3.0-or-later.
+
 ## Setup
 
 ```shell
