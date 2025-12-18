@@ -3,8 +3,9 @@ import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers'
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { buildEddsa, poseidonContract } from 'circomlibjs';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 
+import infrastructureModule from '../../ignition/modules/Infrastructure.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -13,6 +14,7 @@ import {
   overwriteArtifact,
 } from '../../lib/helpers';
 import { SparseMerkleTree } from '../../lib/sparseMerkleTree';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 import type { HumanIDSaltRegistry } from '../../typechain-types/contracts/HumanIDSaltRegistry';
 import type { ZkKYCRegistry } from '../../typechain-types/contracts/ZkKYCRegistry';
 
@@ -38,32 +40,22 @@ describe('ZkKYCRegistry', () => {
   async function deploy() {
     await overwriteArtifact(hre, 'PoseidonT3', poseidonContract.createCode(2));
 
-    const PoseidonT3 = await ethers.getContractFactory('PoseidonT3');
-    const poseidonT3 = await PoseidonT3.deploy();
-
-    const GuardianRegistryFactory =
-      await ethers.getContractFactory('GuardianRegistry');
-    const GuardianRegistry = await GuardianRegistryFactory.deploy(
-      'Test Guardian Registry',
-    );
-
-    const ZkKYCRegistryFactory = await ethers.getContractFactory(
-      'ZkKYCRegistry',
-      {
-        libraries: {
-          PoseidonT3: await poseidonT3.getAddress(),
+    const { guardianRegistry: GuardianRegistry, zkKYCRegistry: ZkKYCRegistry } =
+      await ignition.deploy(infrastructureModule, {
+        parameters: {
+          GuardianRegistryModule: {
+            description: 'Test Guardian Registry',
+          },
+          InfrastructureModule: {
+            merkleDepth: 32,
+            description: 'KYC Registry',
+          },
         },
-      },
-    );
-    const ZkKYCRegistry = (await ZkKYCRegistryFactory.deploy(
-      await GuardianRegistry.getAddress(),
-      32,
-      'KYC Registry',
-    )) as ZkKYCRegistry;
+      });
 
     return {
-      ZkKYCRegistry,
-      GuardianRegistry,
+      ZkKYCRegistry: ZkKYCRegistry as unknown as ZkKYCRegistry,
+      GuardianRegistry: GuardianRegistry as unknown as GuardianRegistry,
     };
   }
 

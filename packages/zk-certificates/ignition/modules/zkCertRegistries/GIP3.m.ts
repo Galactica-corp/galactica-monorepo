@@ -4,6 +4,7 @@
 import { buildModule } from '@nomicfoundation/hardhat-ignition/modules';
 
 import poseidonModule from '../Poseidon.m';
+import { defineUpgradableProxy } from '../UpgradableProxy.m';
 
 const Gip3ZkCertRegistryModule = buildModule(
   'Gip3ZkCertRegistryModule',
@@ -15,7 +16,10 @@ const Gip3ZkCertRegistryModule = buildModule(
       'Twitter Guardian Registry',
     );
 
-    const guardianRegistry = module.contract('GuardianRegistry', [
+    const {
+      upgradableContract: guardianRegistry,
+      proxyContracts: guardianRegistryProxyContracts,
+    } = defineUpgradableProxy(module, 'GuardianRegistry', [
       guardianRegistryDescription,
     ]);
 
@@ -25,17 +29,24 @@ const Gip3ZkCertRegistryModule = buildModule(
       'Twitter ZkCertificate Registry',
     );
 
-    const zkCertRegistry = module.contract(
+    const {
+      upgradableContract: zkCertRegistry,
+      proxyContracts: certificateRegistryProxyContracts,
+    } = defineUpgradableProxy(
+      module,
       'ZkCertificateRegistry',
       [guardianRegistry, merkleDepth, zkCertRegistryDescription],
       {
-        libraries: {
-          PoseidonT3: poseidon,
-        },
+        PoseidonT3: poseidon,
       },
     );
 
-    return { guardianRegistry, zkCertRegistry };
+    return {
+      guardianRegistry,
+      zkCertRegistry,
+      ...certificateRegistryProxyContracts,
+      ...guardianRegistryProxyContracts,
+    };
   },
 );
 

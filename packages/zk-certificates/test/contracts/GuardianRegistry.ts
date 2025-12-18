@@ -3,7 +3,10 @@ import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers'
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import { toBigInt } from 'ethers';
-import hre, { ethers } from 'hardhat';
+import hre, { ignition } from 'hardhat';
+
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
+import type { GuardianRegistry } from '../../typechain-types/contracts/GuardianRegistry';
 
 describe('GuardianRegistry', () => {
   let deployer: SignerWithAddress;
@@ -33,12 +36,16 @@ describe('GuardianRegistry', () => {
       metadata: 'ipfs://QmbxKQbSU2kMRx3Q96JWFvezKVCKv8ik4twKg7SFktkrgx',
     };
 
-    const GuardianRegistry = await ethers.deployContract('GuardianRegistry', [
-      description,
-    ]);
+    const { guardianRegistry } = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description,
+        },
+      },
+    });
 
     return {
-      GuardianRegistry,
+      GuardianRegistry: guardianRegistry as unknown as GuardianRegistry,
       description,
       testGuardian,
     };

@@ -2,9 +2,10 @@
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
 import type { BigNumberish } from 'ethers';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -53,11 +54,15 @@ describe('zkKYC SC', () => {
       'MockZkCertificateRegistry',
     );
 
-    // Deploy GuardianRegistry
-    guardianRegistry = await ethers.deployContract('GuardianRegistry', [
-      'https://example.com/metadata',
-    ]);
-    await guardianRegistry.waitForDeployment();
+    const ignitionContracts = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: 'https://example.com/metadata',
+        },
+      },
+    });
+    guardianRegistry =
+      ignitionContracts.guardianRegistry as unknown as GuardianRegistry;
 
     await mockZkCertificateRegistry.setGuardianRegistry(
       await guardianRegistry.getAddress(),

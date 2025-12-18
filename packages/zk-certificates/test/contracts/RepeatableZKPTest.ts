@@ -1,9 +1,10 @@
 /* Copyright (C) 2023 Galactica Network. This file is part of zkKYC. zkKYC is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. zkKYC is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details. You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>. */
 import type { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
 import chai from 'chai';
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, ignition } from 'hardhat';
 import { groth16 } from 'snarkjs';
 
+import guardianRegistryModule from '../../ignition/modules/GuardianRegistry.m';
 import {
   fromDecToHex,
   fromHexToBytes32,
@@ -47,12 +48,15 @@ describe('RepeatableZKPTest', () => {
 
     [deployer, user] = await hre.ethers.getSigners();
 
-    // Deploy GuardianRegistry
-    const GuardianRegistryFactory =
-      await ethers.getContractFactory('GuardianRegistry');
-    guardianRegistry = (await GuardianRegistryFactory.deploy(
-      'https://example.com/metadata',
-    )) as GuardianRegistry;
+    const ignitionContracts = await ignition.deploy(guardianRegistryModule, {
+      parameters: {
+        GuardianRegistryModule: {
+          description: 'https://example.com/metadata',
+        },
+      },
+    });
+    guardianRegistry =
+      ignitionContracts.guardianRegistry as unknown as GuardianRegistry;
     await guardianRegistry.waitForDeployment();
 
     mockZkCertificateRegistry = await ethers.deployContract(
