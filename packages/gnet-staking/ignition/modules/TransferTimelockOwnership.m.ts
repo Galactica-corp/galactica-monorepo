@@ -6,36 +6,39 @@ import { ethers } from 'hardhat';
 
 const TransferTimelockOwnershipModule = buildModule(
   'TransferTimelockOwnershipModule',
-  (m) => {
-    const newOwner = m.getParameter('newOwner', m.getAccount(0));
-    const timelockControllerAddress = m.getParameter(
+  (module) => {
+    const newOwner = module.getParameter('newOwner', module.getAccount(0));
+    const timelockControllerAddress = module.getParameter(
       'timelockControllerAddress',
       '0x0000000000000000000000000000000000000000',
     );
 
-    const timelockController = m.contractAt(
+    const timelockController = module.contractAt(
       'TimelockController',
       timelockControllerAddress,
       { id: 'TransferOwnership_timelockController' },
     );
 
     // Calls to be batched into proposal
-    const proposerRole = m.staticCall(timelockController, 'PROPOSER_ROLE');
-    const grantProposerRoleCall = m.encodeFunctionCall(
+    const proposerRole = module.staticCall(timelockController, 'PROPOSER_ROLE');
+    const grantProposerRoleCall = module.encodeFunctionCall(
       timelockController,
       'grantRole',
       [proposerRole, newOwner],
       { id: 'TransferOwnership_grantProposerRoleCall' },
     );
-    const executorRole = m.staticCall(timelockController, 'EXECUTOR_ROLE');
-    const grantExecutorRoleCall = m.encodeFunctionCall(
+    const executorRole = module.staticCall(timelockController, 'EXECUTOR_ROLE');
+    const grantExecutorRoleCall = module.encodeFunctionCall(
       timelockController,
       'grantRole',
       [executorRole, newOwner],
       { id: 'TransferOwnership_grantExecutorRoleCall' },
     );
-    const cancellerRole = m.staticCall(timelockController, 'CANCELLER_ROLE');
-    const grantCancellerRoleCall = m.encodeFunctionCall(
+    const cancellerRole = module.staticCall(
+      timelockController,
+      'CANCELLER_ROLE',
+    );
+    const grantCancellerRoleCall = module.encodeFunctionCall(
       timelockController,
       'grantRole',
       [cancellerRole, newOwner],
@@ -43,8 +46,8 @@ const TransferTimelockOwnershipModule = buildModule(
     );
 
     // Schedule upgrade call through the timelock controller
-    const delay = m.staticCall(timelockController, 'getMinDelay');
-    const scheduledBatch = m.call(
+    const delay = module.staticCall(timelockController, 'getMinDelay');
+    const scheduledBatch = module.call(
       timelockController,
       'scheduleBatch',
       [
@@ -63,7 +66,7 @@ const TransferTimelockOwnershipModule = buildModule(
     // For the test, we can just set the timelock duration to 0
 
     // Execute the call after the timelock has passed
-    m.call(
+    module.call(
       timelockController,
       'executeBatch',
       [
