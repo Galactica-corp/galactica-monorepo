@@ -634,14 +634,7 @@ describe('RewardDistributor', function () {
         .connect(user)
         .claimRewardToOtherAddress(claimInput2, user3.address),
     )
-      .to.emit(rewardDistributor, 'ClaimReward')
-      .withArgs(
-        merkleTree2.merkleRootHash,
-        user3.address,
-        claimInput.account,
-        claimInput.leafIndex,
-        expectedAmount,
-      );
+      .to.changeEtherBalance(user3, expectedAmount);
     const contractBalanceAfter3 = await ethers.provider.getBalance(
       await rewardDistributor.getAddress(),
     );
