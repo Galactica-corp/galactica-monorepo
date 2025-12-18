@@ -633,8 +633,7 @@ describe('RewardDistributor', function () {
       rewardDistributor
         .connect(user)
         .claimRewardToOtherAddress(claimInput2, user3.address),
-    )
-      .to.changeEtherBalance(user3, expectedAmount);
+    ).to.changeEtherBalance(user3, expectedAmount);
     const contractBalanceAfter3 = await ethers.provider.getBalance(
       await rewardDistributor.getAddress(),
     );
