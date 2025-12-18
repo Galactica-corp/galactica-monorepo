@@ -13,6 +13,7 @@ import {MerkleProof} from '@openzeppelin/contracts/utils/cryptography/MerkleProo
  * @title RewardDistributor
  * @notice Contract for claiming rewards on-chain based on a merkle tree holding reward data
  * @dev The reward data is calculated offchain and stored in a merkle tree. The merkle proof about rewards needs to be provided off-chain and is only verified on-chain.
+ *      Supports both ERC20 tokens and native tokens (ETH). When rewardToken is set to address(0), native tokens are distributed.
  */
 contract RewardDistributor is Ownable2StepUpgradeable, Fallback {
     using SafeERC20 for IERC20;
@@ -45,10 +46,15 @@ contract RewardDistributor is Ownable2StepUpgradeable, Fallback {
     }
 
     /**
+     * @notice Receive ETH from the caller.
+     */
+    receive() external payable {}
+
+    /**
      * @notice Initialize the contract with this function because a smart contract behind a proxy can't have a constructor.
      * @param _owner The owner of the contract.
      * @param _assetManager The asset manager of the contract.
-     * @param _rewardToken The reward token of the contract.
+     * @param _rewardToken The reward token of the contract. Set to address(0) to use native tokens (ETH).
      */
     function initialize(
         address _owner,
@@ -119,7 +125,7 @@ contract RewardDistributor is Ownable2StepUpgradeable, Fallback {
 
     /**
      * @notice Change the reward token.
-     * @param newRewardToken The new reward token.
+     * @param newRewardToken The new reward token. Set to address(0) to use native tokens (ETH).
      */
     function changeRewardToken(address newRewardToken) public onlyOwner {
         rewardToken = newRewardToken;
@@ -184,7 +190,17 @@ contract RewardDistributor is Ownable2StepUpgradeable, Fallback {
         userTotalRewardClaimed[claimInput.account] = claimInput.amount;
         userLastClaimedEpoch[claimInput.account] = currentEpoch;
         totalRewardClaimed += amountToClaim;
-        IERC20(rewardToken).safeTransfer(sendToAddress, amountToClaim);
+
+        if (rewardToken == address(0)) {
+            // Native token transfer
+            (bool success, ) = payable(sendToAddress).call{
+                value: amountToClaim
+            }('');
+            require(success, 'RewardDistributor: ETH transfer failed');
+        } else {
+            // ERC20 token transfer
+            IERC20(rewardToken).safeTransfer(sendToAddress, amountToClaim);
+        }
 
         emit ClaimReward(
             rewardMerkleRoot,
