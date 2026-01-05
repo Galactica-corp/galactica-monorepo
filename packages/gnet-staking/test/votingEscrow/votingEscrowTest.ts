@@ -6,6 +6,7 @@ import { expect } from 'chai';
 import { ethers, ignition } from 'hardhat';
 
 import { assertBNClosePercent } from './helpers/assertions';
+import { ONE_YEAR } from './helpers/constants';
 import votingEscrowModule from '../../ignition/modules/VotingEscrow.m';
 import type { MockSmartWallet } from '../../typechain-types/contracts/test/MockSmartWallet';
 import type { VotingEscrow } from '../../typechain-types/contracts/VotingEscrow';
@@ -18,6 +19,7 @@ describe('VotingEscrow Tests', function () {
   const lockAmount = ethers.parseEther('100');
   const WEEK = 7 * 86400;
   const MAXTIME = 2 * 365 * 86400; // 2 years
+  const SAME_AMOUNT_DURATION = 365 * 86400;
   const PRECISION = ethers.parseEther('1');
 
   /**
@@ -606,7 +608,7 @@ describe('VotingEscrow Tests', function () {
         await ve.balanceOf(alice.address),
         (lockAmount *
           ((await ve.lockEnd(alice.address)) - BigInt(await getTimestamp()))) /
-          BigInt(MAXTIME),
+          BigInt(SAME_AMOUNT_DURATION),
         '0.01',
       );
     });
@@ -628,7 +630,7 @@ describe('VotingEscrow Tests', function () {
         (lockAmount *
           3n *
           ((await ve.lockEnd(alice.address)) - BigInt(await getTimestamp()))) /
-          BigInt(MAXTIME),
+          BigInt(SAME_AMOUNT_DURATION),
         '0.01',
       );
     });
@@ -666,6 +668,54 @@ describe('VotingEscrow Tests', function () {
         '2',
       );
       assertBNClosePercent(await ve.penaltyAccumulated(), lockAmount / 2n, '2');
+    });
+  });
+
+  describe('ve amount constants', () => {
+    it('should have the correct MAXTIME constant', async () => {
+      const { ve } = await loadFixture(deployFixture);
+      const contractMaxTime = await ve.MAXTIME();
+      expect(contractMaxTime).to.equal(BigInt(MAXTIME));
+    });
+
+    it('balanceOf equals deposited amount when locked for one year', async () => {
+      const { ve, alice } = await loadFixture(deployFixture);
+
+      const timestamp = await getTimestamp();
+      const lockTime = BigInt(timestamp) + BigInt(ONE_YEAR);
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+
+      assertBNClosePercent(await ve.balanceOf(alice.address), lockAmount, '2'); // 2% diff is ok because the lock time gets rounded down to weeks in the contract.
+    });
+
+    it('balanceOf decays as expected', async () => {
+      const { ve, alice } = await loadFixture(deployFixture);
+
+      const timestamp = await getTimestamp();
+      const lockTime = BigInt(timestamp) + BigInt(MAXTIME);
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+
+      const expectedInitialBalance =
+        (lockAmount * BigInt(MAXTIME)) / BigInt(SAME_AMOUNT_DURATION);
+      assertBNClosePercent(
+        await ve.balanceOf(alice.address),
+        expectedInitialBalance,
+        '1',
+      );
+
+      await time.increaseTo(lockTime - BigInt(MAXTIME / 2));
+      assertBNClosePercent(
+        await ve.balanceOf(alice.address),
+        expectedInitialBalance / 2n,
+        '1',
+      );
+
+      await time.increaseTo(lockTime - BigInt(MAXTIME / 4));
+      assertBNClosePercent(
+        await ve.balanceOf(alice.address),
+        expectedInitialBalance / 4n,
+        '2',
+      ); // 2% diff is ok because the lock time gets rounded down to weeks in the contract.
     });
   });
 });

@@ -232,11 +232,13 @@ describe('VotingEscrow Math test', () => {
     const stakeAmt2 = ethers.parseEther('1000');
     let start: bigint;
     let maxTime: bigint;
+    let sameAmountDuration: bigint;
     before(async () => {
       await goToNextUnixWeekStart();
       start = await getTimestampBN();
       await deployFresh();
       maxTime = await votingLockup.MAXTIME();
+      sameAmountDuration = await votingLockup.SAME_AMOUNT_DURATION();
       // Fund accounts with native tokens
       await ethers.provider.send('hardhat_setBalance', [
         alice.address,
@@ -277,7 +279,7 @@ describe('VotingEscrow Math test', () => {
     });
 
     const calcBias = (amount: bigint, len: bigint): bigint =>
-      (amount / maxTime) * len;
+      (amount / sameAmountDuration) * len;
 
     describe('creating a lockup', () => {
       it('allows user to create a lock', async () => {
@@ -350,7 +352,7 @@ describe('VotingEscrow Math test', () => {
         await expect(
           votingLockup
             .connect(other)
-            .createLock(start + TWO_YEARS + ONE_WEEK, { value: 1 }),
+            .createLock(start + maxTime + ONE_WEEK, { value: 1 }),
         ).to.be.revertedWith('Exceeds maxtime');
       });
     });
@@ -409,13 +411,15 @@ describe('VotingEscrow Math test', () => {
           await expect(
             votingLockup
               .connect(bob)
-              .increaseUnlockTime((await getTimestampBN()) + ONE_WEEK * 105n),
+              .increaseUnlockTime(
+                (await getTimestampBN()) + maxTime + ONE_WEEK,
+              ),
           ).to.be.revertedWith('Exceeds maxtime');
 
           await expect(
             votingLockup
               .connect(david)
-              .createLock((await getTimestampBN()) + ONE_WEEK * 105n, {
+              .createLock((await getTimestampBN()) + maxTime + ONE_WEEK, {
                 value: stakeAmt1,
               }),
           ).to.be.revertedWith('Exceeds maxtime');
@@ -581,7 +585,7 @@ describe('VotingEscrow Math test', () => {
       /**
        * SETUP
        */
-      const MAXTIME = await votingLockup.MAXTIME();
+      const SAME_AMOUNT_DURATION = await votingLockup.SAME_AMOUNT_DURATION();
       const tolerance = '0.04'; // 0.04% | 0.00004 | 4e14
       const amount = ethers.parseEther('1000');
       // Fund accounts with native tokens
@@ -621,12 +625,12 @@ describe('VotingEscrow Math test', () => {
       await ethers.provider.send('evm_mine', []);
       assertBNClosePercent(
         await votingLockup.balanceOf(alice.address),
-        (amount / MAXTIME) * (ONE_WEEK - ONE_HOUR * 2n),
+        (amount / SAME_AMOUNT_DURATION) * (ONE_WEEK - ONE_HOUR * 2n),
         tolerance,
       );
       assertBNClosePercent(
         await votingLockup.totalSupply(),
-        (amount / MAXTIME) * (ONE_WEEK - ONE_HOUR * 2n),
+        (amount / SAME_AMOUNT_DURATION) * (ONE_WEEK - ONE_HOUR * 2n),
         tolerance,
       );
       expect(await votingLockup.balanceOf(bob.address)).eq(0n);
@@ -647,12 +651,14 @@ describe('VotingEscrow Math test', () => {
         dt = (await getTimestampBN()) - t0;
         assertBNClosePercent(
           await votingLockup.totalSupply(),
-          (amount / MAXTIME) * maximum(ONE_WEEK - ONE_HOUR * 2n - dt, 0n),
+          (amount / SAME_AMOUNT_DURATION) *
+            maximum(ONE_WEEK - ONE_HOUR * 2n - dt, 0n),
           tolerance,
         );
         assertBNClosePercent(
           await votingLockup.balanceOf(alice.address),
-          (amount / MAXTIME) * maximum(ONE_WEEK - ONE_HOUR * 2n - dt, 0n),
+          (amount / SAME_AMOUNT_DURATION) *
+            maximum(ONE_WEEK - ONE_HOUR * 2n - dt, 0n),
           tolerance,
         );
         expect(await votingLockup.balanceOf(bob.address)).eq(0n);
@@ -688,12 +694,12 @@ describe('VotingEscrow Math test', () => {
 
       assertBNClosePercent(
         await votingLockup.totalSupply(),
-        (amount / MAXTIME) * 2n * ONE_WEEK,
+        (amount / SAME_AMOUNT_DURATION) * 2n * ONE_WEEK,
         tolerance,
       );
       assertBNClosePercent(
         await votingLockup.balanceOf(alice.address),
-        (amount / MAXTIME) * 2n * ONE_WEEK,
+        (amount / SAME_AMOUNT_DURATION) * 2n * ONE_WEEK,
         tolerance,
       );
       expect(await votingLockup.balanceOf(bob.address)).eq(0n);
@@ -707,17 +713,17 @@ describe('VotingEscrow Math test', () => {
 
       assertBNClosePercent(
         await votingLockup.totalSupply(),
-        (amount / MAXTIME) * 3n * ONE_WEEK,
+        (amount / SAME_AMOUNT_DURATION) * 3n * ONE_WEEK,
         tolerance,
       );
       assertBNClosePercent(
         await votingLockup.balanceOf(alice.address),
-        (amount / MAXTIME) * 2n * ONE_WEEK,
+        (amount / SAME_AMOUNT_DURATION) * 2n * ONE_WEEK,
         tolerance,
       );
       assertBNClosePercent(
         await votingLockup.balanceOf(bob.address),
-        (amount / MAXTIME) * ONE_WEEK,
+        (amount / SAME_AMOUNT_DURATION) * ONE_WEEK,
         tolerance,
       );
 
@@ -745,12 +751,12 @@ describe('VotingEscrow Math test', () => {
         expect(wTotal).eq(wAlice + wBob);
         assertBNClosePercent(
           wAlice,
-          (amount / MAXTIME) * maximum(ONE_WEEK * 2n - dt, 0n),
+          (amount / SAME_AMOUNT_DURATION) * maximum(ONE_WEEK * 2n - dt, 0n),
           tolerance,
         );
         assertBNClosePercent(
           wBob,
-          (amount / MAXTIME) * maximum(ONE_WEEK - dt, 0n),
+          (amount / SAME_AMOUNT_DURATION) * maximum(ONE_WEEK - dt, 0n),
           tolerance,
         );
         stages.alice_bob_in_2.push([
@@ -771,7 +777,7 @@ describe('VotingEscrow Math test', () => {
 
       assertBNClosePercent(
         wTotal,
-        (amount / MAXTIME) * (ONE_WEEK - ONE_HOUR * 2n),
+        (amount / SAME_AMOUNT_DURATION) * (ONE_WEEK - ONE_HOUR * 2n),
         tolerance,
       );
       expect(await votingLockup.balanceOf(bob.address)).eq(0n);
@@ -791,7 +797,7 @@ describe('VotingEscrow Math test', () => {
         expect(wTotal).eq(wAlice);
         assertBNClosePercent(
           wTotal,
-          (amount / MAXTIME) *
+          (amount / SAME_AMOUNT_DURATION) *
             maximum(
               ONE_WEEK - dt - (ONE_HOUR * 37n) / BigInt(DEFAULT_DECIMALS),
               0n,
@@ -837,7 +843,7 @@ describe('VotingEscrow Math test', () => {
       );
       assertBNClosePercent(
         wAlice,
-        (amount / MAXTIME) * (ONE_WEEK - ONE_HOUR),
+        (amount / SAME_AMOUNT_DURATION) * (ONE_WEEK - ONE_HOUR),
         tolerance,
       );
       expect(
@@ -857,7 +863,7 @@ describe('VotingEscrow Math test', () => {
         const error1h = (ONE_HOUR * 100n) / timeLeft + 1n; // Rounding error of 1 block is possible, and we have 1h blocks
         assertBNClosePercent(
           wAlice,
-          (amount / MAXTIME) * timeLeft,
+          (amount / SAME_AMOUNT_DURATION) * timeLeft,
           error1h.toString(),
         );
       }
@@ -886,7 +892,7 @@ describe('VotingEscrow Math test', () => {
       );
       assertBNClosePercent(
         wTotal,
-        (amount / MAXTIME) * 2n * ONE_WEEK,
+        (amount / SAME_AMOUNT_DURATION) * 2n * ONE_WEEK,
         tolerance,
       );
       expect(wTotal).eq(wAlice);
@@ -904,12 +910,12 @@ describe('VotingEscrow Math test', () => {
       expect(wTotal).eq(wAlice + wBob);
       assertBNClosePercent(
         wTotal,
-        (amount / MAXTIME) * 3n * ONE_WEEK,
+        (amount / SAME_AMOUNT_DURATION) * 3n * ONE_WEEK,
         tolerance,
       );
       assertBNClosePercent(
         wAlice,
-        (amount / MAXTIME) * 2n * ONE_WEEK,
+        (amount / SAME_AMOUNT_DURATION) * 2n * ONE_WEEK,
         tolerance,
       );
 
@@ -925,12 +931,12 @@ describe('VotingEscrow Math test', () => {
         error1h = (ONE_HOUR * 100n) / (2n * ONE_WEEK - i - ONE_DAY) + 1n;
         assertBNClosePercent(
           wAlice,
-          (amount / MAXTIME) * maximum(ONE_WEEK * 2n - dt, 0n),
+          (amount / SAME_AMOUNT_DURATION) * maximum(ONE_WEEK * 2n - dt, 0n),
           error1h.toString(),
         );
         assertBNClosePercent(
           wBob,
-          (amount / MAXTIME) * maximum(ONE_WEEK - dt, 0n),
+          (amount / SAME_AMOUNT_DURATION) * maximum(ONE_WEEK - dt, 0n),
           error1h.toString(),
         );
       }
@@ -946,7 +952,7 @@ describe('VotingEscrow Math test', () => {
       expect(wTotal).eq(wAlice);
       assertBNClosePercent(
         wTotal,
-        (amount / MAXTIME) * (ONE_WEEK - ONE_HOUR * 2n),
+        (amount / SAME_AMOUNT_DURATION) * (ONE_WEEK - ONE_HOUR * 2n),
         tolerance,
       );
       expect(wBob).eq(0n);
@@ -962,7 +968,8 @@ describe('VotingEscrow Math test', () => {
         error1h = (ONE_HOUR * 100n) / (ONE_WEEK - i * ONE_DAY + ONE_DAY) + 1n;
         assertBNClosePercent(
           wTotal,
-          (amount / MAXTIME) * maximum(ONE_WEEK - dt - ONE_HOUR * 2n, 0n),
+          (amount / SAME_AMOUNT_DURATION) *
+            maximum(ONE_WEEK - dt - ONE_HOUR * 2n, 0n),
           error1h.toString(),
         );
       }

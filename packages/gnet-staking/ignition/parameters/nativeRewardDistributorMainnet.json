@@ -1,0 +1,7 @@
+{
+  "RewardDistributorModule": {
+    "owner": "0xEB2082D1C208c4F3ABE645F7BBD779bF6c2C3ada",
+    "assetManager": "0xEB2082D1C208c4F3ABE645F7BBD779bF6c2C3ada",
+    "rewardToken": "0x0000000000000000000000000000000000000000"
+  }
+}
