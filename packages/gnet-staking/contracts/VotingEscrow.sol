@@ -47,6 +47,7 @@ contract VotingEscrow is
 
     // Shared global state
     uint256 public constant WEEK = 7 days;
+    uint256 public constant SAME_AMOUNT_DURATION = 365 days; // Lock duration for which the vote escrow balance is the same as the deposited amount
     uint256 public constant MAXTIME = 730 days; // 2 years
     uint256 public constant MULTIPLIER = 1e18;
     address public penaltyRecipient; // receives collected penalty payments
@@ -200,13 +201,13 @@ contract VotingEscrow is
         if (_addr != address(0)) {
             // Calculate slopes and biases
             // Kept at zero when they have to
-            // Casting in the next blocks is safe given that MAXTIME is a small
+            // Casting in the next blocks is safe given that SAME_AMOUNT_DURATION is a small
             // positive number and we check for _oldLocked.end>block.timestamp
             // and _newLocked.end>block.timestamp
             if (_oldLocked.end > block.timestamp && _oldLocked.amount > 0) {
                 userOldPoint.slope =
                     _oldLocked.amount /
-                    int128(int256(MAXTIME));
+                    int128(int256(SAME_AMOUNT_DURATION));
                 userOldPoint.bias =
                     userOldPoint.slope *
                     int128(int256(_oldLocked.end - block.timestamp));
@@ -214,7 +215,7 @@ contract VotingEscrow is
             if (_newLocked.end > block.timestamp && _newLocked.amount > 0) {
                 userNewPoint.slope =
                     _newLocked.amount /
-                    int128(int256(MAXTIME));
+                    int128(int256(SAME_AMOUNT_DURATION));
                 userNewPoint.bias =
                     userNewPoint.slope *
                     int128(int256(_newLocked.end - block.timestamp));
