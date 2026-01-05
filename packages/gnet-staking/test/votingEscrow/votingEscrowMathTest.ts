@@ -350,7 +350,7 @@ describe('VotingEscrow Math test', () => {
         await expect(
           votingLockup
             .connect(other)
-            .createLock(start + TWO_YEARS + ONE_WEEK, { value: 1 }),
+            .createLock(start + maxTime + ONE_WEEK, { value: 1 }),
         ).to.be.revertedWith('Exceeds maxtime');
       });
     });
@@ -409,13 +409,13 @@ describe('VotingEscrow Math test', () => {
           await expect(
             votingLockup
               .connect(bob)
-              .increaseUnlockTime((await getTimestampBN()) + ONE_WEEK * 105n),
+              .increaseUnlockTime((await getTimestampBN()) + maxTime + ONE_WEEK),
           ).to.be.revertedWith('Exceeds maxtime');
 
           await expect(
             votingLockup
               .connect(david)
-              .createLock((await getTimestampBN()) + ONE_WEEK * 105n, {
+              .createLock((await getTimestampBN()) + maxTime + ONE_WEEK, {
                 value: stakeAmt1,
               }),
           ).to.be.revertedWith('Exceeds maxtime');
@@ -487,8 +487,8 @@ describe('VotingEscrow Math test', () => {
 
         expect(davidAfter.senderStakingTokenBalance).eq(
           davidBefore.senderStakingTokenBalance +
-            davidBefore.userLocked.amount -
-            accumulatedFeesDavid,
+          davidBefore.userLocked.amount -
+          accumulatedFeesDavid,
         );
         expect(davidAfter.userLastPoint.bias).eq(0n);
         expect(davidAfter.userLastPoint.slope).eq(0n);
@@ -509,8 +509,8 @@ describe('VotingEscrow Math test', () => {
 
         expect(eveAfter.senderStakingTokenBalance).eq(
           eveBefore.senderStakingTokenBalance +
-            eveBefore.userLocked.amount -
-            accumulatedFeesEve,
+          eveBefore.userLocked.amount -
+          accumulatedFeesEve,
         );
         expect(eveAfter.userLastPoint.bias).eq(0n);
         expect(eveAfter.userLastPoint.slope).eq(0n);
@@ -529,8 +529,8 @@ describe('VotingEscrow Math test', () => {
 
         expect(francisAfter.senderStakingTokenBalance).eq(
           francisBefore.senderStakingTokenBalance +
-            francisBefore.userLocked.amount -
-            accumulatedFeesFrancis,
+          francisBefore.userLocked.amount -
+          accumulatedFeesFrancis,
         );
         expect(francisAfter.userLastPoint.bias).eq(0n);
         expect(francisAfter.userLastPoint.slope).eq(0n);
@@ -792,10 +792,10 @@ describe('VotingEscrow Math test', () => {
         assertBNClosePercent(
           wTotal,
           (amount / MAXTIME) *
-            maximum(
-              ONE_WEEK - dt - (ONE_HOUR * 37n) / BigInt(DEFAULT_DECIMALS),
-              0n,
-            ),
+          maximum(
+            ONE_WEEK - dt - (ONE_HOUR * 37n) / BigInt(DEFAULT_DECIMALS),
+            0n,
+          ),
           isCoverage ? '1' : '0.04',
         );
         expect(await votingLockup.balanceOf(bob.address)).eq(0n);

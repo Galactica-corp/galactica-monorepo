@@ -47,7 +47,7 @@ contract VotingEscrow is
 
     // Shared global state
     uint256 public constant WEEK = 7 days;
-    uint256 public constant MAXTIME = 730 days;
+    uint256 public constant MAXTIME = 730 days; // 2 years
     uint256 public constant MULTIPLIER = 1e18;
     address public penaltyRecipient; // receives collected penalty payments
     uint256 public maxPenalty; // penalty for quitters with MAXTIME remaining lock
