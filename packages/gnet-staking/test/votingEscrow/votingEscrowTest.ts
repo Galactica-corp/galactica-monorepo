@@ -216,8 +216,8 @@ describe('VotingEscrow Tests', function () {
       assertBNClosePercent(
         expectedPenalty,
         initialGovUserBal -
-          (await ethers.provider.getBalance(alice.address)) -
-          accumulatedFees,
+        (await ethers.provider.getBalance(alice.address)) -
+        accumulatedFees,
         '0.01',
       );
     });
@@ -365,8 +365,8 @@ describe('VotingEscrow Tests', function () {
       assertBNClosePercent(
         expectedPenalty,
         initialGovUserBal -
-          (await ethers.provider.getBalance(alice.address)) -
-          accumulatedFeesAlice,
+        (await ethers.provider.getBalance(alice.address)) -
+        accumulatedFeesAlice,
         '0.01',
       );
 
@@ -390,8 +390,8 @@ describe('VotingEscrow Tests', function () {
       assertBNClosePercent(
         expectedPenaltyDavid,
         initialGovUserBal -
-          (await ethers.provider.getBalance(david.address)) -
-          accumulatedFeesDavid,
+        (await ethers.provider.getBalance(david.address)) -
+        accumulatedFeesDavid,
         '0.01',
       );
     });
@@ -551,8 +551,8 @@ describe('VotingEscrow Tests', function () {
       assertBNClosePercent(
         expectedPenaltyFrancis,
         initialGovUserBal -
-          (await ethers.provider.getBalance(francis.address)) -
-          accumulatedFeesFrancis,
+        (await ethers.provider.getBalance(francis.address)) -
+        accumulatedFeesFrancis,
         '0.01',
       );
     });
@@ -606,7 +606,7 @@ describe('VotingEscrow Tests', function () {
         await ve.balanceOf(alice.address),
         (lockAmount *
           ((await ve.lockEnd(alice.address)) - BigInt(await getTimestamp()))) /
-          BigInt(MAXTIME),
+        BigInt(MAXTIME),
         '0.01',
       );
     });
@@ -628,7 +628,7 @@ describe('VotingEscrow Tests', function () {
         (lockAmount *
           3n *
           ((await ve.lockEnd(alice.address)) - BigInt(await getTimestamp()))) /
-          BigInt(MAXTIME),
+        BigInt(MAXTIME),
         '0.01',
       );
     });
@@ -666,6 +666,24 @@ describe('VotingEscrow Tests', function () {
         '2',
       );
       assertBNClosePercent(await ve.penaltyAccumulated(), lockAmount / 2n, '2');
+    });
+  });
+
+  describe('ve amount constants', () => {
+    it('should have the correct MAXTIME constant', async () => {
+      const { ve } = await loadFixture(deployFixture);
+      const contractMaxTime = await ve.MAXTIME();
+      expect(contractMaxTime).to.equal(BigInt(MAXTIME));
+    });
+
+    it('balanceOf equals deposited amount when locked for MAXTIME', async () => {
+      const { ve, alice } = await loadFixture(deployFixture);
+
+      const timestamp = await getTimestamp();
+      const lockTime = BigInt(timestamp) + BigInt(MAXTIME);
+      await ve.connect(alice).createLock(lockTime, { value: lockAmount });
+
+      assertBNClosePercent(await ve.balanceOf(alice.address), lockAmount, '1'); // 1% diff is ok because the lock time gets rounded down to weeks in the contract.
     });
   });
 });
