@@ -1,7 +1,7 @@
 {
-  "RewardDistributorModule#ProxyImplementationRewardDistributor": "0x8966e4ee93e901f7540F4EA12ff59326F3Cd828E",
-  "TimelockControllerModule#TimelockController": "0xed31Ea402796dB0306B3f8EECd68d68A3fc31BD0",
-  "RewardDistributorModule#TransparentUpgradeableProxyRewardDistributor": "0x8c08c8F2901a8d5043Ece42190dB17B8F9364Bf1",
-  "RewardDistributorModule#UpgradableContractRewardDistributor": "0x8c08c8F2901a8d5043Ece42190dB17B8F9364Bf1",
-  "RewardDistributorModule#ProxyAdminRewardDistributor": "0xbF1a498FfD731ba2Bd0Cb7D02786AB883e1Cbf9d"
+  "RewardDistributorModule#ProxyImplementationRewardDistributor": "0xba7b47A5B9008efA3808BB25857Ea09F3dA25168",
+  "TimelockControllerModule#TimelockController": "0x518185cb3BDD0836dFBB4A1775d79EB8dc3ED0E6",
+  "RewardDistributorModule#TransparentUpgradeableProxyRewardDistributor": "0x80BCB71F63f11344F5483d108374fa394A587AbE",
+  "RewardDistributorModule#UpgradableContractRewardDistributor": "0x80BCB71F63f11344F5483d108374fa394A587AbE",
+  "RewardDistributorModule#ProxyAdminRewardDistributor": "0x1eA0285B7dC0f696685aCdAC8412a65E7a20bE4E"
 }
