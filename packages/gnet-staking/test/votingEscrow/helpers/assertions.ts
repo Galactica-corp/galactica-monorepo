@@ -57,7 +57,7 @@ export const assertBNClose = (
  *
  * @param a The first BN instance
  * @param b The second BN instance
- * @param variance The allowed variance as a string or number (e.g., "0.02" for 2%)
+ * @param variance The allowed variance as a string or number (e.g., "2" for 2%, or "0.02" for 0.02%)
  * @param reason Optional reason for the assertion
  */
 export const assertBNClosePercent = (
@@ -79,7 +79,7 @@ export const assertBNClosePercent = (
     : '';
   assert.ok(
     diff <= varianceBN,
-    `Numbers exceed ${variance}% diff (Delta between a and b is ${diff.toString()}%, but variance was only ${varianceBN.toString()})${str}`,
+    `Numbers exceed ${variance}% diff (Delta between a and b is ${Number(diff).toExponential()}, but variance was only ${Number(varianceBN).toExponential()})${str}`,
   );
 };
 

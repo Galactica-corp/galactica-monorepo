@@ -420,18 +420,16 @@ describe('Upgrade Staking', function () {
       const wGNET = await wGNETFactory.deploy();
 
       // stakers deposit GNET to get WGNET
-      await wGNET.connect(staker).deposit({ value: ethers.parseEther('1000') });
-      await wGNET
-        .connect(staker2)
-        .deposit({ value: ethers.parseEther('1000') });
+      await wGNET.connect(staker).deposit({ value: ethers.parseEther('500') });
+      await wGNET.connect(staker2).deposit({ value: ethers.parseEther('500') });
 
       // approve WGNET for the staking contract
       await wGNET
         .connect(staker)
-        .approve(await upgradedStaking.getAddress(), ethers.parseEther('1000'));
+        .approve(await upgradedStaking.getAddress(), ethers.parseEther('500'));
       await wGNET
         .connect(staker2)
-        .approve(await upgradedStaking.getAddress(), ethers.parseEther('1000'));
+        .approve(await upgradedStaking.getAddress(), ethers.parseEther('500'));
 
       // set WGNET inside the staking contract
       await upgradedStaking.setWGNET(wGNET.getAddress());

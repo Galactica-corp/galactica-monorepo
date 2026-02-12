@@ -1,0 +1,7 @@
+{
+  "RewardDistributorModule#ProxyImplementationRewardDistributor": "0x5B416A1D72518372B04AA3Ea548F74c355B0371b",
+  "TimelockControllerModule#TimelockController": "0x1F92b8285b11B4578232342E98F413Ea1f54F564",
+  "RewardDistributorModule#TransparentUpgradeableProxyRewardDistributor": "0x07297E1aA709C85e81c1a9498080AE010bE91D80",
+  "RewardDistributorModule#UpgradableContractRewardDistributor": "0x07297E1aA709C85e81c1a9498080AE010bE91D80",
+  "RewardDistributorModule#ProxyAdminRewardDistributor": "0x2675eb6a27A3A94B451EdBa19fe903B14B4C9415"
+}

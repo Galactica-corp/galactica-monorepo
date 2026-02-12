@@ -1,7 +1,11 @@
 {
   "StakingModule#ProxyImplementationStaking": "0xf45546423EdA9BFB11aFF605bCCf34b7C5A32308",
-  "TimelockControllerModule#TimelockController": "0xD9087e050E17c55483DAaab21E81Bb38D43630fe",
+  "TimelockControllerModule#TimelockController": "0x17A5039dFeeBa81ad30E50C004B216e12e104A81",
   "StakingModule#TransparentUpgradeableProxyStaking": "0xC0F305b12a73c6c8c6fd0EE0459c93f5C73e1AB3",
   "StakingModule#UpgradableContractStaking": "0xC0F305b12a73c6c8c6fd0EE0459c93f5C73e1AB3",
-  "StakingModule#ProxyAdminStaking": "0x834aBfD0F076D9adC4DD5c58CFFDC99C39350c17"
+  "StakingModule#ProxyAdminStaking": "0x834aBfD0F076D9adC4DD5c58CFFDC99C39350c17",
+  "RewardDistributorModule#ProxyImplementationRewardDistributor": "0x5e25E74Af14Dbc8BE5be73551F5DDAFcb46D824E",
+  "RewardDistributorModule#TransparentUpgradeableProxyRewardDistributor": "0x378da56bddB6495B18BD5a42c3e9353B1D590BeB",
+  "RewardDistributorModule#UpgradableContractRewardDistributor": "0x378da56bddB6495B18BD5a42c3e9353B1D590BeB",
+  "RewardDistributorModule#ProxyAdminRewardDistributor": "0xBf373948342Cf5173c2E5d1646c9e32dEBC52Dac"
 }
